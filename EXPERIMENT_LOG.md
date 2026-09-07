@@ -18,6 +18,8 @@
 | E5 | 2026-09-07 | lowering 특성화 (10종 × 3크기, 메모리 포함) | FUNCTIONAL_ONLY (binary·RSS는 결정론적) | `harness/characterize.py`, `results_characterization_*.json` | Pareto 5개; 크기 간 ρ=+0.18; **메모리 축 반증** (B0 40 KB vs 1216 KB) | EVIDENCE v0.2 | 833edb6 |
 | E6 | 2026-09-07 | 정적 메모리 상한 산출 (P2b) | 결정론적 | `harness/static_mem_bound.py`, `harness/static_bound_sweep.py`, `results_static_bound.json` | 정적 상한 = HAL 피크, 30/30 sound, tightness 1.0; 설정 불변 | EVIDENCE v0.3 §1 | 45213d6 |
 | **E6c** | 2026-09-07 | 베이킹 모델 정적 상한 IR 파싱 (검토 §5 분모 해소) | 결정론적 | `results_static_bound_baked.json` | 30/30 sound·tight; 상수 720,896 B 모듈 상주로 분리 귀속 | EVIDENCE v0.3 §7 | (v0.3.1) |
+| **E7** | 2026-09-07 | 메모리 전용 admission checker (A5) | 결정론적 | `harness/admission_check.py`, `admission_sweep.py`, `results_admission.json` | 240 판정, optimistic/pessimistic misprediction 0, config-invariant | EVIDENCE v0.4 §1 | (v0.4) |
+| **E8** | 2026-09-07 | 동적 형상 모델의 UNBOUNDED 판정 | 결정론적 | `results_admission.json` (`E8_dynamic_shape`) | all_sizes_static=false → UNBOUNDED, 예산 무관 거절 | EVIDENCE v0.4 §2 | (v0.4) |
 | **E6b** | 2026-09-07 | **정정**: 가중치 베이킹 재특성화 | FUNCTIONAL_ONLY | `harness/characterize_baked.py`, `results_characterization_baked.json` | E1–E5가 매 호출 가중치 복사를 포함. 정정 후 격차 2.2–4.1×, ρ=+0.81, Pareto 붕괴 | EVIDENCE v0.3 §2 | c78c7ab |
 
 ## 가설 판정 이력
@@ -28,6 +30,7 @@
 | v0.1 | 부분 기각 | 강화 (근거 noise 안쪽) | 미검증 | E1–E4 |
 | v0.2 | 기각 유지 | **확립** (결정론적 근거로 교체) | 미검증(입력 확보) | E5 |
 | **v0.3** | 기각 유지 (격차 2.2–4.1×로 정정) | **격하: 부분 지지** (ρ 근거 철회) | **메모리 축 전제 충족** (정적 상한 sound) | E6, E6b |
+| **v0.4** | 변화 없음 | 변화 없음 (E7 config-invariance는 메모리 판정에 선택 불필요라는 반대 증거) | **메모리 축, 시험 조건 내 성립** (경계 b, 240/240, E8) | E7, E8 |
 | **v0.3.1** | 현 모델·구현·플랫폼에서 성능 우위 미관측; 예측성 일반화 보류 | 설정별 비용 차이 관측; **계약 기반 선택의 이점 미입증** | 정적 per-call 버퍼 계약의 후보 근거 확보; 경계·가정·판정기 검증 필요 | E6c, 외부 검토 |
 
 ## 반증된 주장 이력

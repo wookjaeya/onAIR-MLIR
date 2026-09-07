@@ -3,30 +3,213 @@
   "title": "OnAIR AI plugin deployment contract",
   "description": "Split per reviewer issue m2: this file describes the MODEL/ARTIFACT only. System-level schedulability belongs in analysis_report.json, not here.",
   "type": "object",
-  "required": ["model", "interface", "target", "resources", "timing", "artifact"],
+  "required": [
+    "model",
+    "interface",
+    "target",
+    "resources",
+    "timing",
+    "artifact"
+  ],
   "properties": {
-    "model": {"type": "object", "required": ["name", "sha256"], "properties": {
-      "name": {"type": "string"}, "sha256": {"type": "string"}, "version": {"type": "string"}}},
-    "interface": {"type": "object", "required": ["input", "output"], "properties": {
-      "input": {"$ref": "#/$defs/tensor"}, "output": {"$ref": "#/$defs/tensor"}}},
-    "target": {"type": "object", "required": ["triple", "profile"], "properties": {
-      "triple": {"type": "string"}, "cpu": {"type": "string"},
-      "profile": {"enum": ["fast", "predictable", "memory"]},
-      "driver": {"type": "string"}, "extra_args": {"type": "array", "items": {"type": "string"}}}},
-    "resources": {"type": "object", "properties": {
-      "peak_memory_bytes": {"type": ["integer", "null"]},
-      "binary_size_bytes": {"type": "integer"}}},
-    "timing": {"type": "object", "required": ["boundary", "bound_method"], "properties": {
-      "boundary": {"enum": ["L1_kernel", "L2_plugin", "L3_end_to_end"],
-                   "description": "Reviewer issue C3: a bound is meaningless without its measurement boundary."},
-      "execution_bound_us": {"type": ["number", "null"]},
-      "bound_method": {"enum": ["measured_max", "measured_with_margin", "static_wcet", null],
-                       "description": "measured_max is NOT a WCET. Level A/B/C must never be conflated."},
-      "sample_count": {"type": ["integer", "null"]},
-      "platform_timing_grade": {"enum": ["PASS", "FUNCTIONAL_ONLY"]}}},
-    "artifact": {"type": "object", "required": ["file", "sha256"], "properties": {
-      "file": {"type": "string"}, "sha256": {"type": "string"}}}
+    "model": {
+      "type": "object",
+      "required": [
+        "name",
+        "sha256"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "interface": {
+      "type": "object",
+      "required": [
+        "input",
+        "output"
+      ],
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/tensor"
+        },
+        "output": {
+          "$ref": "#/$defs/tensor"
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": [
+        "triple",
+        "profile"
+      ],
+      "properties": {
+        "triple": {
+          "type": "string"
+        },
+        "cpu": {
+          "type": "string"
+        },
+        "profile": {
+          "enum": [
+            "fast",
+            "predictable",
+            "memory"
+          ]
+        },
+        "driver": {
+          "type": "string"
+        },
+        "extra_args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "required": [
+        "memory_boundary",
+        "static_per_call_bytes",
+        "module_resident_constant_bytes",
+        "bound_method"
+      ],
+      "properties": {
+        "memory_boundary": {
+          "const": "per_call_plus_module_constants",
+          "description": "v0.4 decision (option b): bounded region = static per-call buffers + module-resident constants, both from the compiler's allocation schedule. Runtime context, stacks, cFS pipes are attributed only, never bounded."
+        },
+        "static_per_call_bytes": {
+          "type": "integer"
+        },
+        "static_transient_bytes": {
+          "type": "integer"
+        },
+        "static_io_bytes": {
+          "type": "integer"
+        },
+        "module_resident_constant_bytes": {
+          "type": "integer"
+        },
+        "bounded_bytes": {
+          "type": "integer",
+          "description": "static_per_call_bytes + module_resident_constant_bytes; the figure compared against a budget"
+        },
+        "bound_method": {
+          "enum": [
+            "static_from_stream_schedule",
+            "NONE"
+          ],
+          "description": "NONE means a size was not a compile-time constant; admission must return UNBOUNDED"
+        },
+        "bound_assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "binary_size_bytes": {
+          "type": "integer"
+        },
+        "runtime_context_bytes_measured": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "runtime_check": {
+          "type": "object"
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "required": [
+        "boundary",
+        "bound_method"
+      ],
+      "properties": {
+        "boundary": {
+          "enum": [
+            "L1_kernel",
+            "L2_plugin",
+            "L3_end_to_end"
+          ],
+          "description": "Reviewer issue C3: a bound is meaningless without its measurement boundary."
+        },
+        "execution_bound_us": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "bound_method": {
+          "enum": [
+            "measured_max",
+            "measured_with_margin",
+            "static_wcet",
+            null
+          ],
+          "description": "measured_max is NOT a WCET. Level A/B/C must never be conflated."
+        },
+        "sample_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "platform_timing_grade": {
+          "enum": [
+            "PASS",
+            "FUNCTIONAL_ONLY"
+          ]
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "required": [
+        "file",
+        "sha256"
+      ],
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      }
+    }
   },
-  "$defs": {"tensor": {"type": "object", "required": ["shape", "dtype"], "properties": {
-    "shape": {"type": "array", "items": {"type": "integer"}}, "dtype": {"type": "string"}}}}
+  "$defs": {
+    "tensor": {
+      "type": "object",
+      "required": [
+        "shape",
+        "dtype"
+      ],
+      "properties": {
+        "shape": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "dtype": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }

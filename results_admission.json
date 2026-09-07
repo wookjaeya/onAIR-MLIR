@@ -1,0 +1,3861 @@
+{
+  "budgets": [
+    16384,
+    65536,
+    262144,
+    1048576
+  ],
+  "decisions": [
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "default"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "cpu_host"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "avx2"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "avx512"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "generic_cpu"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "no_embedded"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "host_no_embed"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "opt_size"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "no_slow_vec"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "REJECT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "host_task"
+    },
+    {
+      "verdict": "ACCEPT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "host_task"
+    }
+  ],
+  "E8_dynamic_shape": {
+    "all_sizes_static": false,
+    "unresolved": [
+      "%1",
+      "%6",
+      "%5"
+    ],
+    "transient_slices": [],
+    "bound_method": "NONE",
+    "verdict": "UNBOUNDED"
+  }
+}

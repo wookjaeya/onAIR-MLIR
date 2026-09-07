@@ -2,6 +2,14 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.4] 2026-09-07
+- 결정: 계약 메모리 경계 = 옵션 (b) per-call 정적 버퍼 + 모듈 상주 상수. 스키마에 `memory_boundary`, `bounded_bytes`, `bound_method: NONE` 추가.
+- E7: 메모리 전용 admission checker (`harness/admission_check.py`). 240 판정, misprediction 0, 판정 config-invariant, observed==bounded 240/240.
+- E8: 동적 배치 차원 모델 → UNBOUNDED 거절 확인 (정적 상한의 적용 경계).
+- 판정: H3 → "메모리 축, 시험 조건 내 성립; 시간 축 미검증".
+- 판정: H2 → 논문 주장에서 제외 권고 (E7 config-invariance).
+- 문서: `docs/EVIDENCE_v0.4_E7.md`, `REPORT_v0.4.md`(총괄).
+
 ## [v0.3.1] 2026-09-07
 - 외부 검토(`PROGRESS_v0_3_REVIEW.md`) 반영.
 - E6c: 베이킹 모델 정적 상한을 IR 파싱으로 재검증, 30/30. 총 60/60 (v0.3의 "50/50"은 오기).
