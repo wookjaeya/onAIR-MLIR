@@ -1,0 +1,15 @@
+{
+  "cpus": 1,
+  "loadavg": [
+    "0.05",
+    "0.13",
+    "0.13"
+  ],
+  "clock_res_ns": 1.0,
+  "median_us": 787.275,
+  "p99_us": 1146.774,
+  "max_us": 1889.633,
+  "ratio_p99": 1.4566371344193578,
+  "ratio_max": 2.400219745324061,
+  "timing_grade": "FUNCTIONAL_ONLY"
+}
