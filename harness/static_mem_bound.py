@@ -60,8 +60,16 @@ def dump_alloc_ir(mlir_path, extra_args):
     return r.stderr, out_vmfb
 
 
-def parse_alloc_ir(ir):
-    # constants: %c65536 = arith.constant 65536 : index   (also %c0_0 etc.)
+def parse_alloc_ir(ir, entry="infer"):
+    """Parse the allocation schedule.
+
+    Scoping matters (E6c lesson): baked constants are materialized in a
+    util.initializer via `stream.resource.constants` / `stream.tensor.import`
+    of module-resident data. Those are LOAD-TIME, module-resident bytes and
+    must not be attributed to the per-call bound. So per-call inputs /
+    outputs / transients are parsed only inside the public entry function,
+    and constant resources are reported separately.
+    """
     consts = {}
     for m in re.finditer(r"(%[\w#]+)\s*=\s*arith\.constant\s+(\d+)\s*:\s*index", ir):
         consts[m.group(1)] = int(m.group(2))
@@ -74,30 +82,42 @@ def parse_alloc_ir(ir):
             return int(m.group(1)), True
         return None, False
 
+    # isolate the entry function body
+    m = re.search(r"(util\.func|func\.func)\s+public\s+@" + re.escape(entry) + r"\b.*?\n\}", ir, re.S)
+    if m is None:
+        m = re.search(r"@" + re.escape(entry) + r"\b.*?\n  \}", ir, re.S)
+    body = m.group(0) if m else ir
+
     result = {"inputs": [], "outputs": [], "transient_slices": [],
-              "unresolved": [], "dispatches": 0}
+              "constants": [], "unresolved": [], "dispatches": 0,
+              "entry_found": m is not None}
 
-    for m in re.finditer(r"stream\.tensor\.import[^\n]*!stream\.resource<external>\{(%[\w#]+)\}", ir):
-        v, ok = size_of(m.group(1))
-        (result["inputs"] if ok else result["unresolved"]).append(v if ok else m.group(1))
+    for mm in re.finditer(r"stream\.tensor\.import[^\n]*!stream\.resource<external>\{(%[\w#]+)\}", body):
+        v, ok = size_of(mm.group(1))
+        (result["inputs"] if ok else result["unresolved"]).append(v if ok else mm.group(1))
 
-    for m in re.finditer(r"stream\.resource\.alloca[^\n]*!stream\.resource<(external|transient)>\{(%[\w#]+)\}", ir):
-        kind, sym = m.group(1), m.group(2)
+    for mm in re.finditer(r"stream\.resource\.alloca[^\n]*!stream\.resource<(external|transient)>\{(%[\w#]+)\}", body):
+        kind, sym = mm.group(1), mm.group(2)
         v, ok = size_of(sym)
         if kind == "external":
             (result["outputs"] if ok else result["unresolved"]).append(v if ok else sym)
-        # transient allocas are sized by pack results; handled via slices below
 
-    for m in re.finditer(r"stream\.resource\.pack[^{]*slices\(\{(.*?)\}\)", ir, re.S):
-        for s in re.finditer(r"\[\s*\d+\s*,\s*\d+\s*\]\s*=\s*(%[\w#]+)", m.group(1)):
-            v, ok = size_of(s.group(1))
-            (result["transient_slices"] if ok else result["unresolved"]).append(v if ok else s.group(1))
+    for mm in re.finditer(r"stream\.resource\.pack[^{]*slices\(\{(.*?)\}\)", body, re.S):
+        for s2 in re.finditer(r"\[\s*\d+\s*,\s*\d+\s*\]\s*=\s*(%[\w#]+)", mm.group(1)):
+            v, ok = size_of(s2.group(1))
+            (result["transient_slices"] if ok else result["unresolved"]).append(v if ok else s2.group(1))
 
-    result["dispatches"] = len(re.findall(r"stream\.cmd\.dispatch\s+@", ir))
+    # module-resident constants (whole module, load-time)
+    for mm in re.finditer(r"!stream\.resource<constant>\{(%[\w#]+)\}\s*=\s*dense", ir):
+        v, ok = size_of(mm.group(1))
+        if ok:
+            result["constants"].append(v)
+
+    result["dispatches"] = len(re.findall(r"stream\.cmd\.dispatch\s+@", body))
     return result
 
 
-def runtime_peak_check(vmfb, shape, driver="local-sync", iters=200):
+def runtime_peak_check(vmfb, shape, driver="local-sync", iters=200, baked=False):
     """Observe HAL allocator statistics after `iters` calls.
 
     Returns device_bytes_peak (bytes the compiled program had live at once,
@@ -118,7 +138,7 @@ def runtime_peak_check(vmfb, shape, driver="local-sync", iters=200):
     if not al.has_statistics:
         return {"supported": False}
     for _ in range(iters):
-        fn(x, w0, w1)
+        fn(x) if baked else fn(x, w0, w1)
     st = dict(al.statistics)
     st["supported"] = True
     st["iters"] = iters
@@ -132,6 +152,7 @@ def main():
     ap.add_argument("--shape", type=int, nargs=3, metavar=("N_IN", "N_H", "N_OUT"), required=True)
     ap.add_argument("--extra", default="", help="space-separated extra iree-compile flags, quoted")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--baked", action="store_true", help="model takes only x (weights are constants)")
     a = ap.parse_args()
 
     extra = a.extra.split()
@@ -145,6 +166,8 @@ def main():
         "static_external_output_bytes": sum(p["outputs"]),
         "static_transient_bytes": sum(p["transient_slices"]),
         "transient_slices": p["transient_slices"],
+        "static_constant_bytes_module_resident": sum(p["constants"]),
+        "entry_function_found": p["entry_found"],
         "all_sizes_static": all_static,
         "unresolved_sizes": p["unresolved"],
         "bound_method": "static_from_stream_schedule" if all_static else "NONE",
@@ -154,7 +177,7 @@ def main():
                                                + rep["static_transient_bytes"])
     rep["static_total_bytes_incl_inputs"] = (rep["static_external_input_bytes"]
                                              + rep["static_program_bytes_excl_inputs"])
-    rc = runtime_peak_check(vmfb, a.shape)
+    rc = runtime_peak_check(vmfb, a.shape, baked=a.baked)
     rep["runtime_check"] = rc
     if rc.get("supported"):
         peak = rc["device_bytes_peak"]

@@ -130,3 +130,19 @@ python3 harness/static_bound_sweep.py 256 4096 16384          # E6
 python3 harness/characterize_baked.py 4096 16384              # E6b
 python3 harness/characterize_baked.py 256                     # E6b (별도 실행 후 병합)
 ```
+
+---
+
+## 7. 정오표 (v0.3.1, 외부 검토 `PROGRESS_v0_3_REVIEW.md` 반영)
+
+| 항목 | v0.3 기술 | 정정 | 근거 |
+|---|---|---|---|
+| E6 검증 건수 | "50/50" | **60/60** = 입력 변형 30/30 (E6) + 베이킹 변형 30/30 (E6c, IR 파싱·엔트리 함수 스코프) | `results_static_bound.json`, `results_static_bound_baked.json` |
+| 런타임 컨텍스트 | ≈ 971 KB | **≈ 244 KB** (1,036,288 − 65,580 − 720,896) | 베이킹 상수 720,896 B는 `stream.resource.constants`로 모듈 상주; RSS delta에 포함되나 런타임 컨텍스트가 아님 |
+| "sound & tight" 의미 | 상한 보장 | **동일 할당 계획에 대한 예측·관측 일치**. 최적성 증명도, 모든 허용 실행에 대한 증명도 아님. 가정: 정적 형상, 단일 in-flight 호출, local-sync, 엔트리 함수 한정 | 검토 §5 |
+| 가중치 "임포트" | 복사 가정 | 입력 변형: 매 호출 device allocator 할당 확인(HAL `bytes_per_call`); 물리 복사는 지연 차(79→39 µs, ~720 KB memcpy 규모)로 **추정**. 베이킹 변형: allocator 통계에 부재 → 모듈 데이터에서 매핑 | E6/E6b HAL 통계 |
+| compiled/B0 비율의 통계량 | 미명시 | **L1 커널 median**. p99도 compiled 열세(h=16384: 66–84 vs 31.8 µs). p99/median은 noise 내 | `results_characterization_baked.json` |
+| "2.2×의 대가로 정적 보장 + Python 제거" | 교환 관계로 서술 | **후속 가설로 강등**. Python 제거는 Native-cFS 변형에서만 검증 가능하며 아직 미구현 | 검토 §3 |
+| 기능 동등성 "충족" | — | "시험 입력·설정에서 max_abs_diff ≤ 4.05e-6 (입력) / 3.58e-7 (베이킹) 만족". 허용 오차 기준·argmax 일치·입력 범위는 **미정의** | 검토 §7 |
+
+E6c 스크립트 수정 내용: 초기 파서가 `util.initializer` 안의 상수 임포트를 입력으로 오귀속(D2). 엔트리 함수 스코프 + `stream.resource<constant>` 별도 집계로 수정. 입력 변형 30/30은 수정 전후 동일.

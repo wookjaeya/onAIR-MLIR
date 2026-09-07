@@ -31,17 +31,28 @@
   "resources": {
     "binary_size_bytes": 733440,
     "weights": "baked_as_constants",
-    "static_program_bytes": 65580,
+    "scope_note": "This contract bounds PER-CALL program buffers only. Module-resident constants and the IREE runtime context are reported for attribution but are NOT bounded by the compiler analysis.",
+    "static_per_call_bound_bytes": 65580,
     "static_transient_bytes": 65536,
     "static_io_bytes": 44,
-    "peak_memory_method": "static_from_stream_schedule",
+    "bound_method": "static_from_stream_schedule",
+    "bound_assumptions": [
+      "static shapes",
+      "single in-flight call (no concurrency)",
+      "local-sync driver",
+      "entry function @infer only"
+    ],
     "runtime_check": {
       "device_bytes_peak": 65580,
       "bound_sound": true,
-      "tightness": 1.0
+      "tightness": 1.0,
+      "meaning": "prediction and observation agree on the same allocation plan; not an independent proof of optimality"
     },
-    "runtime_context_bytes_measured": 970708,
-    "runtime_context_method": "measured_rss_delta_minus_static; configuration-dependent; NOT bounded by the compiler"
+    "module_resident_constant_bytes": 720896,
+    "module_resident_constant_method": "parsed from stream.resource.constants; mapped from artifact at load, not allocated per call",
+    "runtime_context_bytes_measured": 249812,
+    "runtime_context_method": "RSS delta minus per-call bound minus constants; configuration-dependent; NOT bounded",
+    "erratum": "v0.3 reported runtime_context ~971 KB; that figure wrongly included the 720,896 B of baked constants. Corrected in v0.3.1."
   },
   "timing": {
     "boundary": "L1_kernel",
