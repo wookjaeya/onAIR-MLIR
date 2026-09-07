@@ -1,0 +1,272 @@
+{
+  "shape": [
+    9,
+    256,
+    2
+  ],
+  "iters": 3000,
+  "results": [
+    {
+      "name": "B0_numpy_blas",
+      "impl": "numpy",
+      "driver": null,
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 1.68,
+      "C_p95_us": 1.873,
+      "C_p99_us": 5.175,
+      "C_max_us": 30.35,
+      "n": 3000,
+      "dispersion_p99_over_median": 3.08,
+      "M_rss_delta_kb": 96,
+      "M_rss_peak_kb": 35164,
+      "S_binary_bytes": 0,
+      "max_abs_diff_vs_numpy": 0.0
+    },
+    {
+      "name": "default",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 12.356,
+      "C_p95_us": 22.384,
+      "C_p99_us": 34.792,
+      "C_max_us": 83.059,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.816,
+      "M_rss_delta_kb": 508,
+      "M_rss_peak_kb": 39852,
+      "S_binary_bytes": 10444,
+      "max_abs_diff_vs_numpy": 2.9802322387695312e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu"
+      ]
+    },
+    {
+      "name": "cpu_host",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 11.805,
+      "C_p95_us": 17.759,
+      "C_p99_us": 36.724,
+      "C_max_us": 60.471,
+      "n": 3000,
+      "dispersion_p99_over_median": 3.111,
+      "M_rss_delta_kb": 560,
+      "M_rss_peak_kb": 39752,
+      "S_binary_bytes": 11652,
+      "max_abs_diff_vs_numpy": 2.2351741790771484e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-target-cpu=host"
+      ]
+    },
+    {
+      "name": "avx2",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 11.836,
+      "C_p95_us": 15.992,
+      "C_p99_us": 30.2,
+      "C_max_us": 90.584,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.552,
+      "M_rss_delta_kb": 560,
+      "M_rss_peak_kb": 39716,
+      "S_binary_bytes": 10524,
+      "max_abs_diff_vs_numpy": 2.2351741790771484e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-target-cpu-features=+avx2,+fma"
+      ]
+    },
+    {
+      "name": "avx512",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 11.538,
+      "C_p95_us": 17.281,
+      "C_p99_us": 31.185,
+      "C_max_us": 131.647,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.703,
+      "M_rss_delta_kb": 556,
+      "M_rss_peak_kb": 39752,
+      "S_binary_bytes": 10820,
+      "max_abs_diff_vs_numpy": 2.2351741790771484e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-target-cpu-features=+avx512f,+avx512bw,+avx2,+fma"
+      ]
+    },
+    {
+      "name": "generic_cpu",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 10.961,
+      "C_p95_us": 14.761,
+      "C_p99_us": 26.403,
+      "C_max_us": 46.808,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.409,
+      "M_rss_delta_kb": 508,
+      "M_rss_peak_kb": 40020,
+      "S_binary_bytes": 10444,
+      "max_abs_diff_vs_numpy": 2.9802322387695312e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-target-cpu=generic"
+      ]
+    },
+    {
+      "name": "no_embedded",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 10.962,
+      "C_p95_us": 15.314,
+      "C_p99_us": 27.569,
+      "C_max_us": 40.137,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.515,
+      "M_rss_delta_kb": 512,
+      "M_rss_peak_kb": 39880,
+      "S_binary_bytes": 22562,
+      "max_abs_diff_vs_numpy": 2.9802322387695312e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-link-embedded=false"
+      ]
+    },
+    {
+      "name": "host_no_embed",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 10.305,
+      "C_p95_us": 13.252,
+      "C_p99_us": 25.361,
+      "C_max_us": 40.92,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.461,
+      "M_rss_delta_kb": 584,
+      "M_rss_peak_kb": 39924,
+      "S_binary_bytes": 23458,
+      "max_abs_diff_vs_numpy": 2.2351741790771484e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-target-cpu=host",
+        "--iree-llvmcpu-link-embedded=false"
+      ]
+    },
+    {
+      "name": "opt_size",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 12.381,
+      "C_p95_us": 18.618,
+      "C_p99_us": 34.344,
+      "C_max_us": 55.427,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.774,
+      "M_rss_delta_kb": 500,
+      "M_rss_peak_kb": 39728,
+      "S_binary_bytes": 11652,
+      "max_abs_diff_vs_numpy": 2.2351741790771484e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-target-cpu=host",
+        "--iree-opt-strip-assertions"
+      ]
+    },
+    {
+      "name": "no_slow_vec",
+      "impl": "iree",
+      "driver": "local-sync",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 11.129,
+      "C_p95_us": 16.703,
+      "C_p99_us": 28.601,
+      "C_max_us": 300.934,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.57,
+      "M_rss_delta_kb": 564,
+      "M_rss_peak_kb": 39980,
+      "S_binary_bytes": 11636,
+      "max_abs_diff_vs_numpy": 2.2351741790771484e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-target-cpu=host",
+        "--iree-llvmcpu-disable-distribution"
+      ]
+    },
+    {
+      "name": "host_task",
+      "impl": "iree",
+      "driver": "local-task",
+      "shape": [
+        9,
+        256,
+        2
+      ],
+      "C_median_us": 19.478,
+      "C_p95_us": 31.443,
+      "C_p99_us": 43.5,
+      "C_max_us": 72.777,
+      "n": 3000,
+      "dispersion_p99_over_median": 2.233,
+      "M_rss_delta_kb": 2680,
+      "M_rss_peak_kb": 42068,
+      "S_binary_bytes": 11652,
+      "max_abs_diff_vs_numpy": 2.2351741790771484e-08,
+      "flags": [
+        "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+        "--iree-llvmcpu-target-cpu=host"
+      ]
+    }
+  ]
+}

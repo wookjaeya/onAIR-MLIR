@@ -1,0 +1,50 @@
+{
+  "model": {
+    "name": "mlp_9x65536x2",
+    "sha256": "97ba454aac32f66df2d7268e5e102d662d903942ecc4f2ab180dc0f368ec00cc"
+  },
+  "interface": {
+    "input": {
+      "shape": [
+        1,
+        9
+      ],
+      "dtype": "f32"
+    },
+    "output": {
+      "shape": [
+        1,
+        2
+      ],
+      "dtype": "f32"
+    }
+  },
+  "target": {
+    "triple": "x86_64-unknown-linux-gnu",
+    "profile": "no_slow_vec",
+    "driver": "local-sync",
+    "extra_args": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-llvmcpu-disable-distribution"
+    ]
+  },
+  "resources": {
+    "binary_size_bytes": 11692,
+    "peak_memory_bytes": 1314816,
+    "peak_memory_method": "measured_rss_delta",
+    "note": "RSS growth from pre-load to post-inference-loop; includes the IREE runtime context, not only model buffers. NOT a static bound."
+  },
+  "timing": {
+    "boundary": "L1_kernel",
+    "execution_bound_us": 262.963,
+    "bound_method": "measured_max",
+    "sample_count": 1200,
+    "platform_timing_grade": "FUNCTIONAL_ONLY",
+    "note": "measured_max is not a WCET; it can only falsify feasibility, never establish it."
+  },
+  "artifact": {
+    "file": "model.vmfb",
+    "sha256": "63635f0a72d52aa987a1adc032c40aa18a7ecb31966b8128e318e86f9a2ee3a3"
+  }
+}
