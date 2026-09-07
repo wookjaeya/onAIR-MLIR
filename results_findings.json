@@ -1,0 +1,70 @@
+{
+  "platform": {
+    "cpus": 1,
+    "timing_grade": "FUNCTIONAL_ONLY",
+    "ratio_p99": 1.67,
+    "ratio_max": 2.26,
+    "note": "absolute latencies here are not citable evidence; ratios between implementations measured back-to-back on the same host are indicative only"
+  },
+  "integration": {
+    "onair_full_driver_run": "PASS (compiled_learner + python_learner loaded via onair.src.util.plugin_import, CSV telemetry source)",
+    "plugin_api": "AIPlugin(name, headers) / update(low_level_data, high_level_data) / render_reasoning()",
+    "gotcha": "ServiceManager singleton must be initialized once before any plugin instantiation"
+  },
+  "marshalling_floor_us": {
+    "identity_call_median": 4.7,
+    "identity_call_p99": 12.06
+  },
+  "sweep_L1_kernel_median_us": [
+    {
+      "hidden": 16,
+      "compiled": 13.1,
+      "numpy": 1.9,
+      "ratio": 6.9
+    },
+    {
+      "hidden": 64,
+      "compiled": 13.8,
+      "numpy": 1.9,
+      "ratio": 7.1
+    },
+    {
+      "hidden": 256,
+      "compiled": 15.3,
+      "numpy": 2.1,
+      "ratio": 7.4
+    },
+    {
+      "hidden": 1024,
+      "compiled": 22.0,
+      "numpy": 3.1,
+      "ratio": 7.0
+    },
+    {
+      "hidden": 4096,
+      "compiled": 51.5,
+      "numpy": 5.4,
+      "ratio": 9.5
+    },
+    {
+      "hidden": 16384,
+      "compiled": 152.5,
+      "numpy": 17.9,
+      "ratio": 8.5
+    },
+    {
+      "hidden": 65536,
+      "compiled": 775.8,
+      "numpy": 123.4,
+      "ratio": 6.3
+    }
+  ],
+  "lowering_config_effect_hidden16384_L1_median_us": {
+    "default": 141.2,
+    "host_cpu": 82.3,
+    "avx2": 154.0,
+    "avx512": 96.4,
+    "numpy_BLAS": 17.9,
+    "spread_across_configs_x": 1.87
+  }
+}
