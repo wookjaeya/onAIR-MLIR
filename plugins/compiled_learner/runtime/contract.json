@@ -1,0 +1,45 @@
+{
+  "model": {
+    "name": "mlp_9x65536x2",
+    "sha256": "97ba454aac32f66df2d7268e5e102d662d903942ecc4f2ab180dc0f368ec00cc"
+  },
+  "interface": {
+    "input": {
+      "shape": [
+        1,
+        9
+      ],
+      "dtype": "f32"
+    },
+    "output": {
+      "shape": [
+        1,
+        2
+      ],
+      "dtype": "f32"
+    }
+  },
+  "target": {
+    "triple": "x86_64-unknown-linux-gnu",
+    "profile": "fast",
+    "driver": "local-sync",
+    "extra_args": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu"
+    ]
+  },
+  "resources": {
+    "binary_size_bytes": 10642,
+    "peak_memory_bytes": null
+  },
+  "timing": {
+    "boundary": null,
+    "execution_bound_us": null,
+    "bound_method": null,
+    "sample_count": null,
+    "platform_timing_grade": null
+  },
+  "artifact": {
+    "file": "model.vmfb",
+    "sha256": "63635f0a72d52aa987a1adc032c40aa18a7ecb31966b8128e318e86f9a2ee3a3"
+  }
+}
