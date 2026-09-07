@@ -2,6 +2,17 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.5] 2026-09-08
+- 외부 검토(`REPORT_v0_4_REVIEW.md`) 반영.
+- 정정(결함 D3): 상한 계산법 "slice 합" → "post-layout transient alloca 크기". E9 정렬 간극·수명 재사용 사례에서 slice 합이 과소(48<128, 84<128)임을 실증. MLP 60/60 재검증.
+- E9: 할당 구조 4사례 (A 정렬, B 수명 재사용, C 대형 체인, D fusion) 4/4 sound·tight.
+- 상수 독립 검증: `iree-dump-module` rodata 세그먼트 부분합으로 30/30 확인 (IR 값 재사용 아님).
+- 판정 의미: ACCEPT/REJECT/UNBOUNDED → ADMIT / NOT_ADMITTED(보증 불가≠불가능) / UNKNOWN_BOUND(분석 미확보≠상한 부재). pessimistic → conservative_denial.
+- E10: 경계값 U−1/U/U+1 18/18 정확.
+- E7b: 258 판정, misprediction 0, config-invariant.
+- 판정: H3 시험 조건 내 성립, 근거 강화. 중심 문장을 "OnAIR IREE 아티팩트의 부분 메모리 계약·판정기 구현·검증"으로 한정. 런타임 컨텍스트 → 미분류 잔차. TFLM 서술 미검증으로 통일.
+- 문서: `docs/EVIDENCE_v0.5_E9.md`.
+
 ## [v0.4] 2026-09-07
 - 결정: 계약 메모리 경계 = 옵션 (b) per-call 정적 버퍼 + 모듈 상주 상수. 스키마에 `memory_boundary`, `bounded_bytes`, `bound_method: NONE` 추가.
 - E7: 메모리 전용 admission checker (`harness/admission_check.py`). 240 판정, misprediction 0, 판정 config-invariant, observed==bounded 240/240.

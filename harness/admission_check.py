@@ -13,12 +13,18 @@ independent of H2 (selection), and E6/E6c gave the memory axis a static
 figure. This is the smallest experiment that turns that figure into a
 decision and then checks the decision against reality.
 
-Verdicts
-    ACCEPT     bounded <= budget and all sizes static
-    REJECT     bounded  > budget
-    UNBOUNDED  a size in the schedule is not a compile-time constant;
-               no static bound exists, so the artifact is refused regardless
-               of budget (a "we do not know" is not a "yes")
+Verdicts (v0.5 semantics, reviewer v0.4 §5/§6)
+    ADMIT          bounded <= budget and all sizes static. Under the stated
+                   assumptions, budget compliance is guaranteed.
+    NOT_ADMITTED   bounded  > budget. Meaning: THIS bound cannot guarantee
+                   compliance. It is NOT a proof that execution is infeasible
+                   (a conservative bound may exceed a budget the real run
+                   would meet). A separate lower bound would be needed for an
+                   infeasibility claim; none is computed here.
+    UNKNOWN_BOUND  a size was not resolved to a compile-time constant by the
+                   current analysis. Policy: not admitted. This does not
+                   assert that no bound exists -- only that this analysis
+                   did not obtain one.
 
 Verification
     For every ACCEPT/REJECT we run the artifact and read the HAL allocator
@@ -45,9 +51,9 @@ def analyze(mlir, shape, extra, baked):
 
 def decide(analysis, budget_bytes):
     if not analysis["all_sizes_static"]:
-        return "UNBOUNDED", None
+        return "UNKNOWN_BOUND", None
     bounded = analysis["static_total_bytes_incl_inputs"] + analysis["static_constant_bytes_module_resident"]
-    return ("ACCEPT" if bounded <= budget_bytes else "REJECT"), bounded
+    return ("ADMIT" if bounded <= budget_bytes else "NOT_ADMITTED"), bounded
 
 
 def verify(analysis, budget_bytes):
@@ -72,14 +78,15 @@ def main():
            "components": {"per_call": an["static_total_bytes_incl_inputs"],
                           "constants": an["static_constant_bytes_module_resident"]},
            "unresolved": an["unresolved_sizes"]}
-    if verdict != "UNBOUNDED":
+    if verdict != "UNKNOWN_BOUND":
         v = verify(an, a.budget)
         if v:
             observed, within = v
             out["observed_bytes"] = observed
             out["observed_within_budget"] = within
-            out["misprediction"] = ("optimistic" if verdict == "ACCEPT" and not within else
-                                    "pessimistic" if verdict == "REJECT" and within else None)
+            out["misprediction"] = ("optimistic" if verdict == "ADMIT" and not within else
+                                    "conservative_denial" if verdict == "NOT_ADMITTED" and within else None)
+            out["constants_independently_confirmed"] = an.get("constants_independently_confirmed_in_artifact")
     print(json.dumps(out, indent=2))
 
 

@@ -9,6 +9,8 @@ from static_bound_sweep import MLIR as MLIR_INPUTS
 import numpy as np
 
 BUDGETS = [16 * 1024, 64 * 1024, 256 * 1024, 1024 * 1024]   # 16K 64K 256K 1M
+# E10: boundary budgets around the exact bounded value M(h)=48h+44 (inputs and baked share it)
+BOUNDARY = {h: [48*h+44-1, 48*h+44, 48*h+44+1] for h in (256, 4096, 16384)}
 
 def run(mlir, shape, extra, baked, budget):
     r = subprocess.run([sys.executable, os.path.join(os.path.dirname(__file__), "admission_check.py"),
@@ -26,9 +28,10 @@ def main():
             f = tempfile.NamedTemporaryFile("w", suffix=".mlir", delete=False); f.write(src); f.close()
             for name, cfg in CONFIGS.items():
                 extra = " ".join([f"--iree-llvmcpu-target-triple={BASE_TRIPLE}"] + cfg["flags"])
-                for b in BUDGETS:
+                for b in BUDGETS + (BOUNDARY[h] if name == "cpu_host" else []):
                     o = run(f.name, (9, h, 2), extra, variant == "baked", b)
-                    o.update({"hidden": h, "variant": variant, "config": name})
+                    o.update({"hidden": h, "variant": variant, "config": name,
+                              "boundary_test": b in BOUNDARY[h]})
                     rows.append(o)
         print(f"h={h} done ({len(rows)} decisions so far)")
     # E8: dynamic batch dimension -> sizes are not constants
@@ -56,7 +59,7 @@ def main():
               "transient_slices": an["transient_slices"], "bound_method": an["bound_method"]}
     except Exception:
         e8 = {"error": (r.stderr or txt)[-400:]}
-    e8["verdict"] = "UNBOUNDED" if not e8.get("all_sizes_static", True) else "STATIC"
+    e8["verdict"] = "UNKNOWN_BOUND" if not e8.get("all_sizes_static", True) else "STATIC"
     json.dump({"budgets": BUDGETS, "decisions": rows, "E8_dynamic_shape": e8}, open("results_admission.json", "w"), indent=2)
     # summary
     from collections import Counter

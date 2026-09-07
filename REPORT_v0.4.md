@@ -1,6 +1,6 @@
 # 총괄 보고서 — Statically-Bounded AI Deployment Contracts for NASA OnAIR/cFS
 
-**기준 버전**: v0.4 (git tag `v0.4`, 2026-09-07)
+**기준 버전**: v0.4 (git tag `v0.4`, 2026-09-07) — **v0.5 정정 부록(§12) 참조; §4·§5.3·§7의 상한 계산법 서술은 D3로 정정됨**
 **대상 기간**: 연구노트 v0.1 검토 → E0–E8 (모두 2026-09-07)
 **정본 관계**: 본 보고서는 총괄이다. 실험별 근거는 `docs/EVIDENCE_v0.1–v0.4`, 실험 등록·판정 이력·철회·결함 원장은 `EXPERIMENT_LOG.md`, 버전 변경은 `CHANGELOG.md`.
 
@@ -127,7 +127,7 @@
 2. **제외**: H1(성능 우위)과 H2(선택 이점)는 논문 주장에서 뺀다. H2는 E7의 config-invariance가 반대 증거다.
 3. **제목 방향**: "Contract-Guided MLIR Lowering…" → **"Statically-Bounded AI Deployment Contracts for NASA OnAIR/cFS"** 계열. "Predictable"·"Timing"은 시간 축 증거가 나올 때까지 제목에 넣지 않는다.
 4. **B0 유지**: NumPy/BLAS 플러그인은 강한 베이스라인이며 약화하지 않는다. 비교 명칭은 "Python vs AOT"가 아니라 **"NumPy/BLAS 플러그인 vs IREE 플러그인"**.
-5. **MLIR 필연성은 미입증**: TFLM의 정적 아레나도 컴파일 시 크기를 준다. 차별점 후보는 "할당 스케줄 IR이 노출되어 독립 파싱·검증 가능"이며 B2 비교로 보여야 한다.
+5. **MLIR 필연성은 미입증**: TFLM의 정적 아레나가 컴파일 시 크기를 제공한다는 서술은 **미검증**이며 대안 비교 전 확인이 필요하다. 차별점 후보는 "할당 스케줄 IR이 노출되어 독립 파싱·검증 가능"이며 B2 비교로 보여야 한다.
 
 ---
 
@@ -215,3 +215,21 @@ onair-mlir-bench/            git: 커밋 1건 = 실험 1건, 태그 v0.2 v0.3 v0
 | 외부 검토 `PROGRESS_v0_3_REVIEW.md` | 사용자 제공 | 반영 완료 |
 
 미검증: TFLite Micro 정적 아레나 특성(공식 문서 인용 필요), LLVM MicroBlaze 백엔드 부재, CPython on RTEMS, IREE `stream.resource.pack`의 lifetime 패킹 세부.
+
+---
+
+## 12. v0.5 정정 부록 (2026-09-08, 외부 검토 반영)
+
+| 항목 | v0.4 서술 | v0.5 |
+|---|---|---|
+| 상한 계산법 | `stream.resource.pack` slice 합 | **post-layout transient alloca 크기** (정렬·수명 재사용 해소 후). slice 합은 정렬 간극 구조에서 과소(E9-A 48<128, E9-B 84<128) — **결함 D3** |
+| E6/E6c 60/60 | sound & tight | 수정 방법으로 재실행, 60/60 유지 (단일 정렬 슬라이스라 값 불변) |
+| 할당 구조 다양성 | MLP 1종 | 정렬·수명·대형·fusion 4종 추가, 4/4 sound·tight (E9) |
+| 상수 검증 | IR 값을 관측에 재사용 | `iree-dump-module` rodata 세그먼트로 독립 확인 30/30 |
+| 판정 명칭 | ACCEPT / REJECT / UNBOUNDED | ADMIT / NOT_ADMITTED(보증 불가) / UNKNOWN_BOUND(분석 미확보) |
+| 경계값 | 미시험 | U−1/U/U+1 18/18 (E10) |
+| 판정 건수 | 240, misprediction 0 | 258, misprediction 0 |
+| 중심 문장 | "cFS 배치 전 admission 수행" | "정적 형상·단일 호출 조건의 MLP 아티팩트에서 부분 메모리 계약을 추출하고 예산 판정기를 검증했다. 시험한 조건에서 계산값과 관측값은 일치했으며, 분석 불가능한 모델은 허용하지 않았다. Native-cFS 예산 연결과 동일 범위 대안 비교는 후속 검증 대상이다." |
+| 런타임 컨텍스트 ≈244 KB | 런타임 컨텍스트 | 미분류 잔차 |
+
+근거: `docs/EVIDENCE_v0.5_E9.md`, `results_structural_cases.json`.

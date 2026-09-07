@@ -52,7 +52,7 @@ def dump_alloc_ir(mlir_path, extra_args):
         out_vmfb = f.name
     cmd = ["iree-compile", mlir_path,
            "--iree-hal-target-backends=llvm-cpu",
-           "--mlir-print-ir-after=iree-stream-schedule-allocation",
+           "--mlir-print-ir-after=iree-stream-layout-slices",
            "-o", out_vmfb] + extra_args
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
@@ -83,12 +83,14 @@ def parse_alloc_ir(ir, entry="infer"):
         return None, False
 
     # isolate the entry function body
-    m = re.search(r"(util\.func|func\.func)\s+public\s+@" + re.escape(entry) + r"\b.*?\n\}", ir, re.S)
-    if m is None:
-        m = re.search(r"@" + re.escape(entry) + r"\b.*?\n  \}", ir, re.S)
+    # the pass-manager may print the module several times; take the LAST
+    # occurrence of the entry function (the most-lowered state)
+    ms = list(re.finditer(r"(util\.func|func\.func)\s+public\s+@" + re.escape(entry) + r"\b.*?\n\}", ir, re.S))
+    m = ms[-1] if ms else None
     body = m.group(0) if m else ir
 
     result = {"inputs": [], "outputs": [], "transient_slices": [],
+              "transient_slabs": [],
               "constants": [], "unresolved": [], "dispatches": 0,
               "entry_found": m is not None}
 
@@ -101,13 +103,17 @@ def parse_alloc_ir(ir, entry="infer"):
         v, ok = size_of(sym)
         if kind == "external":
             (result["outputs"] if ok else result["unresolved"]).append(v if ok else sym)
+        else:  # transient slab, post-layout: exact laid-out size incl. alignment/reuse
+            (result["transient_slabs"] if ok else result["unresolved"]).append(v if ok else sym)
 
     for mm in re.finditer(r"stream\.resource\.pack[^{]*slices\(\{(.*?)\}\)", body, re.S):
         for s2 in re.finditer(r"\[\s*\d+\s*,\s*\d+\s*\]\s*=\s*(%[\w#]+)", mm.group(1)):
             v, ok = size_of(s2.group(1))
             (result["transient_slices"] if ok else result["unresolved"]).append(v if ok else s2.group(1))
 
-    # module-resident constants (whole module, load-time)
+    # module-resident constants (load-time). With a single --mlir-print-ir-after
+    # pass the pass manager prints each function once, so the initializer (and
+    # its stream.resource.constants) appears exactly once in the dump.
     for mm in re.finditer(r"!stream\.resource<constant>\{(%[\w#]+)\}\s*=\s*dense", ir):
         v, ok = size_of(mm.group(1))
         if ok:
@@ -117,19 +123,33 @@ def parse_alloc_ir(ir, entry="infer"):
     return result
 
 
-def runtime_peak_check(vmfb, shape, driver="local-sync", iters=200, baked=False):
-    """Observe HAL allocator statistics after `iters` calls.
+def entry_arg_shapes(mlir_path, entry="infer"):
+    """Static f32 argument shapes of the entry function, parsed from source."""
+    import re
+    src = open(mlir_path).read()
+    m = re.search(r"func\.func\s+(?:public\s+)?@" + re.escape(entry) + r"\((.*?)\)\s*->", src, re.S)
+    if not m:
+        return None
+    shapes = []
+    for t in re.finditer(r"tensor<([0-9x?]+)xf32>", m.group(1)):
+        dims = t.group(1).split("x")
+        if any(d == "?" for d in dims):
+            return None
+        shapes.append(tuple(int(d) for d in dims))
+    return shapes
 
-    Returns device_bytes_peak (bytes the compiled program had live at once,
-    including imported inputs) so it can be compared with the static bound.
-    """
+
+def runtime_peak_check(vmfb, mlir_path, driver="local-sync", iters=200):
+    """Observe HAL allocator statistics after `iters` calls with random f32
+    inputs matching the entry signature. Returns device_bytes_peak (bytes the
+    compiled program had live at once, including imported inputs)."""
     import numpy as np
     import iree.runtime as rt
-    n_in, n_h, n_out = shape
+    shapes = entry_arg_shapes(mlir_path)
+    if shapes is None:
+        return {"supported": False, "reason": "dynamic or unparsable entry signature"}
     rng = np.random.default_rng(0)
-    x = rng.random((1, n_in), dtype=np.float32)
-    w0 = rng.random((n_in, n_h), dtype=np.float32)
-    w1 = rng.random((n_h, n_out), dtype=np.float32)
+    args = [rng.random(sh, dtype=np.float32) for sh in shapes]
     cfg = rt.Config(driver)
     ctx = rt.SystemContext(config=cfg)
     ctx.add_vm_module(rt.VmModule.copy_buffer(ctx.instance, open(vmfb, "rb").read()))
@@ -138,12 +158,22 @@ def runtime_peak_check(vmfb, shape, driver="local-sync", iters=200, baked=False)
     if not al.has_statistics:
         return {"supported": False}
     for _ in range(iters):
-        fn(x) if baked else fn(x, w0, w1)
+        fn(*args)
     st = dict(al.statistics)
     st["supported"] = True
     st["iters"] = iters
     st["bytes_per_call"] = st["device_bytes_allocated"] / iters
+    st["arg_shapes"] = [list(sh) for sh in shapes]
     return st
+
+
+def artifact_rodata_segments(vmfb):
+    """Independent (non-IR) observation: external .rodata segment sizes in the
+    compiled flatbuffer, from iree-dump-module. Used to cross-check the IR
+    constant total without reusing the IR figure (reviewer v0.4 §4)."""
+    r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    segs = [int(m.group(1)) for m in re.finditer(r"\.rodata\[\s*\d+\]\s+external\s+(\d+) bytes", r.stdout)]
+    return segs
 
 
 def main():
@@ -164,20 +194,38 @@ def main():
         "mlir": a.mlir, "extra_args": extra, "dispatches": p["dispatches"],
         "static_external_input_bytes": sum(p["inputs"]),
         "static_external_output_bytes": sum(p["outputs"]),
-        "static_transient_bytes": sum(p["transient_slices"]),
+        "static_transient_bytes": sum(p["transient_slabs"]),
+        "transient_slabs_post_layout": p["transient_slabs"],
+        "transient_slice_sum_diagnostic": sum(p["transient_slices"]),
         "transient_slices": p["transient_slices"],
+        "bound_source": "post-layout transient alloca (iree-stream-layout-slices); alignment and lifetime reuse resolved by compiler",
         "static_constant_bytes_module_resident": sum(p["constants"]),
         "entry_function_found": p["entry_found"],
         "all_sizes_static": all_static,
         "unresolved_sizes": p["unresolved"],
-        "bound_method": "static_from_stream_schedule" if all_static else "NONE",
+        "bound_method": "static_from_stream_layout" if all_static else "UNKNOWN_BOUND",
         "scope": "program-allocated buffers only; excludes IREE runtime context",
     }
     rep["static_program_bytes_excl_inputs"] = (rep["static_external_output_bytes"]
                                                + rep["static_transient_bytes"])
     rep["static_total_bytes_incl_inputs"] = (rep["static_external_input_bytes"]
                                              + rep["static_program_bytes_excl_inputs"])
-    rc = runtime_peak_check(vmfb, a.shape, baked=a.baked)
+    segs = artifact_rodata_segments(vmfb)
+    rep["artifact_rodata_external_segments"] = segs
+    # The artifact may pool several IR constants into one .rodata segment, so
+    # the check is: IR constant TOTAL equals the sum of some subset of the
+    # external segments (subset-sum over a handful of segments).
+    total_c = sum(p["constants"])
+    from itertools import combinations
+    subset_sums = {0}
+    for k in range(1, len(segs) + 1):
+        for comb in combinations(segs, k):
+            subset_sums.add(sum(comb))
+    matched = total_c > 0 and total_c in subset_sums
+    rep["constants_independently_confirmed_in_artifact"] = matched
+    rep["constants_check_note"] = (f"IR constant total {total_c} B equals a subset-sum of flatbuffer .rodata external segments {segs} (iree-dump-module)"
+                                   if matched else f"IR constant total {total_c} B NOT matched by artifact segments {segs}")
+    rc = runtime_peak_check(vmfb, a.mlir)
     rep["runtime_check"] = rc
     if rc.get("supported"):
         peak = rc["device_bytes_peak"]

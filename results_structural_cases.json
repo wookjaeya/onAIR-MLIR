@@ -1,0 +1,50 @@
+[
+  {
+    "case": "A_align_gap",
+    "dispatches": 3,
+    "slice_sum": 48,
+    "slab_post_layout": 128,
+    "hal_transient_observed": 128,
+    "io_bytes": 372,
+    "slice_sum_underestimates": true,
+    "slab_sound": true,
+    "slab_tight": true,
+    "all_static": true
+  },
+  {
+    "case": "B_lifetime_reuse",
+    "dispatches": 4,
+    "slice_sum": 84,
+    "slab_post_layout": 128,
+    "hal_transient_observed": 128,
+    "io_bytes": 664,
+    "slice_sum_underestimates": true,
+    "slab_sound": true,
+    "slab_tight": true,
+    "all_static": true
+  },
+  {
+    "case": "C_large_chain",
+    "dispatches": 3,
+    "slice_sum": 24576,
+    "slab_post_layout": 24576,
+    "hal_transient_observed": 24576,
+    "io_bytes": 34668832,
+    "slice_sum_underestimates": false,
+    "slab_sound": true,
+    "slab_tight": true,
+    "all_static": true
+  },
+  {
+    "case": "D_fusion",
+    "dispatches": 2,
+    "slice_sum": 128,
+    "slab_post_layout": 128,
+    "hal_transient_observed": 128,
+    "io_bytes": 2768,
+    "slice_sum_underestimates": false,
+    "slab_sound": true,
+    "slab_tight": true,
+    "all_static": true
+  }
+]

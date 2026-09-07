@@ -7,7 +7,7 @@
   ],
   "decisions": [
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -18,12 +18,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -34,12 +36,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -50,12 +54,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -66,12 +72,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -82,12 +90,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -98,12 +108,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -114,12 +126,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -130,12 +144,68 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "NOT_ADMITTED",
+      "bounded_bytes": 12332,
+      "budget_bytes": 12331,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 12332,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 12333,
+      "components": {
+        "per_call": 12332,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 256,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -146,12 +216,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -162,12 +234,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -178,12 +252,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -194,12 +270,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -210,12 +288,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -226,12 +306,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -242,12 +324,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -258,12 +342,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -274,12 +360,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -290,12 +378,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -306,12 +396,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -322,12 +414,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -338,12 +432,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -354,12 +450,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -370,12 +468,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -386,12 +486,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -402,12 +504,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -418,12 +522,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -434,12 +540,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -450,12 +558,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -466,12 +576,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -482,12 +594,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -498,12 +612,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -514,12 +630,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -530,12 +648,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -546,12 +666,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -562,12 +684,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -578,12 +702,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -594,12 +720,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -610,12 +738,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -626,12 +756,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -642,12 +774,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 256,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -658,12 +792,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -674,12 +810,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -690,12 +828,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -706,12 +846,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -722,12 +864,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -738,12 +882,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -754,12 +900,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -770,12 +918,68 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "NOT_ADMITTED",
+      "bounded_bytes": 12332,
+      "budget_bytes": 12331,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 12332,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 12332,
+      "budget_bytes": 12333,
+      "components": {
+        "per_call": 1068,
+        "constants": 11264
+      },
+      "unresolved": [],
+      "observed_bytes": 12332,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 256,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -786,12 +990,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -802,12 +1008,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -818,12 +1026,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -834,12 +1044,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -850,12 +1062,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -866,12 +1080,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -882,12 +1098,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -898,12 +1116,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -914,12 +1134,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -930,12 +1152,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -946,12 +1170,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -962,12 +1188,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -978,12 +1206,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -994,12 +1224,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -1010,12 +1242,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -1026,12 +1260,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -1042,12 +1278,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -1058,12 +1296,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -1074,12 +1314,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -1090,12 +1332,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -1106,12 +1350,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -1122,12 +1368,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -1138,12 +1386,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -1154,12 +1404,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -1170,12 +1422,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -1186,12 +1440,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -1202,12 +1458,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -1218,12 +1476,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 16384,
       "components": {
@@ -1234,12 +1494,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 65536,
       "components": {
@@ -1250,12 +1512,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 262144,
       "components": {
@@ -1266,12 +1530,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 12332,
       "budget_bytes": 1048576,
       "components": {
@@ -1282,12 +1548,14 @@
       "observed_bytes": 12332,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 256,
       "variant": "baked",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1298,12 +1566,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1314,12 +1584,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1330,12 +1602,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1346,12 +1620,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1362,12 +1638,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1378,12 +1656,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1394,12 +1674,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1410,12 +1692,68 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
+      "bounded_bytes": 196652,
+      "budget_bytes": 196651,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 196652,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 196653,
+      "components": {
+        "per_call": 196652,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 4096,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1426,12 +1764,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1442,12 +1782,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1458,12 +1800,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1474,12 +1818,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1490,12 +1836,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1506,12 +1854,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1522,12 +1872,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1538,12 +1890,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1554,12 +1908,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1570,12 +1926,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1586,12 +1944,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1602,12 +1962,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1618,12 +1980,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1634,12 +1998,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1650,12 +2016,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1666,12 +2034,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1682,12 +2052,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1698,12 +2070,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1714,12 +2088,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1730,12 +2106,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1746,12 +2124,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1762,12 +2142,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1778,12 +2160,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1794,12 +2178,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1810,12 +2196,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1826,12 +2214,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1842,12 +2232,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1858,12 +2250,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1874,12 +2268,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1890,12 +2286,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1906,12 +2304,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1922,12 +2322,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 4096,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -1938,12 +2340,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -1954,12 +2358,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -1970,12 +2376,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -1986,12 +2394,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -2002,12 +2412,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -2018,12 +2430,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -2034,12 +2448,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -2050,12 +2466,68 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
+      "bounded_bytes": 196652,
+      "budget_bytes": 196651,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 196652,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 196653,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -2066,12 +2538,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -2082,12 +2556,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -2098,12 +2574,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -2114,12 +2592,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -2130,12 +2610,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -2146,12 +2628,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -2162,12 +2646,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -2178,76 +2664,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
-      "bounded_bytes": 196652,
-      "budget_bytes": 16384,
-      "components": {
-        "per_call": 16428,
-        "constants": 180224
-      },
-      "unresolved": [],
-      "observed_bytes": 196652,
-      "observed_within_budget": false,
-      "misprediction": null,
-      "hidden": 4096,
-      "variant": "baked",
-      "config": "generic_cpu"
-    },
-    {
-      "verdict": "REJECT",
-      "bounded_bytes": 196652,
-      "budget_bytes": 65536,
-      "components": {
-        "per_call": 16428,
-        "constants": 180224
-      },
-      "unresolved": [],
-      "observed_bytes": 196652,
-      "observed_within_budget": false,
-      "misprediction": null,
-      "hidden": 4096,
-      "variant": "baked",
-      "config": "generic_cpu"
-    },
-    {
-      "verdict": "ACCEPT",
-      "bounded_bytes": 196652,
-      "budget_bytes": 262144,
-      "components": {
-        "per_call": 16428,
-        "constants": 180224
-      },
-      "unresolved": [],
-      "observed_bytes": 196652,
-      "observed_within_budget": true,
-      "misprediction": null,
-      "hidden": 4096,
-      "variant": "baked",
-      "config": "generic_cpu"
-    },
-    {
-      "verdict": "ACCEPT",
-      "bounded_bytes": 196652,
-      "budget_bytes": 1048576,
-      "components": {
-        "per_call": 16428,
-        "constants": 180224
-      },
-      "unresolved": [],
-      "observed_bytes": 196652,
-      "observed_within_budget": true,
-      "misprediction": null,
-      "hidden": 4096,
-      "variant": "baked",
-      "config": "generic_cpu"
-    },
-    {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -2258,12 +2682,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -2274,12 +2700,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -2290,12 +2718,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -2306,12 +2736,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -2322,12 +2754,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -2338,12 +2772,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -2354,12 +2790,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -2370,12 +2808,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -2386,12 +2826,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -2402,12 +2844,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -2418,12 +2862,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -2434,12 +2880,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -2450,12 +2898,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -2466,12 +2916,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -2482,12 +2934,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -2498,12 +2952,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 16384,
       "components": {
@@ -2514,12 +2970,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "host_task"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 196652,
       "budget_bytes": 65536,
       "components": {
@@ -2530,12 +2988,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "host_task"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 262144,
       "components": {
@@ -2546,12 +3006,14 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "host_task"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 196652,
       "budget_bytes": 1048576,
       "components": {
@@ -2562,12 +3024,86 @@
       "observed_bytes": 196652,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 4096,
       "variant": "baked",
-      "config": "host_task"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
+      "bounded_bytes": 196652,
+      "budget_bytes": 16384,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_task",
+      "boundary_test": false
+    },
+    {
+      "verdict": "NOT_ADMITTED",
+      "bounded_bytes": 196652,
+      "budget_bytes": 65536,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_task",
+      "boundary_test": false
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 262144,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_task",
+      "boundary_test": false
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 196652,
+      "budget_bytes": 1048576,
+      "components": {
+        "per_call": 16428,
+        "constants": 180224
+      },
+      "unresolved": [],
+      "observed_bytes": 196652,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 4096,
+      "variant": "baked",
+      "config": "host_task",
+      "boundary_test": false
+    },
+    {
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -2578,12 +3114,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -2594,12 +3132,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -2610,12 +3150,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -2626,12 +3168,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -2642,12 +3186,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -2658,12 +3204,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -2674,12 +3222,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -2690,12 +3240,68 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
+      "bounded_bytes": 786476,
+      "budget_bytes": 786475,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 786476,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 786477,
+      "components": {
+        "per_call": 786476,
+        "constants": 0
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": false,
+      "hidden": 16384,
+      "variant": "inputs",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -2706,12 +3312,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -2722,12 +3330,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -2738,12 +3348,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -2754,12 +3366,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -2770,12 +3384,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -2786,12 +3402,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -2802,12 +3420,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -2818,12 +3438,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -2834,12 +3456,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -2850,12 +3474,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -2866,12 +3492,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -2882,12 +3510,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -2898,12 +3528,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -2914,12 +3546,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -2930,12 +3564,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -2946,12 +3582,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -2962,12 +3600,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -2978,12 +3618,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -2994,12 +3636,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3010,12 +3654,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3026,12 +3672,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3042,12 +3690,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3058,12 +3708,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3074,12 +3726,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3090,12 +3744,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3106,12 +3762,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3122,12 +3780,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3138,12 +3798,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3154,12 +3816,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3170,12 +3834,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3186,12 +3852,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3202,12 +3870,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": false,
       "hidden": 16384,
       "variant": "inputs",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3218,12 +3888,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3234,12 +3906,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3250,12 +3924,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3266,12 +3942,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "default"
+      "config": "default",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3282,12 +3960,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3298,12 +3978,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3314,12 +3996,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3330,12 +4014,68 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "cpu_host"
+      "config": "cpu_host",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
+      "bounded_bytes": 786476,
+      "budget_bytes": 786475,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": false,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 786476,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "ADMIT",
+      "bounded_bytes": 786476,
+      "budget_bytes": 786477,
+      "components": {
+        "per_call": 65580,
+        "constants": 720896
+      },
+      "unresolved": [],
+      "observed_bytes": 786476,
+      "observed_within_budget": true,
+      "misprediction": null,
+      "constants_independently_confirmed": true,
+      "hidden": 16384,
+      "variant": "baked",
+      "config": "cpu_host",
+      "boundary_test": true
+    },
+    {
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3346,12 +4086,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3362,12 +4104,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3378,12 +4122,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3394,12 +4140,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "avx2"
+      "config": "avx2",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3410,12 +4158,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3426,12 +4176,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3442,12 +4194,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3458,12 +4212,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "avx512"
+      "config": "avx512",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3474,12 +4230,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3490,12 +4248,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3506,12 +4266,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3522,12 +4284,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "generic_cpu"
+      "config": "generic_cpu",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3538,12 +4302,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3554,12 +4320,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3570,12 +4338,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3586,12 +4356,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "no_embedded"
+      "config": "no_embedded",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3602,12 +4374,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3618,12 +4392,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3634,12 +4410,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3650,12 +4428,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "host_no_embed"
+      "config": "host_no_embed",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3666,12 +4446,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3682,12 +4464,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3698,12 +4482,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3714,12 +4500,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "opt_size"
+      "config": "opt_size",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3730,12 +4518,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3746,12 +4536,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3762,12 +4554,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3778,12 +4572,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "no_slow_vec"
+      "config": "no_slow_vec",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 16384,
       "components": {
@@ -3794,12 +4590,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 65536,
       "components": {
@@ -3810,12 +4608,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "REJECT",
+      "verdict": "NOT_ADMITTED",
       "bounded_bytes": 786476,
       "budget_bytes": 262144,
       "components": {
@@ -3826,12 +4626,14 @@
       "observed_bytes": 786476,
       "observed_within_budget": false,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     },
     {
-      "verdict": "ACCEPT",
+      "verdict": "ADMIT",
       "bounded_bytes": 786476,
       "budget_bytes": 1048576,
       "components": {
@@ -3842,9 +4644,11 @@
       "observed_bytes": 786476,
       "observed_within_budget": true,
       "misprediction": null,
+      "constants_independently_confirmed": true,
       "hidden": 16384,
       "variant": "baked",
-      "config": "host_task"
+      "config": "host_task",
+      "boundary_test": false
     }
   ],
   "E8_dynamic_shape": {
@@ -3855,7 +4659,7 @@
       "%5"
     ],
     "transient_slices": [],
-    "bound_method": "NONE",
-    "verdict": "UNBOUNDED"
+    "bound_method": "UNKNOWN_BOUND",
+    "verdict": "UNKNOWN_BOUND"
   }
 }
