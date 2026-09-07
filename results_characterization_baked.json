@@ -1,0 +1,788 @@
+[
+  {
+    "name": "B0_numpy_blas",
+    "impl": "numpy",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 5.817,
+    "C_p95_us": 6.134,
+    "C_p99_us": 10.667,
+    "C_max_us": 53.18,
+    "n": 3000,
+    "M_rss_delta_kb": 96,
+    "M_hal_peak_bytes": null,
+    "M_hal_bytes_per_call": null,
+    "S_binary_bytes": 0,
+    "max_abs_diff": 0.0,
+    "hidden": 4096
+  },
+  {
+    "name": "default",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 29.831,
+    "C_p95_us": 45.72,
+    "C_p99_us": 56.18,
+    "C_max_us": 119.956,
+    "n": 3000,
+    "M_rss_delta_kb": 620,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 191520,
+    "max_abs_diff": 5.960464477539062e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu"
+    ]
+  },
+  {
+    "name": "cpu_host",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 15.999,
+    "C_p95_us": 24.601,
+    "C_p99_us": 38.846,
+    "C_max_us": 311.342,
+    "n": 3000,
+    "M_rss_delta_kb": 620,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 192800,
+    "max_abs_diff": 3.5762786865234375e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host"
+    ]
+  },
+  {
+    "name": "avx2",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 28.162,
+    "C_p95_us": 38.712,
+    "C_p99_us": 51.093,
+    "C_max_us": 248.824,
+    "n": 3000,
+    "M_rss_delta_kb": 620,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 191552,
+    "max_abs_diff": 3.5762786865234375e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu-features=+avx2,+fma"
+    ]
+  },
+  {
+    "name": "avx512",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 16.14,
+    "C_p95_us": 24.14,
+    "C_p99_us": 38.069,
+    "C_max_us": 53.688,
+    "n": 3000,
+    "M_rss_delta_kb": 620,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 191968,
+    "max_abs_diff": 3.5762786865234375e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu-features=+avx512f,+avx512bw,+avx2,+fma"
+    ]
+  },
+  {
+    "name": "generic_cpu",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 28.896,
+    "C_p95_us": 40.988,
+    "C_p99_us": 51.647,
+    "C_max_us": 64.603,
+    "n": 3000,
+    "M_rss_delta_kb": 620,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 191520,
+    "max_abs_diff": 5.960464477539062e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=generic"
+    ]
+  },
+  {
+    "name": "no_embedded",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 29.375,
+    "C_p95_us": 39.902,
+    "C_p99_us": 51.546,
+    "C_max_us": 313.414,
+    "n": 3000,
+    "M_rss_delta_kb": 640,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 203590,
+    "max_abs_diff": 5.960464477539062e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-link-embedded=false"
+    ]
+  },
+  {
+    "name": "host_no_embed",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 15.858,
+    "C_p95_us": 24.504,
+    "C_p99_us": 37.602,
+    "C_max_us": 47.339,
+    "n": 3000,
+    "M_rss_delta_kb": 636,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 204550,
+    "max_abs_diff": 3.5762786865234375e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-llvmcpu-link-embedded=false"
+    ]
+  },
+  {
+    "name": "opt_size",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 16.185,
+    "C_p95_us": 23.818,
+    "C_p99_us": 35.012,
+    "C_max_us": 388.334,
+    "n": 3000,
+    "M_rss_delta_kb": 620,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 192800,
+    "max_abs_diff": 3.5762786865234375e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-opt-strip-assertions"
+    ]
+  },
+  {
+    "name": "no_slow_vec",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 16.16,
+    "C_p95_us": 30.626,
+    "C_p99_us": 41.86,
+    "C_max_us": 1325.055,
+    "n": 3000,
+    "M_rss_delta_kb": 628,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 192768,
+    "max_abs_diff": 3.5762786865234375e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-llvmcpu-disable-distribution"
+    ]
+  },
+  {
+    "name": "host_task",
+    "impl": "iree",
+    "shape": [
+      9,
+      4096,
+      2
+    ],
+    "C_median_us": 29.101,
+    "C_p95_us": 41.372,
+    "C_p99_us": 53.939,
+    "C_max_us": 170.964,
+    "n": 3000,
+    "M_rss_delta_kb": 2752,
+    "M_hal_peak_bytes": 16428,
+    "M_hal_bytes_per_call": 16428.0,
+    "S_binary_bytes": 192800,
+    "max_abs_diff": 3.5762786865234375e-07,
+    "hidden": 4096,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host"
+    ]
+  },
+  {
+    "name": "B0_numpy_blas",
+    "impl": "numpy",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 17.51,
+    "C_p95_us": 20.682,
+    "C_p99_us": 31.808,
+    "C_max_us": 42.923,
+    "n": 1500,
+    "M_rss_delta_kb": 48,
+    "M_hal_peak_bytes": null,
+    "M_hal_bytes_per_call": null,
+    "S_binary_bytes": 0,
+    "max_abs_diff": 0.0,
+    "hidden": 16384
+  },
+  {
+    "name": "default",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 96.449,
+    "C_p95_us": 116.31,
+    "C_p99_us": 125.965,
+    "C_max_us": 267.815,
+    "n": 1500,
+    "M_rss_delta_kb": 1012,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 732200,
+    "max_abs_diff": 4.291534423828125e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu"
+    ]
+  },
+  {
+    "name": "cpu_host",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 39.242,
+    "C_p95_us": 56.502,
+    "C_p99_us": 67.037,
+    "C_max_us": 155.532,
+    "n": 1500,
+    "M_rss_delta_kb": 1012,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 733472,
+    "max_abs_diff": 5.4836273193359375e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host"
+    ]
+  },
+  {
+    "name": "avx2",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 102.401,
+    "C_p95_us": 123.126,
+    "C_p99_us": 136.223,
+    "C_max_us": 302.033,
+    "n": 1500,
+    "M_rss_delta_kb": 1012,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 732232,
+    "max_abs_diff": 5.4836273193359375e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu-features=+avx2,+fma"
+    ]
+  },
+  {
+    "name": "avx512",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 38.87,
+    "C_p95_us": 56.413,
+    "C_p99_us": 66.027,
+    "C_max_us": 219.031,
+    "n": 1500,
+    "M_rss_delta_kb": 1008,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 732640,
+    "max_abs_diff": 5.4836273193359375e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu-features=+avx512f,+avx512bw,+avx2,+fma"
+    ]
+  },
+  {
+    "name": "generic_cpu",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 100.747,
+    "C_p95_us": 123.451,
+    "C_p99_us": 162.416,
+    "C_max_us": 286.269,
+    "n": 1500,
+    "M_rss_delta_kb": 1012,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 732200,
+    "max_abs_diff": 4.291534423828125e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=generic"
+    ]
+  },
+  {
+    "name": "no_embedded",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 103.121,
+    "C_p95_us": 178.788,
+    "C_p99_us": 204.666,
+    "C_max_us": 584.038,
+    "n": 1500,
+    "M_rss_delta_kb": 1028,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 744270,
+    "max_abs_diff": 4.291534423828125e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-link-embedded=false"
+    ]
+  },
+  {
+    "name": "host_no_embed",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 40.294,
+    "C_p95_us": 64.764,
+    "C_p99_us": 83.556,
+    "C_max_us": 427.824,
+    "n": 1500,
+    "M_rss_delta_kb": 1032,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 745222,
+    "max_abs_diff": 5.4836273193359375e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-llvmcpu-link-embedded=false"
+    ]
+  },
+  {
+    "name": "opt_size",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 39.998,
+    "C_p95_us": 58.448,
+    "C_p99_us": 68.695,
+    "C_max_us": 101.967,
+    "n": 1500,
+    "M_rss_delta_kb": 1012,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 733472,
+    "max_abs_diff": 5.4836273193359375e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-opt-strip-assertions"
+    ]
+  },
+  {
+    "name": "no_slow_vec",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 39.19,
+    "C_p95_us": 58.15,
+    "C_p99_us": 71.799,
+    "C_max_us": 90.077,
+    "n": 1500,
+    "M_rss_delta_kb": 1012,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 733440,
+    "max_abs_diff": 5.4836273193359375e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-llvmcpu-disable-distribution"
+    ]
+  },
+  {
+    "name": "host_task",
+    "impl": "iree",
+    "shape": [
+      9,
+      16384,
+      2
+    ],
+    "C_median_us": 56.031,
+    "C_p95_us": 77.628,
+    "C_p99_us": 84.479,
+    "C_max_us": 99.098,
+    "n": 1500,
+    "M_rss_delta_kb": 3104,
+    "M_hal_peak_bytes": 65580,
+    "M_hal_bytes_per_call": 65580.0,
+    "S_binary_bytes": 733472,
+    "max_abs_diff": 5.4836273193359375e-06,
+    "hidden": 16384,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host"
+    ]
+  },
+  {
+    "name": "B0_numpy_blas",
+    "impl": "numpy",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 1.994,
+    "C_p95_us": 3.248,
+    "C_p99_us": 8.552,
+    "C_max_us": 40.357,
+    "n": 3000,
+    "M_rss_delta_kb": 96,
+    "M_hal_peak_bytes": null,
+    "M_hal_bytes_per_call": null,
+    "S_binary_bytes": 0,
+    "max_abs_diff": 0.0,
+    "hidden": 256
+  },
+  {
+    "name": "default",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 9.22,
+    "C_p95_us": 21.223,
+    "C_p99_us": 30.495,
+    "C_max_us": 53.16,
+    "n": 3000,
+    "M_rss_delta_kb": 408,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 22560,
+    "max_abs_diff": 5.960464477539063e-08,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu"
+    ]
+  },
+  {
+    "name": "cpu_host",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 8.578,
+    "C_p95_us": 21.539,
+    "C_p99_us": 30.434,
+    "C_max_us": 54.494,
+    "n": 3000,
+    "M_rss_delta_kb": 416,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 23768,
+    "max_abs_diff": 1.4901161193847656e-07,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host"
+    ]
+  },
+  {
+    "name": "avx2",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 8.984,
+    "C_p95_us": 15.838,
+    "C_p99_us": 26.363,
+    "C_max_us": 54.393,
+    "n": 3000,
+    "M_rss_delta_kb": 408,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 22576,
+    "max_abs_diff": 1.4901161193847656e-07,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu-features=+avx2,+fma"
+    ]
+  },
+  {
+    "name": "avx512",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 8.256,
+    "C_p95_us": 11.941,
+    "C_p99_us": 23.742,
+    "C_max_us": 49.912,
+    "n": 3000,
+    "M_rss_delta_kb": 408,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 22936,
+    "max_abs_diff": 1.4901161193847656e-07,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu-features=+avx512f,+avx512bw,+avx2,+fma"
+    ]
+  },
+  {
+    "name": "generic_cpu",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 9.504,
+    "C_p95_us": 13.219,
+    "C_p99_us": 26.997,
+    "C_max_us": 68.531,
+    "n": 3000,
+    "M_rss_delta_kb": 408,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 22560,
+    "max_abs_diff": 5.960464477539063e-08,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=generic"
+    ]
+  },
+  {
+    "name": "no_embedded",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 9.318,
+    "C_p95_us": 11.724,
+    "C_p99_us": 25.679,
+    "C_max_us": 41.893,
+    "n": 3000,
+    "M_rss_delta_kb": 440,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 34614,
+    "max_abs_diff": 5.960464477539063e-08,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-link-embedded=false"
+    ]
+  },
+  {
+    "name": "host_no_embed",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 8.591,
+    "C_p95_us": 11.877,
+    "C_p99_us": 26.237,
+    "C_max_us": 104.735,
+    "n": 3000,
+    "M_rss_delta_kb": 440,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 35574,
+    "max_abs_diff": 1.4901161193847656e-07,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-llvmcpu-link-embedded=false"
+    ]
+  },
+  {
+    "name": "opt_size",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 8.448,
+    "C_p95_us": 13.391,
+    "C_p99_us": 26.329,
+    "C_max_us": 43.834,
+    "n": 3000,
+    "M_rss_delta_kb": 416,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 23768,
+    "max_abs_diff": 1.4901161193847656e-07,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-opt-strip-assertions"
+    ]
+  },
+  {
+    "name": "no_slow_vec",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 8.291,
+    "C_p95_us": 10.326,
+    "C_p99_us": 24.974,
+    "C_max_us": 42.214,
+    "n": 3000,
+    "M_rss_delta_kb": 416,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 23752,
+    "max_abs_diff": 1.4901161193847656e-07,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host",
+      "--iree-llvmcpu-disable-distribution"
+    ]
+  },
+  {
+    "name": "host_task",
+    "impl": "iree",
+    "shape": [
+      9,
+      256,
+      2
+    ],
+    "C_median_us": 18.994,
+    "C_p95_us": 37.341,
+    "C_p99_us": 47.54,
+    "C_max_us": 107.783,
+    "n": 3000,
+    "M_rss_delta_kb": 2536,
+    "M_hal_peak_bytes": 1068,
+    "M_hal_bytes_per_call": 1068.0,
+    "S_binary_bytes": 23768,
+    "max_abs_diff": 1.4901161193847656e-07,
+    "hidden": 256,
+    "flags": [
+      "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=host"
+    ]
+  }
+]

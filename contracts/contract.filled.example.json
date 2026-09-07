@@ -21,27 +21,35 @@
   },
   "target": {
     "triple": "x86_64-unknown-linux-gnu",
-    "profile": "no_slow_vec",
+    "profile": "avx512",
     "driver": "local-sync",
     "extra_args": [
       "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
-      "--iree-llvmcpu-target-cpu=host",
-      "--iree-llvmcpu-disable-distribution"
+      "--iree-llvmcpu-target-cpu-features=+avx512f,+avx512bw,+avx2,+fma"
     ]
   },
   "resources": {
-    "binary_size_bytes": 11692,
-    "peak_memory_bytes": 1314816,
-    "peak_memory_method": "measured_rss_delta",
-    "note": "RSS growth from pre-load to post-inference-loop; includes the IREE runtime context, not only model buffers. NOT a static bound."
+    "binary_size_bytes": 733440,
+    "weights": "baked_as_constants",
+    "static_program_bytes": 65580,
+    "static_transient_bytes": 65536,
+    "static_io_bytes": 44,
+    "peak_memory_method": "static_from_stream_schedule",
+    "runtime_check": {
+      "device_bytes_peak": 65580,
+      "bound_sound": true,
+      "tightness": 1.0
+    },
+    "runtime_context_bytes_measured": 970708,
+    "runtime_context_method": "measured_rss_delta_minus_static; configuration-dependent; NOT bounded by the compiler"
   },
   "timing": {
     "boundary": "L1_kernel",
-    "execution_bound_us": 262.963,
-    "bound_method": "measured_max",
+    "execution_bound_us": null,
+    "bound_method": null,
     "sample_count": 1200,
     "platform_timing_grade": "FUNCTIONAL_ONLY",
-    "note": "measured_max is not a WCET; it can only falsify feasibility, never establish it."
+    "note": "E6b timing re-characterized with baked weights but platform is FUNCTIONAL_ONLY; no execution bound recorded until a PASS platform run exists."
   },
   "artifact": {
     "file": "model.vmfb",
