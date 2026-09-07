@@ -1,6 +1,6 @@
 # PROGRESS — Contract-Guided MLIR Lowering for AI Deployment in NASA OnAIR/cFS
 
-**기준 버전**: v0.3.1 (git tag `v0.3.1`, 2026-09-07) — 외부 검토 반영
+**기준 버전**: v0.3.1 (git tag `v0.3.1`) — v0.4 이후의 총괄은 `REPORT_v0.4.md` 참조
 **문서 역할**: 현재까지의 진행 상황을 한 장으로 요약하는 정본. 세부 수치·판정 근거는 `docs/EVIDENCE_v0.*.md`, 실험 등록은 `EXPERIMENT_LOG.md`, 변경 이력은 `CHANGELOG.md`가 정본이다.
 
 ---
