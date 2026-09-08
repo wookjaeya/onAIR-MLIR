@@ -127,3 +127,28 @@ python3 harness/make_contract.py --mlir <M> --vmfb <V> --layout-ir <IR> --dump-d
 # provenance.structural_walker 확인
 python3 -c "import json; print(json.load(open('/tmp/contract.json'))['provenance']['structural_walker'])"
 ```
+
+## 8. 정오표 (E20, `docs/EVIDENCE_v0.15_E20.md`가 정본 — 여기는 요약과 포인터만)
+
+이 문서를 커밋한 직후, 같은 세션에서 이 diff에 대해 적대적 코드 리뷰(4개 관점 병렬 리뷰 + finding당
+3인 반박 검증)를 돌렸다. §3의 "14/14 일치" 자체는 여전히 참이지만(14개 저장 모델 전부
+`packed_sum == dense_sum`, 즉 padding=0이라 아래 두 결함이 지금까지 드러나지 않았을 뿐), 새 크로스체크
+로직 자체에 **실제 재현 가능한 과잉 거부(over-rejection) 결함 2건**이 있었다:
+
+- **버그 A**: 크로스체크가 계약이 실제로 서명하는 값 `p`(lowering_score로 고른, 파일 순서와 무관한
+  값)가 아니라 `whole`(정규식 파서의 "파일 마지막 print = 가장 lowering됨" 가정에 의존하는 값,
+  이 파일 자신의 최상단 docstring이 스레드 스케줄링에 좌우된다고 경고하는 바로 그 가정)과
+  비교하고 있었다. 저장된 conv2d layout IR에서 entry 함수의 두 print 청크(내용은 그대로, 순서만
+  교환)를 실제로 바꿔 재현: 구조적 추출기는 실제 계약값(`p`)과 완전히 일치했는데도 `whole`과
+  달라 하드 거부됐다.
+- **버그 B**: constants(sum) 비교가 계약이 실제로 채택하는 `const_b`(패킹된 크기, 정렬 패딩/중복
+  제거 포함)가 아니라 `dense_sum`(패킹 이전 per-tensor 합)과 비교되고 있었다. 저장된 mlp16k
+  layout IR의 패킹 버퍼 크기(모든 관련 SSA 참조)만 64B 늘려(정렬 패딩 시뮬레이션, per-tensor
+  dense 선언은 그대로 둠) 재현: 정렬 패딩이 있는 완전히 정상적인 모델이 하드 거부됐다.
+
+두 결함 모두 **`p`/`const_b` 기준으로 비교하도록 수정**했고(E20), 위 두 재현 시나리오를 실제
+회귀 시험(`harness/contract_negative_tests.py::structural_bugfix_regression_cases`)으로 등록해
+고정했다 — 수정 전 코드로 되돌리면 두 시험이 실제로 실패함을 확인(fix가 실제로 이 조건을 잡는지
+검증, 우연히 통과하는 시험이 아님). 상세 재현·판정은 `docs/EVIDENCE_v0.15_E20.md` 참조. §3의
+"14/14 일치" 수치와 §5의 범위 밖 항목은 이 정오표로 무효화되지 않는다 — 다만 §5가 암묵적으로
+전제한 "크로스체크 로직 자체는 건전하다"는 가정은 이 정오표가 좁힌다.

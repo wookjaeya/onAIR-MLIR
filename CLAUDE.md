@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.14**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.15**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -98,6 +98,18 @@ in-process monkeypatch로 불일치·파싱예외 두 조건 모두 실제 `Syst
 실사용 시험, 다른 IREE 버전으로의 실제 재확인(하드 실패 강제 지점은 마련됐으나 발동 조건을
 시뮬레이션으로만 확인).
 
+**v0.15에서 완료된 것 (E20, `docs/EVIDENCE_v0.15_E20.md`)**: v0.14/E19의 구조적 크로스체크를
+이 세션 내 적대적 다중 리뷰(4개 독립 관점 병렬 + finding당 3인 반박 검증)로 검토, 13건 중 11건
+확인·2건 반박. 확인된 것 중 2건은 **실제 재현된 High severity 과잉 거부 결함**(D16, D17) —
+크로스체크가 계약이 실제로 서명하는 값(`p`, `const_b`)이 아니라 낡은 가정에 기댄 참조값(`whole`,
+`dense_sum`)과 비교되고 있어, print 순서나 상수 패킹 패딩에 따라 완전히 정상인 모델이 거부될 수
+있었다(보관된 14개 모델은 우연히 이 조건에 안 걸려 v0.14의 "14/14 일치" 판정 자체는 여전히 참).
+둘 다 보관 layout IR의 surgical 텍스트 편집만으로(재컴파일 없음) 재현하고 수정, 재현 시나리오를
+고정 회귀 시험으로 등록한 뒤 수정 전 코드로 되돌려 시험이 실제로 실패함을 확인(revert-and-
+confirm-fail). 3곳에 중복 구현됐던 diff 로직을 `mlir_alloc_walk.diff_against_regex` 공유
+헬퍼로 통합. 시험 갭 4건 추가. `contract_negative_tests.py` 85/85 → **96/96**. 14개 보관 계약은
+diff 0 유지. `docs/EVIDENCE_v0.14_E19.md`에 §8 정오표(철회 아님, 정정) 추가.
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -164,6 +176,12 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    신규 크로스체크 필드 14/14 일치 확인, 하드 실패 배선은 monkeypatch로 실제 발동 확인.
    `contract_negative_tests.py` 85/85. **여전히 남은 것**: `stream.resource.pack` 실사용 시험,
    다른 IREE 버전에서의 실제 재확인(강제 지점은 마련됐으나 시뮬레이션으로만 확인).
+   **적대적 리뷰·결함 수정(v0.15/E20, `docs/EVIDENCE_v0.15_E20.md`)**: 이 크로스체크 자체를
+   4관점 병렬 리뷰+반박검증으로 검토해 과잉 거부 결함 2건(D16: `whole` 대신 `p`를 썼어야, D17:
+   `dense_sum` 대신 `const_b`를 썼어야) 실제 재현·수정. 보관 14개 모델은 우연히 이 조건에 안
+   걸려 v0.14의 "14/14 일치" 판정 자체는 여전히 참이지만, 크로스체크 로직 자체의 건전성은
+   v0.15 전까지 검증되지 않았었다. 재현을 고정 회귀 시험으로 등록하고 수정 전 코드로 되돌려
+   시험이 실제로 실패함을 확인. `contract_negative_tests.py` 85/85 → **96/96**.
    **착수 전 조사(v0.12, 실험 아님, 참고용으로 유지)**: `python3 -c "import
    iree.compiler.ir"`로 MLIR Python 바인딩이 실제로 사용 가능함을 확인했다(정규식 대신 실제
    Operation/Type API로 순회 가능). 그러나 `--mlir-print-ir-after=iree-stream-layout-slices`가
@@ -260,8 +278,11 @@ docs/
   EVIDENCE_v0.11_E16.md        C 게이트 보강(스택 실거부·blob 크기 선검사), x86-64 native_std 실기동 검증, D15 수정
   EVIDENCE_v0.12_E17.md        AArch64 게스트 재현: A5b 최초 실행(3레벨), A2 경계값, 재시작 2회+DELETE, D11 실제 해소
   EVIDENCE_v0.13_E18.md        정규 MLIR pass 1단계: 구조적(비정규식) 할당 추출기, iree.compiler.ir API
-  EVIDENCE_v0.14_E19.md       ★ 최신. 정규 MLIR pass 2단계: 구조적 추출기를 make_contract.py에 필수
+  EVIDENCE_v0.14_E19.md        정규 MLIR pass 2단계: 구조적 추출기를 make_contract.py에 필수
                                크로스체크로 결선(대체 아님), 14/14 프로덕션 경로 재검증, 85/85
+                               (§8 정오표: E20이 발견한 과잉 거부 결함 2건 정정)
+  EVIDENCE_v0.15_E20.md       ★ 최신. E19 크로스체크 적대적 리뷰 + 과잉 거부 결함 2건(D16·D17)
+                               실제 재현·수정, 회귀 시험 고정, 96/96
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
@@ -284,12 +305,15 @@ harness/                    실험 스크립트
   static_mem_bound.py, admission_check.py, platform_check.py 등  E0-E13 기반 도구
   make_contract.py            ★ SAME iree-compile 호출 산출물에서만 계약 JSON 생성 (one-invocation 검증,
                                fail-closed: layout IR↔dump-dir 결합·ABI/triple/ELF 불일치 hard fail, E15;
-                               구조적 추출기 필수 크로스체크 E19 — 불일치/파싱실패 hard fail, 미설치는 skip)
+                               구조적 추출기 필수 크로스체크 E19 — 불일치/파싱실패 hard fail, 미설치는 skip;
+                               비교 기준 p/const_b로 수정 E20, D16·D17)
   elf_stack_frame.py          ★ IREE embedded-ELF 정적 분석 (x86-64/AArch64 공통 정의, EVIDENCE_v0.9 §5 근거)
   gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h; fail-closed 검증 E15)
-  contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선 시험, 85/85 PASS(E15+E18+E19)
+  contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선·과잉거부
+                               회귀 시험, 96/96 PASS(E15+E18+E19+E20)
   mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치;
-                               E19부터 make_contract.py의 필수 크로스체크로 결선됨(대체 아님)
+                               E19부터 make_contract.py의 필수 크로스체크로 결선됨(대체 아님);
+                               E20: diff_against_regex 공유 헬퍼로 통합(3곳 중복 제거)
   e14_matrix.py                모델×타깃 컴파일·계약추출 파이프라인 (compile/extract 단계)
   cross_target_compare.py      타깃 간 계약/ELF 비교표
   gen_model_conv2d.py, gen_model_multibranch.py  Stage 1 모델 생성기 (베이킹 가중치)

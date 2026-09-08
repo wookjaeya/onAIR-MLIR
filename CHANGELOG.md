@@ -2,6 +2,26 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.15] 2026-09-08
+- E20: E19 구조적 크로스체크 적대적 코드 리뷰(`docs/EVIDENCE_v0.15_E20.md`) — 이 세션 내에서
+  E19의 diff를 4개 독립 관점(정확성/시험 커버리지/단순화/강건성) 병렬 리뷰 + finding당 3인 반박
+  검증으로 검토. 13건 중 11건 확인, 2건 반박.
+- **정정: 과잉 거부(over-rejection) 결함 2건 발견·수정(D16, D17)** — 둘 다 실제 재현됨(추측 아님):
+  (A) 크로스체크가 계약이 실제로 서명하는 `p`가 아니라 정규식 파서의 "파일 마지막 print=최다
+  lowering" 낡은 가정에 의존하는 `whole`과 비교돼, 인쇄 순서가 바뀌면 정상 모델도 거부될 수
+  있었음(conv2d 두 print 청크 순서만 교환해 재현). (B) constants(sum) 비교가 계약이 실제 채택하는
+  `const_b`(패킹 크기)가 아니라 `dense_sum`과 비교돼, 정렬 패딩이 있는 모델은 영구적으로 오탐
+  거부됐을 것(mlp16k 패킹 크기만 64B 편집해 재현). 둘 다 보관 layout IR의 surgical 텍스트 편집만
+  으로(재컴파일 없음) 재현.
+- 수정: 비교 기준을 `p`/`const_b`로 교체, 3곳에 중복 구현됐던 diff 로직을
+  `mlir_alloc_walk.diff_against_regex` 공유 헬퍼로 통합(드리프트 위험 제거). 재현 시나리오를
+  고정 회귀 시험으로 등록하고, 수정 전 코드로 되돌려 시험이 실제로 실패함을 확인
+  (revert-and-confirm-fail). 시험 갭 4건(dispatches-only 양성, allow-override 예외분기,
+  constants 진짜불일치, graceful-degradation 정식화) 추가. `contract_negative_tests.py`
+  85/85 → **96/96**. 보관 14개 계약은 diff 0 유지.
+- `docs/EVIDENCE_v0.14_E19.md`에 §8 정오표 추가(철회 아님 — 14/14 일치 자체는 여전히 참, padding=0
+  코퍼스라 이 두 결함이 그 검증에서 드러나지 않았을 뿐임을 명시).
+
 ## [v0.14] 2026-09-08
 - E19: 정규 MLIR pass 2단계(`docs/EVIDENCE_v0.14_E19.md`) — E18의 구조적 추출기
   (`harness/mlir_alloc_walk.py`)를 `harness/make_contract.py`에 **필수 크로스체크**로 결선.
