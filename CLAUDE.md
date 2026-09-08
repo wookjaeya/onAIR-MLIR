@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.12**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.13**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -74,6 +74,16 @@ mlp16k 3/3) 확인. A7을 재시작 2회+DELETE로 확장해 x86-64·AArch64 양
 ES 명령 기반 정상 종료 경로로 v0.9 §11.2의 "정상 종료 자원회수 미검증"도 해소). E16의 신규 게이트를
 AArch64에서도 교차 확인.
 
+**v0.13에서 완료된 것 (E18, `docs/EVIDENCE_v0.13_E18.md`)**: 우선순위 3번(정규 MLIR pass)의 1단계 —
+`harness/mlir_alloc_walk.py`가 `static_mem_bound.py::parse_alloc_ir`의 크기 추출을 정규식이 아니라
+실제 `iree.compiler.ir` API로 재구현. `--mlir-print-ir-after`의 함수별 조각남 문제(v0.12 조사가
+찾음)를 `util.global.load`/`store` 선언 합성 전처리로 해결하고, 그 이후는 전부
+`Operation.walk()`·`Value.owner` define-use 체인·`arith.constant` 속성 직접 읽기로 크기를 얻는다.
+보관된 v0.9의 14개 `layout_ir`(재컴파일 없음)에서 기존 정규식 파서와 값이 전부 일치, 화이트리스트를
+실제로 좁혀서 미인식 op fail-closed도 재확인. `harness/contract_negative_tests.py` 51/51 → **66/66**.
+**범위 밖(명시)**: `make_contract.py` 파이프라인 통합, `stream.resource.pack` 실사용 시험, 다른
+IREE 버전 재확인.
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -126,7 +136,15 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    compiler 내부 Operation·Type·SSA 정보로 대체. 평가지표: 알려진 allocation 누락 없음, 미지원
    표현 무시 안 함, compiler 버전 변경 시 명시적 실패, 기존 파서와 정상 모델에서 동일 값, 적대적
    변형에서 과소 추정 방지(EVIDENCE_v0.10 §5가 남긴 한계).
-   **착수 전 조사 결과(이 세션에서 확인, 실험 아님 — 산출물 없음)**: `python3 -c "import
+   **1단계 완료(v0.13/E18, `docs/EVIDENCE_v0.13_E18.md`)**: `harness/mlir_alloc_walk.py`가
+   `parse_alloc_ir`의 크기 추출을 실제 `iree.compiler.ir` API로 재구현 — 유일한 텍스트 처리는
+   `util.global.load`/`store` 줄에서 선언을 합성하는 좁은 전처리뿐이고(아래 착수 전 조사가 찾아낸
+   조각남 문제의 해법), 그 이후는 전부 `op.name`·define-use 체인 추적이다. 14개 보관 아티팩트
+   전부 정규식 파서와 값 일치, 화이트리스트 축소로 미인식 op fail-closed 재확인,
+   `contract_negative_tests.py` 66/66. **남은 것**: `make_contract.py` 파이프라인 통합(이번엔
+   독립 검증 도구로만 존재), `stream.resource.pack` 실사용 시험(현재 모델 중 아무것도 안 씀),
+   다른 IREE 버전에서의 재확인.
+   **착수 전 조사(v0.12, 실험 아님, 참고용으로 유지)**: `python3 -c "import
    iree.compiler.ir"`로 MLIR Python 바인딩이 실제로 사용 가능함을 확인했다(정규식 대신 실제
    Operation/Type API로 순회 가능). 그러나 `--mlir-print-ir-after=iree-stream-layout-slices`가
    만드는 layout IR은 **함수별로 조각나 있다**(entry 함수 print가 `util.global.load
@@ -134,13 +152,10 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    전역의 **선언 자체**는 어느 청크에도 없다 — 선언은 이 패스가 바꾸지 않아 재출력되지 않음).
    `ir.Module.parse()`로 entry 함수 청크만 단독 파싱하면 항상 "undefined global" 검증 오류로
    실패한다(`--mlir-disable-threading`를 추가해도 청크 수·구조는 동일 — 이건 프린트 *순서*의
-   결정성 문제였지 조각남의 원인이 아니었다, 재확인함). 실제 착수 시 필요한 작업: (a) 같은 청크들
-   안의 `util.global.load`/`store` 참조에서 이름+타입을 모아 module-scope `util.global` 선언을
-   합성해 앞에 붙이는 전처리, (b) 그렇게 만든 self-contained 모듈을 `op.walk()`로 순회해
-   `stream.resource.*`/`stream.tensor.*` op의 결과 타입에서 크기를 읽는 추출기, (c) 14개 보관
-   계약과 값 일치 확인(회귀), (d) `harness/contract_negative_tests.py`에 상응하는 신규 음성 시험.
-   **주의**: 재컴파일해서 얻은 IR로 검증하면 one-invocation 규칙(§작업 규율 7)을 위반하므로, PoC
-   단계라도 기존 vmfb와 짝지어 쓰려면 반드시 같은 컴파일 호출의 산출물이어야 한다.
+   결정성 문제였지 조각남의 원인이 아니었다, 재확인함).
+   **주의**: 재컴파일해서 얻은 IR로 검증하면 one-invocation 규칙(§작업 규율 7)을 위반하므로,
+   기존 vmfb와 짝지어 쓰려면 반드시 같은 컴파일 호출의 산출물이어야 한다(v0.13은 재컴파일 없이
+   v0.9의 보관 `layout_ir`만 사용해 이 규칙을 지켰다).
 4. **동일 경계의 대안 비교** — TFLite Micro(정적 아레나) 등과 같은 메모리 경계에서 비교해
    "왜 MLIR/IREE 경로여야 하는가"에 답한다. 전제(TFLM이 컴파일 시 아레나 크기를 제공하는가)부터
    1차 문서로 확인할 것. 지표: 과소 추정 발생률, tightness/과도한 거부, 분석 가능 범위, 재생성
@@ -205,7 +220,8 @@ docs/
                                (§11 정오표: 외부 검토 2건 반영, A5b 미실행·7/7 범위·스택 gate 아님 등)
   EVIDENCE_v0.10_E15.md        계약 도구 fail-closed 전환 + 음성 시험(51/51 PASS), D12-D14 수정
   EVIDENCE_v0.11_E16.md        C 게이트 보강(스택 실거부·blob 크기 선검사), x86-64 native_std 실기동 검증, D15 수정
-  EVIDENCE_v0.12_E17.md       ★ 최신. AArch64 게스트 재현: A5b 최초 실행(3레벨), A2 경계값, 재시작 2회+DELETE, D11 실제 해소
+  EVIDENCE_v0.12_E17.md        AArch64 게스트 재현: A5b 최초 실행(3레벨), A2 경계값, 재시작 2회+DELETE, D11 실제 해소
+  EVIDENCE_v0.13_E18.md       ★ 최신. 정규 MLIR pass 1단계: 구조적(비정규식) 할당 추출기, iree.compiler.ir API
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
@@ -230,7 +246,8 @@ harness/                    실험 스크립트
                                fail-closed: layout IR↔dump-dir 결합·ABI/triple/ELF 불일치 hard fail, E15)
   elf_stack_frame.py          ★ IREE embedded-ELF 정적 분석 (x86-64/AArch64 공통 정의, EVIDENCE_v0.9 §5 근거)
   gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h; fail-closed 검증 E15)
-  contract_negative_tests.py  ★ E15: 계약 도구 음성 시험(20건)+단위 시험(5건)+14/14 회귀 시험, 51/51 PASS
+  contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치 시험, 66/66 PASS(E15+E18)
+  mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치
   e14_matrix.py                모델×타깃 컴파일·계약추출 파이프라인 (compile/extract 단계)
   cross_target_compare.py      타깃 간 계약/ELF 비교표
   gen_model_conv2d.py, gen_model_multibranch.py  Stage 1 모델 생성기 (베이킹 가중치)

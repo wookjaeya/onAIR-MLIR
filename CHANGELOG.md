@@ -2,6 +2,23 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.13] 2026-09-08
+- E18: 정규 MLIR pass 1단계(`docs/EVIDENCE_v0.13_E18.md`) — `harness/mlir_alloc_walk.py` 신설.
+  `static_mem_bound.py::parse_alloc_ir`가 하던 일(entry 함수의 입출력·transient·module 상주 상수
+  크기 추출)을 정규식이 아니라 IREE의 실제 MLIR Python API(`iree.compiler.ir`)로 재구현.
+- 기술적 장벽 해소: `--mlir-print-ir-after`가 함수별로 조각내 출력하는 문제(entry 함수 청크가
+  다른 청크의 `util.initializer`가 정의하는 전역을 참조해 단독으로는 파싱 불가) — `util.global.load`
+  /`store` 줄에서만 이름·타입을 모아 선언을 합성하는 좁은 전처리로 해결. 이 한 단계만 텍스트
+  처리이고, 그 이후 모든 크기 추출은 `Operation.walk()`의 진짜 `op.name`과 `Value.owner`를 통한
+  define-use 체인 추적(→ `arith.constant`)으로 이뤄진다 — 인쇄된 텍스트의 `{%c8}`을 읽지 않는다.
+- 검증: 보관된 v0.9의 14개 `layout_ir`(재컴파일 없음, one-invocation 규칙 유지) 전부에서 구조적
+  추출기와 기존 정규식 파서의 값이 일치(inputs/outputs/transient 원소별, constants 합계,
+  entry_found, unresolved 존재 여부). 미인식 op 음성 시험은 텍스트를 손으로 바꾸는 대신 **실제
+  화이트리스트를 좁혀서**(D13의 진짜 시나리오에 더 가까움) 재확인. `harness/contract_negative_tests.py`
+  가 51/51 → **66/66**으로 확장.
+- 범위 밖(명시): `make_contract.py` 파이프라인으로의 통합, `stream.resource.pack` 실사용 시험(현재
+  모델 어느 것도 안 씀), 다른 IREE 컴파일러 버전에서의 재확인.
+
 ## [v0.12] 2026-09-08
 - E17: AArch64 게스트 재현(`docs/EVIDENCE_v0.12_E17.md`) — 이 세션에서 AArch64 크로스 툴체인·IREE
   런타임 크로스 빌드·qemu-system-aarch64 게스트를 처음부터 재구축(정상 부팅, 크래시 재발 없음).
