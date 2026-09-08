@@ -210,8 +210,16 @@ def artifact_rodata_segments(vmfb):
     iree-dump-module stores a small constant pool (e.g. 2176 B) as `embedded`
     rather than `external`, so data_segments also includes the UNLABELED
     embedded segments; the labeled embedded strings (`hal.device.id`, ...) are
-    excluded. external_segments keeps the pre-Stage-1 meaning."""
-    r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    excluded. external_segments keeps the pre-Stage-1 meaning.
+
+    D25 (E23): returns (None, None) -- NOT ([], []) -- when iree-dump-module is
+    not runnable at all, so a caller can tell "the independent observation was
+    not made" from "it was made and found no segments". Previously the missing
+    binary raised FileNotFoundError out of here and killed the caller."""
+    try:
+        r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    except OSError:
+        return None, None
     external, data = [], []
     for m in re.finditer(r"\.rodata\[\s*\d+\]\s+(external|embedded)\s+(\d+) bytes([^\n]*)", r.stdout):
         kind, n, rest = m.group(1), int(m.group(2)), m.group(3)

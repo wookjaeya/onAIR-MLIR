@@ -78,7 +78,9 @@ AArch64에서도 교차 확인.
 `harness/mlir_alloc_walk.py`가 `static_mem_bound.py::parse_alloc_ir`의 크기 추출을 정규식이 아니라
 실제 `iree.compiler.ir` API로 재구현. `--mlir-print-ir-after`의 함수별 조각남 문제(v0.12 조사가
 찾음)를 `util.global.load`/`store` 선언 합성 전처리로 해결하고, 그 이후는 전부
-`Operation.walk()`·`Value.owner` define-use 체인·`arith.constant` 속성 직접 읽기로 크기를 얻는다.
+자체 구현한 재귀 순회 헬퍼(`_walk()`, region/block/operation을 직접 순회 — `mlir.ir.Operation`이
+제공하는 네이티브 `walk()` 메서드가 아니다)·`Value.owner` define-use 체인·`arith.constant` 속성
+직접 읽기로 크기를 얻는다(정정: 외부 검토 F4, v0.18/E23, `docs/EVIDENCE_v0.13_E18.md` §7 참조).
 보관된 v0.9의 14개 `layout_ir`(재컴파일 없음)에서 기존 정규식 파서와 값이 전부 일치, 화이트리스트를
 실제로 좁혀서 미인식 op fail-closed도 재확인. `harness/contract_negative_tests.py` 51/51 → **66/66**.
 **범위 밖(명시)**: `make_contract.py` 파이프라인 통합, `stream.resource.pack` 실사용 시험, 다른
@@ -266,6 +268,14 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    이 시도 동안 전혀 건드리지 않았음 — `git status` clean 확인됨.)
 5. **임무 유사 workload + 다중 AI 앱 동시 admission** — 단일 앱 계약 수용 규칙(1–3)이 끝난 뒤 착수.
    다중 앱은 전역 예산의 예약·해제·경합 설계가 새로 필요하다(현재는 전역 예약 없음).
+   **외부 검토 F11(v0.15, E23에서 확인)과 합침**: 현재 admission이 "이 부분 계약 값이 로컬
+   정책 한도 이하인가"를 판정할 뿐 "온보드 컴퓨터 전체가 이 모델을 수용 가능한가"를 판정하는
+   게 아니라는 지적은 이미 위 문장이 말하는 것과 같은 한계다(새 결함 아님, 검증 결과
+   not-a-defect로 판정 — `docs/EVIDENCE_v0.18_E23.md` §F11 참조). 계약 JSON 자신의
+   `resources.scope`/`bound_assumptions` 필드가 이 한계를 매 계약마다 이미 명시하고 있다.
+   F11이 추가로 짚은 요소 중 **allocator fragmentation**만은 이 저장소 어디에도 명시적으로
+   다뤄진 적이 없어 보인다 — 다중 앱 설계 시 위 5개 요소(IREE runtime context, OSAL/cFS 메모리,
+   다른 앱, 동시 실행, task stack)에 이것도 추가로 반영할 것.
 6. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
    있어야 착수 가능. 이 컨테이너에서는 원리적으로 불가능하다.
 7. RTEMS 단계(제안서 §17) — Linux AArch64 단계가 통과했으므로 이제 착수 가능하나 우선순위는 낮음.

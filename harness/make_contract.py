@@ -226,7 +226,22 @@ def subset_sum_match(total, segs, max_segments=24):
 
 
 def iree_dump_module(vmfb):
-    r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    """`iree-dump-module <vmfb>` -> (stdout, None) or (None, error).
+
+    D25 (E23): the binary being ABSENT (a checkout without iree-base-compiler
+    installed) used to raise FileNotFoundError out of this function and kill
+    the caller before it could report anything -- the same crash class as D24,
+    at a different point, and one a local `sys.meta_path` import block cannot
+    reproduce because it only hides the Python module, not the console script.
+    Real CI (the without-deps leg of .github/workflows/contract-negative-tests.yml)
+    is what caught it. A missing binary is now the same degrade path as a
+    failing one: the two fields it feeds (executable_format_in_artifact,
+    vm_bytecode_bytes) are informational -- no gate reads them -- and their
+    absence is recorded in provenance.notes rather than guessed."""
+    try:
+        r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    except OSError as e:
+        return None, "iree-dump-module not runnable: %s" % e
     if r.returncode != 0:
         return None, r.stderr[-500:]
     return r.stdout, None
@@ -443,12 +458,27 @@ def build_contract(a, extra_args):
     # ---- artifact ---------------------------------------------------------
     dump_txt, dump_err = iree_dump_module(a.vmfb)
     rod = smb.artifact_rodata_segments(a.vmfb)
-    if isinstance(rod, tuple) and len(rod) == 2:
-        ext_segs, data_segs = list(rod[0]), list(rod[1])
-    else:  # older static_mem_bound returned one list
-        ext_segs, data_segs = list(rod), list(rod)
-    consts_confirmed = subset_sum_match(const_b, data_segs)
-    consts_confirmed_dense = subset_sum_match(dense_sum, data_segs)
+    if rod == (None, None):
+        # D25 (E23): iree-dump-module is not runnable, so the INDEPENDENT
+        # (non-IR) confirmation of the module constant total cannot be made at
+        # all. Record null -- never False, which would read as "checked and
+        # contradicted" -- and refuse by default, the same treatment F1 gave
+        # an unevaluable one-invocation cross-check (same override flag: a
+        # contract whose independent checks could not run is exactly what
+        # --allow-unverified-invocation is for).
+        ext_segs, data_segs = None, None
+        consts_confirmed = consts_confirmed_dense = None
+        rodata_unavailable = ("iree-dump-module is not runnable: the independent artifact-side confirmation of "
+                              "module_resident_constant_bytes (.rodata segments) could not be evaluated")
+        notes.append(rodata_unavailable)
+    else:
+        rodata_unavailable = None
+        if isinstance(rod, tuple) and len(rod) == 2:
+            ext_segs, data_segs = list(rod[0]), list(rod[1])
+        else:  # older static_mem_bound returned one list
+            ext_segs, data_segs = list(rod), list(rod)
+        consts_confirmed = subset_sum_match(const_b, data_segs)
+        consts_confirmed_dense = subset_sum_match(dense_sum, data_segs)
     exec_fmt = None
     bytecode_bytes = None
     if dump_txt:
@@ -545,6 +575,8 @@ def build_contract(a, extra_args):
     # contract. Fail closed on "could not verify" the same as on "verified
     # mismatch", with the same --allow-* escape hatch pattern.
     invocation_errors = []
+    if rodata_unavailable and not a.allow_unverified_invocation:
+        invocation_errors.append(rodata_unavailable + " (pass --allow-unverified-invocation to override)")
     if not dump_files:
         msg = ("--dump-dir '%s' contains no files: none of the one-invocation cross-checks "
               "(embedded-ELF match, mlir-basename match, layout-ir dispatch match) could be "
@@ -677,9 +709,13 @@ def build_contract(a, extra_args):
         "artifact_rodata_data_segments": data_segs,
         "constants_independently_confirmed_in_artifact": consts_confirmed,
         "constants_dense_sum_confirmed_in_artifact": consts_confirmed_dense,
-        "constants_check_note": ("module constant total %d B equals a subset-sum of the flatbuffer .rodata segments %s (iree-dump-module)"
-                                 % (const_b, data_segs) if consts_confirmed else
-                                 "module constant total %d B NOT matched by artifact .rodata segments %s" % (const_b, data_segs)),
+        "constants_check_note": (
+            # D25 (E23): three states, not two -- "not evaluated" must never be
+            # printed as "NOT matched" (checked and contradicted).
+            rodata_unavailable if consts_confirmed is None else
+            "module constant total %d B equals a subset-sum of the flatbuffer .rodata segments %s (iree-dump-module)"
+            % (const_b, data_segs) if consts_confirmed else
+            "module constant total %d B NOT matched by artifact .rodata segments %s" % (const_b, data_segs)),
         "scope": "program-allocated buffers only; excludes IREE runtime context (VM, HAL device, module tables) and the task stack",
     }
     resources.update(kernel)

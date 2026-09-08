@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -60,12 +61,39 @@ def structural_available():
     return _structural_available_cache
 
 
+_iree_tools_cache = None
+
+
+def iree_tools_available():
+    """Whether the iree-base-compiler CONSOLE SCRIPTS are on PATH -- separate
+    from structural_available(), which only asks whether the Python module
+    imports. D25 (E23): CI's without-deps leg proved these are two different
+    questions. A checkout without iree-base-compiler has neither, but a local
+    sys.meta_path import block has only the first, which is why the E22
+    simulation missed the iree-dump-module crash entirely. Tests that need a
+    real compiler tool SKIP (not FAIL) when this is False."""
+    global _iree_tools_cache
+    if _iree_tools_cache is None:
+        _iree_tools_cache = all(shutil.which(t) for t in ("iree-compile", "iree-dump-module"))
+    return _iree_tools_cache
+
+
 def with_structural_override(extra_flags=()):
-    """extra_flags, plus --allow-missing-structural-checker when the real
-    package isn't available in this environment (see structural_available())."""
+    """extra_flags, plus whichever --allow-* flags this ENVIRONMENT (not the
+    case under test) makes necessary:
+
+      --allow-missing-structural-checker  when iree.compiler.ir is absent (E22)
+      --allow-unverified-invocation       when iree-dump-module is absent, so
+                                          the .rodata constant confirmation
+                                          cannot be evaluated (D25/E23)
+
+    Each test is then decided by the condition it actually probes -- gated by
+    its own --allow-* flag -- and not by an unrelated missing dependency."""
     extra_flags = list(extra_flags)
     if not structural_available() and "--allow-missing-structural-checker" not in extra_flags:
         extra_flags.append("--allow-missing-structural-checker")
+    if not iree_tools_available() and "--allow-unverified-invocation" not in extra_flags:
+        extra_flags.append("--allow-unverified-invocation")
     return extra_flags
 
 TARGET_INFO = {
@@ -398,16 +426,25 @@ def make_contract_negative_cases(root, tmp):
     # writable only with the matching --allow-unverified-invocation override.
     empty_dump = os.path.join(tmp, "f1_empty_dump")
     os.makedirs(empty_dump, exist_ok=True)
-    try_case("--dump-dir is empty, one-invocation signals unverifiable (F1)",
-             "conv2d", "aarch64", inv["layout_ir"], empty_dump, elf_json)
-    out = os.path.join(tmp, "f1_override.json")
-    cmd = base_cmd("conv2d", "aarch64", inv["layout_ir"], empty_dump, out, elf_json,
-                   extra_flags=("--allow-unverified-invocation",))
-    rc, o, err = run(cmd)
-    c = load(out) if (rc == 0 and os.path.exists(out)) else None
-    results.append(Result("make_contract-neg: --allow-unverified-invocation overrides the empty --dump-dir (F1)",
-                          rc == 0 and c is not None and c["provenance"]["single_invocation"] is False,
-                          "rc=%d stderr=%s" % (rc, err.strip()[:200])))
+    if not iree_tools_available():
+        # D25 (E23): --allow-unverified-invocation is the very flag under test
+        # here, and it is also the flag this environment needs for an unrelated
+        # reason (no iree-dump-module -> the .rodata confirmation is unevaluable
+        # too). The two conditions cannot be separated without the real tools,
+        # so report SKIP rather than a pass that would hold for the wrong reason.
+        results.append(Result("make_contract-neg: empty --dump-dir refused by default + override (F1)",
+                              True, "needs iree-dump-module to isolate from the D25 condition", skip=True))
+    else:
+        try_case("--dump-dir is empty, one-invocation signals unverifiable (F1)",
+                 "conv2d", "aarch64", inv["layout_ir"], empty_dump, elf_json)
+        out = os.path.join(tmp, "f1_override.json")
+        cmd = base_cmd("conv2d", "aarch64", inv["layout_ir"], empty_dump, out, elf_json,
+                       extra_flags=("--allow-unverified-invocation",))
+        rc, o, err = run(cmd)
+        c = load(out) if (rc == 0 and os.path.exists(out)) else None
+        results.append(Result("make_contract-neg: --allow-unverified-invocation overrides the empty --dump-dir (F1)",
+                              rc == 0 and c is not None and c["provenance"]["single_invocation"] is False,
+                              "rc=%d stderr=%s" % (rc, err.strip()[:200])))
 
     # F2 (external review, 2026-09): iree.abi.declaration being ENTIRELY
     # ABSENT from the layout IR used to only add a note, unlike a declaration
@@ -473,7 +510,9 @@ def structural_hard_fail_cases(root):
             model_name="conv2d", entry="infer", driver="local-sync", profile=None,
             elf_analysis=elf_json, runtime_commit=None,
             allow_abi_mismatch=False, allow_triple_mismatch=False, allow_elf_analysis_mismatch=False,
-            allow_missing_abi_declaration=False, allow_unverified_invocation=False,
+            allow_missing_abi_declaration=False,
+            # D25 (E23): environment-driven, not case-under-test -- see with_structural_override()
+            allow_unverified_invocation=not iree_tools_available(),
             allow_structural_mismatch=allow_structural_mismatch,
             allow_missing_structural_checker=allow_missing_structural_checker,
         )
@@ -800,6 +839,15 @@ def flatten(d, prefix=()):
 
 def regression_check(root, tmp):
     results = []
+    # D25 (E23): regenerating a stored contract byte-for-byte needs the real
+    # compiler tools (iree-compile --version fills validity.compiler*,
+    # iree-dump-module fills executable_format_in_artifact/vm_bytecode_bytes).
+    # Without them the regenerated contract legitimately differs from the
+    # fixture in those fields -- an environment difference, not a regression --
+    # so this is a SKIP, never a FAIL.
+    if not iree_tools_available():
+        return [Result("regression: 14/14 contract+header regeneration",
+                       True, "iree-compile/iree-dump-module not on PATH", skip=True)]
     models = ["mlp16k", "mlp16k_swap", "conv2d", "conv2d_swap", "multibranch", "multibranch_swap", "dynamic"]
     n_ok = 0
     n_total = 0
@@ -992,6 +1040,141 @@ module {
     return results
 
 
+# ----------------------------------------------------------------------------
+# E23 (external review F8 + F10): A5a/A5b corruption methods are real, named,
+# deterministic code (harness/corrupt_vmfb.py) and the OnAIR plugin's
+# contract<->artifact binding gate (plugins/compiled_learner/artifact_binding.py)
+# refuses exactly what native_learner.c / the cFS app refuse.
+# ----------------------------------------------------------------------------
+def artifact_binding_and_corruption_cases(root, tmp):
+    results = []
+    sys.path.insert(0, HERE)
+    sys.path.insert(0, os.path.join(os.path.dirname(HERE), "plugins", "compiled_learner"))
+    import corrupt_vmfb as cv
+    import e14_cfs_scenarios as e14
+    import artifact_binding as ab
+
+    fixtures = []
+    for arch in ("aarch64", "x86_64"):
+        for m in ("mlp16k", "conv2d", "multibranch", "dynamic"):
+            p = os.path.join(root, arch, "vmfb", "%s.vmfb" % m)
+            if os.path.isfile(p):
+                fixtures.append((arch, m, p))
+    if not fixtures:
+        return [Result("corrupt: vmfb fixtures present", False, "none under %s" % root)]
+
+    # --- F8: structural method works on every stored vmfb, container stays a valid ZIP ---
+    n_ok = 0
+    details = []
+    for arch, m, p in fixtures:
+        out = os.path.join(tmp, "%s.%s.rootuoff.vmfb" % (m, arch))
+        try:
+            cv.corrupt_flatbuffer_root_uoffset(p, out)
+            z, zo = zipfile.ZipFile(out), zipfile.ZipFile(p)
+            ok = (z.testzip() is None and z.read("module.fb")[:4] == b"\xff\xff\xff\xff"
+                  and all(z.read(n) == zo.read(n) for n in z.namelist() if n != "module.fb")
+                  and os.path.getsize(out) == os.path.getsize(p))
+        except Exception as e:
+            ok = False; details.append("%s/%s: %s" % (arch, m, e))
+        n_ok += ok
+    results.append(Result("corrupt: flatbuffer_root_uoffset on all stored vmfb (ZIP CRC ok, only module.fb prefix changed, size kept)",
+                          n_ok == len(fixtures), "%d/%d %s" % (n_ok, len(fixtures), "; ".join(details)[:200])))
+
+    arch, m, p = fixtures[0]
+    r1 = cv.corrupt_flatbuffer_root_uoffset(p, os.path.join(tmp, "det1.vmfb"))
+    r2 = cv.corrupt_flatbuffer_root_uoffset(p, os.path.join(tmp, "det2.vmfb"))
+    results.append(Result("corrupt: flatbuffer_root_uoffset is deterministic (host-built corruptsha contract == guest-run file)",
+                          r1["sha256"] == r2["sha256"], r1["sha256"][:16]))
+
+    flip_out = os.path.join(tmp, "flip.vmfb")
+    cv.corrupt_flip(p, flip_out, 4096)
+    a, b = open(p, "rb").read(), open(flip_out, "rb").read()
+    diff = [i for i in range(len(a)) if a[i] != b[i]]
+    results.append(Result("corrupt: flip changes exactly the one requested byte (A5a stays unstructured)",
+                          diff == [4096], str(diff[:5])))
+
+    rc, out, err = run([PY, os.path.join(HERE, "corrupt_vmfb.py"), "--method", "bogus", "--in", p, "--out", os.path.join(tmp, "x.vmfb")])
+    results.append(Result("corrupt: CLI refuses an unrecognized --method (no silent default)", rc != 0 and not os.path.exists(os.path.join(tmp, "x.vmfb")), "rc=%d" % rc))
+    try:
+        cv.corrupt_flatbuffer_root_uoffset(p, os.path.join(tmp, "y.vmfb"), entry_name="no_such_entry.fb")
+        results.append(Result("corrupt: missing ZIP entry -> refused", False, "no exception"))
+    except ValueError as e:
+        results.append(Result("corrupt: missing ZIP entry -> refused", True, str(e)[:80]))
+
+    # --- F8: scenario installer fails closed on a missing/unknown corrupt_method ---
+    for label, v in [("missing", {"corrupt_of": "models/x.vmfb", "flip_offset": 4096}),
+                     ("unknown", {"corrupt_of": "models/x.vmfb", "corrupt_method": "bogus"})]:
+        try:
+            e14._corruption_step(v, "cpu1", "cfs_e14", dry=True)
+            results.append(Result("scenario: corrupt_method %s -> ValueError (fail-closed)" % label, False, "no exception"))
+        except ValueError as e:
+            results.append(Result("scenario: corrupt_method %s -> ValueError (fail-closed)" % label, True, str(e)[:80]))
+    step = e14._corruption_step({"corrupt_of": "models/x.vmfb", "corrupt_method": "flatbuffer_root_uoffset"}, "cpu1", "cfs_e14", dry=True)[0]
+    results.append(Result("scenario: A5b step invokes corrupt_vmfb.py RELATIVE to cwd (no remote_root double prefix)",
+                          "python3 corrupt_vmfb.py" in step and "cfs_e14/corrupt_vmfb.py" not in step, step[:120]))
+    rc, out, err = run([PY, os.path.join(HERE, "e14_make_scenarios.py"), "--root", root, "--out", os.path.join(tmp, "sc.json")])
+    scs = load(os.path.join(tmp, "sc.json")) if rc == 0 else []
+    a5a = [s for s in scs if s["id"].startswith("A5a")]; a5b = [s for s in scs if s["id"].startswith("A5b")]
+    results.append(Result("scenario: generated A5a=flip / A5b=flatbuffer_root_uoffset, explicit and distinct",
+                          bool(a5a) and bool(a5b) and all(s["vmfb"]["corrupt_method"] == "flip" for s in a5a)
+                          and all(s["vmfb"]["corrupt_method"] == "flatbuffer_root_uoffset" for s in a5b),
+                          "rc=%d a5a=%d a5b=%d" % (rc, len(a5a), len(a5b))))
+
+    # --- F10: OnAIR binding gate == native/cFS gate semantics ---
+    cpath = os.path.join(root, arch, "contracts", "contract.%s.%s.json" % (m, arch))
+    c = load(cpath)
+    good = os.path.join(tmp, "good.vmfb"); shutil.copy(p, good)
+    v = ab.verify_artifact_binding(c, good)
+    results.append(Result("binding: stored contract + its own vmfb -> MATCH (sanity)", v["verdict"] == "MATCH", v["artifact_sha256"][:16]))
+
+    def refused(label, contract, path, must_contain):
+        try:
+            ab.verify_artifact_binding(contract, path)
+            results.append(Result("binding: %s -> refused" % label, False, "MATCHed"))
+        except ab.ArtifactBindingError as e:
+            results.append(Result("binding: %s -> refused" % label, must_contain in str(e), str(e)[:100]))
+
+    refused("A5a flip file vs original contract (sha256 mismatch)", c, flip_out, "sha256")
+    refused("A5b root_uoffset file vs ORIGINAL contract (same size -> caught by sha256, not size)", c, os.path.join(tmp, "det1.vmfb"), "sha256")
+    trunc = os.path.join(tmp, "trunc.vmfb"); open(trunc, "wb").write(a[:-1])
+    refused("truncated file (size mismatch, refused before hashing)", c, trunc, "size")
+    c2 = copy.deepcopy(c); c2["artifact"].pop("bytes")
+    refused("contract missing artifact.bytes (fail-closed)", c2, good, "bytes missing")
+    c3 = copy.deepcopy(c); c3["artifact"].pop("sha256")
+    refused("contract missing artifact.sha256 (fail-closed)", c3, good, "sha256 missing")
+    cc = cv.make_corrupted_contract(cpath, r1, "det1.vmfb")
+    v = ab.verify_artifact_binding(cc, os.path.join(tmp, "det1.vmfb"))
+    results.append(Result("binding: corruptsha contract + root_uoffset file -> MATCH (A5b precondition: hash gate passes, only IREE can refuse)",
+                          v["verdict"] == "MATCH" and cc["resources"] == c["resources"], v["artifact_sha256"][:16]))
+
+    # --- A5b end-to-end at the Python iree.runtime level (4th level after native/cFS x86-64/cFS AArch64) ---
+    try:
+        import iree.runtime as rt
+    except ImportError:
+        results.append(Result("a5b-runtime: iree.runtime rejects root_uoffset file with 'length prefix out of bounds'", True, "iree.runtime not installed", skip=True))
+        return results
+    x86 = [f for f in fixtures if f[0] == "x86_64"]
+    if not x86:
+        results.append(Result("a5b-runtime: x86_64 vmfb fixture present", False, "none"))
+        return results
+    _, xm, xp = x86[0]
+    def load_rt(path):
+        ctx = rt.SystemContext(config=rt.Config("local-sync"))
+        ctx.add_vm_module(rt.VmModule.copy_buffer(ctx.instance, open(path, "rb").read()))
+    try:
+        load_rt(xp); ok_orig = True; msg = ""
+    except Exception as e:
+        ok_orig = False; msg = str(e)[:100]
+    results.append(Result("a5b-runtime: original x86_64 %s loads in iree.runtime (sanity)" % xm, ok_orig, msg))
+    xc = os.path.join(tmp, "x86.rootuoff.vmfb"); cv.corrupt_flatbuffer_root_uoffset(xp, xc)
+    try:
+        load_rt(xc); results.append(Result("a5b-runtime: iree.runtime rejects root_uoffset file with 'length prefix out of bounds'", False, "LOADED"))
+    except Exception as e:
+        results.append(Result("a5b-runtime: iree.runtime rejects root_uoffset file with 'length prefix out of bounds'",
+                              "FlatBuffer length prefix out of bounds" in str(e) and "4294967295" in str(e), str(e)[-90:]))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -1006,6 +1189,7 @@ def main():
         all_results += structural_walker_checks(a.root)
         all_results += structural_hard_fail_cases(a.root)
         all_results += structural_bugfix_regression_cases(a.root, tmp)
+        all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
 

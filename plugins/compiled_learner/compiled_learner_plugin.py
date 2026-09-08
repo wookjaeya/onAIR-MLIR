@@ -20,6 +20,13 @@ Design points that follow from the review of the research note:
 
 * No execution-time bound is invented here. If the contract carries one, the
   plugin only compares observed latency against it and counts violations.
+
+* Contract-artifact binding (external review F10, v0.18/E23): before any
+  iree.runtime call the plugin verifies the .vmfb's size and sha256 against
+  contract.artifact (plugins/compiled_learner/artifact_binding.py), the same
+  gate native/native_learner.c and the cFS app apply. A mismatch raises
+  ContractViolation; verify_artifact_hash=False records the verdict but does
+  not refuse (explicit opt-out, never the default).
 """
 
 import json
@@ -30,6 +37,8 @@ import numpy as np
 
 from onair.src.ai_components.ai_plugin_abstract.ai_plugin import AIPlugin
 
+from .artifact_binding import ArtifactBindingError, verify_artifact_binding
+
 
 class ContractViolation(Exception):
     """Raised when the loaded artifact does not match its declared contract."""
@@ -37,12 +46,14 @@ class ContractViolation(Exception):
 
 class Plugin(AIPlugin):
     def __init__(self, name, headers, artifact_dir=None, driver="local-sync",
-                 strict=True):
+                 strict=True, verify_artifact_hash=True):
         super().__init__(name, headers)
         self.artifact_dir = artifact_dir or os.path.join(
             os.path.dirname(__file__), "runtime")
         self.driver = driver
         self.strict = strict
+        self.verify_artifact_hash = verify_artifact_hash
+        self.binding = None  # verdict dict from verify_artifact_binding, set in _load_artifact
 
         self.contract = self._load_contract()
         self._validate_interface_against_headers()
@@ -89,9 +100,19 @@ class Plugin(AIPlugin):
     def _load_artifact(self):
         import iree.runtime as rt
         vmfb = os.path.join(self.artifact_dir, self.contract["artifact"]["file"])
+        try:
+            self.binding = verify_artifact_binding(self.contract, vmfb)
+            data = self.binding.pop("data")
+        except ArtifactBindingError as e:
+            if self.verify_artifact_hash:
+                raise ContractViolation(str(e)) from e
+            print(f"[{self.component_name}] WARNING verify_artifact_hash=False: {e}")
+            self.binding = {"verdict": "UNVERIFIED", "reason": str(e)}
+            with open(vmfb, "rb") as f:
+                data = f.read()
         ctx = rt.SystemContext(config=rt.Config(self.driver))
-        ctx.add_vm_module(
-            rt.VmModule.copy_buffer(ctx.instance, open(vmfb, "rb").read()))
+        # hand IREE the SAME bytes that were hashed (no re-read window)
+        ctx.add_vm_module(rt.VmModule.copy_buffer(ctx.instance, data))
         fn = ctx.modules.module["infer"]
         self._ctx = ctx  # keep alive
         wpath = os.path.join(self.artifact_dir, "weights.npz")

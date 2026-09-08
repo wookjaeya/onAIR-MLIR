@@ -20,9 +20,15 @@ QEMU wall-clock figures (mean_us etc.) are captured but are NOT evidence
 Scenario file (JSON list), one entry per run:
   {"id": "A1_mlp_admit", "model": "mlp16k", "so": "variants/mlp16k_1MiB/ai_learner.so",
    "startup": "variants/mlp16k_1MiB/cfe_es_startup.scr",
-   "vmfb": "models/mlp16k.vmfb" | null | {"corrupt_of": "models/mlp16k.vmfb", "flip_offset": 400000},
+   "vmfb": "models/mlp16k.vmfb" | null
+         | {"corrupt_of": "models/mlp16k.vmfb", "corrupt_method": "flip", "flip_offset": 400000}
+         | {"corrupt_of": "models/mlp16k.vmfb", "corrupt_method": "flatbuffer_root_uoffset"},
    "seconds": 150, "commands": [[60, "es-restart-app", "AI_LEARNER"], ...],
    "expect": {"admission": "ADMIT", "binding": "MATCH", "min_completed": 20, "cfs_operational": true, ...}}
+
+A corrupted-vmfb entry MUST name corrupt_method explicitly (harness/corrupt_vmfb.py; external review
+F8, docs/reviews/REVIEW_v0_15_LATEST.md, v0.18/E23) -- _corruption_step() below fails closed
+(ValueError) on a missing or unrecognized value rather than defaulting to either method.
 """
 import argparse, json, os, pathlib, re, subprocess, sys, time
 
@@ -130,6 +136,43 @@ def check_expect(res, exp):
     return fails
 
 
+CORRUPT_METHODS = ("flip", "flatbuffer_root_uoffset")
+_corrupt_vmfb_staged = set()  # remote_root values that already have corrupt_vmfb.py scp'd this run
+
+
+def _corruption_step(v, tree, remote_root, dry):
+    """Build the shell step(s) that turn `{corrupt_of}` into a corrupted
+    `{tree}/cf/model.vmfb` on the guest, per v["corrupt_method"].
+
+    Fails closed (raises ValueError) if corrupt_method is missing or
+    unrecognized -- external review F8 (docs/reviews/REVIEW_v0_15_LATEST.md)
+    found that A5a and A5b previously shared the same unstructured "flip"
+    corruption with no method field distinguishing them at all, so a typo'd
+    or omitted corrupt_of/method silently fell back to A5a's mechanism even
+    for a scenario meant to exercise A5b's structural corruption path.
+    """
+    method = v.get("corrupt_method")
+    if method not in CORRUPT_METHODS:
+        raise ValueError(f"vmfb.corrupt_method={method!r} not in {CORRUPT_METHODS} "
+                          f"(scenario vmfb={v!r}) -- refusing to guess a corruption mechanism")
+    if method == "flip":
+        off = v.get("flip_offset", 4096)
+        return [f"cp {v['corrupt_of']} {tree}/cf/model.vmfb && python3 -c \"import sys;p='{tree}/cf/model.vmfb';b=bytearray(open(p,'rb').read());b[{off}]^=0xFF;open(p,'wb').write(bytes(b))\""]
+    # flatbuffer_root_uoffset: structural corruption (docs/EVIDENCE_v0.12_E17.md §2.1) --
+    # done by harness/corrupt_vmfb.py itself (module.fb-aware ZIP surgery), staged onto
+    # the guest once per remote_root rather than reimplemented as a one-liner.
+    if remote_root not in _corrupt_vmfb_staged and not dry:
+        scp_to(HERE / "corrupt_vmfb.py", f"{remote_root}/corrupt_vmfb.py")
+        _corrupt_vmfb_staged.add(remote_root)
+    entry = v.get("corrupt_entry", "module.fb")
+    # `corrupt_vmfb.py` is referenced RELATIVE to the cwd (the chain has already
+    # `cd {remote_root}`-ed -- see the NOTE in run_scenario: a remote_root-prefixed
+    # path here would resolve to remote_root/remote_root/... and fail the chain).
+    return [f"cp {v['corrupt_of']} {tree}/cf/model.vmfb.src && "
+            f"python3 corrupt_vmfb.py --method flatbuffer_root_uoffset --entry {entry} "
+            f"--in {tree}/cf/model.vmfb.src --out {tree}/cf/model.vmfb"]
+
+
 def run_scenario(sc, remote_root, out_dir, dry=False):
     sid = sc["id"]
     # NOTE: steps[0] is `cd {remote_root}`, and every later step in this same
@@ -144,8 +187,7 @@ def run_scenario(sc, remote_root, out_dir, dry=False):
     if isinstance(v, str):
         steps.append(f"cp {v} {tree}/cf/model.vmfb")
     elif isinstance(v, dict):
-        off = v.get("flip_offset", 4096)
-        steps.append(f"cp {v['corrupt_of']} {tree}/cf/model.vmfb && python3 -c \"import sys;p='{tree}/cf/model.vmfb';b=bytearray(open(p,'rb').read());b[{off}]^=0xFF;open(p,'wb').write(bytes(b))\"")
+        steps.extend(_corruption_step(v, tree, remote_root, dry))
     secs = int(sc.get("seconds", 120))
     steps.append(f"cd {tree} && rm -f {sid}.log && (MALLOC_CHECK_=3 timeout -s INT -k 15 {secs} ./core-cpu1 > {sid}.log 2>&1; echo EXIT=$? >> {sid}.log)")
     cmd = " && ".join(steps[:-1]) + " && " + steps[-1]

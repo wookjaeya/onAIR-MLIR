@@ -8,6 +8,15 @@ Guest layout (remote root, default cfs_e14/):
   models/<model>.vmfb, models/<model>_swap.vmfb
 Budget tags: 1MiB=1048576, Bm1=B-1, B=B, Bp1=B+1 (B = contract bounded_bytes); corruptsha = header whose
 artifact hash is that of the corrupted vmfb (A5b: gate satisfied, runtime must fail safely).
+
+A5a/A5b vmfb entries carry an explicit "corrupt_method" (harness/corrupt_vmfb.py; external review
+F8, docs/reviews/REVIEW_v0_15_LATEST.md, v0.18/E23): "flip" for A5a (unstructured single-byte XOR,
+must be caught by the artifact-hash gate regardless of where it lands) vs "flatbuffer_root_uoffset"
+for A5b (structural: only the module.fb FlatBuffer length prefix is corrupted, the contract is
+regenerated against the corrupted file's real hash so the hash gate MATCHes, and only IREE's own
+FlatBuffer verifier at load time can catch it -- this is what docs/EVIDENCE_v0.12_E17.md §2.1
+actually ran, previously not reflected in this generator or in harness/e14_cfs_scenarios.py's
+installer, which used the same unstructured "flip" for both).
 """
 import argparse, json, pathlib
 
@@ -42,8 +51,8 @@ def main():
         sc(f"A2_{m}_Bp1", "Bp1", f"models/{m}.vmfb", a.run_seconds, {**ok, "min_completed": 5}, f"A2/SS14-4 budget B+1={B+1}: admitted")
         sc(f"A3_{m}_swap", "1MiB", f"models/{m}_swap.vmfb", a.refuse_seconds, {"admission": "ADMIT", "binding": "CONTRACT_ARTIFACT_MISMATCH", "runtime_created": False, "cfs_operational": True, "no_crash": True, "min_cleanup": 1}, "A3 same-ABI model swap: sha mismatch, IREE runtime not created")
         sc(f"A4_{m}_missing", "1MiB", None, a.refuse_seconds, {"admission": "ADMIT", "runtime_created": False, "cfs_operational": True, "no_crash": True}, "A4 model file absent: error event, cleanup, cFS stays")
-        sc(f"A5a_{m}_corrupt_gate", "1MiB", {"corrupt_of": f"models/{m}.vmfb", "flip_offset": 4096}, a.refuse_seconds, {"admission": "ADMIT", "binding": "CONTRACT_ARTIFACT_MISMATCH", "runtime_created": False, "cfs_operational": True, "no_crash": True}, "A5a corrupted vmfb (bit flip): caught by the byte-hash gate before the runtime exists")
-        sc(f"A5b_{m}_corrupt_runtime", "corruptsha", {"corrupt_of": f"models/{m}.vmfb", "flip_offset": 4096}, a.refuse_seconds, {"admission": "ADMIT", "binding": "MATCH", "runtime_load_failed": True, "cfs_operational": True, "no_crash": True, "min_cleanup": 1}, "A5b corrupted vmfb whose hash the contract carries: IREE load fails, resources recovered, cFS stays")
+        sc(f"A5a_{m}_corrupt_gate", "1MiB", {"corrupt_of": f"models/{m}.vmfb", "corrupt_method": "flip", "flip_offset": 4096}, a.refuse_seconds, {"admission": "ADMIT", "binding": "CONTRACT_ARTIFACT_MISMATCH", "runtime_created": False, "cfs_operational": True, "no_crash": True}, "A5a corrupted vmfb (unstructured single-byte flip, harness/corrupt_vmfb.py:corrupt_flip): caught by the byte-hash gate before the runtime exists")
+        sc(f"A5b_{m}_corrupt_runtime", "corruptsha", {"corrupt_of": f"models/{m}.vmfb", "corrupt_method": "flatbuffer_root_uoffset"}, a.refuse_seconds, {"admission": "ADMIT", "binding": "MATCH", "runtime_load_failed": True, "cfs_operational": True, "no_crash": True, "min_cleanup": 1}, "A5b corrupted vmfb (structural: module.fb FlatBuffer length prefix -> 0xFFFFFFFF, harness/corrupt_vmfb.py:corrupt_flatbuffer_root_uoffset) whose hash the contract carries: IREE load fails, resources recovered, cFS stays")
         sc(f"A6_{m}_repeat", "1MiB", f"models/{m}.vmfb", a.a6_seconds, {**ok, "min_completed": 30}, "A6 repeated inference: attempted == completed, 0 failures")
         sc(f"A7_{m}_restart", "1MiB", f"models/{m}.vmfb", a.a7_seconds, {**ok, "min_init_count": 3, "min_cleanup": 3, "min_completed": 3}, "A7 ES restart x2 then delete: cleanup each time, re-init binds and re-creates runtime, no double free / crash",
            commands=[[60, "es-restart-app", "AI_LEARNER"], [120, "es-restart-app", "AI_LEARNER"], [175, "es-delete-app", "AI_LEARNER"]])

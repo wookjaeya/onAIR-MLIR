@@ -169,8 +169,16 @@ static int32 AI_LEARNER_LoadFailed(const char* step, iree_status_t st) {
 }
 
 static void AI_LEARNER_AdmissionJson(const char* verdict) {
+  /* F11 (external review, 2026-09; not a code defect -- CLAUDE.md priority 5
+   * already documents this scope, and resources.scope/bound_assumptions in
+   * the contract JSON already say it): this verdict compares CONTRACT_BOUNDED_BYTES
+   * against AI_LEARNER_BUDGET_BYTES only -- a per-app local budget, not a
+   * check that the whole onboard computer can fit this model alongside
+   * everything else running on it. "scope" here propagates that same
+   * disclosure into the runtime telemetry, not just the offline contract. */
   AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"admission\",\"verdict\":\"%s\",\"model\":\"%s\",\"target\":\"%s\","
-                  "\"bounded\":%ld,\"budget\":%ld,\"per_call\":%ld,\"constants\":%ld,\"kernel_stack_bytes\":%ld,\"bound_known\":%s}\n",
+                  "\"bounded\":%ld,\"budget\":%ld,\"per_call\":%ld,\"constants\":%ld,\"kernel_stack_bytes\":%ld,\"bound_known\":%s,"
+                  "\"scope\":\"per_app_local_budget\"}\n",
                   verdict, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, (long)CONTRACT_BOUNDED_BYTES, (long)AI_LEARNER_BUDGET_BYTES,
                   (long)CONTRACT_PER_CALL_BYTES, (long)CONTRACT_CONST_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES,
                   GATE_BOUND_KNOWN ? "true" : "false");
