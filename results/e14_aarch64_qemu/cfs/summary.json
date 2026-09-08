@@ -78,6 +78,85 @@
       },
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 262160,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 16,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": {
+        "app": "AI_LEARNER",
+        "stage": "run",
+        "model": "multibranch",
+        "target": "aarch64-unknown-linux-gnu",
+        "attempted": 5,
+        "completed": 5,
+        "fail_input": 0,
+        "fail_invoke": 0,
+        "fail_output": 0,
+        "mean_us": 6279.02,
+        "max_us": 9807.65,
+        "last_us": 3878.53,
+        "out0": 0.13888,
+        "out": [
+          0.138876,
+          -0.133866
+        ]
+      },
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "multibranch",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 5,
+        "hal_peak": 38216,
+        "peak_within_bounded": true,
+        "hal_bytes_per_call_amortized": 8264.0,
+        "process_rss_kb": 6024,
+        "process_rss_delta_init_kb": 896
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:03:57.08052 66/1/AI_LEARNER 8: AI_LEARNER stack: es=262160 base=262144 kernel=16 accounted=1",
+        "EVS Port1 1980-012-14:03:57.08276 66/1/AI_LEARNER 3: AI_LEARNER initialized: model multibranch (51594 B), rss_delta_init=896 KB",
+        "...EVS Port1 1980-012-14:04:16.65574 66/1/AI_LEARNER 4: AI_LEARNER completed=5/5 mean=6279.0us max=9807.6us hal_peak=38216 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "A1_multibranch",
+      "model": "multibranch",
+      "scenario": "A1 \uc815\uc0c1: multibranch \uacc4\uc57d+\uc815\uc0c1 vmfb",
+      "seconds": 40,
+      "commands_sent": [],
+      "log": "results/e14_aarch64_qemu/cfs/logs/A1_multibranch.log",
+      "expect": {
+        "admission": "ADMIT",
+        "binding": "MATCH",
+        "cfs_operational": true,
+        "no_crash": true,
+        "min_completed": 3,
+        "peak_within_bounded": true,
+        "kernel_stack_accounted": true
+      },
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }
