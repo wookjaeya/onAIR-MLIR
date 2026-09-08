@@ -168,12 +168,59 @@ def runtime_peak_check(vmfb, mlir_path, driver="local-sync", iters=200):
 
 
 def artifact_rodata_segments(vmfb):
-    """Independent (non-IR) observation: external .rodata segment sizes in the
-    compiled flatbuffer, from iree-dump-module. Used to cross-check the IR
-    constant total without reusing the IR figure (reviewer v0.4 §4)."""
+    """Independent (non-IR) observation: .rodata segment sizes in the compiled
+    flatbuffer, from iree-dump-module. Used to cross-check the IR constant
+    total without reusing the IR figure (reviewer v0.4 §4).
+
+    Returns (external_segments, data_segments). E14 Stage 1 (conv2d model):
+    iree-dump-module stores a small constant pool (e.g. 2176 B) as `embedded`
+    rather than `external`, so data_segments also includes the UNLABELED
+    embedded segments; the labeled embedded strings (`hal.device.id`, ...) are
+    excluded. external_segments keeps the pre-Stage-1 meaning."""
     r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
-    segs = [int(m.group(1)) for m in re.finditer(r"\.rodata\[\s*\d+\]\s+external\s+(\d+) bytes", r.stdout)]
-    return segs
+    external, data = [], []
+    for m in re.finditer(r"\.rodata\[\s*\d+\]\s+(external|embedded)\s+(\d+) bytes([^\n]*)", r.stdout):
+        kind, n, rest = m.group(1), int(m.group(2)), m.group(3)
+        if kind == "external":
+            external.append(n)
+            data.append(n)
+        elif "`" not in rest:
+            data.append(n)
+    return external, data
+
+
+def source_baked_f32_constant_bytes(mlir_path):
+    """Bytes of non-splat f32 `arith.constant dense<...>` tensors in the SOURCE
+    (weights baked into the model). Diagnostic only: the compiler may inline
+    constants <= 256 B into dispatch executables (they then live in the
+    executable's .rodata, not in a HAL constant buffer), so this can exceed
+    static_constant_bytes_module_resident. Hex (dense<"0x..">) and list
+    (dense<[..]>) literals are both handled; splats (dense<0.0>) are not
+    weights and are skipped."""
+    src = open(mlir_path).read()
+    total, pos = 0, 0
+    while True:
+        i = src.find("arith.constant dense<", pos)
+        if i < 0:
+            break
+        j = i + len("arith.constant dense<")
+        if src.startswith("[", j):
+            end = src.find("]>", j)
+        elif src.startswith('"', j):
+            end = src.find('">', j)
+        else:
+            pos = j
+            continue
+        if end < 0:
+            break
+        m = re.match(r"\s*:\s*tensor<([0-9x]+)xf32>", src[end + 2:end + 80])
+        if m:
+            n = 1
+            for d in m.group(1).split("x"):
+                n *= int(d)
+            total += n * 4
+        pos = end + 2
+    return total
 
 
 def main():
@@ -210,11 +257,20 @@ def main():
                                                + rep["static_transient_bytes"])
     rep["static_total_bytes_incl_inputs"] = (rep["static_external_input_bytes"]
                                              + rep["static_program_bytes_excl_inputs"])
-    segs = artifact_rodata_segments(vmfb)
-    rep["artifact_rodata_external_segments"] = segs
+    ext_segs, segs = artifact_rodata_segments(vmfb)
+    rep["artifact_rodata_external_segments"] = ext_segs
+    rep["artifact_rodata_data_segments"] = segs   # external + unlabeled embedded
+    # Diagnostic (E14 Stage 1): source-side baked f32 constant bytes vs. what
+    # the compiler materialized as HAL constant buffers. A positive difference
+    # is what iree-dispatch-creation inlined into dispatch executables (default
+    # threshold 256 B per constant) -- those bytes are in the executable ELF,
+    # i.e. in artifact.bytes, not in the HAL constant pool.
+    src_c = source_baked_f32_constant_bytes(a.mlir)
+    rep["source_baked_f32_constant_bytes"] = src_c
+    rep["source_minus_hal_resident_constant_bytes"] = src_c - sum(p["constants"])
     # The artifact may pool several IR constants into one .rodata segment, so
     # the check is: IR constant TOTAL equals the sum of some subset of the
-    # external segments (subset-sum over a handful of segments).
+    # data segments (subset-sum over a handful of segments).
     total_c = sum(p["constants"])
     from itertools import combinations
     subset_sums = {0}
@@ -223,7 +279,7 @@ def main():
             subset_sums.add(sum(comb))
     matched = total_c > 0 and total_c in subset_sums
     rep["constants_independently_confirmed_in_artifact"] = matched
-    rep["constants_check_note"] = (f"IR constant total {total_c} B equals a subset-sum of flatbuffer .rodata external segments {segs} (iree-dump-module)"
+    rep["constants_check_note"] = (f"IR constant total {total_c} B equals a subset-sum of flatbuffer .rodata data segments {segs} (iree-dump-module; external + unlabeled embedded)"
                                    if matched else f"IR constant total {total_c} B NOT matched by artifact segments {segs}")
     rc = runtime_peak_check(vmfb, a.mlir)
     rep["runtime_check"] = rc

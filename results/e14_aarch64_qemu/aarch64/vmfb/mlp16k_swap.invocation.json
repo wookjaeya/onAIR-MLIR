@@ -1,0 +1,43 @@
+{
+  "model": "mlp16k_swap",
+  "target": "aarch64",
+  "mlir": "results/e14_aarch64_qemu/models/mlp16k_swap/mlp4k_baked.mlir",
+  "mlir_basename": "mlp4k_baked.mlir",
+  "command": [
+    "iree-compile",
+    "results/e14_aarch64_qemu/models/mlp16k_swap/mlp4k_baked.mlir",
+    "--iree-hal-target-backends=llvm-cpu",
+    "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+    "--iree-llvmcpu-target-cpu=cortex-a53",
+    "--mlir-print-ir-after=iree-stream-layout-slices",
+    "--mlir-elide-elementsattrs-if-larger=16",
+    "--iree-hal-dump-executable-files-to=results/e14_aarch64_qemu/aarch64/dump/mlp16k_swap",
+    "-o",
+    "results/e14_aarch64_qemu/aarch64/vmfb/mlp16k_swap.vmfb"
+  ],
+  "vmfb": "results/e14_aarch64_qemu/aarch64/vmfb/mlp16k_swap.vmfb",
+  "vmfb_bytes": 192140,
+  "vmfb_sha256": "b0b4f6e5068052bf9ec4fec0fbc6bdd6c1debf4dc18341af30bc031dbb7b27ec",
+  "layout_ir": "results/e14_aarch64_qemu/aarch64/layout_ir/mlp16k_swap.layout_ir.txt",
+  "layout_ir_sha256": "572e8d456df877845d6ed954bbc7f989a9c6fab6b714ac4304c1de581ccaa914",
+  "dump_dir": "results/e14_aarch64_qemu/aarch64/dump/mlp16k_swap",
+  "dump_files": [
+    "configured_module_infer_dispatch_0.mlir",
+    "configured_module_infer_dispatch_1.mlir",
+    "module_infer_dispatch_0.mlir",
+    "module_infer_dispatch_0_embedded_elf_arm_64_benchmark.mlir",
+    "module_infer_dispatch_1.mlir",
+    "module_infer_dispatch_1_embedded_elf_arm_64_benchmark.mlir",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.codegen.bc",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.codegen.ll",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.linked.bc",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.linked.ll",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.o",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.optimized.bc",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.optimized.ll",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.s",
+    "module_mlp4k_baked_linked_embedded_elf_arm_64.so"
+  ],
+  "compile_seconds": 0.89,
+  "single_invocation": true
+}

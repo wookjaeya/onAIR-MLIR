@@ -1,0 +1,1 @@
+{"name": "dyn_batch_mlp", "arch": "E8 dynamic-batch MLP (weights as arguments), verbatim from harness/admission_sweep.py", "input_shape": ["?", 9], "output_shape": ["?", 2], "purpose": "negative case: sizes not compile-time constants -> bound_method NONE -> UNKNOWN_BOUND, refused regardless of budget (proposal SS12/SS13)"}

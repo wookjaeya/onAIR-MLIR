@@ -1,0 +1,30 @@
+{
+  "name": "multibranch_16x64x2",
+  "arch": "relu(x W0) -> [relu(h WA), relu(h WB)] -> (a+b)+h (residual join) -> matmul W2",
+  "input_shape": [
+    1,
+    16
+  ],
+  "output_shape": [
+    1,
+    2
+  ],
+  "seed": 1,
+  "param_count": 9344,
+  "param_bytes": 37376,
+  "param_bytes_by_tensor": {
+    "w0": 4096,
+    "wa": 16384,
+    "wb": 16384,
+    "w2": 512
+  },
+  "weight_layouts": {
+    "w0": "KN",
+    "wa": "KN",
+    "wb": "KN",
+    "w2": "KN"
+  },
+  "entry": "infer",
+  "source_sha256": "e54882eff17f967df1e07ac273ee5cdca23650bc30afddb1e65b2dd94393a8fd",
+  "source_bytes": 155753
+}

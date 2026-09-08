@@ -1,0 +1,17 @@
+{
+  "name": "mlp_9x4096x2_baked",
+  "arch": "E11c/E12c model-swap counterpart: same 1x9->1x2 ABI as the h=16384 MLP, h=4096, weights rng(0)*0.1 baked via harness/characterize_baked.make_src",
+  "input_shape": [
+    1,
+    9
+  ],
+  "output_shape": [
+    1,
+    2
+  ],
+  "seed": 0,
+  "param_count": 45056,
+  "param_bytes": 180224,
+  "source_sha256": "2940c16a55bc9ea718a81bce79827ffe73663c8a3ef03713c1abd6bb9ad66070",
+  "purpose": "A3 model swap (same ABI, different artifact) for the mlp16k contract"
+}

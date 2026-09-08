@@ -1,0 +1,33 @@
+{
+  "name": "conv2d_8x8_c4_c8_o2",
+  "arch": "conv3x3(nhwc_hwcf)+bias+relu -> conv3x3(nhwc_hwcf)+relu -> collapse -> matmul",
+  "input_shape": [
+    1,
+    8,
+    8,
+    1
+  ],
+  "output_shape": [
+    1,
+    2
+  ],
+  "seed": 1,
+  "param_count": 584,
+  "param_bytes": 2336,
+  "param_bytes_by_tensor": {
+    "k1": 144,
+    "b1": 16,
+    "k2": 1152,
+    "w3": 1024
+  },
+  "weight_layouts": {
+    "k1": "HWCF",
+    "b1": "C",
+    "k2": "HWCF",
+    "w3": "KN"
+  },
+  "entry": "infer",
+  "flatten_order": "row-major (h, w, c)",
+  "source_sha256": "e5ce7cd10090e4f64c869702830b350a38c5570efd40591c15e7fb5cf9402ed2",
+  "source_bytes": 12154
+}

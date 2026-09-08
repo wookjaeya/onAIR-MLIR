@@ -1,0 +1,168 @@
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @jit_eval(%arg0: !hal.buffer_view, %arg1: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @jit_eval(%input0: tensor<147456xf32>, %input1: tensor<2xi64>) -> (%output0: tensor<9x16384xf32>)"}} {
+  %c589824 = arith.constant 589824 : index
+  %c147456 = arith.constant 147456 : index
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg0 : !hal.buffer_view> message("input0") shape([%c147456]) type(%element_type_f32) encoding(%dense_row_major)
+  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<147456xf32> in !stream.resource<external>{%c589824}
+  %1 = stream.async.clone on(#hal.device.affinity<@__device_0>) %0 : !stream.resource<external>{%c589824} -> !stream.resource<external>{%c589824}
+  %2 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %1 : tensor<9x16384xf32> in !stream.resource<external>{%c589824} -> !hal.buffer_view
+  util.return %2 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @jit_eval_0(%arg0: !hal.buffer_view, %arg1: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @jit_eval_0(%input0: tensor<2xi64>, %input1: tensor<32768xf32>) -> (%output0: tensor<16384x2xf32>)"}} {
+  %c131072 = arith.constant 131072 : index
+  %c32768 = arith.constant 32768 : index
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg1 : !hal.buffer_view> message("input1") shape([%c32768]) type(%element_type_f32) encoding(%dense_row_major)
+  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg1 : !hal.buffer_view -> tensor<32768xf32> in !stream.resource<external>{%c131072}
+  %1 = stream.async.clone on(#hal.device.affinity<@__device_0>) %0 : !stream.resource<external>{%c131072} -> !stream.resource<external>{%c131072}
+  %2 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %1 : tensor<16384x2xf32> in !stream.resource<external>{%c131072} -> !hal.buffer_view
+  util.return %2 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @jit_eval_0(%arg0: !hal.buffer_view, %arg1: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @jit_eval_0(%input0: tensor<2xi64>, %input1: tensor<32768xf32>) -> (%output0: tensor<16384x2xf32>)"}} {
+  %c131072 = arith.constant 131072 : index
+  %c32768 = arith.constant 32768 : index
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg1 : !hal.buffer_view> message("input1") shape([%c32768]) type(%element_type_f32) encoding(%dense_row_major)
+  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg1 : !hal.buffer_view -> tensor<32768xf32> in !stream.resource<external>{%c131072}
+  %1 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %0 : tensor<16384x2xf32> in !stream.resource<external>{%c131072} -> !hal.buffer_view
+  util.return %1 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @jit_eval(%arg0: !hal.buffer_view, %arg1: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @jit_eval(%input0: tensor<147456xf32>, %input1: tensor<2xi64>) -> (%output0: tensor<9x16384xf32>)"}} {
+  %c589824 = arith.constant 589824 : index
+  %c147456 = arith.constant 147456 : index
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg0 : !hal.buffer_view> message("input0") shape([%c147456]) type(%element_type_f32) encoding(%dense_row_major)
+  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<147456xf32> in !stream.resource<external>{%c589824}
+  %1 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %0 : tensor<9x16384xf32> in !stream.resource<external>{%c589824} -> !hal.buffer_view
+  util.return %1 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.initializer {
+  %c131072 = arith.constant 131072 : index
+  %c589824 = arith.constant 589824 : index
+  %cst = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c589824} = dense_resource<__elided__> : tensor<9x16384xf32>
+  %cst_0 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c131072} = dense_resource<__elided__> : tensor<16384x2xf32>
+  util.global.store %cst_0, @__hoisted_tensor_16384x2xf32 : !stream.resource<constant>
+  util.global.store %c131072, @__hoisted_tensor_16384x2xf32__size : index
+  util.global.store %cst, @__hoisted_tensor_9x16384xf32 : !stream.resource<constant>
+  util.global.store %c589824, @__hoisted_tensor_9x16384xf32__size : index
+  util.return
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @infer(%arg0: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @infer(%input0: tensor<1x9xf32>) -> (%output0: tensor<1x2xf32>)"}} {
+  %c8 = arith.constant 8 : index
+  %c0 = arith.constant 0 : index
+  %c65536 = arith.constant 65536 : index
+  %c36 = arith.constant 36 : index
+  %c9 = arith.constant 9 : index
+  %c1 = arith.constant 1 : index
+  %__hoisted_tensor_9x16384xf32 = util.global.load immutable @__hoisted_tensor_9x16384xf32 : !stream.resource<constant>
+  %__hoisted_tensor_9x16384xf32__size = util.global.load immutable @__hoisted_tensor_9x16384xf32__size : index
+  %__hoisted_tensor_16384x2xf32 = util.global.load immutable @__hoisted_tensor_16384x2xf32 : !stream.resource<constant>
+  %__hoisted_tensor_16384x2xf32__size = util.global.load immutable @__hoisted_tensor_16384x2xf32__size : index
+  %0 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__hoisted_tensor_9x16384xf32 : !stream.resource<constant>{%__hoisted_tensor_9x16384xf32__size} -> !stream.resource<*>{%__hoisted_tensor_9x16384xf32__size}
+  %1 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__hoisted_tensor_16384x2xf32 : !stream.resource<constant>{%__hoisted_tensor_16384x2xf32__size} -> !stream.resource<*>{%__hoisted_tensor_16384x2xf32__size}
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg0 : !hal.buffer_view> message("input0") shape([%c1, %c9]) type(%element_type_f32) encoding(%dense_row_major)
+  %2 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<1x9xf32> in !stream.resource<external>{%c36}
+  %3 = stream.async.clone on(#hal.device.affinity<@__device_0>) %2 : !stream.resource<external>{%c36} -> !stream.resource<*>{%c36}
+  %4 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16384x9_f32(%3[%c0 to %c36 for %c36], %0[%c0 to %__hoisted_tensor_9x16384xf32__size for %__hoisted_tensor_9x16384xf32__size]) : (!stream.resource<*>{%c36}, !stream.resource<*>{%__hoisted_tensor_9x16384xf32__size}) -> !stream.resource<*>{%c65536}
+  %5 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_1::@infer_dispatch_1_matmul_1x2x16384_f32(%4[%c0 to %c65536 for %c65536], %1[%c0 to %__hoisted_tensor_16384x2xf32__size for %__hoisted_tensor_16384x2xf32__size]) : (!stream.resource<*>{%c65536}, !stream.resource<*>{%__hoisted_tensor_16384x2xf32__size}) -> !stream.resource<*>{%c8}
+  %6 = stream.async.clone on(#hal.device.affinity<@__device_0>) %5 : !stream.resource<*>{%c8} -> !stream.resource<external>{%c8}
+  %7 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %6 : tensor<1x2xf32> in !stream.resource<external>{%c8} -> !hal.buffer_view
+  util.return %7 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @infer(%arg0: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @infer(%input0: tensor<1x9xf32>) -> (%output0: tensor<1x2xf32>)"}} {
+  %c131072 = arith.constant 131072 : index
+  %c589824 = arith.constant 589824 : index
+  %c1 = arith.constant 1 : index
+  %c9 = arith.constant 9 : index
+  %c36 = arith.constant 36 : index
+  %c65536 = arith.constant 65536 : index
+  %c0 = arith.constant 0 : index
+  %c8 = arith.constant 8 : index
+  %__hoisted_tensor_9x16384xf32__timepoint = util.global.load immutable @__hoisted_tensor_9x16384xf32__timepoint : !stream.timepoint
+  %__hoisted_tensor_9x16384xf32__timepoint_0 = util.global.load immutable @__hoisted_tensor_9x16384xf32__timepoint : !stream.timepoint
+  %__hoisted_tensor_9x16384xf32 = util.global.load immutable @__hoisted_tensor_9x16384xf32 : !stream.resource<constant>
+  %__hoisted_tensor_16384x2xf32 = util.global.load immutable @__hoisted_tensor_16384x2xf32 : !stream.resource<constant>
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg0 : !hal.buffer_view> message("input0") shape([%c1, %c9]) type(%element_type_f32) encoding(%dense_row_major)
+  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<1x9xf32> in !stream.resource<external>{%c36}
+  %1 = stream.timepoint.join max(%__hoisted_tensor_9x16384xf32__timepoint, %__hoisted_tensor_9x16384xf32__timepoint_0) => !stream.timepoint
+  %c0_1 = arith.constant 0 : index
+  %result, %result_timepoint = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<external>{%c8} => !stream.timepoint
+  %c0_2 = arith.constant 0 : index
+  %c65536_3 = arith.constant 65536 : index
+  %c65536_4 = arith.constant 65536 : index
+  %result_5, %result_timepoint_6 = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%c65536_4} => !stream.timepoint
+  %2 = stream.timepoint.join max(%1, %result_timepoint, %result_timepoint_6) => !stream.timepoint
+  %3 = stream.cmd.execute on(#hal.device.affinity<@__device_0>) await(%2) => with(%0 as %arg1: !stream.resource<external>{%c36}, %__hoisted_tensor_9x16384xf32 as %arg2: !stream.resource<constant>{%c589824}, %__hoisted_tensor_16384x2xf32 as %arg3: !stream.resource<constant>{%c131072}, %result as %arg4: !stream.resource<external>{%c8}, %result_5 as %arg5: !stream.resource<transient>{%c65536_4}) {
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16384x9_f32 {
+      ro %arg1[%c0 for %c36] : !stream.resource<external>{%c36},
+      ro %arg2[%c0 for %c589824] : !stream.resource<constant>{%c589824},
+      wo %arg5[%c0_2 for %c65536] : !stream.resource<transient>{%c65536_4}
+    }
+    stream.cmd.dispatch @infer_dispatch_1::@infer_dispatch_1_matmul_1x2x16384_f32 {
+      ro %arg5[%c0_2 for %c65536] : !stream.resource<transient>{%c65536_4},
+      ro %arg3[%c0 for %c131072] : !stream.resource<constant>{%c131072},
+      wo %arg4[%c0_1 for %c8] : !stream.resource<external>{%c8}
+    }
+  } => !stream.timepoint
+  %4 = stream.resource.dealloca on(#hal.device.affinity<@__device_0>) await(%3) => %result_5 : !stream.resource<transient>{%c65536_4} => !stream.timepoint
+  %5 = stream.timepoint.join max(%4, %3) => !stream.timepoint
+  %6 = stream.timepoint.await %5 => %result : !stream.resource<external>{%c8}
+  %7 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %6 : tensor<1x2xf32> in !stream.resource<external>{%c8} -> !hal.buffer_view
+  util.return %7 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.initializer {
+  %0 = stream.timepoint.immediate => !stream.timepoint
+  %c131072 = arith.constant 131072 : index
+  %c589824 = arith.constant 589824 : index
+  %1 = stream.timepoint.immediate => !stream.timepoint
+  %buffer_cst = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<720896xi8, [
+    dense_resource<__elided__> : tensor<9x16384xf32>,
+    dense_resource<__elided__> : tensor<16384x2xf32>,
+]>
+  %c720896 = arith.constant 720896 : index
+  %c0 = arith.constant 0 : index
+  %did_map, %result = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c720896}
+  %c0_i64 = arith.constant 0 : i64
+  %2:2 = scf.if %did_map -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %1, %result : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %8 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c720896}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst[%c0 for %c720896] : !util.buffer{%c720896} -> !stream.file
+    %9 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%1) => %file[%c0_i64], %8[%c0], %c720896 : !stream.file -> !stream.resource<constant>{%c720896} => !stream.timepoint
+    scf.yield %9, %8 : !stream.timepoint, !stream.resource<constant>
+  }
+  %3 = stream.resource.subview %2#1[%c0] : !stream.resource<constant>{%c720896} -> !stream.resource<constant>{%c589824}
+  %4 = stream.resource.subview %2#1[%c589824] : !stream.resource<constant>{%c720896} -> !stream.resource<constant>{%c131072}
+  %5 = stream.cmd.execute once on(#hal.device.affinity<@__device_0>) with() {
+  } => !stream.timepoint
+  %6 = stream.timepoint.join max(%2#0, %5) => !stream.timepoint
+  %7:2 = stream.timepoint.await sync %6 => %4, %3 : !stream.resource<constant>{%c131072}, !stream.resource<constant>{%c589824}
+  util.global.store %7#0, @__hoisted_tensor_16384x2xf32 : !stream.resource<constant>
+  util.global.store %7#1, @__hoisted_tensor_9x16384xf32 : !stream.resource<constant>
+  util.global.store %0, @__hoisted_tensor_9x16384xf32__timepoint : !stream.timepoint
+  util.return
+}
+

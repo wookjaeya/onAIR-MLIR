@@ -1,0 +1,43 @@
+{
+  "model": "mlp16k",
+  "target": "aarch64",
+  "mlir": "results/e14_aarch64_qemu/models/mlp16k/m16k_baked.mlir",
+  "mlir_basename": "m16k_baked.mlir",
+  "command": [
+    "iree-compile",
+    "results/e14_aarch64_qemu/models/mlp16k/m16k_baked.mlir",
+    "--iree-hal-target-backends=llvm-cpu",
+    "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+    "--iree-llvmcpu-target-cpu=cortex-a53",
+    "--mlir-print-ir-after=iree-stream-layout-slices",
+    "--mlir-elide-elementsattrs-if-larger=16",
+    "--iree-hal-dump-executable-files-to=results/e14_aarch64_qemu/aarch64/dump/mlp16k",
+    "-o",
+    "results/e14_aarch64_qemu/aarch64/vmfb/mlp16k.vmfb"
+  ],
+  "vmfb": "results/e14_aarch64_qemu/aarch64/vmfb/mlp16k.vmfb",
+  "vmfb_bytes": 732795,
+  "vmfb_sha256": "a439de2130def66ba1eccc3778760a2f62b94d939bdb7c158689425326dd2f07",
+  "layout_ir": "results/e14_aarch64_qemu/aarch64/layout_ir/mlp16k.layout_ir.txt",
+  "layout_ir_sha256": "1558820aeaf6c1574c6a1220430907bf6ac6bab4e859d392b0140b41b1dda6cc",
+  "dump_dir": "results/e14_aarch64_qemu/aarch64/dump/mlp16k",
+  "dump_files": [
+    "configured_module_infer_dispatch_0.mlir",
+    "configured_module_infer_dispatch_1.mlir",
+    "module_infer_dispatch_0.mlir",
+    "module_infer_dispatch_0_embedded_elf_arm_64_benchmark.mlir",
+    "module_infer_dispatch_1.mlir",
+    "module_infer_dispatch_1_embedded_elf_arm_64_benchmark.mlir",
+    "module_m16k_baked_linked_embedded_elf_arm_64.codegen.bc",
+    "module_m16k_baked_linked_embedded_elf_arm_64.codegen.ll",
+    "module_m16k_baked_linked_embedded_elf_arm_64.linked.bc",
+    "module_m16k_baked_linked_embedded_elf_arm_64.linked.ll",
+    "module_m16k_baked_linked_embedded_elf_arm_64.o",
+    "module_m16k_baked_linked_embedded_elf_arm_64.optimized.bc",
+    "module_m16k_baked_linked_embedded_elf_arm_64.optimized.ll",
+    "module_m16k_baked_linked_embedded_elf_arm_64.s",
+    "module_m16k_baked_linked_embedded_elf_arm_64.so"
+  ],
+  "compile_seconds": 1.19,
+  "single_invocation": true
+}

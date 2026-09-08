@@ -1,0 +1,41 @@
+{
+  "model": "dynamic",
+  "target": "aarch64",
+  "mlir": "results/e14_aarch64_qemu/models/dynamic/dyn_batch_mlp.mlir",
+  "mlir_basename": "dyn_batch_mlp.mlir",
+  "command": [
+    "iree-compile",
+    "results/e14_aarch64_qemu/models/dynamic/dyn_batch_mlp.mlir",
+    "--iree-hal-target-backends=llvm-cpu",
+    "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+    "--iree-llvmcpu-target-cpu=cortex-a53",
+    "--mlir-print-ir-after=iree-stream-layout-slices",
+    "--mlir-elide-elementsattrs-if-larger=16",
+    "--iree-hal-dump-executable-files-to=results/e14_aarch64_qemu/aarch64/dump/dynamic",
+    "-o",
+    "results/e14_aarch64_qemu/aarch64/vmfb/dynamic.vmfb"
+  ],
+  "vmfb": "results/e14_aarch64_qemu/aarch64/vmfb/dynamic.vmfb",
+  "vmfb_bytes": 13482,
+  "vmfb_sha256": "b19498666a94c19de03be9afcc939c8de130775843fb70e068c176148252fed1",
+  "layout_ir": "results/e14_aarch64_qemu/aarch64/layout_ir/dynamic.layout_ir.txt",
+  "layout_ir_sha256": "a61049fc595108ea2d156250abbdd260e673b7130004e404ca26683843d68c09",
+  "dump_dir": "results/e14_aarch64_qemu/aarch64/dump/dynamic",
+  "dump_files": [
+    "configured_module_infer_dispatch_0.mlir",
+    "configured_module_infer_dispatch_1.mlir",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.codegen.bc",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.codegen.ll",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.linked.bc",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.linked.ll",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.o",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.optimized.bc",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.optimized.ll",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.s",
+    "module_dyn_batch_mlp_linked_embedded_elf_arm_64.so",
+    "module_infer_dispatch_0.mlir",
+    "module_infer_dispatch_1.mlir"
+  ],
+  "compile_seconds": 0.79,
+  "single_invocation": true
+}

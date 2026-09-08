@@ -1,0 +1,16 @@
+{
+  "input_rule": "0.1*(i%10)",
+  "input_shape": [
+    1,
+    16
+  ],
+  "output": [
+    0.23982572343702963,
+    0.021678821699156088
+  ],
+  "output_shape": [
+    1,
+    2
+  ],
+  "reference_dtype": "float64"
+}
