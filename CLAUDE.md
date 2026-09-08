@@ -145,6 +145,22 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    "왜 MLIR/IREE 경로여야 하는가"에 답한다. 전제(TFLM이 컴파일 시 아레나 크기를 제공하는가)부터
    1차 문서로 확인할 것. 지표: 과소 추정 발생률, tightness/과도한 거부, 분석 가능 범위, 재생성
    자동화, stale contract 탐지, 분석·통합 비용.
+   **전제 확인 결과(이 세션, 1차 문서 대조 — 실험 아님, TFLM 빌드/측정 없음)**:
+   [`tensorflow/tflite-micro` `micro_interpreter.h`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_interpreter.h)의
+   `arena_used_bytes()` 주석 원문: *"Returns the actual used arena in bytes. This method gives
+   the optimal arena size. It's only available after `AllocateTensors` has been called."* —
+   즉 **`Invoke()`(실제 추론 실행) 없이 `AllocateTensors()`(그래프+shape 기반 메모리 계획 단계)만
+   호출한 뒤에도 유효한 값**이라는 점에서, 우리 `bounded_bytes`(post-layout 슬랩 크기, 추론 미실행)
+   와 **같은 부류의 값**(실행이 아니라 계획 단계에서 나옴)이다 — "TFLM은 런타임 계측만 준다"는
+   첫 대략적 확인은 부정확했다(정정). 다만 [`docs/memory_management.md`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/docs/memory_management.md)
+   는 이 값을 **"For debugging only"**로만 표기하고, 우리가 `bounded_bytes`에 대해 확보한 것과
+   같은 종류의 **건전성 근거(60/60 실측 일치, 경계값 시험 등)를 TFLM 쪽 문서는 제시하지 않는다** —
+   "이 값이 모든 유효 입력에 대해 상한임을 증명한다"는 주장은 TFLM 공식 문서 어디에도 없다. 따라서
+   비교를 시작할 수 있는 전제(컴파일/준비 단계에서 나오는 계획 기반 수치가 존재한다)는 **참**이지만,
+   그 수치의 건전성은 TFLM 쪽에서 **직접 확인해야 하는 새로운 질문**이다(우리 쪽 `bounded_bytes`도
+   처음엔 그렇게 시작해서 D2·D3 등 결함을 거쳐 검증됐다는 점을 상기할 것 — 같은 함정을 TFLM 비교에도
+   적용해야 한다). 실제 비교 실험은 TFLM 빌드 도구체인(이 컨테이너에 없음, 별도 환경 구축 필요)이
+   있어야 착수 가능 — 다음 세션 항목.
 5. **임무 유사 workload + 다중 AI 앱 동시 admission** — 단일 앱 계약 수용 규칙(1–3)이 끝난 뒤 착수.
    다중 앱은 전역 예산의 예약·해제·경합 설계가 새로 필요하다(현재는 전역 예약 없음).
 6. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
