@@ -1,0 +1,11 @@
+# guest (qemu-system-aarch64, machine virt gic-version=3, cpu cortex-a53; setup boot smp=4 mem=2048; experiments smp=1 mem=1024)
+image: noble-server-cloudimg-arm64.img sha256 afa139bac6f2629c1e1f2f8f34215f3a9ad9779801bcb945521ba1a45016743f (cloud-images.ubuntu.com/noble/current, Last-Modified 2026-08-26)
+uname: Linux onair-aarch64 6.8.0-138-generic #138-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 22:20:42 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+uname_m: aarch64
+long_bit: 64
+os: Ubuntu 24.04.4 LTS
+kernel: 6.8.0-138-generic
+glibc: ldd (Ubuntu GLIBC 2.39-0ubuntu8.8) 2.39
+cpu_model: Cortex-A53
+python3: Python 3.12.3
+mqueue_msg_max: 512

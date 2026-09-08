@@ -23,12 +23,15 @@ cd iree-src
 git fetch --depth 1 origin "$IREE_COMMIT"
 git checkout -q FETCH_HEAD
 
-# Runtime-only submodules actually needed for this minimal config.
+# Runtime-only submodules. IREE's CMake runs
+# build_tools/scripts/git/check_submodule_init.py --runtime_only, which
+# requires every submodule listed in runtime_submodules.txt to be initialized
+# (E14 Stage 1 pitfall: the hand-written list used before this commit lacked
+# third_party/hip-build-deps and configure failed). Read the list from the tree.
 # (IREE's top-level `git submodule update --init` pulls everything, including
 #  the compiler's LLVM checkout, which is unnecessary and very large here.)
-git submodule update --init --depth 1 --jobs 4 \
-  third_party/flatcc third_party/musl third_party/hsa-runtime-headers \
-  third_party/benchmark third_party/googletest third_party/printf third_party/tracy
+RUNTIME_SUBMODULES=$(grep -v '^\s*$' build_tools/scripts/git/runtime_submodules.txt | tr '\n' ' ')
+git submodule update --init --depth 1 --jobs 4 $RUNTIME_SUBMODULES
 
 # Pitfall (hit 2026-09-08): this IREE commit's x86_64 ukernel CMakeLists uses
 # check_c_source_compiles() without including the CMake module that defines

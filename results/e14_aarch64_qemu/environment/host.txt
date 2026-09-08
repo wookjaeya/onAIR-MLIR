@@ -1,0 +1,9 @@
+# host
+PRETTY_NAME="Ubuntu 24.04.4 LTS"
+VERSION_ID="24.04"
+kernel: 6.18.44-fc-v24
+arch: x86_64
+nproc: 4
+mem_mib_total: 16075
+kvm: no (TCG emulation)
+cpu_model: Intel(R) Xeon(R) Processor @ 2.80GHz

@@ -1,0 +1,38 @@
+{
+  "onair_mlir_bench_base": "f327896886371da7a1ed618cd3e02475a63d272c",
+  "onair_mlir_bench_base_tag": "v0.8",
+  "iree_compiler_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+  "iree_compiler_version": "IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+  "iree_runtime_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+  "cfs_bundle_commit": "78c23b0f5ab500f8a4b23b2fdeb0cd9f9969f9c7",
+  "cfe_commit": "2612eb058cc0c17e774c30e3f833ebb9f93d0d12",
+  "osal_commit": "8111e4a5cc0bef109540ef648d00924032882452",
+  "psp_commit": "d1da809149ede8a3a28e19f36600f7be8b01f37d",
+  "ci_lab_commit": "09927265ae81df0d5a9a5e0d440243c990d1d991",
+  "to_lab_commit": "14bdfcc836bde6a4d6aafff000421002ecea84bb",
+  "sch_lab_commit": "4ec8016509cbdabcec6ab7cf3469d6878d50c3f1",
+  "sample_app_commit": "7cbc4c843d892f326df88b1ac0d266ec1eb4d74f",
+  "llvm_version_in_iree": "LLVM version 23.0.0git",
+  "aarch64_binutils_version": "GNU objdump (GNU Binutils for Ubuntu) 2.42",
+  "aarch64_gcc_version": "aarch64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+  "qemu_version": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+  "contract_conditions": {
+    "static_shapes": true,
+    "single_in_flight": true,
+    "driver": "local-sync",
+    "target_triple": "aarch64-unknown-linux-gnu",
+    "target_cpu": "cortex-a53",
+    "executable_format": "embedded-elf"
+  },
+  "guest": {
+    "os": "Ubuntu 24.04.4 LTS (noble cloud image arm64)",
+    "machine": "virt",
+    "gic": "3",
+    "cpu": "cortex-a53",
+    "vcpus_experiment": 1,
+    "memory_mib_experiment": 1024,
+    "vcpus_setup": 4,
+    "memory_mib_setup": 2048,
+    "accel": "tcg"
+  }
+}
