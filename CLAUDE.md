@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.7** (git tag). 중심 주장은 v0.7의 결론 문장을 그대로 쓴다 — 지어내지 말 것:
+연구. 현재 버전: **v0.8** (git tag). 중심 주장은 v0.7의 결론 문장을 그대로 쓴다 — 지어내지 말 것:
 
 > 부분 메모리 계약을 Native 실행과 cFS 초기화 gate에 연결하고, 시험한 모델에서 허용·거부
 > 경로와 HAL 피크의 일치를 확인했다. gate는 계약을 아티팩트 바이트 해시로 결합해 모델 교체를
@@ -18,6 +18,11 @@ NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를
 
 **절대 하지 말 것**: H1(AOT가 더 빠르다)이나 H2(계약 기반 lowering 선택이 유리하다)를 다시
 주가설로 세우지 말 것 — 둘 다 실험으로 기각/격하됐다(`EXPERIMENT_LOG.md`의 가설 판정 이력 참조).
+
+**v0.8에서 새로 추가된 축**: 이 계약이 x86-64뿐 아니라 AArch64에서도 sound한지(교차 ISA
+일반성)를 검증하는 E14가 진행 중이다. Stage 0(교차 컴파일·구조 분석·qemu-user 확인)은
+완료했고, Stage 1(qemu-system-aarch64 전체 시스템 + cFS-in-guest)이 **Claude Code로
+이관된 첫 작업**이다 — 아래 "지금 바로 이어서 할 일" 참조.
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -54,7 +59,23 @@ NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를
 "계산값과 관측값이 일치했다"는 항상 "같은 할당 계획의 두 관측이 서로 모순되지 않는다"는
 뜻일 뿐, 계획 자체가 맞다는 증명이 아니다. **새 실험을 설계할 때마다 이 함정을 의심할 것.**
 
-## 다음 작업 (우선순위)
+## 지금 바로 이어서 할 일 (Claude Code, 우선순위 1)
+
+**E14 Stage 1** — `docs/plans/E14_stage1_qemu_system_cfs.md`를 열어 그대로 따른다.
+qemu-system-aarch64로 AArch64 Linux 게스트를 부팅하고, 그 안에서 cFS `AI_LEARNER` 앱을
+빌드·실행해 제안서(`docs/reviews/QEMU_AARCH64_EXPERIMENT_ENVIRONMENT.md`) §11.2의 시나리오
+A1–A7(정상/예산거부/모델교체/파일부재/손상/반복/재시작)을 검증한다. 이 세션(claude.ai)에서
+못 한 이유는 게스트 이미지가 영속 저장을 요구하고 반복 자동화가 많기 때문 — Claude Code의
+장점이 정확히 여기서 쓰인다.
+
+Stage 1 전제(다시 검증할 필요 없음, `EVIDENCE_v0.8_E14_aarch64.md` 참조):
+- bounded_bytes는 x86-64=AArch64=786,476로 이미 확인됨.
+- AArch64는 x86-64에 없던 **16바이트 태스크 스택 프레임**을 커널 함수마다 갖는다 — Stage 1의
+  cFS 앱 스택 크기 설정에 이걸 명시적으로 반영할 것(계획 문서에 조치 사항 적어둠).
+- 모델 세트를 MLP 하나로 끝내지 말 것 — 제안서 §12가 요구하는 Conv2D·multi-branch 모델을
+  추가해야 "단일 모델 특수 사례"라는 반론을 피한다.
+
+## 다음 작업 (우선순위, Stage 1 이후)
 
 외부 검토 `REVIEW_v0_6_E13_RESEARCH_DIRECTION.md` §9-5가 남겨둔 항목:
 1. **동일 경계의 대안 비교** — TFLite Micro(정적 아레나) 등과 같은 메모리 경계에서 비교해
@@ -86,22 +107,28 @@ docs/
   EVIDENCE_v0.4_E7.md         E7/E8: admission checker, 동적 형상 거부
   EVIDENCE_v0.5_E9.md         E9/E10: 할당 구조 4사례 (D3 결함 발견·수정), 경계값
   EVIDENCE_v0.6_E11.md        E11/E12: Native C 변형, cFS 앱 통합 (최초)
-  EVIDENCE_v0.7_E13.md        ★ 최신. 계약-아티팩트 결합, 계측 정정, E13 LLVM/ELF 코드 대응
+  EVIDENCE_v0.7_E13.md        계약-아티팩트 결합, 계측 정정, E13 LLVM/ELF 코드 대응
+  EVIDENCE_v0.8_E14_aarch64.md ★ 최신. 교차 ISA(x86-64/AArch64) 계약 건전성, Stage 0
+  plans/E14_stage1_qemu_system_cfs.md  ★ Claude Code가 이어서 할 작업의 정확한 실행 계획
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
   10_build_cfs.sh              cFS 클론·빌드 (native_std)
   11_run_cfs.sh                 cFS 기동
   20_setup_onair.sh              OnAIR 설치 + 예제 실행
   30_setup_iree.sh                IREE 컴파일러/런타임 (pip, Python 바인딩)
-  40_setup_iree_source_runtime.sh  ★ IREE 런타임 소스 빌드 (native_learner/cfs_app가 링크할 것)
+  40_setup_iree_source_runtime.sh  ★ IREE 런타임 소스 빌드 (x86-64, native_learner/cfs_app가 링크할 것)
   50_wire_cfs_ai_learner.sh        ★ AI_LEARNER 앱을 cFS에 배선·빌드
-  99_bootstrap_all.sh              ★ 전체 순서 실행
+  60_setup_aarch64_cross.sh          AArch64 크로스 툴체인 + qemu-user (시스템 에뮬레이션 아님)
+  61_build_iree_runtime_aarch64.sh   IREE 런타임 AArch64 크로스 빌드
+  62_compile_and_check_aarch64.sh    E14 Stage 0 재현 (컴파일→구조분석→qemu-user 확인)
+  99_bootstrap_all.sh              ★ 전체 순서 실행 (x86-64 기준; aarch64는 60-62 별도 실행)
 harness/                    실험 스크립트 (플랫폼 게이트, 스윕, 정적 상한 파서, admission checker 등)
 contracts/                  계약 스키마 + 채워진 예시 (v0.4 memory_boundary 결정, v0.7 artifact binding)
 models/                     기본 MLIR 모델
 plugins/                    OnAIR AIPlugin 구현체 (compiled_learner=IREE, python_learner=NumPy 베이스라인)
 native/                     Python 없는 C 경로: native_learner.c (standalone), cfs_app/ (cFS 앱 소스)
-e13/                        LLVM IR·ELF 덤프 (host/generic 설정 비교)
+e13/                        LLVM IR·ELF 덤프 (x86-64 host/generic 설정 비교)
+e14/                        교차 ISA 검증 (aarch64/ = Stage 0 산출물: vmfb, IR, ELF, objdump, summary.json)
 results_*.json               각 실험의 원자료 (git 추적됨 — 재실행 없이 분석 재현 가능)
 ```
 

@@ -1,0 +1,71 @@
+{
+  "stage": "E14 Stage 0 (x86 host sandbox): cross-compile + structural analysis + qemu-user quick check",
+  "excluded_from_evidence": [
+    "all latency numbers below (qemu-aarch64 user-mode TCG translation)",
+    "RSS deltas under qemu-user (includes QEMU host-process overhead)"
+  ],
+  "compile": {
+    "single_invocation": true,
+    "target_triple": "aarch64-unknown-linux-gnu",
+    "target_cpu": "cortex-a53",
+    "vmfb_sha256": "053d497375dd0a6dacf49718140c3879e712688b16e4c7a7fb371bddeac8b140",
+    "vmfb_bytes": 732699
+  },
+  "RQ1_contract_soundness": {
+    "bounded_bytes_aarch64": 786476,
+    "bounded_bytes_x86_64": 786476,
+    "identical": true,
+    "reason": "iree-stream-layout-slices (memory planning) runs before iree-llvmcpu codegen; the plan is target-independent for this model",
+    "native_qemu_user_admit_run": {
+      "hal_device_bytes_peak": 786476,
+      "peak_within_bounded": true,
+      "hal_bytes_per_call_steady": 65544.0,
+      "steady_within_per_call": true,
+      "attempted": 700,
+      "completed": 700,
+      "fail_invoke": 0,
+      "fail_output": 0,
+      "out0": 4.432073,
+      "out0_matches_x86_64": true
+    },
+    "boundary_B_minus1_B_Bplus1": [
+      "NOT_ADMITTED",
+      "ADMIT",
+      "ADMIT"
+    ],
+    "model_swap_same_ABI": "CONTRACT_ARTIFACT_MISMATCH, exit 5, runtime not created",
+    "dynamic_shape": {
+      "all_sizes_static": false,
+      "verdict": "UNKNOWN_BOUND (policy: not admitted)"
+    }
+  },
+  "RQ2_kernel_external_memory": {
+    "x86_64_host_profile": {
+      "llvm_alloca": 0,
+      "elf_call_insns": 0,
+      "elf_stack_frame_bytes": 0
+    },
+    "aarch64_cortex_a53": {
+      "llvm_alloca": 0,
+      "elf_call_insns": 0,
+      "elf_stack_frame_bytes_per_dispatch": 16,
+      "note": "AAPCS64 standard prologue (stp x29,x30 / mov x29,sp ... ldp x29,x30) in BOTH dispatch functions, despite zero call instructions inside them. No additional `sub sp` beyond this 16B save -- no spills. Classified as bucket (2) task-stack budget, not covered by the HAL per-call/constants contract; x86-64 SysV leaf functions needed no such save.",
+      "vector_isa": "NEON (v.4s, 32-bit x4)",
+      "fmla_insns": 14,
+      "elf_bytes": 4864,
+      "total_insns": 88
+    },
+    "x86_64_host_profile_detail": {
+      "vector_isa": "AVX-512 (zmm, 32-bit x16)",
+      "fma_insns": 34,
+      "elf_bytes": 5160,
+      "total_insns": 122
+    }
+  },
+  "deferred_to_claude_code": [
+    "qemu-system-aarch64 + Linux guest image (system-mode) -- proposal SS7, SS10, SS11",
+    "cFS AI_LEARNER build/run inside the AArch64 guest -- proposal SS11 (A1-A7 scenarios)",
+    "Conv2D / multi-branch model set -- proposal SS12",
+    "QEMU RTEMS stage -- proposal SS17 (optional, only after Linux stage passes)"
+  ]
+}

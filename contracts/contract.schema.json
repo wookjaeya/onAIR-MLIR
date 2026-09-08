@@ -73,6 +73,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "executable_format": {
+          "enum": [
+            "embedded-elf"
+          ],
+          "description": "IREE HAL executable format used"
         }
       }
     },

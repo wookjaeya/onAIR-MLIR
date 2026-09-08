@@ -1,0 +1,64 @@
+{
+  "target": {
+    "triple": "aarch64-unknown-linux-gnu",
+    "cpu": "cortex-a53",
+    "driver": "local-sync",
+    "executable_format": "embedded-elf",
+    "profile": "cortex-a53"
+  },
+  "resources": {
+    "memory_boundary": "per_call_plus_module_constants",
+    "static_per_call_bytes": 65580,
+    "static_transient_bytes": 65536,
+    "static_io_bytes": 44,
+    "module_resident_constant_bytes": 720896,
+    "bounded_bytes": 786476,
+    "bound_method": "static_from_stream_layout",
+    "bound_assumptions": [
+      "static shapes",
+      "single in-flight call (no concurrency)",
+      "local-sync driver",
+      "entry function @infer only"
+    ],
+    "binary_size_bytes": 732699
+  },
+  "artifact": {
+    "file": "model.vmfb",
+    "sha256": "053d497375dd0a6dacf49718140c3879e712688b16e4c7a7fb371bddeac8b140",
+    "bytes": 732699,
+    "produced_by": "single iree-compile invocation (E14 aarch64, cortex-a53)"
+  },
+  "validity": {
+    "entry": "infer",
+    "input": {
+      "shape": [
+        1,
+        9
+      ],
+      "dtype": "f32"
+    },
+    "output": {
+      "shape": [
+        1,
+        2
+      ],
+      "dtype": "f32"
+    },
+    "driver": "local-sync",
+    "profile": "cpu_host",
+    "compiler": "IREE 3.11.0rc20260316 e4a3b04",
+    "runtime_commit": "e4a3b04",
+    "assumptions": [
+      "static shapes",
+      "single in-flight call (no concurrency)",
+      "local-sync driver",
+      "entry function @infer only"
+    ],
+    "binding_rule": "the gate must hash the exact bytes handed to the IREE session and compare with artifact.sha256 before any runtime allocation"
+  },
+  "e14_cross_target": {
+    "same_bounded_bytes_as_x86_64": true,
+    "x86_64_bounded_bytes": 786476,
+    "note": "stream-layout-slices runs before target-specific codegen, so the memory PLAN is target-independent for this model; only the executable code differs."
+  }
+}

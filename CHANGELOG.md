@@ -2,6 +2,23 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.8] 2026-09-08
+- 외부 제안(`docs/reviews/QEMU_AARCH64_EXPERIMENT_ENVIRONMENT.md`) 반영, E14 등록.
+- Stage 0(이 세션): AArch64/Cortex-A53 교차 컴파일(단일 호출 규칙 준수), 정적 상한 계산,
+  LLVM IR/ELF 구조 분석, `qemu-aarch64` user-mode로 Native 실행(참고용, 시간값 비증거).
+- 결과: bounded_bytes가 x86-64와 AArch64에서 **동일**(786,476) — 메모리 계획 패스가
+  타깃 코드생성보다 앞서기 때문(구조적 이유 확인). HAL 피크·정상상태 per-call·경계값
+  B-1/B/B+1·모델교체거부·동적형상거부 전부 x86-64와 일치. out0 수치까지 일치.
+- 발견: AArch64 코드생성이 x86-64에 없던 **16B AAPCS64 스택 프레임**을 커널 함수마다
+  도입(호출 0개인데도 발생). (2)태스크 스택 예산으로 분류, Stage 1에서 명시적 반영 필요.
+- Stage 1(qemu-system-aarch64 Linux 게스트, cFS-in-guest, Conv2D/multi-branch 모델,
+  QEMU RTEMS)은 게스트 이미지·영속 저장·반복 자동화가 필요해 Claude Code로 이관
+  (`docs/plans/E14_stage1_qemu_system_cfs.md`).
+- 계약 스키마에 `target.cpu`, `target.executable_format` 필드 추가.
+- 신규 스크립트: `60_setup_aarch64_cross.sh`, `61_build_iree_runtime_aarch64.sh`,
+  `62_compile_and_check_aarch64.sh`.
+- 문서: `docs/EVIDENCE_v0.8_E14_aarch64.md`, `docs/plans/E14_stage1_qemu_system_cfs.md`.
+
 ## [v0.7] 2026-09-08
 - 외부 검토(`REVIEW_v0_6_E13_RESEARCH_DIRECTION.md`) §9 순서대로 반영.
 - 계약–아티팩트 결합: `artifact.sha256/bytes` + `validity`; `harness/gen_contract_header.py`로 헤더 생성; gate가 IREE에 넘길 바이트를 해시 비교 (D6).
