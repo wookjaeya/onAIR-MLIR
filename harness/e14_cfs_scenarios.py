@@ -132,7 +132,13 @@ def check_expect(res, exp):
 
 def run_scenario(sc, remote_root, out_dir, dry=False):
     sid = sc["id"]
-    tree = f"{remote_root}/cpu1"
+    # NOTE: steps[0] is `cd {remote_root}`, and every later step in this same
+    # command chain runs from THAT directory -- so `tree` here must be relative
+    # to remote_root ("cpu1"), not remote_root-prefixed, or cp/cd below resolve
+    # to remote_root/remote_root/cpu1 and silently fail (bug found E14 Stage 1:
+    # scenario runs produced no remote log at all because the first `cp` in the
+    # && chain failed).
+    tree = "cpu1"
     steps = [f"cd {remote_root}", f"cp {sc['so']} {tree}/cf/ai_learner.so", f"cp {sc['startup']} {tree}/cf/cfe_es_startup.scr", f"rm -f {tree}/cf/model.vmfb"]
     v = sc.get("vmfb")
     if isinstance(v, str):
@@ -159,7 +165,7 @@ def run_scenario(sc, remote_root, out_dir, dry=False):
         print(f"[{sid}]   t={sent[-1]['t']}s sent {args} rc={r.returncode}", flush=True)
     p.wait(timeout=secs + 120)
     local_log = out_dir / f"{sid}.log"
-    scp_from(f"{tree}/{sid}.log", local_log)
+    scp_from(f"{remote_root}/{tree}/{sid}.log", local_log)
     text = local_log.read_text(errors="replace")
     res = parse_log(text)
     res.update({"id": sid, "model": sc.get("model"), "scenario": sc.get("desc"), "seconds": secs, "commands_sent": sent,
