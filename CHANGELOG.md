@@ -2,6 +2,23 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.14] 2026-09-08
+- E19: 정규 MLIR pass 2단계(`docs/EVIDENCE_v0.14_E19.md`) — E18의 구조적 추출기
+  (`harness/mlir_alloc_walk.py`)를 `harness/make_contract.py`에 **필수 크로스체크**로 결선.
+  대체가 아니라 상호 검증: 정규식 파서와 구조적 추출기가 같은 layout IR을 각각 읽고, 다섯 항목
+  (inputs/outputs/transient_slabs 원소별, constants 합계, entry_found, unresolved 존재)이
+  불일치하거나 구조적 추출기가 파싱에 실패하면 계약을 **거부**(`--allow-structural-mismatch`로만
+  우회, D13과 같은 hard_fail_errors/raise 경로). `iree.compiler.ir`가 설치되지 않은 환경에서는
+  하드 실패가 아니라 스킵(기록만, E15 이전 기준선으로 안전하게 저하) — 확인됨(§4).
+- 검증: 14개 보관 계약을 **실제 프로덕션 경로**(서브프로세스로 `make_contract.py` 재실행)로
+  재생성해 수치 diff 0 + 신규 필드 `provenance.structural_walker` 14/14
+  `available=True, agrees_with_regex_parser=True` 확인(E18은 구조적 추출기를 직접 호출했을 뿐
+  `make_contract.py`를 거치지 않았음 — 이번이 처음으로 프로덕션 경로 자체를 검증). 하드 실패
+  배선은 in-process monkeypatch로 불일치·파싱예외 두 조건 모두 실제 `SystemExit` 확인.
+  `harness/contract_negative_tests.py` 66/66 → **85/85**.
+- CLAUDE.md 우선순위 3번의 미해결 평가지표("컴파일러 버전 변경 시 명시적 실패")에 실제 강제
+  지점을 마련(다른 IREE 버전으로의 실제 재확인은 여전히 범위 밖).
+
 ## [v0.13] 2026-09-08
 - E18: 정규 MLIR pass 1단계(`docs/EVIDENCE_v0.13_E18.md`) — `harness/mlir_alloc_walk.py` 신설.
   `static_mem_bound.py::parse_alloc_ir`가 하던 일(entry 함수의 입출력·transient·module 상주 상수
