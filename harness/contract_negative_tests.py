@@ -8,10 +8,13 @@ headers under results/e14_aarch64_qemu/.
 
 Every case in NEGATIVE below is an input that must be REFUSED (non-zero exit,
 no output file written). Before D13/D14/D15 several of these were silently
-accepted -- see the docstring of each tool for the specific defect. This file
-does not implement a real MLIR/IREE pass (that is the proposal's SS4-longer-
-term item); it exercises the regex-based tools that exist today and pins down
-"refuses" as an observable, testable contract of its own.
+accepted -- see the docstring of each tool for the specific defect. Most of
+this file exercises the regex-based tools and pins down "refuses" as an
+observable, testable contract of its own. The structural_walker_checks()
+group (E18, harness/mlir_alloc_walk.py) is the first slice of the proposal's
+"regular MLIR/IREE pass" item -- it independently re-derives the same numbers
+via the real Operation/Type API (not text matching) and must agree with the
+regex parser on every stored artifact.
 
 Usage: python3 harness/contract_negative_tests.py [--root results/e14_aarch64_qemu]
 Exit 0 iff every negative case was refused AND the regression check passed.
@@ -361,6 +364,61 @@ def regression_check(root, tmp):
     return results
 
 
+# ----------------------------------------------------------------------------
+# E18: structural (MLIR API, non-regex) walker cross-check (harness/mlir_alloc_walk.py)
+# ----------------------------------------------------------------------------
+def structural_walker_checks(root):
+    results = []
+    try:
+        import mlir_alloc_walk as maw
+    except Exception as e:
+        return [Result("structural: mlir_alloc_walk importable", False, str(e)[:200])]
+
+    models = ["mlp16k", "mlp16k_swap", "conv2d", "conv2d_swap", "multibranch", "multibranch_swap", "dynamic"]
+    for tgt in ("aarch64", "x86_64"):
+        for model in models:
+            f = os.path.join(root, tgt, "layout_ir", "%s.layout_ir.txt" % model)
+            if not os.path.isfile(f):
+                results.append(Result("structural: %s/%s fixture present" % (tgt, model), False, "missing %s" % f))
+                continue
+            text = open(f, encoding="utf-8", errors="replace").read()
+            try:
+                structural = maw.parse_alloc_ir_structural(text, "infer")
+            except Exception as e:
+                results.append(Result("structural: %s/%s extraction succeeds" % (tgt, model), False, str(e)[:200]))
+                continue
+            regex_based = smb.parse_alloc_ir(text, "infer")
+            exact_keys = ("inputs", "outputs", "transient_slabs")
+            diffs = [k for k in exact_keys if sorted(structural.get(k, [])) != sorted(regex_based.get(k, []))]
+            if sum(structural.get("constants", [])) != sum(regex_based.get("constants", [])):
+                diffs.append("constants(sum)")
+            if structural.get("entry_found") != regex_based.get("entry_found"):
+                diffs.append("entry_found")
+            if bool(structural.get("unresolved")) != bool(regex_based.get("unresolved")):
+                diffs.append("unresolved(presence)")
+            results.append(Result("structural: %s/%s agrees with regex parser" % (tgt, model), not diffs,
+                                  "" if not diffs else "disagree on %s" % diffs))
+
+    # fail-closed: an op the walker's registry does not recognize must be
+    # reported unresolved, not silently skipped -- tested honestly by
+    # narrowing the real registry (KNOWN_ENTRY_OPS), which is exactly the
+    # D13 scenario (a syntactically valid op this tool's whitelist lacks),
+    # rather than hand-mangling MLIR text into something no real compiler
+    # would ever emit.
+    conv2d_ir = os.path.join(root, "aarch64", "layout_ir", "conv2d.layout_ir.txt")
+    if os.path.isfile(conv2d_ir):
+        text = open(conv2d_ir).read()
+        orig = maw.KNOWN_ENTRY_OPS
+        try:
+            maw.KNOWN_ENTRY_OPS = orig - {"stream.resource.dealloca"}
+            r = maw.parse_alloc_ir_structural(text, "infer")
+            results.append(Result("structural: op removed from whitelist -> unresolved (fail-closed)",
+                                  any("dealloca" in u for u in r["unresolved"]), str(r["unresolved"])))
+        finally:
+            maw.KNOWN_ENTRY_OPS = orig
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -372,6 +430,7 @@ def main():
         all_results += unit_tests(a.root)
         all_results += header_negative_cases(a.root, tmp)
         all_results += make_contract_negative_cases(a.root, tmp)
+        all_results += structural_walker_checks(a.root)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
 
