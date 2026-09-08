@@ -2,6 +2,14 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.6] 2026-09-08
+- IREE 런타임 소스 빌드(컴파일러 동일 커밋 e4a3b04, 최소 구성, PIC).
+- E11: Native C 변형. 런타임 생성 전 admission; HAL 피크 786,476 = bounded_bytes(상수가 allocator를 통과하는 구성); RSS 4.3 MB(Python 41.5 MB); median 32.2 µs.
+- E12: cFS 앱 `AI_LEARNER`. 초기화 시 계약 vs 앱 예산 admission; ADMIT → ES HK 텔레메트리로 추론(피크=bounded 유지); NOT_ADMITTED → 앱 기동 거부, cFS·타 앱 무영향.
+- 판정: H3 메모리 축 → cFS 앱 배치 형태에서도 시험 조건 내 성립. 경계 (b) 런타임 구성 2종에서 견고. "Python 제거" 후속 가설 측정 완료(같은 경로에서 교환 관계 서술 가능).
+- 결함 D4(하네스 해제 순서) 등록.
+- 문서: `docs/EVIDENCE_v0.6_E11.md`, `native/cfs_app/WIRING.md`.
+
 ## [v0.5] 2026-09-08
 - 외부 검토(`REPORT_v0_4_REVIEW.md`) 반영.
 - 정정(결함 D3): 상한 계산법 "slice 합" → "post-layout transient alloca 크기". E9 정렬 간극·수명 재사용 사례에서 slice 합이 과소(48<128, 84<128)임을 실증. MLP 60/60 재검증.

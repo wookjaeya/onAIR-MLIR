@@ -18,6 +18,8 @@
 | E5 | 2026-09-07 | lowering 특성화 (10종 × 3크기, 메모리 포함) | FUNCTIONAL_ONLY (binary·RSS는 결정론적) | `harness/characterize.py`, `results_characterization_*.json` | Pareto 5개; 크기 간 ρ=+0.18; **메모리 축 반증** (B0 40 KB vs 1216 KB) | EVIDENCE v0.2 | 833edb6 |
 | E6 | 2026-09-07 | 정적 메모리 상한 산출 (P2b) | 결정론적 | `harness/static_mem_bound.py`, `harness/static_bound_sweep.py`, `results_static_bound.json` | 정적 상한 = HAL 피크, 30/30 sound, tightness 1.0; 설정 불변 | EVIDENCE v0.3 §1 | 45213d6 |
 | **E6c** | 2026-09-07 | 베이킹 모델 정적 상한 IR 파싱 (검토 §5 분모 해소) | 결정론적 | `results_static_bound_baked.json` | 30/30 sound·tight; 상수 720,896 B 모듈 상주로 분리 귀속 | EVIDENCE v0.3 §7 | (v0.3.1) |
+| **E11** | 2026-09-08 | Native C 변형 (standalone, Python 없음) | FUNCTIONAL_ONLY (HAL·RSS·admission은 결정론적) | `native/native_learner.c`, `native/build.sh`, `native/results/summary.json` | admission ADMIT/NOT_ADMITTED(exit 3); HAL 피크 786,476 = bounded; RSS 4.3 MB; median 32.2 µs | EVIDENCE v0.6 §2 | 271a237 |
+| **E12** | 2026-09-08 | cFS 앱 `AI_LEARNER` 통합 | 동상 | `native/cfs_app/`, `native/results/cfs_run_*.log` | ADMIT: ES HK 패킷 추론 25회, 피크=bounded; NOT_ADMITTED: 앱 기동 거부, cFS OPERATIONAL 유지 | EVIDENCE v0.6 §3 | 271a237 |
 | **E9** | 2026-09-08 | 할당 구조 4사례 (정렬·수명·대형·fusion) | 결정론적 | `harness/structural_cases.py`, `results_structural_cases.json` | slice 합은 2/4 과소(D3); post-layout 슬랩 4/4 sound·tight | EVIDENCE v0.5 §1 | (v0.5) |
 | **E10** | 2026-09-08 | 경계값 U−1/U/U+1 | 결정론적 | `results_admission.json` (`boundary_test`) | 18/18 정확 | EVIDENCE v0.5 §5 | (v0.5) |
 | **E7b** | 2026-09-08 | E7 재실행 (post-layout, 새 판정 의미, 상수 독립 확인) | 결정론적 | `results_admission.json` | 258 판정, misprediction 0, 상수 129/129 아티팩트 확인 | EVIDENCE v0.5 §6 | (v0.5) |
@@ -33,6 +35,7 @@
 | v0.1 | 부분 기각 | 강화 (근거 noise 안쪽) | 미검증 | E1–E4 |
 | v0.2 | 기각 유지 | **확립** (결정론적 근거로 교체) | 미검증(입력 확보) | E5 |
 | **v0.3** | 기각 유지 (격차 2.2–4.1×로 정정) | **격하: 부분 지지** (ρ 근거 철회) | **메모리 축 전제 충족** (정적 상한 sound) | E6, E6b |
+| **v0.6** | 변화 없음 (Native 1.84×) | 변화 없음 | **cFS 앱 배치 형태에서도 성립** (단일 앱·모델·native_std); 경계 (b) 런타임 구성 2종에서 견고 | E11, E12 |
 | **v0.5** | 변화 없음 | 변화 없음 | 시험 조건 내 성립, **근거 강화** (구조 4종, 경계값, 상수 독립 검증); 중심 문장을 검토 §8 권고로 교체 | E9, E10, E7b |
 | **v0.4** | 변화 없음 | 변화 없음 (E7 config-invariance는 메모리 판정에 선택 불필요라는 반대 증거) | **메모리 축, 시험 조건 내 성립** (경계 b, 240/240, E8) | E7, E8 |
 | **v0.3.1** | 현 모델·구현·플랫폼에서 성능 우위 미관측; 예측성 일반화 보류 | 설정별 비용 차이 관측; **계약 기반 선택의 이점 미입증** | 정적 per-call 버퍼 계약의 후보 근거 확보; 경계·가정·판정기 검증 필요 | E6c, 외부 검토 |
@@ -52,6 +55,7 @@
 
 | ID | 결함 | 영향 실험 | 발견 경로 | 조치 |
 |---|---|---|---|---|
+| D4 | 세션 해제 전 모듈 데이터 free → 해제 시 segfault | E11 하네스 종료 | 측정값 무영향 | 해제 순서 수정 |
 | D3 | 상한 = slice 합 → 정렬 패딩 무시로 과소 추정 (E9-A 48<128, E9-B 84<128) | v0.3–v0.4 상한 방법 | 검토 §7 예측 → E9 실증 | post-layout transient alloca 크기로 교체; MLP 60/60 재검증 |
 | D2 | 정적 상한 파서가 initializer 내 상수 임포트를 입력으로 오귀속; 런타임 컨텍스트를 721 KB 과대 산정 | E6b 해석, contract 예시 | 외부 검토 §5·§6 + E6c | 엔트리 함수 스코프 파싱, 상수 별도 집계, 정오표 |
 | D1 | 가중치를 호출 인자로 전달 → 매 호출 전체 가중치 디바이스 임포트 | E1–E5 | E6 HAL 통계 `bytes_per_call == 전체 입력 크기` | E6b 재측정; 이후 모든 하네스는 `bytes_per_call` 기록 의무 |
