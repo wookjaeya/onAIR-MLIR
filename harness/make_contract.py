@@ -32,6 +32,20 @@ What is parsed from where
                                        bytes/sha256 (must equal the ELF embedded
                                        in V)
   --elf-analysis JSON                  kernel stack frame / call / alloca facts
+  mlir_alloc_walk.parse_alloc_ir_structural(IR)
+                                       E19: a SECOND, independent reader of the
+                                       same layout IR, via IREE's own MLIR
+                                       Python API (iree.compiler.ir) instead of
+                                       regex (EVIDENCE_v0.13/E18). Used only as
+                                       a mandatory cross-check against
+                                       static_mem_bound.parse_alloc_ir -- if the
+                                       package is missing this step is skipped
+                                       (noted, not hard-failed: the regex path
+                                       alone is still the fail-closed baseline
+                                       E15 established); if it IS available but
+                                       disagrees or cannot parse the IR, the
+                                       contract is refused (see
+                                       --allow-structural-mismatch).
 
 Caveat recorded in provenance (found while writing this): with the default
 multi-threaded pass manager, --mlir-print-ir-after prints EVERY function
@@ -61,6 +75,10 @@ try:
     import elf_stack_frame as esf  # noqa: E402  optional: locate ELFs inside the vmfb
 except Exception:  # pragma: no cover
     esf = None
+try:
+    import mlir_alloc_walk as maw  # noqa: E402  optional: structural (iree.compiler.ir) cross-check, E19
+except Exception:  # pragma: no cover
+    maw = None
 
 MEMORY_BOUNDARY = "per_call_plus_module_constants"
 BOUND_METHOD_STATIC = "static_from_stream_layout"
@@ -318,6 +336,74 @@ def build_contract(a, extra_args):
     if packed_sum > 0 and dense_sum > 0 and packed_sum < dense_sum:
         notes.append("packed constant buffers (%d B) smaller than the dense constant sum (%d B): "
                      "some constants were inlined into executables or deduplicated" % (packed_sum, dense_sum))
+
+    # ---- structural (non-regex) cross-check (E19, CLAUDE.md priority 3 stage 2) --
+    # E18 (EVIDENCE_v0.13) built harness/mlir_alloc_walk.py, a second, independently
+    # implemented reader of the SAME layout IR: it walks IREE's real Operation/Value
+    # graph (iree.compiler.ir) instead of matching regexes against the printed text,
+    # and EVIDENCE_v0.13 SS3 validated it against all 14 stored contracts (exact
+    # agreement on inputs/outputs/transient_slabs, constants by sum, entry_found,
+    # and unresolved-presence). Wiring it in here as a MANDATORY cross-check (not a
+    # replacement -- EVIDENCE_v0.13 SS4 explicitly scoped replacement out as needing
+    # further stream.resource.pack coverage and multi-compiler-version testing)
+    # means a silent misparse in either implementation alone can no longer pass
+    # unnoticed: two independent readers of the same IR must agree before a
+    # contract is written. It also gives CLAUDE.md priority 3's still-unmet
+    # evaluation criterion ("compiler 버전 변경 시 명시적 실패") a real enforcement
+    # point -- if a future IREE version changes the layout IR in a way the
+    # structural parser can't handle, ir.Module.parse() raises and THIS hard-fails
+    # the contract, instead of the regex path silently keeping its own number with
+    # nothing to check it against.
+    structural = None
+    structural_error = None
+    structural_available = maw is not None and getattr(maw, "ir", None) is not None
+    if structural_available:
+        try:
+            structural = maw.parse_alloc_ir_structural(ir, a.entry)
+        except Exception as e:
+            structural_error = str(e)[:500]
+    elif maw is not None:
+        structural_error = "iree.compiler.ir not importable (%s)" % getattr(maw, "_IMPORT_ERROR", "?")
+
+    structural_diffs = []
+    if structural is not None:
+        exact_keys = ("inputs", "outputs", "transient_slabs")
+        structural_diffs = [k for k in exact_keys if sorted(structural.get(k, [])) != sorted(whole.get(k, []))]
+        if sum(structural.get("constants", [])) != dense_sum:
+            structural_diffs.append("constants(sum)")
+        if structural.get("entry_found") != whole.get("entry_found"):
+            structural_diffs.append("entry_found")
+        if bool(structural.get("unresolved")) != bool(whole.get("unresolved")):
+            structural_diffs.append("unresolved(presence)")
+
+    if not structural_available:
+        structural_note = ("structural (iree.compiler.ir) cross-check unavailable%s: skipped, the regex "
+                           "parser remains the sole extraction method (same fail-closed baseline as before E19)"
+                           % ((" (%s)" % structural_error) if structural_error else ""))
+    elif structural is None:
+        structural_note = "structural (iree.compiler.ir) cross-check could not parse the layout IR: %s" % structural_error
+    elif structural_diffs:
+        structural_note = "structural (iree.compiler.ir) extractor DISAGREES with the regex parser on %s" % structural_diffs
+    else:
+        structural_note = "structural (iree.compiler.ir) extractor agrees with the regex parser"
+    structural_prov = {
+        "available": structural_available,
+        "parse_error": structural_error,
+        "agrees_with_regex_parser": (not structural_diffs) if structural is not None else None,
+        "diffs": structural_diffs,
+        "dispatches": structural.get("dispatches") if structural is not None else None,
+        "note": structural_note,
+    }
+    if structural_available and structural is None:
+        notes.append(structural_note)
+        if not a.allow_structural_mismatch:
+            hard_fail_errors.append(structural_note + " (pass --allow-structural-mismatch to override)")
+    elif structural_diffs:
+        notes.append(structural_note)
+        if not a.allow_structural_mismatch:
+            hard_fail_errors.append(structural_note + " (pass --allow-structural-mismatch to override)")
+    elif not structural_available:
+        notes.append(structural_note)
 
     # ---- artifact ---------------------------------------------------------
     dump_txt, dump_err = iree_dump_module(a.vmfb)
@@ -619,6 +705,7 @@ def build_contract(a, extra_args):
             "dump_elf": dump_elf,
             "dump_elf_sha256_in_vmfb": dump_elf_in_vmfb,
             "elf_analysis": elf_prov,
+            "structural_walker": structural_prov,
             "notes": notes,
         },
     }
@@ -680,6 +767,12 @@ def parse_args(argv):
                     help="do not hard-fail when --elf-analysis analysed a different ELF than the one embedded "
                          "in --vmfb (D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract, since "
                          "kernel_task_stack_bytes would then describe the wrong binary)")
+    ap.add_argument("--allow-structural-mismatch", action="store_true",
+                    help="do not hard-fail when the structural (iree.compiler.ir) extractor "
+                         "(harness/mlir_alloc_walk.py, E18/E19) disagrees with, or cannot parse what, "
+                         "the regex parser read from the same layout IR (default is to refuse writing "
+                         "the contract; does not apply when iree.compiler.ir is simply not installed, "
+                         "which is a skip, not a mismatch)")
     ap.add_argument("--extra-args", nargs="*", default=[], help="extra iree-compile flags of the invocation (must be LAST)")
     a = ap.parse_args(rest)
     a.extra_args = extra

@@ -299,6 +299,94 @@ def make_contract_negative_cases(root, tmp):
 
 
 # ----------------------------------------------------------------------------
+# E19: make_contract.py's structural (mlir_alloc_walk) cross-check must
+# actually hard-fail the CLI when the two independent extractors disagree, or
+# when the structural one cannot parse the IR at all. There is no real fixture
+# that makes iree.compiler.ir and the regex parser disagree on a well-formed
+# layout IR (that is the point -- E18/EVIDENCE_v0.13 SS3 found none in 14/14),
+# so this calls make_contract.build_contract() in-process and monkeypatches
+# mlir_alloc_walk.parse_alloc_ir_structural to simulate exactly the two
+# conditions the hard-fail branch (harness/make_contract.py, "structural
+# cross-check" block) exists to catch. This exercises the SAME hard_fail_errors
+# / SystemExit path the ABI/triple/ELF-analysis mismatch cases above already
+# prove works -- what's new here is confirming this specific branch actually
+# reaches it.
+# ----------------------------------------------------------------------------
+def structural_hard_fail_cases(root):
+    results = []
+    aarch64_dir = os.path.join(root, "aarch64")
+    inv_path = os.path.join(aarch64_dir, "vmfb", "conv2d.invocation.json")
+    dump_dir = os.path.join(aarch64_dir, "dump", "conv2d")
+    elf_json = os.path.join(aarch64_dir, "elf", "conv2d.elf_analysis.json")
+    if not (os.path.isfile(inv_path) and os.path.isdir(dump_dir) and os.path.isfile(elf_json)):
+        return [Result("structural-hard-fail: conv2d fixtures present", False, "missing input file(s)")]
+    inv = load(inv_path)
+
+    try:
+        sys.path.insert(0, HERE)
+        import make_contract as mc
+    except Exception as e:
+        return [Result("structural-hard-fail: make_contract importable", False, str(e)[:200])]
+    if mc.maw is None or getattr(mc.maw, "ir", None) is None:
+        return [Result("structural-hard-fail: iree.compiler.ir available (prerequisite)", False,
+                       "mlir_alloc_walk's structural extractor is not usable in this environment")]
+
+    def args(allow_structural_mismatch=False):
+        return argparse.Namespace(
+            mlir=inv["mlir"], vmfb=inv["vmfb"], layout_ir=inv["layout_ir"], dump_dir=dump_dir,
+            triple=TARGET_INFO["aarch64"]["triple"], cpu=TARGET_INFO["aarch64"]["cpu"],
+            model_name="conv2d", entry="infer", driver="local-sync", profile=None,
+            elf_analysis=elf_json, runtime_commit=None,
+            allow_abi_mismatch=False, allow_triple_mismatch=False, allow_elf_analysis_mismatch=False,
+            allow_structural_mismatch=allow_structural_mismatch,
+        )
+
+    def run_build(allow_structural_mismatch=False):
+        try:
+            mc.build_contract(args(allow_structural_mismatch), [])
+            return True, None
+        except SystemExit as e:
+            return False, str(e)
+
+    orig_fn = mc.maw.parse_alloc_ir_structural
+
+    # sanity: unpatched, matched conv2d artifacts must still be ACCEPTED
+    # in-process (proves the monkeypatch technique itself, not just its target).
+    ok, err = run_build()
+    results.append(Result("structural-hard-fail: unpatched conv2d ACCEPTED (sanity)", ok, err or ""))
+
+    try:
+        def fake_mismatch(ir_text, entry):
+            real = dict(orig_fn(ir_text, entry))
+            real["inputs"] = [x + 1 for x in real["inputs"]] if real["inputs"] else [999999]
+            return real
+        mc.maw.parse_alloc_ir_structural = fake_mismatch
+        ok, err = run_build(allow_structural_mismatch=False)
+        results.append(Result("structural-hard-fail: structural/regex disagreement -> refused",
+                              not ok, err or "wrote a contract despite disagreement"))
+        ok2, err2 = run_build(allow_structural_mismatch=True)
+        results.append(Result("structural-hard-fail: --allow-structural-mismatch overrides the disagreement",
+                              ok2, err2 or ""))
+    finally:
+        mc.maw.parse_alloc_ir_structural = orig_fn
+
+    try:
+        def fake_raise(ir_text, entry):
+            raise RuntimeError("simulated: layout IR printer format changed in a future IREE version")
+        mc.maw.parse_alloc_ir_structural = fake_raise
+        ok, err = run_build(allow_structural_mismatch=False)
+        results.append(Result("structural-hard-fail: structural parser exception -> refused",
+                              not ok, err or "wrote a contract despite a structural-parse exception"))
+    finally:
+        mc.maw.parse_alloc_ir_structural = orig_fn
+
+    # confirm the monkeypatch was fully undone (no cross-test leakage)
+    ok, err = run_build()
+    results.append(Result("structural-hard-fail: monkeypatch restored, conv2d ACCEPTED again", ok, err or ""))
+    return results
+
+
+# ----------------------------------------------------------------------------
 # regression: the 14 stored contracts/headers must not change (D13-D15 must
 # be a fail-CLOSED tightening, not a change to any currently-valid contract)
 # ----------------------------------------------------------------------------
@@ -306,6 +394,13 @@ IGNORE_PROVENANCE_KEYS = {
     "entry_print_used_chunk_index", "entry_print_used_sha256", "entry_print_used_is_last",
     "layout_ir_sha256", "layout_ir_dump_count", "entry_prints_in_dump", "entry_print_states_differ",
 }
+# E19: provenance.structural_walker is a field the 14 stored (pre-E19) contracts
+# never had -- comparing it leaf-by-leaf against IGNORE_PROVENANCE_KEYS by bare
+# name would risk colliding with unrelated same-named leaves elsewhere in the
+# contract (e.g. resources.dispatches), so the whole subtree is excluded from
+# the "contract unchanged" diff by path instead, and checked separately below
+# (asserting it is actually present and agrees, not just absent from the diff).
+IGNORE_PROVENANCE_SUBTREES = {"structural_walker"}
 
 
 def flatten(d, prefix=()):
@@ -347,12 +442,23 @@ def regression_check(root, tmp):
             old = dict(flatten(load(contract_path)))
             new = dict(flatten(load(new_contract)))
             diffs = [(k, old.get(k), new.get(k)) for k in set(old) | set(new)
-                    if k[-1] not in IGNORE_PROVENANCE_KEYS and old.get(k) != new.get(k)]
+                    if k[-1] not in IGNORE_PROVENANCE_KEYS and not (set(k) & IGNORE_PROVENANCE_SUBTREES)
+                    and old.get(k) != new.get(k)]
             ok = not diffs
             if ok:
                 n_ok += 1
             results.append(Result("regression: %s/%s contract unchanged" % (tgt, model), ok,
                                   "" if ok else "%d field(s) differ, e.g. %s" % (len(diffs), diffs[:3])))
+            # E19: make_contract.py now wires mlir_alloc_walk in as a mandatory
+            # cross-check (see harness/make_contract.py's "structural (non-regex)
+            # cross-check" block) -- assert it actually ran and agreed on every
+            # regenerated contract, through the real production entry point
+            # (not just the standalone call structural_walker_checks() below makes).
+            avail = new.get(("provenance", "structural_walker", "available"))
+            agree = new.get(("provenance", "structural_walker", "agrees_with_regex_parser"))
+            results.append(Result("regression: %s/%s structural cross-check ran and agreed" % (tgt, model),
+                                  avail is True and agree is True,
+                                  "available=%s agrees_with_regex_parser=%s" % (avail, agree)))
             if not ok:
                 continue
             new_hdr = os.path.join(tmp, "regress.%s.%s.h" % (model, tgt))
@@ -431,6 +537,7 @@ def main():
         all_results += header_negative_cases(a.root, tmp)
         all_results += make_contract_negative_cases(a.root, tmp)
         all_results += structural_walker_checks(a.root)
+        all_results += structural_hard_fail_cases(a.root)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
 
