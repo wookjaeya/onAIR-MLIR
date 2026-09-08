@@ -8,21 +8,25 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.8** (git tag). 중심 주장은 v0.7의 결론 문장을 그대로 쓴다 — 지어내지 말 것:
+연구. 현재 버전: **v0.9** (git tag). 중심 주장은 v0.9의 결론 문장을 그대로 쓴다 — 지어내지 말 것:
 
-> 부분 메모리 계약을 Native 실행과 cFS 초기화 gate에 연결하고, 시험한 모델에서 허용·거부
-> 경로와 HAL 피크의 일치를 확인했다. gate는 계약을 아티팩트 바이트 해시로 결합해 모델 교체를
-> 런타임 생성 전에 거부하며, 정상 상태 호출당 할당·단계별 실패·자원 회수를 계측한다. 계약을
-> 만든 IR과 최종 실행 코드의 대응을 같은 컴파일 호출에서 확인했고, 시험 모델의 커널에는
-> 힙·스택·외부 호출이 없었다. 동일 경계의 대안 비교는 후속 대상이다.
+> 정적 메모리 계약(per-call 버퍼 + 모듈 상주 상수)은 MLP·Conv2D·multi-branch 세 가지 할당
+> 구조에서 x86-64와 AArch64(Cortex-A53, QEMU 시스템 에뮬레이션) 모두 동일한 값으로 산출됐고,
+> 각 타깃의 HAL 관측 피크를 빠짐없이 포괄했다. 같은 계약을 AArch64 게스트 안의 cFS
+> `AI_LEARNER` 앱 초기화 admission에 연결해, 정상 허용·모델 교체 거부·모델 파일 부재·반복
+> 추론 무결성·동적 형상(UNKNOWN_BOUND) 거부·앱 재시작 시 자원 회수까지 실행 검증했다(7/7).
+> AArch64 코드생성이 도입하는 고정 태스크 스택 잔차는 모델의 지역 버퍼 유무에 따라 16 B(MLP·
+> multi-branch)에서 191 B(Conv2D, 동적 재정렬 패딩 포함)까지 달랐으며, HAL 계약이 아닌 태스크
+> 스택 예산으로 별도 회계해 시작 스크립트에 실제로 반영하고 런타임에 그 사실을 자체 확인하도록
+> 구현했다. 동일 경계의 대안 비교는 여전히 후속 대상이다.
 
 **절대 하지 말 것**: H1(AOT가 더 빠르다)이나 H2(계약 기반 lowering 선택이 유리하다)를 다시
 주가설로 세우지 말 것 — 둘 다 실험으로 기각/격하됐다(`EXPERIMENT_LOG.md`의 가설 판정 이력 참조).
 
-**v0.8에서 새로 추가된 축**: 이 계약이 x86-64뿐 아니라 AArch64에서도 sound한지(교차 ISA
-일반성)를 검증하는 E14가 진행 중이다. Stage 0(교차 컴파일·구조 분석·qemu-user 확인)은
-완료했고, Stage 1(qemu-system-aarch64 전체 시스템 + cFS-in-guest)이 **Claude Code로
-이관된 첫 작업**이다 — 아래 "지금 바로 이어서 할 일" 참조.
+**v0.9에서 완료된 것**: E14 Stage 1(qemu-system-aarch64 전체 시스템 + cFS-in-guest)을 Claude
+Code에서 완료했다 — MLP 외 Conv2D·multi-branch·동적형상 모델 추가, cFS 게스트 안에서 A1·A3·
+A4·A6·A7·A8 시나리오 7/7 PASS, 계약 도구 자체의 검증 결함(D9·D10, `docs/EVIDENCE_v0.9_E14_stage1.md`
+§0.4) 발견·수정. 상세는 `docs/EVIDENCE_v0.9_E14_stage1.md` 참조.
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -61,29 +65,20 @@ NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를
 
 ## 지금 바로 이어서 할 일 (Claude Code, 우선순위 1)
 
-**E14 Stage 1** — `docs/plans/E14_stage1_qemu_system_cfs.md`를 열어 그대로 따른다.
-qemu-system-aarch64로 AArch64 Linux 게스트를 부팅하고, 그 안에서 cFS `AI_LEARNER` 앱을
-빌드·실행해 제안서(`docs/reviews/QEMU_AARCH64_EXPERIMENT_ENVIRONMENT.md`) §11.2의 시나리오
-A1–A7(정상/예산거부/모델교체/파일부재/손상/반복/재시작)을 검증한다. 이 세션(claude.ai)에서
-못 한 이유는 게스트 이미지가 영속 저장을 요구하고 반복 자동화가 많기 때문 — Claude Code의
-장점이 정확히 여기서 쓰인다.
+E14 Stage 1은 완료됐다(v0.9). 다음 우선순위는 외부 검토 `REVIEW_v0_6_E13_RESEARCH_DIRECTION.md`
+§9-5와 `docs/EVIDENCE_v0.9_E14_stage1.md` §9(한계)가 남겨둔 항목이다:
 
-Stage 1 전제(다시 검증할 필요 없음, `EVIDENCE_v0.8_E14_aarch64.md` 참조):
-- bounded_bytes는 x86-64=AArch64=786,476로 이미 확인됨.
-- AArch64는 x86-64에 없던 **16바이트 태스크 스택 프레임**을 커널 함수마다 갖는다 — Stage 1의
-  cFS 앱 스택 크기 설정에 이걸 명시적으로 반영할 것(계획 문서에 조치 사항 적어둠).
-- 모델 세트를 MLP 하나로 끝내지 말 것 — 제안서 §12가 요구하는 Conv2D·multi-branch 모델을
-  추가해야 "단일 모델 특수 사례"라는 반론을 피한다.
-
-## 다음 작업 (우선순위, Stage 1 이후)
-
-외부 검토 `REVIEW_v0_6_E13_RESEARCH_DIRECTION.md` §9-5가 남겨둔 항목:
 1. **동일 경계의 대안 비교** — TFLite Micro(정적 아레나) 등과 같은 메모리 경계에서 비교해
    "왜 MLIR/IREE 경로여야 하는가"에 답한다. 전제(TFLM이 컴파일 시 아레나 크기를 제공하는가)부터
    1차 문서로 확인할 것 — 지금까지 이 서술은 "미검증"으로 표시돼 있다.
-2. 다중 AI 앱 동시 admission (현재는 단일 앱만 시험).
-3. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
+2. **다중 AI 앱 동시 admission** (현재는 단일 앱만 시험) — v0.9의 AArch64 게스트 cFS 인프라를
+   그대로 재사용 가능(`scripts/51_build_cfs_aarch64.sh`, `harness/e14_cfs_scenarios.py`).
+3. **E14 Stage 1 잔여 항목** (시간 예산으로 생략, `EVIDENCE_v0.9_E14_stage1.md` §9 한계 참조):
+   mlp16k·multibranch·dynamic에 대한 cFS 레벨 A2(경계값 B-1/B/B+1) 재검증(현재는 conv2d만),
+   A5b(`runtime_load_failed`, 계약 해시가 손상 파일을 가리키는 경우) cFS 레벨 재현.
+4. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
    있어야 착수 가능. 이 컨테이너에서는 원리적으로 불가능하다.
+5. RTEMS 단계(제안서 §17) — Linux AArch64 단계가 통과했으므로 이제 착수 가능하나 우선순위는 낮음.
 
 ## 저장소 지도
 
@@ -108,8 +103,9 @@ docs/
   EVIDENCE_v0.5_E9.md         E9/E10: 할당 구조 4사례 (D3 결함 발견·수정), 경계값
   EVIDENCE_v0.6_E11.md        E11/E12: Native C 변형, cFS 앱 통합 (최초)
   EVIDENCE_v0.7_E13.md        계약-아티팩트 결합, 계측 정정, E13 LLVM/ELF 코드 대응
-  EVIDENCE_v0.8_E14_aarch64.md ★ 최신. 교차 ISA(x86-64/AArch64) 계약 건전성, Stage 0
-  plans/E14_stage1_qemu_system_cfs.md  ★ Claude Code가 이어서 할 작업의 정확한 실행 계획
+  EVIDENCE_v0.8_E14_aarch64.md 교차 ISA(x86-64/AArch64) 계약 건전성, Stage 0
+  EVIDENCE_v0.9_E14_stage1.md ★ 최신. qemu-system-aarch64 게스트 + cFS-in-guest + 모델셋 확장, Stage 1
+  plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
   10_build_cfs.sh              cFS 클론·빌드 (native_std)
@@ -117,18 +113,36 @@ scripts/
   20_setup_onair.sh              OnAIR 설치 + 예제 실행
   30_setup_iree.sh                IREE 컴파일러/런타임 (pip, Python 바인딩)
   40_setup_iree_source_runtime.sh  ★ IREE 런타임 소스 빌드 (x86-64, native_learner/cfs_app가 링크할 것)
-  50_wire_cfs_ai_learner.sh        ★ AI_LEARNER 앱을 cFS에 배선·빌드
+  50_wire_cfs_ai_learner.sh        AI_LEARNER 앱을 cFS native_std에 배선·빌드 (x86-64)
+  51_build_cfs_aarch64.sh          ★ AI_LEARNER 포함 cFS를 AArch64로 크로스빌드 (native_std와 별도 트리)
   60_setup_aarch64_cross.sh          AArch64 크로스 툴체인 + qemu-user (시스템 에뮬레이션 아님)
   61_build_iree_runtime_aarch64.sh   IREE 런타임 AArch64 크로스 빌드
   62_compile_and_check_aarch64.sh    E14 Stage 0 재현 (컴파일→구조분석→qemu-user 확인)
-  99_bootstrap_all.sh              ★ 전체 순서 실행 (x86-64 기준; aarch64는 60-62 별도 실행)
-harness/                    실험 스크립트 (플랫폼 게이트, 스윕, 정적 상한 파서, admission checker 등)
+  70_setup_qemu_system_aarch64.sh    ★ AArch64 게스트 이미지·cloud-init·mqueue 준비
+  71_boot_guest_aarch64.sh           ★ 게스트 부팅/재부팅 (stderr 캡처, setsid+nohup)
+  72_guest_ssh.sh                     게스트 ssh/scp/stop 헬퍼
+  73_console.sh                       게스트 양방향 시리얼 콘솔 (emergency-mode 등 ssh 안 될 때)
+  99_bootstrap_all.sh              ★ 전체 순서 실행 (x86-64 기준; aarch64는 60-62, 70-73 별도 실행)
+harness/                    실험 스크립트
+  static_mem_bound.py, admission_check.py, platform_check.py 등  E0-E13 기반 도구
+  make_contract.py            ★ SAME iree-compile 호출 산출물에서만 계약 JSON 생성 (one-invocation 검증 포함)
+  elf_stack_frame.py          ★ IREE embedded-ELF 정적 분석 (x86-64/AArch64 공통 정의, EVIDENCE_v0.9 §5 근거)
+  gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h)
+  e14_matrix.py                모델×타깃 컴파일·계약추출 파이프라인 (compile/extract 단계)
+  cross_target_compare.py      타깃 간 계약/ELF 비교표
+  gen_model_conv2d.py, gen_model_multibranch.py  Stage 1 모델 생성기 (베이킹 가중치)
+  e14_cfs_scenarios.py, e14_make_scenarios.py     게스트 cFS 시나리오 실행기/생성기
+  cfs_cmd.py                    cFE CI_LAB UDP 명령 전송 (A7 재시작/삭제 시나리오용)
 contracts/                  계약 스키마 + 채워진 예시 (v0.4 memory_boundary 결정, v0.7 artifact binding)
 models/                     기본 MLIR 모델
 plugins/                    OnAIR AIPlugin 구현체 (compiled_learner=IREE, python_learner=NumPy 베이스라인)
-native/                     Python 없는 C 경로: native_learner.c (standalone), cfs_app/ (cFS 앱 소스)
+native/                     Python 없는 C 경로: native_learner.c, cfs_app/ (cFS 앱 소스) — 둘 다 계약
+                             헤더만으로 모델 독립적(v0.9); cfs_app/toolchain-aarch64-linux-gnu.cmake
 e13/                        LLVM IR·ELF 덤프 (x86-64 host/generic 설정 비교)
-e14/                        교차 ISA 검증 (aarch64/ = Stage 0 산출물: vmfb, IR, ELF, objdump, summary.json)
+e14/                        교차 ISA 검증 (aarch64/ = Stage 0 산출물)
+results/e14_aarch64_qemu/   ★ E14 Stage 1 전체 산출물: environment/, models/, {aarch64,x86_64}/(계약·ELF·
+                             헤더·objdump·llvm_ir·vmfb), native/(qemu-user 결과), cfs/(게스트 시나리오
+                             결과), comparison/(교차 타깃 비교)
 results_*.json               각 실험의 원자료 (git 추적됨 — 재실행 없이 분석 재현 가능)
 ```
 
@@ -166,6 +180,11 @@ cd $HOME/onair-mlir-bench/ext/cFS/build-native_std/exe/cpu1 && ./core-cpu1   # A
 
 | 증상 | 원인 | 해결 |
 |---|---|---|
+| `qemu-system-aarch64`가 로그 없이 죽음 | `-daemonize`는 fork로 부모와 분리돼 stderr가 유실됨 | `71_boot_guest_aarch64.sh`처럼 `setsid nohup … 2> qemu_stderr.log` 사용 |
+| 게스트가 emergency mode에서 멈췄는데 원인을 못 봄 | `-serial file:`은 출력 전용이라 입력을 못 보냄 | `-chardev socket,...,server=on,wait=off` + `73_console.sh`(양방향 유닉스 소켓 콘솔) |
+| cFS 시나리오 자동화 스크립트가 원격 로그 파일을 못 찾음(scp 실패) | 원격 쉘에서 `cd {remote_root}` 이후에도 상대경로 변수가 `remote_root` 접두어를 다시 붙여 `remote_root/remote_root/...`로 이중화 | `cd` 이후 쓰는 경로는 항상 그 시점의 작업 디렉터리 기준 상대경로인지 확인 |
+| cFS 크로스빌드가 "contract sha256 not found in ai_learner.so"로 실패 | UNKNOWN_BOUND 모델은 admission에서 즉시 거부돼 sha256 비교 코드가 도달 불가능 → 컴파일러가 그 문자열까지 제거(-O2) | `CONTRACT_BOUND_KNOWN=0`일 때는 이 검증을 건너뜀(정상 동작의 부작용이지 버그가 아님) |
+| 계약 생성 도구가 "one-invocation" 위반(서로 다른 컴파일 산출물 혼합)을 못 잡음 | 검증 로직 없이 `provenance.single_invocation`을 하드코딩 `true`로 기록 | 임베디드 ELF sha256 매칭 + dump-dir 파일명의 입력 basename 포함 여부, 두 독립 신호로 실제 검증(D10) |
 | cFS `prep`이 `Target "hs" not found`로 실패 | `cfe/cmake/Makefile.sample`을 번들에 덮어씀 | 번들 자체 Makefile 사용 |
 | cFS 기동 시 EVS/ES 초기화 실패 | `/proc/sys/fs/mqueue/msg_max` 기본 10 | `echo 512 > /proc/sys/fs/mqueue/msg_max` |
 | cFS 앱 컴파일 에러 (`-Werror=pedantic`, `static_assert` 등) | cFS가 앱에 `-std=c99 -pedantic -Werror` 강제, IREE 헤더는 C11/GNU 확장 필요 | 해당 앱 CMakeLists에 `-std=gnu11 -Wno-pedantic -Wno-error` 추가 |

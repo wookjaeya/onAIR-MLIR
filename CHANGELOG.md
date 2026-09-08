@@ -2,6 +2,37 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.9] 2026-09-08
+- E14 Stage 1(Claude Code 이관분): qemu-system-aarch64 Linux 게스트 + cFS-in-guest + Conv2D/multi-branch/
+  동적형상 모델. `docs/EVIDENCE_v0.9_E14_stage1.md`.
+- 판정: H3 일반성 범위 재확대 — **모델 종류 불변**(MLP·Conv2D·multi-branch 3종, per-call/상수/bounded
+  x86-64=AArch64 완전 동일) + **cFS admission의 타깃 독립성 검증**(AArch64 게스트 cFS `AI_LEARNER` 앱,
+  정상/모델교체거부/파일부재/반복무결성/UNKNOWN_BOUND거부/재시작 7/7 시나리오 PASS).
+- 정정(D9): v0.7 §4.3(x86-64 "스택 프레임 없음")과 v0.8 §3(AArch64 16B)은 서로 다른 정의를 각 ISA에
+  적용한 결과였다. 통일된 정의(callee-save+지역=frame_bytes, +복귀주소=invocation_stack_bytes)로 재분석하면
+  x86-64도 같은 16B 프레임 레코드를 가진다(복귀주소 위치만 콜스택 vs 링크레지스터로 다름).
+- 정정(D10): 계약 생성기(`harness/make_contract.py`)의 one-invocation 검증이 하드코딩 `true`였다 — 실제로는
+  검증을 안 해서 서로 다른 컴파일 호출의 산출물을 섞어도 통과시켰다. 두 독립 신호(임베디드 ELF sha256 매칭
+  + dump-dir 파일명의 입력 basename 포함 여부)로 실제 검증 추가, 불일치 재현 케이스로 거부 확인.
+- AArch64 태스크 스택 잔차를 모델별로 확정: MLP·multi-branch 16 B(호출 0, 지역변수 없음), Conv2D 191 B
+  (동적 스택 재정렬 패딩 63 B 포함 — `elf_stack_frame.py`가 이 관용구를 인식하도록 신규 지원). cFS 시작
+  스크립트 스택 크기(`AI_LEARNER_STACK_BASE_BYTES` + `CONTRACT_KERNEL_STACK_BYTES`)에 실제로 반영하고,
+  앱이 자신의 실제 태스크 스택 크기를 `CFE_ES_GetAppInfo`로 읽어 회계 충분성을 자체 보고
+  (`kernel_stack_accounted`)하도록 구현·검증.
+- 신규 도구: `harness/make_contract.py`(one-invocation 산출물에서만 계약 생성), `harness/elf_stack_frame.py`
+  (IREE embedded-ELF 정적 분석, x86-64/AArch64 공통 정의), `harness/e14_matrix.py`(모델×타깃 컴파일·추출
+  파이프라인), `harness/cross_target_compare.py`, `harness/gen_model_conv2d.py`/`gen_model_multibranch.py`,
+  `harness/e14_cfs_scenarios.py`/`e14_make_scenarios.py`, `harness/cfs_cmd.py`(cFE CI_LAB UDP 명령 전송),
+  `scripts/51_build_cfs_aarch64.sh`(cFS AArch64 크로스빌드), `scripts/70-73_*.sh`(게스트 준비·부팅·콘솔).
+- `native/native_learner.c`·`native/cfs_app/fsw/src/ai_learner.c`를 계약 헤더만으로 모델 독립적으로
+  동작하도록 일반화(입출력 형상·엔트리·드라이버·커널 스택을 매크로화), UNKNOWN_BOUND 거부(exit 6)와
+  안전한 런타임 로드 실패 경로(exit 7, `runtime_load_failed`) 추가.
+- 제안서 §14 합격기준 9개 중 8개 완전 PASS, 1개(경계값 B-1/B/B+1)는 conv2d에서만 cFS 레벨 재검증하고
+  나머지 모델은 native 레벨(동일 게이트 코드) 확인으로 갈음 — 부분 PASS로 명시.
+- 한계: 다중 AI 앱 동시 admission 미착수, RTEMS 단계 미착수, QEMU 시스템 에뮬레이션이 이 컨테이너
+  환경에서 원인 불명 크래시를 2회 겪음(게스트 콘솔 stderr 캡처 개선 후 재발 없음, 하지만 완전한
+  안정성을 주장하지 않음).
+
 ## [v0.8] 2026-09-08
 - 외부 제안(`docs/reviews/QEMU_AARCH64_EXPERIMENT_ENVIRONMENT.md`) 반영, E14 등록.
 - Stage 0(이 세션): AArch64/Cortex-A53 교차 컴파일(단일 호출 규칙 준수), 정적 상한 계산,

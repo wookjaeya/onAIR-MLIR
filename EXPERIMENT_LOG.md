@@ -19,7 +19,7 @@
 | E6 | 2026-09-07 | 정적 메모리 상한 산출 (P2b) | 결정론적 | `harness/static_mem_bound.py`, `harness/static_bound_sweep.py`, `results_static_bound.json` | 정적 상한 = HAL 피크, 30/30 sound, tightness 1.0; 설정 불변 | EVIDENCE v0.3 §1 | 45213d6 |
 | **E6c** | 2026-09-07 | 베이킹 모델 정적 상한 IR 파싱 (검토 §5 분모 해소) | 결정론적 | `results_static_bound_baked.json` | 30/30 sound·tight; 상수 720,896 B 모듈 상주로 분리 귀속 | EVIDENCE v0.3 §7 | (v0.3.1) |
 | **E14-S0** | 2026-09-08 | 교차 ISA(x86-64→AArch64) 계약 건전성: 컴파일·구조 분석·qemu-user 확인 | 결정론적(계약·IR·ELF·admission) / qemu-user 시간값은 비증거 | `e14/aarch64/`, `contracts/contract.e14_aarch64.json`, `scripts/60-62_*.sh` | bounded_bytes 동일(786,476); HAL peak/per-call/경계값/모델교체/동적형상 x86-64와 일치; **AArch64에 16B 스택 프레임(x86-64엔 없음)** 발견 | EVIDENCE v0.8 | (v0.8) |
-| **E14-S1** | 대기 | qemu-system-aarch64 Linux 게스트 + cFS-in-guest + Conv2D/multi-branch 모델 | — | `docs/plans/E14_stage1_qemu_system_cfs.md` | 미착수 — Claude Code 이관 (게스트 이미지·영속 저장·반복 자동화 필요) | 계획 문서 | — |
+| **E14-S1** | 2026-09-08 | qemu-system-aarch64 Linux 게스트 + cFS-in-guest + Conv2D/multi-branch/동적형상 모델 | 결정론적(계약·ELF·admission·cFS 이벤트) / QEMU 시간값은 비증거 | `results/e14_aarch64_qemu/{aarch64,x86_64,native,cfs,comparison}/`, `harness/{make_contract,elf_stack_frame,e14_matrix,e14_cfs_scenarios,cfs_cmd}.py`, `scripts/51_build_cfs_aarch64.sh` | bounded_bytes 동일(모델 3종 x86-64=AArch64, MLP 1종 한정 벗어남); cFS 게스트 A1×2모델·A3·A4·A6·A7·A8 7/7 PASS; 태스크 스택 잔차 모델별 확정(16~191B)·시작스크립트 반영·자체검증; D9(스택정의 통일)·D10(one-invocation 실제검증 추가) 정정 | EVIDENCE v0.9 | af8b94a |
 | **E11b** | 2026-09-08 | standalone 계측 정정 + 결합 | 결정론적(HAL·해시) | `native/native_learner.c`, `summary.json` | peak↔bounded true; 정상 상태 per-call **65,544**; 3200/3200 완료; binding MATCH | EVIDENCE v0.7 §2 | 0e887df |
 | **E11c** | 2026-09-08 | 모델 교체(같은 ABI) + 계약 A | 결정론적 | 동상 | CONTRACT_ARTIFACT_MISMATCH, exit 5, 런타임 미생성 | v0.7 §1.2 | 0e887df |
 | **E12b/c/d** | 2026-09-08 | cFS: 일치 / 교체 / 파일 부재 | 결정론적 | `native/results/cfs_run_*.log` | 25/25 완료 / 기동 거부+cleanup / cleanup; 3경우 cFS OPERATIONAL | v0.7 §1–3 | 0e887df |
@@ -41,6 +41,7 @@
 | v0.1 | 부분 기각 | 강화 (근거 noise 안쪽) | 미검증 | E1–E4 |
 | v0.2 | 기각 유지 | **확립** (결정론적 근거로 교체) | 미검증(입력 확보) | E5 |
 | **v0.3** | 기각 유지 (격차 2.2–4.1×로 정정) | **격하: 부분 지지** (ρ 근거 철회) | **메모리 축 전제 충족** (정적 상한 sound) | E6, E6b |
+| **v0.9** | 변화 없음 | 변화 없음 | H3 일반성 범위 재확대: **모델 종류 불변 확인**(MLP·Conv2D·multi-branch 3종, x86-64=AArch64); **cFS admission의 타깃 독립성 검증**(AArch64 게스트, 7/7 시나리오 PASS); 태스크 스택 잔차 통일된 정의로 확정·모델별 회계(16~191B)·시작스크립트 실반영 | E14-S1 |
 | **v0.8** | 변화 없음 | 변화 없음 | H3 일반성 범위 확대: **ISA(x86-64/AArch64) 불변 확인**(단일 MLP 한정); AArch64 태스크 스택 잔차 첫 발견, 명시적 회계 필요 | E14-S0 |
 | **v0.7** | 변화 없음 | 변화 없음 (설정별 지연 차이의 구조적 원인 확인: AVX-512 FMA vs 스칼라) | 검증 범위 확장: 결합·계측·실패 처리·코드 대응 | E11b/c, E12b/c/d, E13 |
 | **v0.6** | 변화 없음 (Native 1.84×) | 변화 없음 | **cFS 앱 배치 형태에서도 성립** (단일 앱·모델·native_std); 경계 (b) 런타임 구성 2종에서 견고 | E11, E12 |
@@ -63,6 +64,8 @@
 
 | ID | 결함 | 영향 실험 | 발견 경로 | 조치 |
 |---|---|---|---|---|
+| D10 | 계약 생성기의 `provenance.single_invocation`이 하드코딩 `true` — one-invocation 규칙을 검증해야 할 도구가 실제로는 검증을 안 해 서로 다른 컴파일 호출의 산출물을 섞어도 통과시킴 | E14-S1 계약 도구화 | 적대적 리뷰(워크플로우) | dump-dir 실행파일이 vmfb에 임베디드돼있는지(sha256) + dump-dir 파일명에 입력 basename이 포함되는지, 두 신호로 실제 검증 추가 |
+| D9 | v0.7/v0.8이 x86-64·AArch64 스택 프레임에 서로 다른 정의(x86=`sub`만, AArch64=callee-save만)를 적용 — "AArch64만 프레임이 있다"는 서술이 정의 불일치의 인공물이었음 | E14-S1(§5, `elf_stack_frame.py`) | 두 ISA에 같은 정의 적용해 재분석 | 통일된 정의(callee-save+지역=frame_bytes, +복귀주소=invocation_stack_bytes)로 EVIDENCE_v0.9 §5.1 정정 |
 | D7 | 호출당 할당 = 초기화 비용 포함 상각값 | 검토 v0.6 §5 | 지표 의미 | 정상 상태 카운터 차이(65,544) |
 | D6 | 계약이 아티팩트를 식별하지 않음 | 검토 v0.6 §3 | gate 보장 조건부 | sha256·크기 결합, 헤더 생성 |
 | D5 | 전체 HAL 피크를 per-call 계약과 비교 | 검토 v0.6 §4 | summary 누락 | bounded 비교 |
