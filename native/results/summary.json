@@ -1,0 +1,62 @@
+{
+  "E12_admit": {
+    "admission": {
+      "app": "AI_LEARNER",
+      "stage": "admission",
+      "verdict": "ADMIT",
+      "bounded": 786476,
+      "budget": 1048576,
+      "per_call": 65580,
+      "constants": 720896
+    },
+    "last_run": {
+      "app": "AI_LEARNER",
+      "stage": "run",
+      "n": 25,
+      "mean_us": 125.3,
+      "max_us": 193.77,
+      "last_us": 113.89,
+      "out0": 2.60204
+    },
+    "last_mem": {
+      "app": "AI_LEARNER",
+      "stage": "mem",
+      "n": 25,
+      "hal_peak": 786476,
+      "hal_bytes_per_call": 94381.3,
+      "peak_within_bounded": true,
+      "rss_kb": 8392,
+      "rss_delta_init_kb": 1888
+    }
+  },
+  "E12_deny": {
+    "admission": {
+      "app": "AI_LEARNER",
+      "stage": "admission",
+      "verdict": "NOT_ADMITTED",
+      "bounded": 786476,
+      "budget": 262144
+    },
+    "cfs_operational_after_denial": true,
+    "other_apps_initialized": [
+      "SAMPLE_APP",
+      "LC"
+    ]
+  },
+  "E11_native_standalone": {
+    "admission_1MiB": "ADMIT",
+    "admission_256KiB": "NOT_ADMITTED_exit3",
+    "boundary_786475": "NOT_ADMITTED",
+    "boundary_786476": "ADMIT",
+    "median_us": 32.23,
+    "p99_us": 54.07,
+    "hal_device_bytes_peak": 786476,
+    "rss_delta_kb": {
+      "runtime_bringup": 224,
+      "module_load": 1592,
+      "inference": 220,
+      "total": 2036
+    },
+    "process_rss_kb": 4316
+  }
+}
