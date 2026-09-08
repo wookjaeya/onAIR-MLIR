@@ -2,6 +2,28 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.12] 2026-09-08
+- E17: AArch64 게스트 재현(`docs/EVIDENCE_v0.12_E17.md`) — 이 세션에서 AArch64 크로스 툴체인·IREE
+  런타임 크로스 빌드·qemu-system-aarch64 게스트를 처음부터 재구축(정상 부팅, 크래시 재발 없음).
+- **A5b 최초 실행**(D11 실제 해소): `.vmfb`(ZIP 컨테이너)의 `module.fb` FlatBuffer 자신의
+  root-table uoffset(첫 4바이트)을 구조적으로 손상시키고(임의 bit flip이 아님), 손상된 파일의
+  sha256/bytes로 계약을 갱신해 binding이 MATCH되도록 구성 — native x86-64·cFS x86-64·**cFS
+  AArch64 게스트** 세 레벨 전부에서 admission ADMIT → binding MATCH →
+  `runtime_load_failed`(IREE FlatBuffer 검증기가 안전하게 거부) → `cleanup_calls:1` → cFS
+  OPERATIONAL 유지를 확인. 크래시 지표 0. 이 연구가 v0.9에서 "실행 근거 없이 확인했다고 서술"한
+  것으로 정정했던 항목을 실제 실행 증거로 채운다.
+- mlp16k·multibranch의 A2 경계값(B−1/B/B+1)을 native(양쪽 모델)와 cFS(mlp16k)에서 확인(6+3건 전부
+  정확) — conv2d는 v0.9에서 이미 확인됨. 세 정적 모델 모두 native 레벨 완료.
+- A7을 재시작 2회+DELETE로 확장(v0.9는 재시작 1회에 그침): x86-64 native_std와 AArch64 게스트
+  양쪽에서 `cfs_cmd.py`로 ES 명령 전송 → `init_count` 3, `cleanup_calls` 3, 이중 해제 없음, DELETE
+  후에도 cFS core 생존 확인. ES 명령 기반 정상 종료 경로를 사용했으므로 v0.9 §11.2가 남긴 "정상
+  종료 시 자원 회수 미검증" 문제도 함께 해소(SIGINT 강제 종료가 아닌 경로에서 cleanup이 매번 정확히
+  1회 호출됨을 확인).
+- E16(v0.11)의 신규 게이트(스택 실거부·blob 크기 선검사)를 AArch64 게스트에서도 재확인 — x86-64와
+  동일한 패턴(EVS 이벤트·JSON 필드 일치).
+- 범위 밖(명시): multibranch cFS 레벨 A2, dynamic 모델의 게스트 재현, 정규 MLIR/IREE pass, 동일
+  경계 대안 비교, 다중 앱 동시 admission, 시간 축 계약, RTEMS 단계는 여전히 미착수.
+
 ## [v0.11] 2026-09-08
 - E16: C 게이트 보강(`docs/EVIDENCE_v0.11_E16.md`) — 환경(cFS native_std, IREE C 런타임 x86-64)을
   이 세션에서 재구축해 실제 `core-cpu1` + `AI_LEARNER`로 검증.

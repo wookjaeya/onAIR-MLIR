@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.11**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.12**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -64,6 +64,16 @@ native_std, IREE C 런타임)을 재구축해 D15·R8을 실제 cFS 기동으로
 수정함). **범위 밖(명시)**: AArch64 게스트 재구축·재현(A2 전 모델·A5b·재시작 2회+DELETE·정상 종료
 cleanup)은 여전히 미착수.
 
+**v0.12에서 완료된 것 (E17, `docs/EVIDENCE_v0.12_E17.md`)**: AArch64 크로스 툴체인·IREE 런타임·
+qemu-system-aarch64 게스트를 이 세션에서 재구축(정상 부팅). **A5b를 native x86-64·cFS x86-64·cFS
+AArch64 게스트 세 레벨 전부에서 최초로 실제 실행**(D11 실제 해소) — `.vmfb`(ZIP)의 `module.fb`
+FlatBuffer 자신의 root-uoffset을 구조적으로 손상시켜(임의 bit flip 아님) binding MATCH 조건을
+만든 뒤, 전 레벨에서 admission ADMIT→binding MATCH→`runtime_load_failed`(IREE 검증기가 안전 거부)
+→cleanup 1회→cFS OPERATIONAL 유지, 크래시 0을 확인. mlp16k·multibranch A2 경계값(native 6/6+cFS
+mlp16k 3/3) 확인. A7을 재시작 2회+DELETE로 확장해 x86-64·AArch64 양쪽에서 완주(이중 해제 없음,
+ES 명령 기반 정상 종료 경로로 v0.9 §11.2의 "정상 종료 자원회수 미검증"도 해소). E16의 신규 게이트를
+AArch64에서도 교차 확인.
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -103,17 +113,15 @@ cleanup)은 여전히 미착수.
 
 v0.9.1 정정(외부 검토 2건, `docs/EVIDENCE_v0.9_E14_stage1.md` §11)에서 두 검토가 합의한 순서를
 그대로 우선순위로 쓴다 — **모델·시나리오 수를 늘리는 것보다 "어떤 정보가 없거나 잘못됐을 때 절대
-ADMIT하지 않는가"를 먼저 닫는다.** 항목 1(도구 레벨)은 v0.10(E15), 항목 2의 C 게이트 부분은
-v0.11(E16)에서 완료됐다.
+ADMIT하지 않는가"를 먼저 닫는다.** 항목 1은 v0.10(E15), 항목 2는 v0.11(E16, x86-64) +
+v0.12(E17, AArch64 게스트)로 완료됐다.
 
 1. ~~fail-closed 계약 verifier~~ — **완료(v0.10/E15)**.
-2. ~~C 게이트 보강~~(스택 실거부·blob 크기 선검사·인터페이스 gate) — **완료(v0.11/E16,
-   `docs/EVIDENCE_v0.11_E16.md`, x86-64 native_std 실기동 검증)**. 남은 것은 **AArch64 게스트에서의
-   재현**(환경 재구축 필요, 아래 3번으로 번호 재사용하지 않고 그대로 유지): mlp16k·multibranch·
-   dynamic의 cFS 레벨 A2(경계값 B-1/B/B+1), 구조 손상 기반 A5b(임의 bit flip이 아니라 FlatBuffer/VM
-   bytecode/embedded ELF 필드를 목표로), 재시작 2회 후 DELETE, 정상 STOP/DELETE 종료 후 해제 카운터
-   확인(현재 정상 종료 경로는 cleanup 미검증, §11.2), 새 스택 거부 gate·크기 선검사를 게스트에서도
-   재확인.
+2. ~~C 게이트 보강 + 남은 cFS 음성·생명주기 시험~~ — **완료(v0.11/E16 x86-64 + v0.12/E17 AArch64
+   게스트, `docs/EVIDENCE_v0.11_E16.md`·`docs/EVIDENCE_v0.12_E17.md`)**. A5b(구조 손상 기반, 3레벨
+   전부 실행), mlp16k·multibranch A2 경계값, 재시작 2회+DELETE(정상 종료 cleanup도 함께 확인),
+   스택 실거부·blob 크기 선검사의 AArch64 교차 확인까지 전부 완료. 남은 잔여: multibranch cFS 레벨
+   A2, dynamic 모델의 게스트 재현(우선순위 낮음, EVIDENCE_v0.12 §6).
 3. **정규 MLIR/IREE pass** — 텍스트 정규식 파서(E15로 fail-closed는 됐으나 여전히 정규식 기반)를
    compiler 내부 Operation·Type·SSA 정보로 대체. 평가지표: 알려진 allocation 누락 없음, 미지원
    표현 무시 안 함, compiler 버전 변경 시 명시적 실패, 기존 파서와 정상 모델에서 동일 값, 적대적
@@ -131,10 +139,12 @@ v0.11(E16)에서 완료됐다.
 **환경 참고**: 이 컨테이너는 세션마다 새로 시작되며 `~/onair-mlir-bench`(cFS 빌드, IREE C 런타임,
 AArch64 게스트 이미지)가 비어 있을 수 있다. 항목 1은 `iree-compile`(동일 커밋 필요)과
 `results/e14_aarch64_qemu/`의 보관 산출물만으로 재구축 없이 완료했다(`harness/contract_negative_tests.py`
-로 재검증 가능). 항목 2의 C 게이트 부분은 x86-64만 재구축(`scripts/10_build_cfs.sh` +
-`scripts/40_setup_iree_source_runtime.sh` + `scripts/50_wire_cfs_ai_learner.sh`, 총 수 분)해 v0.11에서
-완료했다 — AArch64 게스트(`scripts/70-73_*.sh`, 수 시간·QEMU 불안정)는 여전히 남은 항목 2의 나머지에서
-필요하다.
+로 재검증 가능). 항목 2는 x86-64(`scripts/10`+`40`+`50`, v0.11)와 AArch64 게스트
+(`scripts/60`+`61`+`70`+`71`+`51`, v0.12) 둘 다 이 세션들에서 재구축해 완료했다 — AArch64 게스트
+부팅은 이번엔 ~170초로 정상 완료됐고 크래시가 재발하지 않았지만(§9 한계 유지, 안정성을 일반화하지
+않음), 표본은 여전히 작다. 게스트 아티팩트(`~/onair-mlir-bench/ext/cfs-aarch64-exe/`,
+`~/onair-mlir-bench/ext/guest/`)는 `results/`에 보관하지 않았다 — 재현하려면 위 스크립트를 다시
+실행해야 한다.
 
 ## 저장소 지도
 
@@ -163,7 +173,8 @@ docs/
   EVIDENCE_v0.9_E14_stage1.md  qemu-system-aarch64 게스트 + cFS-in-guest + 모델셋 확장, Stage 1
                                (§11 정오표: 외부 검토 2건 반영, A5b 미실행·7/7 범위·스택 gate 아님 등)
   EVIDENCE_v0.10_E15.md        계약 도구 fail-closed 전환 + 음성 시험(51/51 PASS), D12-D14 수정
-  EVIDENCE_v0.11_E16.md       ★ 최신. C 게이트 보강(스택 실거부·blob 크기 선검사), x86-64 native_std 실기동 검증, D15 수정
+  EVIDENCE_v0.11_E16.md        C 게이트 보강(스택 실거부·blob 크기 선검사), x86-64 native_std 실기동 검증, D15 수정
+  EVIDENCE_v0.12_E17.md       ★ 최신. AArch64 게스트 재현: A5b 최초 실행(3레벨), A2 경계값, 재시작 2회+DELETE, D11 실제 해소
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
