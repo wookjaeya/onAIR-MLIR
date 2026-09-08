@@ -2,6 +2,22 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.17] 2026-09-08
+- E22: 외부 검토 F9 재현성 실제 확보(`docs/EVIDENCE_v0.17_E22.md`) — "96/96, 환경 구축
+  불필요"가 fresh clone에서 재현되지 않던 문제를 실제 `git clone`으로 재현 후 해결.
+- **정정(D24)**: `contract_negative_tests.py`가 `iree.compiler.ir` 부재 환경에서 uncaught
+  `RuntimeError`로 전체 크래시(요약 0줄)하던 버그 발견·수정. `Result`에 `skip` 상태 신설,
+  3개 지점을 명확한 SKIP으로 정리.
+- E21의 F3(구조적 검증기 미설치 기본 하드실패)이 이 시험 하네스 자신의 서브프로세스 호출과
+  상충하던 것을 `structural_available()`/`with_structural_override()`로 해소(각 시험이
+  실제로 검사하려는 조건만으로 판정되도록).
+- `results/e14_aarch64_qemu/*/dump/`(242개 파일, 6.5MB)를 `.gitignore` 제외에서 빼고 커밋 —
+  회귀·음성 시험이 실제로 요구하는데 저장소에 없었음.
+- `requirements.txt`(버전 고정), `.github/workflows/contract-negative-tests.yml`(fresh
+  checkout CI, with/without iree.compiler.ir 두 경로) 신설.
+- 이 세션 내 실제 `git clone`으로 재현 확인: iree-base-compiler 설치 시 **107/107**, 미설치
+  시 크래시 없이 **77/77 + 3 SKIP**. README의 "환경 구축 불필요" 문구가 이제 정확한 주장이 됨.
+
 ## [v0.16] 2026-09-08
 - E21: 외부 검토(v0.15 최신본, `docs/reviews/REVIEW_v0_15_LATEST.md`) fail-open 결함 6건 수정
   (`docs/EVIDENCE_v0.16_E21.md`) — 11개 finding(F1–F11)을 독립 에이전트 11개로 병렬 검증(9건

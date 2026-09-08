@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.16**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.17**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -127,6 +127,20 @@ IREE 상류 실제 문법으로 재현, 현재는 정규식 크로스체크가 �
 것**: F4(정규 MLIR pass 표현 정정), F8(E16/E17 원자료·A5b 재현 코드화), F9(fresh-clone
 재현성 — F3의 기본값 변경과 직접 상충하는 트레이드오프 있음), F10(OnAIR↔native/cFS 바인딩 갭) —
 E22/E23로 이연.
+
+**v0.17에서 완료된 것 (E22, `docs/EVIDENCE_v0.17_E22.md`)**: F9(fresh clone 재현성)를
+실제 `git clone` 재현으로 확인 후 해결 — v0.16이 남긴 트레이드오프(E21의 F3이 F9를 악화시킬
+수 있음)를 실제로 다뤘다. 두 근본 원인을 찾았다: (1) `contract_negative_tests.py`가
+`iree.compiler.ir` 부재 시 uncaught `RuntimeError`로 **전체 크래시**(요약 0줄, D24 신규) —
+`Result`에 `skip` 상태를 신설해 3개 지점을 명확한 SKIP으로 정리. (2) E21의 F3(구조적 검증기
+미설치 기본 하드실패)이 이 시험 하네스 자신의 서브프로세스 호출과 상충 —
+`structural_available()`/`with_structural_override()`로 무관한 이유의 실패를 제거. 추가로
+`results/e14_aarch64_qemu/*/dump/`(242개 파일, 6.5MB — 회귀·음성 시험이 실제로 요구하는데
+`.gitignore`로 빠져 있었음)를 커밋, `requirements.txt`(버전 고정)와
+`.github/workflows/contract-negative-tests.yml`(fresh checkout CI, with/without
+iree.compiler.ir 두 경로) 신설. 이 세션 내 실제 `git clone`으로 재현: iree-base-compiler
+설치 시 **107/107**, 미설치 시 크래시 없이 **77/77 + 3 SKIP**. README의 "환경 구축 불필요"가
+이제 정확한 주장이 됨. **여전히 남은 것**: F4, F8, F10 — E23로 이연.
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -301,8 +315,10 @@ docs/
                                (§8 정오표: E20이 발견한 과잉 거부 결함 2건 정정)
   EVIDENCE_v0.15_E20.md        E19 크로스체크 적대적 리뷰 + 과잉 거부 결함 2건(D16·D17)
                                실제 재현·수정, 회귀 시험 고정, 96/96
-  EVIDENCE_v0.16_E21.md       ★ 최신. 외부 검토(v0.15) fail-open 결함 6건(F1/F2/F3/F5/F6/F7,
+  EVIDENCE_v0.16_E21.md        외부 검토(v0.15) fail-open 결함 6건(F1/F2/F3/F5/F6/F7,
                                D18-D23) 실제 재현·수정, revert-confirm-fail, 107/107
+  EVIDENCE_v0.17_E22.md       ★ 최신. F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
+                               버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
@@ -332,7 +348,8 @@ harness/                    실험 스크립트
   gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h; fail-closed 검증 E15; 스택 불신뢰
                                분류 거부 E21 D22, CONTRACT_DTYPES_ALL_F32 신설 E21 D23)
   contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선·과잉거부·
-                               fail-open 회귀 시험, 107/107 PASS(E15+E18+E19+E20+E21)
+                               fail-open 회귀 시험, 107/107 PASS(E15+E18+E19+E20+E21); iree.compiler.ir
+                               미설치 환경에서는 크래시 없이 77/77+3 SKIP(E22, fresh clone 실제 재현)
   mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치;
                                E19부터 make_contract.py의 필수 크로스체크로 결선됨(대체 아님);
                                E20: diff_against_regex 공유 헬퍼로 통합(3곳 중복 제거);
