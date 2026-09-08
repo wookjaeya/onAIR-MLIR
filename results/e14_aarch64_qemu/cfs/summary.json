@@ -157,6 +157,56 @@
       },
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "CONTRACT_ARTIFACT_MISMATCH"
+      ],
+      "stack": null,
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "cleanup": [
+        {
+          "app": "AI_LEARNER",
+          "stage": "cleanup",
+          "released": true,
+          "cleanup_calls": 1
+        }
+      ],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [
+        "1980-012-14:04:33.04806 CFE_ES_ExitApp: Application AI_LEARNER called CFE_ES_ExitApp",
+        "EVS Port1 1980-012-14:04:33.21162 66/1/CFE_ES 14: ErrExit Application AI_LEARNER Success."
+      ],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:04:33.02822 66/1/AI_LEARNER 5: AI_LEARNER CONTRACT_ARTIFACT_MISMATCH: /cf/model.vmfb is not the artifact this contract describes; app will not start"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "A3_mlp16k_swap",
+      "model": "mlp16k",
+      "scenario": "A3 \uac19\uc740 ABI \ubaa8\ub378 \uad50\uccb4: mlp16k \uacc4\uc57d+mlp16k_swap vmfb",
+      "seconds": 20,
+      "commands_sent": [],
+      "log": "results/e14_aarch64_qemu/cfs/logs/A3_mlp16k_swap.log",
+      "expect": {
+        "admission": "ADMIT",
+        "binding": "CONTRACT_ARTIFACT_MISMATCH",
+        "runtime_created": false,
+        "cfs_operational": true,
+        "no_crash": true,
+        "min_cleanup": 1
+      },
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }
