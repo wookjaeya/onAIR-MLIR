@@ -42,7 +42,7 @@
       "local-sync driver",
       "entry function @infer only"
     ],
-    "binary_size_bytes": 733440,
+    "binary_size_bytes": 733827,
     "runtime_context_bytes_measured": 249812,
     "runtime_check": {
       "device_bytes_peak": 65580,
@@ -55,7 +55,12 @@
       "budget_262144": "REJECT",
       "budget_1048576": "ACCEPT"
     },
-    "erratum": "v0.3 reported runtime_context ~971 KB; that figure wrongly included the 720,896 B of baked constants. Corrected in v0.3.1."
+    "erratum": "v0.3 reported runtime_context ~971 KB; that figure wrongly included the 720,896 B of baked constants. Corrected in v0.3.1.",
+    "artifact_rodata_segments": [
+      720896,
+      5160
+    ],
+    "constants_confirmed_in_artifact": true
   },
   "timing": {
     "boundary": "L1_kernel",
@@ -66,9 +71,10 @@
     "note": "E6b timing re-characterized with baked weights but platform is FUNCTIONAL_ONLY; no execution bound recorded until a PASS platform run exists."
   },
   "artifact": {
-    "file": "model_16384_baked.vmfb",
-    "sha256": "95e8caff013151e44889c39eed842f4172a2d290ef24bd0482cbfba4888a36ba",
-    "bytes": 733472
+    "file": "e13_host_model.vmfb",
+    "sha256": "a48be5b8af6620a80ea5d47d3bfc71c42e94842c8d103b6a4cc8adb407454d26",
+    "bytes": 733827,
+    "produced_by": "single iree-compile invocation that also emitted alloc IR and executable dumps (E13)"
   },
   "validity": {
     "entry": "infer",
@@ -97,5 +103,16 @@
       "entry function @infer only"
     ],
     "binding_rule": "the gate must hash the exact bytes handed to the IREE session and compare with artifact.sha256 before any runtime allocation"
+  },
+  "e13": {
+    "llvm_ir_alloca_count": 0,
+    "llvm_ir_declares": [
+      "llvm.assume",
+      "llvm.fmuladd.v32f32",
+      "llvm.fmuladd.v2f32"
+    ],
+    "kernel_elf_call_insns": 0,
+    "kernel_elf_stack_frame_bytes": 0,
+    "note": "kernel temporaries live in registers; no heap, no stack frame, no external calls -> nothing at kernel level lies outside the HAL contract"
   }
 }

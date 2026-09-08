@@ -58,5 +58,81 @@
       "total": 2036
     },
     "process_rss_kb": 4316
+  },
+  "E11b_fixed": {
+    "binding": "MATCH",
+    "attempted": 3200,
+    "completed": 3200,
+    "fail_invoke": 0,
+    "fail_output": 0,
+    "median_us": 29.8,
+    "p99_us": 47.23,
+    "hal_device_bytes_peak": 786476,
+    "peak_within_bounded": true,
+    "hal_bytes_per_call_amortized": 65769.3,
+    "hal_bytes_per_call_steady": 65544.0,
+    "steady_within_per_call": true,
+    "rss_delta_kb_note": "blob now read before rss0; runtime 364, module 732 (device copy of constants), inference 220"
+  },
+  "E11c_model_swap": {
+    "model": "h=4096 baked, same ABI",
+    "binding": "CONTRACT_ARTIFACT_MISMATCH",
+    "exit_code": 5,
+    "runtime_created": false
+  },
+  "E12b_cfs_match": {
+    "binding": "MATCH",
+    "attempted": 25,
+    "completed": 25,
+    "failures": 0,
+    "hal_peak": 786476,
+    "peak_within_bounded": true,
+    "mean_us": 110.5,
+    "cfs_operational": true
+  },
+  "E12c_cfs_model_swap": {
+    "binding": "CONTRACT_ARTIFACT_MISMATCH",
+    "app_started": false,
+    "iree_runtime_created": false,
+    "cleanup": true,
+    "cfs_operational": true
+  },
+  "E12d_cfs_missing_model": {
+    "result": "cannot open /cf/model.vmfb",
+    "cleanup": true,
+    "cfs_operational": true
+  },
+  "E13": {
+    "host": {
+      "vmfb_sha16": "a48be5b8af6620a8",
+      "elf_bytes": 5160,
+      "insns": 122,
+      "zmm_refs": 49,
+      "fma_insns": 34,
+      "call_insns": 0,
+      "stack_frame": 0,
+      "llvm_alloca": 0,
+      "llvm_declares": [
+        "llvm.assume",
+        "llvm.fmuladd.v32f32",
+        "llvm.fmuladd.v2f32"
+      ]
+    },
+    "generic": {
+      "vmfb_sha16": "8fc68541058e5b17",
+      "elf_bytes": 4872,
+      "insns": 111,
+      "zmm_refs": 0,
+      "fma_insns": 0,
+      "scalar_mulss": 9,
+      "call_insns": 0,
+      "stack_frame": 0,
+      "llvm_alloca": 0,
+      "llvm_declares": [
+        "llvm.assume",
+        "llvm.fmuladd.v1f32"
+      ]
+    },
+    "correspondence": "contract for E13 host artifact generated from the SAME invocation; native learner MATCH on it and MISMATCH on the previous (byte-different) artifact"
   }
 }

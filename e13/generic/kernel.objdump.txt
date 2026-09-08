@@ -1,0 +1,120 @@
+
+/tmp/e13/generic/kernel.elf:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000000015b0 <iree_hal_executable_library_query-0x180>:
+    15b0:	push   %rbp
+    15b1:	mov    %rsp,%rbp
+    15b4:	push   %rbx
+    15b5:	mov    0x20(%rsi),%rsi
+    15b9:	mov    (%rsi),%rax
+    15bc:	mov    0x8(%rsi),%rcx
+    15c0:	mov    0x10(%rsi),%rsi
+    15c4:	mov    (%rdx),%edx
+    15c6:	shl    $0x6,%rdx
+    15ca:	xor    %edi,%edi
+    15cc:	nopl   0x0(%rax)
+    15d0:	lea    (%rdi,%rdx,1),%r8
+    15d4:	lea    (%rcx,%r8,4),%r9
+    15d8:	mov    $0x1,%bl
+    15da:	xorps  %xmm0,%xmm0
+    15dd:	xor    %r10d,%r10d
+    15e0:	mov    %ebx,%r11d
+    15e3:	mov    %r10,%rbx
+    15e6:	shl    $0x10,%rbx
+    15ea:	movss  (%r9,%rbx,1),%xmm1
+    15f0:	mov    %r10,%rbx
+    15f3:	or     $0x1,%rbx
+    15f7:	shl    $0x10,%rbx
+    15fb:	movss  (%r9,%rbx,1),%xmm2
+    1601:	mov    %r10,%rbx
+    1604:	or     $0x2,%rbx
+    1608:	shl    $0x10,%rbx
+    160c:	movss  (%r9,%rbx,1),%xmm3
+    1612:	mov    %r10,%rbx
+    1615:	or     $0x3,%rbx
+    1619:	shl    $0x10,%rbx
+    161d:	mulss  (%rax,%r10,4),%xmm1
+    1623:	addss  %xmm0,%xmm1
+    1627:	movss  (%r9,%rbx,1),%xmm0
+    162d:	mulss  0x4(%rax,%r10,4),%xmm2
+    1634:	addss  %xmm1,%xmm2
+    1638:	mulss  0x8(%rax,%r10,4),%xmm3
+    163f:	addss  %xmm2,%xmm3
+    1643:	mulss  0xc(%rax,%r10,4),%xmm0
+    164a:	addss  %xmm3,%xmm0
+    164e:	mov    $0x4,%r10d
+    1654:	xor    %ebx,%ebx
+    1656:	test   $0x1,%r11b
+    165a:	jne    15e0 <iree_hal_executable_library_query-0x150>
+    165c:	movss  0x80000(%r9),%xmm1
+    1665:	mulss  0x20(%rax),%xmm1
+    166a:	addss  %xmm0,%xmm1
+    166e:	movss  %xmm1,(%rsi,%r8,4)
+    1674:	inc    %rdi
+    1677:	cmp    $0x40,%rdi
+    167b:	jne    15d0 <iree_hal_executable_library_query-0x160>
+    1681:	xor    %eax,%eax
+    1683:	pop    %rbx
+    1684:	pop    %rbp
+    1685:	ret
+    1686:	int3
+    1687:	int3
+    1688:	int3
+    1689:	int3
+    168a:	int3
+    168b:	int3
+    168c:	int3
+    168d:	int3
+    168e:	int3
+    168f:	int3
+    1690:	push   %rbp
+    1691:	mov    %rsp,%rbp
+    1694:	mov    0x20(%rsi),%rsi
+    1698:	mov    (%rsi),%rax
+    169b:	mov    0x10(%rsi),%rcx
+    169f:	mov    $0x90018,%edx
+    16a4:	add    0x8(%rsi),%rdx
+    16a8:	xor    %esi,%esi
+    16aa:	xor    %edi,%edi
+    16ac:	nopl   0x0(%rax)
+    16b0:	lea    (%rdx,%rdi,4),%r8
+    16b4:	xorps  %xmm0,%xmm0
+    16b7:	mov    $0xfffffffffffffffc,%r9
+    16be:	xchg   %ax,%ax
+    16c0:	movss  0x8(%r8,%r9,8),%xmm1
+    16c7:	movss  0x10(%r8,%r9,8),%xmm2
+    16ce:	movss  0x18(%r8,%r9,8),%xmm3
+    16d5:	mulss  0x10(%rax,%r9,4),%xmm1
+    16dc:	addss  %xmm0,%xmm1
+    16e0:	movss  0x20(%r8,%r9,8),%xmm0
+    16e7:	mulss  0x14(%rax,%r9,4),%xmm2
+    16ee:	addss  %xmm1,%xmm2
+    16f2:	mulss  0x18(%rax,%r9,4),%xmm3
+    16f9:	addss  %xmm2,%xmm3
+    16fd:	mulss  0x1c(%rax,%r9,4),%xmm0
+    1704:	addss  %xmm3,%xmm0
+    1708:	add    $0x4,%r9
+    170c:	cmp    $0x3ffc,%r9
+    1713:	jb     16c0 <iree_hal_executable_library_query-0x70>
+    1715:	movss  %xmm0,(%rcx,%rdi,4)
+    171a:	mov    $0x1,%edi
+    171f:	test   $0x1,%sil
+    1723:	mov    $0x1,%sil
+    1726:	je     16b0 <iree_hal_executable_library_query-0x80>
+    1728:	xor    %eax,%eax
+    172a:	pop    %rbp
+    172b:	ret
+    172c:	int3
+    172d:	int3
+    172e:	int3
+    172f:	int3
+
+0000000000001730 <iree_hal_executable_library_query>:
+    1730:	xor    %eax,%eax
+    1732:	cmp    $0x6,%edi
+    1735:	lea    0x10a4(%rip),%rcx        # 27e0 <iree_hal_executable_library_query+0x10b0>
+    173c:	cmove  %rcx,%rax
+    1740:	ret

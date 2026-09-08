@@ -1,0 +1,131 @@
+
+/tmp/e13/host/kernel.elf:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000000015a0 <iree_hal_executable_library_query-0x2c0>:
+    15a0:	push   %rbp
+    15a1:	mov    %rsp,%rbp
+    15a4:	mov    0x20(%rsi),%rsi
+    15a8:	mov    (%rsi),%rax
+    15ab:	mov    0x8(%rsi),%rcx
+    15af:	mov    0x10(%rsi),%rsi
+    15b3:	mov    (%rdx),%edx
+    15b5:	shl    $0x6,%rdx
+    15b9:	mov    $0x1,%r8b
+    15bc:	xor    %edi,%edi
+    15be:	vxorps %xmm0,%xmm0,%xmm0
+    15c2:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    15d0:	or     %rdx,%rdi
+    15d3:	vbroadcastss (%rax),%zmm1
+    15d9:	vmovaps (%rcx,%rdi,4),%zmm2
+    15e0:	vfmadd132ps %zmm1,%zmm0,%zmm2
+    15e6:	vfmadd132ps 0x40(%rcx,%rdi,4),%zmm0,%zmm1
+    15ee:	vbroadcastss 0x4(%rax),%zmm3
+    15f5:	vfmadd231ps 0x10040(%rcx,%rdi,4),%zmm3,%zmm1
+    1600:	vfmadd231ps 0x10000(%rcx,%rdi,4),%zmm3,%zmm2
+    160b:	vbroadcastss 0x8(%rax),%zmm3
+    1612:	vfmadd231ps 0x20000(%rcx,%rdi,4),%zmm3,%zmm2
+    161d:	vfmadd231ps 0x20040(%rcx,%rdi,4),%zmm3,%zmm1
+    1628:	vbroadcastss 0xc(%rax),%zmm3
+    162f:	vfmadd231ps 0x30040(%rcx,%rdi,4),%zmm3,%zmm1
+    163a:	vfmadd231ps 0x30000(%rcx,%rdi,4),%zmm3,%zmm2
+    1645:	vbroadcastss 0x10(%rax),%zmm3
+    164c:	vfmadd231ps 0x40000(%rcx,%rdi,4),%zmm3,%zmm2
+    1657:	vfmadd231ps 0x40040(%rcx,%rdi,4),%zmm3,%zmm1
+    1662:	vbroadcastss 0x14(%rax),%zmm3
+    1669:	vfmadd231ps 0x50040(%rcx,%rdi,4),%zmm3,%zmm1
+    1674:	vfmadd231ps 0x50000(%rcx,%rdi,4),%zmm3,%zmm2
+    167f:	vbroadcastss 0x18(%rax),%zmm3
+    1686:	vfmadd231ps 0x60000(%rcx,%rdi,4),%zmm3,%zmm2
+    1691:	vfmadd231ps 0x60040(%rcx,%rdi,4),%zmm3,%zmm1
+    169c:	vbroadcastss 0x1c(%rax),%zmm3
+    16a3:	vfmadd231ps 0x70040(%rcx,%rdi,4),%zmm3,%zmm1
+    16ae:	vfmadd231ps 0x70000(%rcx,%rdi,4),%zmm3,%zmm2
+    16b9:	vbroadcastss 0x20(%rax),%zmm3
+    16c0:	vfmadd231ps 0x80000(%rcx,%rdi,4),%zmm3,%zmm2
+    16cb:	vfmadd231ps 0x80040(%rcx,%rdi,4),%zmm3,%zmm1
+    16d6:	vmovaps %zmm1,0x40(%rsi,%rdi,4)
+    16de:	mov    %r8d,%r9d
+    16e1:	vmovaps %zmm2,(%rsi,%rdi,4)
+    16e8:	mov    $0x20,%edi
+    16ed:	xor    %r8d,%r8d
+    16f0:	test   $0x1,%r9b
+    16f4:	jne    15d0 <iree_hal_executable_library_query-0x290>
+    16fa:	xor    %eax,%eax
+    16fc:	pop    %rbp
+    16fd:	vzeroupper
+    1700:	ret
+    1701:	int3
+    1702:	int3
+    1703:	int3
+    1704:	int3
+    1705:	int3
+    1706:	int3
+    1707:	int3
+    1708:	int3
+    1709:	int3
+    170a:	int3
+    170b:	int3
+    170c:	int3
+    170d:	int3
+    170e:	int3
+    170f:	int3
+    1710:	push   %rbp
+    1711:	mov    %rsp,%rbp
+    1714:	mov    0x20(%rsi),%rcx
+    1718:	mov    (%rcx),%rax
+    171b:	mov    0x8(%rcx),%rdx
+    171f:	mov    0x10(%rcx),%rcx
+    1723:	vxorps %xmm0,%xmm0,%xmm0
+    1727:	mov    $0xfffffffffffffff0,%rsi
+    172e:	xchg   %ax,%ax
+    1730:	vmovsd 0x90080(%rdx,%rsi,8),%xmm1
+    1739:	vmovsd 0x90088(%rdx,%rsi,8),%xmm2
+    1742:	vmovsd 0x90090(%rdx,%rsi,8),%xmm3
+    174b:	vmovsd 0x90098(%rdx,%rsi,8),%xmm4
+    1754:	vmovsd 0x900a0(%rdx,%rsi,8),%xmm5
+    175d:	vmovsd 0x900a8(%rdx,%rsi,8),%xmm6
+    1766:	vmovsd 0x900b0(%rdx,%rsi,8),%xmm7
+    176f:	vmovsd 0x900b8(%rdx,%rsi,8),%xmm8
+    1778:	vmovsd 0x900c0(%rdx,%rsi,8),%xmm9
+    1781:	vmovsd 0x900c8(%rdx,%rsi,8),%xmm10
+    178a:	vmovsd 0x900d0(%rdx,%rsi,8),%xmm11
+    1793:	vmovsd 0x900d8(%rdx,%rsi,8),%xmm12
+    179c:	vmovsd 0x900e0(%rdx,%rsi,8),%xmm13
+    17a5:	vmovsd 0x900e8(%rdx,%rsi,8),%xmm14
+    17ae:	vmovsd 0x900f0(%rdx,%rsi,8),%xmm15
+    17b7:	vmovsd 0x900f8(%rdx,%rsi,8),%xmm16
+    17c2:	vfmadd132ps 0x40(%rax,%rsi,4){1to4},%xmm0,%xmm1
+    17ca:	vfmadd231ps 0x44(%rax,%rsi,4){1to4},%xmm2,%xmm1
+    17d2:	vfmadd231ps 0x48(%rax,%rsi,4){1to4},%xmm3,%xmm1
+    17da:	vfmadd231ps 0x4c(%rax,%rsi,4){1to4},%xmm4,%xmm1
+    17e2:	vfmadd231ps 0x50(%rax,%rsi,4){1to4},%xmm5,%xmm1
+    17ea:	vfmadd231ps 0x54(%rax,%rsi,4){1to4},%xmm6,%xmm1
+    17f2:	vfmadd231ps 0x58(%rax,%rsi,4){1to4},%xmm7,%xmm1
+    17fa:	vfmadd231ps 0x5c(%rax,%rsi,4){1to4},%xmm8,%xmm1
+    1802:	vfmadd231ps 0x60(%rax,%rsi,4){1to4},%xmm9,%xmm1
+    180a:	vfmadd231ps 0x64(%rax,%rsi,4){1to4},%xmm10,%xmm1
+    1812:	vfmadd231ps 0x68(%rax,%rsi,4){1to4},%xmm11,%xmm1
+    181a:	vfmadd231ps 0x6c(%rax,%rsi,4){1to4},%xmm12,%xmm1
+    1822:	vfmadd231ps 0x70(%rax,%rsi,4){1to4},%xmm13,%xmm1
+    182a:	vfmadd231ps 0x74(%rax,%rsi,4){1to4},%xmm14,%xmm1
+    1832:	vfmadd231ps 0x78(%rax,%rsi,4){1to4},%xmm15,%xmm1
+    183a:	vmovaps %xmm1,%xmm0
+    183e:	vfmadd231ps 0x7c(%rax,%rsi,4){1to4},%xmm16,%xmm0
+    1846:	add    $0x10,%rsi
+    184a:	cmp    $0x3ff0,%rsi
+    1851:	jb     1730 <iree_hal_executable_library_query-0x130>
+    1857:	vmovlps %xmm0,(%rcx)
+    185b:	xor    %eax,%eax
+    185d:	pop    %rbp
+    185e:	ret
+    185f:	int3
+
+0000000000001860 <iree_hal_executable_library_query>:
+    1860:	xor    %eax,%eax
+    1862:	cmp    $0x6,%edi
+    1865:	lea    0x10a4(%rip),%rcx        # 2910 <iree_hal_executable_library_query+0x10b0>
+    186c:	cmove  %rcx,%rax
+    1870:	ret
