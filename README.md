@@ -16,8 +16,9 @@ python3 harness/platform_check.py  # 이 머신의 타이밍 증거 등급 확�
 
 **fresh clone 재현성(외부 검토 F9 — E22/E23에서 실제 확인·해결)**: `git clone`으로 새로 받은
 이 저장소에서 위 `pip install -r requirements.txt` 후 `contract_negative_tests.py`를
-실행하면 **125/125**. 의존성 없이(iree-base-compiler 미설치 — 콘솔 스크립트도 없는 진짜
-무의존성 체크아웃) 실행하면 **50/50 + 5 SKIP**으로, 크래시나 오탐 FAIL 없이 정상 종료한다.
+실행하면 **125/125**. 의존성 없이(iree-base-compiler 미설치 — 콘솔 스크립트도 `iree.runtime`도
+없는 진짜 무의존성 체크아웃) 실행하면 **48/48 + 6 SKIP**(GitHub Actions 러너 실측)으로,
+크래시나 오탐 FAIL 없이 정상 종료한다.
 두 경로 모두 `.github/workflows/contract-negative-tests.yml`이 CI에서 매 푸시마다 확인하며,
 **그 CI가 첫 실행에서 실제로 결함(D25)을 하나 잡았다** — 로컬의 import 차단 시뮬레이션은
 Python 모듈만 숨기고 콘솔 스크립트를 남기므로 재현할 수 없던 조건이었다

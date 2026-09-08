@@ -10,7 +10,9 @@ E21, F9는 E22에서 처리)과, **E22가 만든 CI가 실제 실행에서 잡�
 
 **범위 밖(명시)**: 게스트 cFS 안에서 이 A5b 생성기로 시나리오를 실제 재실행하는 것은 하지 않았다
 (`~/onair-mlir-bench` 게스트 이미지가 이 컨테이너에 없다 — §5 참조). OnAIR 자체를 설치해
-플러그인을 end-to-end로 돌리는 것도 하지 않았다(§4.3).
+플러그인을 end-to-end로 돌리는 것도 하지 않았다(이 컨테이너에 `onair` 패키지가 없다 — §2의
+바인딩 게이트는 OnAIR 없이 동작하는 stdlib 모듈로 분리해 단위 시험했다). OnAIR·native·cFS의
+**출력 동치** end-to-end 시험은 F10의 나머지 절반으로, CLAUDE.md 우선순위 8번에 등록했다.
 
 ## 1. F8 — A5a/A5b 손상 방식의 코드화 (D26)
 
@@ -161,11 +163,17 @@ FileNotFoundError: [Errno 2] No such file or directory: 'iree-dump-module'
 이 조건을 이번엔 충실히 재현했다: `env -i PATH=/usr/bin:/bin`(iree 바이너리 없음) +
 import 차단(모듈 없음). 수정 전 코드에서 같은 `FileNotFoundError`를 확인했고, 수정 후:
 
-| 환경 | 결과 |
-|---|---|
-| 전체 환경(모듈·도구 모두 있음) | **125/125 PASS** |
-| 모듈만 부재(E22가 시험한 조건) | 95/95 PASS + 3 SKIP |
-| **도구·모듈 모두 부재(진짜 의존성 없는 체크아웃)** | **50/50 PASS + 5 SKIP, 크래시 없음** |
+| 환경 | 측정 위치 | 결과 |
+|---|---|---|
+| 전체 환경(모듈·도구 모두 있음) | 이 컨테이너 + **CI `with-deps`** | **125/125 PASS** |
+| 모듈만 부재(E22가 시험한 조건) | 이 컨테이너(import 차단) | 95/95 PASS + 3 SKIP |
+| 도구·모듈 부재, `iree.runtime`은 있음 | 이 컨테이너(`env -i PATH=/usr/bin:/bin` + import 차단) | 50/50 PASS + 5 SKIP |
+| **진짜 의존성 없는 체크아웃** | **CI `without-deps` 레그(실측)** | **48/48 PASS + 6 SKIP, 크래시 없음** |
+
+로컬 시뮬레이션(50/50+5)과 CI 실측(48/48+6)이 다른 이유도 같은 계열이다 — 이 컨테이너에는
+`iree-base-runtime`이 설치돼 있어 §1.4의 A5b 런타임 거부 시험 2건이 실제로 **실행**되지만, CI
+러너에는 그것도 없어 SKIP 1건으로 합쳐진다. **본 문서는 두 수치를 모두, 각각의 조건과 함께
+적는다** — 어느 하나를 "그 환경의 수치"로 일반화하지 않는다(D25가 준 교훈 그대로).
 
 ### 5.1 수정 내용
 
@@ -202,7 +210,10 @@ E22 §1의 "`iree.compiler.ir`을 … `sys.meta_path` 훅으로 차단해 **'패
 - D25는 **E22의 검증 방법 자체의 한계**가 드러난 사례다 — 시뮬레이션은 실제 환경의 부분집합만
   재현한다는 이 프로젝트의 반복된 교훈(D2·D3·D5–D7과 같은 계열)이 또 한 번 확인됐다. 이번엔
   사람이 아니라 **CI가** 그 역할을 했다.
-- `harness/contract_negative_tests.py` 107/107 → **125/125**. 14개 보관 계약 diff 0 유지.
+- `harness/contract_negative_tests.py` 107/107 → **125/125**(전체 환경, CI `with-deps` 포함).
+  진짜 의존성 없는 체크아웃은 CI 실측 **48/48 + 6 SKIP**(크래시 없음). 14개 보관 계약 diff 0 유지.
+- 요약 줄이 모든 SKIP을 "iree.compiler.ir 미설치"로 뭉뚱그리던 것도 실제 사유별로 나열하도록
+  고쳤다 — CI의 without-deps 레그는 세 가지(모듈·콘솔 스크립트·`iree.runtime`)가 모두 없다.
 
 ## 8. 재현
 
@@ -220,7 +231,8 @@ python3 -c "import iree.runtime as rt; c=rt.SystemContext(config=rt.Config('loca
 python3 harness/contract_negative_tests.py                      # 125/125
 PYTHONPATH=<module-block> python3 harness/contract_negative_tests.py   # 95/95 + 3 SKIP
 env -i HOME=$HOME PATH=/usr/bin:/bin PYTHONPATH=<module-block> \
-  /usr/bin/python3 harness/contract_negative_tests.py           # 50/50 + 5 SKIP (D25 조건)
+  /usr/bin/python3 harness/contract_negative_tests.py           # 50/50 + 5 SKIP (iree.runtime는 있는 조건)
+# 진짜 의존성 없는 체크아웃의 수치(48/48 + 6 SKIP)는 CI without-deps 레그가 매 푸시마다 실측한다
 ```
 
 `<module-block>`은 `sitecustomize.py`에서 `sys.meta_path`에 `iree.compiler` import를 막는

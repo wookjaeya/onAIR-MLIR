@@ -24,8 +24,11 @@
 - **정정**: `docs/EVIDENCE_v0.13_E18.md` §7 정오표 추가 — `Operation.walk()` 서술은 실제
   구현(자체 재귀 `_walk()`)과 다름, "정규 MLIR pass" 명칭은 "MLIR API 기반 구조적
   post-processing verifier"로 정정(수치·판정 불변).
-- `contract_negative_tests.py` 107/107 → **125/125**. 도구·모듈 모두 부재한 환경에서도
-  크래시 없이 50/50 + 5 SKIP. 14개 보관 계약 diff 0 유지.
+- `contract_negative_tests.py` 107/107 → **125/125**(CI with-deps 레그 실측 포함). 진짜
+  의존성 없는 체크아웃은 CI without-deps 레그 실측 **48/48 + 6 SKIP**(크래시 없음) — 로컬
+  시뮬레이션 수치(50/50+5)와 다른 이유는 이 컨테이너엔 `iree.runtime`이 있어 A5b 런타임
+  거부 시험이 실제로 실행되기 때문이며, 두 수치를 조건과 함께 병기한다. SKIP 요약도 사유를
+  뭉뚱그리지 않고 실제 원인별로 나열하도록 수정. 14개 보관 계약 diff 0 유지.
 
 ## [v0.17] 2026-09-08
 - E22: 외부 검토 F9 재현성 실제 확보(`docs/EVIDENCE_v0.17_E22.md`) — "96/96, 환경 구축

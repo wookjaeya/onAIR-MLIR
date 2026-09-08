@@ -1205,8 +1205,13 @@ def main():
         n_skip = sum(1 for r in all_results if r.skip)
         n_fail = sum(1 for r in all_results if not r.skip and not r.ok)
         n_pass = sum(1 for r in all_results if not r.skip and r.ok)
+        # D25 (E23): skips have more than one cause now (iree.compiler.ir, the
+        # iree-* console scripts, iree.runtime), so name the actual reasons
+        # instead of attributing every skip to the module -- CI's without-deps
+        # leg lacks all three and used to be summarised as if it lacked one.
+        reasons = sorted({r.detail for r in all_results if r.skip and r.detail})
         print("%d/%d checks passed%s" % (n_pass, n_pass + n_fail,
-              " (%d skipped: iree.compiler.ir not installed)" % n_skip if n_skip else ""))
+              " (%d skipped: %s)" % (n_skip, "; ".join(reasons)) if n_skip else ""))
         return 1 if n_fail else 0
 
 

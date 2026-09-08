@@ -165,7 +165,10 @@ sha256·크기 검사 없이 로드하고 있었다(C 경로는 크기 선검사
 원리적으로 재현할 수 없었다.** 사람이 아니라 **CI가** 잡았다. 두 함수가 `OSError`를 잡고,
 `artifact_rodata_segments`는 `([],[])`가 아니라 `(None,None)`을 반환해 "관측 못 함"과 "관측했고
 없음"을 구분한다(상수 독립 확인 불가는 `null` + 기본 거부). `contract_negative_tests.py`
-107/107 → **125/125**, 모듈만 부재 95/95+3 SKIP, **도구·모듈 모두 부재 50/50+5 SKIP(크래시 없음)**.
+107/107 → **125/125**(CI `with-deps` 포함), 모듈만 부재 95/95+3 SKIP, **진짜 의존성 없는
+체크아웃은 CI `without-deps` 실측 48/48+6 SKIP(크래시 없음)** — 로컬 시뮬레이션(50/50+5)과
+다른 이유마저 같은 계열(이 컨테이너엔 `iree.runtime`이 있어 A5b 런타임 거부 시험이 실제로
+돈다)이라, 두 수치를 조건과 함께 병기한다.
 `EVIDENCE_v0.13_E18.md` §7·`EVIDENCE_v0.17_E22.md` §6에 정오표 추가.
 
 
@@ -399,7 +402,7 @@ harness/                    실험 스크립트
   contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선·과잉거부·
                                fail-open·손상방식·OnAIR 바인딩 회귀 시험, 125/125 PASS
                                (E15+E18+E19+E20+E21+E23); 모듈만 부재 95/95+3 SKIP, 도구·모듈 모두
-                               부재(진짜 무의존성 체크아웃) 50/50+5 SKIP, 크래시 없음(E22+E23 D24·D25)
+                               부재(진짜 무의존성 체크아웃) CI 실측 48/48+6 SKIP, 크래시 없음(E22+E23 D24·D25)
   corrupt_vmfb.py             ★ E23: A5a(flip)·A5b(flatbuffer_root_uoffset) 손상 방식 실제 구현 —
                                ZIP64/STORED 외과적 패치 + CRC 갱신, corruptsha 계약 생성, 미인식 method 거부(D26)
   mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치;
