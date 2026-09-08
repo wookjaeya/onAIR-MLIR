@@ -6,5 +6,6 @@ native/native_learner
 *.o
 *.log
 !native/results/*.log
+!results/e14_aarch64_qemu/**/*.log
 # E14 Stage 1: intermediate executable dumps (bitcode/asm); the kernel ELF, codegen.ll and objdump are copied next to them
 results/e14_aarch64_qemu/*/dump/

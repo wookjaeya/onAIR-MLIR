@@ -1,0 +1,2 @@
+{"stage":"admission","verdict":"UNKNOWN_BOUND","model":"dynamic","target":"aarch64-unknown-linux-gnu","bounded_bytes":-1,"budget_bytes":1048576,"per_call":-1,"constants":0,"kernel_stack_bytes":144,"bound_known":false}
+{"stage":"exit","reason":"bound unknown: contract has no static bound; refused before artifact access","cleanup_calls":0}

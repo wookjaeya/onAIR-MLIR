@@ -1,0 +1,5 @@
+{"stage":"admission","verdict":"ADMIT","model":"mlp16k","target":"aarch64-unknown-linux-gnu","bounded_bytes":786476,"budget_bytes":1048576,"per_call":65580,"constants":720896,"kernel_stack_bytes":16,"bound_known":true}
+{"stage":"binding","verdict":"MATCH","artifact_bytes":732795,"artifact_sha256":"a439de2130def66b...","contract_sha256":"a439de2130def66b..."}
+{"stage":"run","model":"mlp16k","target":"aarch64-unknown-linux-gnu","iters":200,"warmup":200,"attempted":400,"completed":400,"fail_input":0,"fail_invoke":0,"fail_output":0,"median_us":1566.64,"p99_us":1893.12,"max_us":1920.47,"out0":4.432073,"out":[4.432073,-0.818360],"hal_device_bytes_peak":786476,"peak_within_bounded":true,"hal_bytes_per_call_amortized":67346.3,"hal_bytes_per_call_steady":65544.0,"steady_within_per_call":true,"rss_kb":{"start":10908,"after_runtime":11164,"after_module":14248,"after_run":14404},"rss_delta_kb":{"runtime_bringup":256,"module_load":3084,"inference":156,"total":3496},"vmfb_bytes":732795,"kernel_stack_bytes":16,"first_fail_step":"","first_fail_status":""}
+{"stage":"cleanup","released":true,"cleanup_calls":1}
+{"stage":"exit","reason":"ok","cleanup_calls":1}

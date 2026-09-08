@@ -1,0 +1,105 @@
+{
+  "execution": "qemu-aarch64 user-mode (statically linked native_learner_aarch64, host CPU dispatch via TCG)",
+  "note": "timing (median_us/p99_us/max_us) and process RSS are QEMU TCG measurements: NOT evidence (proposal SS14/SS19, consistent with Stage 0). admission/binding verdicts, HAL allocator statistics (hal_device_bytes_peak, hal_bytes_per_call_steady), exit codes, and out0 are deterministic.",
+  "scenarios": {
+    "conv2d.A1_admit": {
+      "admission_verdict": "ADMIT",
+      "binding_verdict": "MATCH",
+      "completed": 400,
+      "attempted": 400,
+      "hal_device_bytes_peak": 1352,
+      "peak_within_bounded": true,
+      "hal_bytes_per_call_steady": 1096.0,
+      "out0": 0.012011,
+      "exit_reason": "ok"
+    },
+    "conv2d.A2_boundary_B": {
+      "admission_verdict": "ADMIT",
+      "binding_verdict": "MATCH",
+      "completed": 205,
+      "attempted": 205,
+      "hal_device_bytes_peak": 1352,
+      "peak_within_bounded": true,
+      "hal_bytes_per_call_steady": 1096.0,
+      "out0": 0.012011,
+      "exit_reason": "ok"
+    },
+    "conv2d.A2_boundary_Bminus1": {
+      "admission_verdict": "NOT_ADMITTED",
+      "binding_verdict": null,
+      "completed": null,
+      "attempted": null,
+      "hal_device_bytes_peak": null,
+      "peak_within_bounded": null,
+      "hal_bytes_per_call_steady": null,
+      "out0": null,
+      "exit_reason": "not admitted"
+    },
+    "conv2d.A2_boundary_Bplus1": {
+      "admission_verdict": "ADMIT",
+      "binding_verdict": "MATCH",
+      "completed": 205,
+      "attempted": 205,
+      "hal_device_bytes_peak": 1352,
+      "peak_within_bounded": true,
+      "hal_bytes_per_call_steady": 1096.0,
+      "out0": 0.012011,
+      "exit_reason": "ok"
+    },
+    "conv2d.A3_model_swap": {
+      "admission_verdict": "ADMIT",
+      "binding_verdict": "CONTRACT_ARTIFACT_MISMATCH",
+      "completed": null,
+      "attempted": null,
+      "hal_device_bytes_peak": null,
+      "peak_within_bounded": null,
+      "hal_bytes_per_call_steady": null,
+      "out0": null,
+      "exit_reason": "contract does not describe this artifact; runtime not created"
+    },
+    "conv2d.A5a_corrupt_gate": {
+      "admission_verdict": "ADMIT",
+      "binding_verdict": "CONTRACT_ARTIFACT_MISMATCH",
+      "completed": null,
+      "attempted": null,
+      "hal_device_bytes_peak": null,
+      "peak_within_bounded": null,
+      "hal_bytes_per_call_steady": null,
+      "out0": null,
+      "exit_reason": "contract does not describe this artifact; runtime not created"
+    },
+    "dynamic.A8_unknown_bound": {
+      "admission_verdict": "UNKNOWN_BOUND",
+      "binding_verdict": null,
+      "completed": null,
+      "attempted": null,
+      "hal_device_bytes_peak": null,
+      "peak_within_bounded": null,
+      "hal_bytes_per_call_steady": null,
+      "out0": null,
+      "exit_reason": "bound unknown: contract has no static bound; refused before artifact access"
+    },
+    "mlp16k.A1_admit": {
+      "admission_verdict": "ADMIT",
+      "binding_verdict": "MATCH",
+      "completed": 400,
+      "attempted": 400,
+      "hal_device_bytes_peak": 786476,
+      "peak_within_bounded": true,
+      "hal_bytes_per_call_steady": 65544.0,
+      "out0": 4.432073,
+      "exit_reason": "ok"
+    },
+    "multibranch.A1_admit": {
+      "admission_verdict": "ADMIT",
+      "binding_verdict": "MATCH",
+      "completed": 400,
+      "attempted": 400,
+      "hal_device_bytes_peak": 38216,
+      "peak_within_bounded": true,
+      "hal_bytes_per_call_steady": 776.0,
+      "out0": 0.239826,
+      "exit_reason": "ok"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+{"stage":"admission","verdict":"ADMIT","model":"conv2d","target":"aarch64-unknown-linux-gnu","bounded_bytes":3528,"budget_bytes":1048576,"per_call":1352,"constants":2176,"kernel_stack_bytes":191,"bound_known":true}
+{"stage":"binding","verdict":"CONTRACT_ARTIFACT_MISMATCH","artifact_bytes":15505,"artifact_sha256":"20b6757067a56743...","contract_sha256":"f56ba5352cfcb036..."}
+{"stage":"cleanup","released":true,"cleanup_calls":1}
+{"stage":"exit","reason":"contract does not describe this artifact; runtime not created","cleanup_calls":1}
