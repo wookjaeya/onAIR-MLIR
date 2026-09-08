@@ -126,6 +126,21 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    compiler 내부 Operation·Type·SSA 정보로 대체. 평가지표: 알려진 allocation 누락 없음, 미지원
    표현 무시 안 함, compiler 버전 변경 시 명시적 실패, 기존 파서와 정상 모델에서 동일 값, 적대적
    변형에서 과소 추정 방지(EVIDENCE_v0.10 §5가 남긴 한계).
+   **착수 전 조사 결과(이 세션에서 확인, 실험 아님 — 산출물 없음)**: `python3 -c "import
+   iree.compiler.ir"`로 MLIR Python 바인딩이 실제로 사용 가능함을 확인했다(정규식 대신 실제
+   Operation/Type API로 순회 가능). 그러나 `--mlir-print-ir-after=iree-stream-layout-slices`가
+   만드는 layout IR은 **함수별로 조각나 있다**(entry 함수 print가 `util.global.load
+   @__hoisted_tensor_...`처럼 다른 청크의 `util.initializer`가 정의하는 전역을 참조하는데, 그
+   전역의 **선언 자체**는 어느 청크에도 없다 — 선언은 이 패스가 바꾸지 않아 재출력되지 않음).
+   `ir.Module.parse()`로 entry 함수 청크만 단독 파싱하면 항상 "undefined global" 검증 오류로
+   실패한다(`--mlir-disable-threading`를 추가해도 청크 수·구조는 동일 — 이건 프린트 *순서*의
+   결정성 문제였지 조각남의 원인이 아니었다, 재확인함). 실제 착수 시 필요한 작업: (a) 같은 청크들
+   안의 `util.global.load`/`store` 참조에서 이름+타입을 모아 module-scope `util.global` 선언을
+   합성해 앞에 붙이는 전처리, (b) 그렇게 만든 self-contained 모듈을 `op.walk()`로 순회해
+   `stream.resource.*`/`stream.tensor.*` op의 결과 타입에서 크기를 읽는 추출기, (c) 14개 보관
+   계약과 값 일치 확인(회귀), (d) `harness/contract_negative_tests.py`에 상응하는 신규 음성 시험.
+   **주의**: 재컴파일해서 얻은 IR로 검증하면 one-invocation 규칙(§작업 규율 7)을 위반하므로, PoC
+   단계라도 기존 vmfb와 짝지어 쓰려면 반드시 같은 컴파일 호출의 산출물이어야 한다.
 4. **동일 경계의 대안 비교** — TFLite Micro(정적 아레나) 등과 같은 메모리 경계에서 비교해
    "왜 MLIR/IREE 경로여야 하는가"에 답한다. 전제(TFLM이 컴파일 시 아레나 크기를 제공하는가)부터
    1차 문서로 확인할 것. 지표: 과소 추정 발생률, tightness/과도한 거부, 분석 가능 범위, 재생성
