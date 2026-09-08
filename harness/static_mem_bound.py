@@ -60,6 +60,32 @@ def dump_alloc_ir(mlir_path, extra_args):
     return r.stderr, out_vmfb
 
 
+# A single stream.* op can be pretty-printed across more than one line (long
+# operand lists wrap). The naive "[^\n]*" window used before D13/fail-closed
+# missed those and silently dropped the allocation (EVIDENCE_v0.9 SS11.9,
+# reproduced by inserting a line break in a stored conv2d layout IR: outputs
+# and transient_slabs both disappeared while unresolved stayed empty). This
+# bounded, non-greedy "any char, but not the start of a new statement" window
+# lets the match cross a line break inside ONE op's own syntax while still
+# stopping before the next `%value = ...` def or a bare closing brace, so it
+# cannot silently swallow an unrelated neighbouring op instead.
+_CONT = r"(?:(?!\n\s*(?:%[\w.]+[,\s]|\}))[\s\S])*?"
+
+# Resource-producing ops actually seen in the entry body across every stored
+# layout IR (results/e14_aarch64_qemu/*/layout_ir/*.txt) that this parser
+# either accounts for (alloca, pack, tensor.import) or that are structurally
+# non-allocating (dealloca frees an existing resource; tensor.export wraps an
+# already-counted resource as the return value). Anything else appearing in
+# the entry body is, by construction, NOT sized by any of the scanners below
+# -- so instead of silently omitting it (D13), it is pushed into `unresolved`,
+# which forces bound_method to UNKNOWN_BOUND. This is a whitelist, not a
+# parser: it does not understand what an unrecognized op does, only that this
+# tool cannot size it.
+_KNOWN_ENTRY_OPS = {"resource.alloca", "resource.pack", "resource.dealloca",
+                    "tensor.import", "tensor.export"}
+_OP_RE = re.compile(r"stream\.(resource|tensor)\.([A-Za-z_]+)")
+
+
 def parse_alloc_ir(ir, entry="infer"):
     """Parse the allocation schedule.
 
@@ -94,11 +120,11 @@ def parse_alloc_ir(ir, entry="infer"):
               "constants": [], "unresolved": [], "dispatches": 0,
               "entry_found": m is not None}
 
-    for mm in re.finditer(r"stream\.tensor\.import[^\n]*!stream\.resource<external>\{(%[\w#]+)\}", body):
+    for mm in re.finditer(r"stream\.tensor\.import" + _CONT + r"!stream\.resource<external>\{(%[\w#]+)\}", body):
         v, ok = size_of(mm.group(1))
         (result["inputs"] if ok else result["unresolved"]).append(v if ok else mm.group(1))
 
-    for mm in re.finditer(r"stream\.resource\.alloca[^\n]*!stream\.resource<(external|transient)>\{(%[\w#]+)\}", body):
+    for mm in re.finditer(r"stream\.resource\.alloca" + _CONT + r"!stream\.resource<(external|transient)>\{(%[\w#]+)\}", body):
         kind, sym = mm.group(1), mm.group(2)
         v, ok = size_of(sym)
         if kind == "external":
@@ -110,6 +136,14 @@ def parse_alloc_ir(ir, entry="infer"):
         for s2 in re.finditer(r"\[\s*\d+\s*,\s*\d+\s*\]\s*=\s*(%[\w#]+)", mm.group(1)):
             v, ok = size_of(s2.group(1))
             (result["transient_slices"] if ok else result["unresolved"]).append(v if ok else s2.group(1))
+
+    # fail-closed: any resource-producing op in the entry body that isn't one
+    # of the ops this parser understands is an unsized allocation, not a
+    # non-event (D13). Reported once per distinct unrecognized op name.
+    unknown_ops = sorted({mm.group(1) + "." + mm.group(2) for mm in _OP_RE.finditer(body)}
+                         - _KNOWN_ENTRY_OPS)
+    for op in unknown_ops:
+        result["unresolved"].append("unrecognized_op:stream.%s" % op)
 
     # module-resident constants (load-time). With a single --mlir-print-ir-after
     # pass the pass manager prints each function once, so the initializer (and
@@ -236,7 +270,15 @@ def main():
     ir, vmfb = dump_alloc_ir(a.mlir, extra)
     p = parse_alloc_ir(ir)
 
-    all_static = len(p["unresolved"]) == 0
+    # D12 (EVIDENCE_v0.9 SS11.9): this standalone entry point previously
+    # dropped p["entry_found"] from the condition, so an IR where the entry
+    # function could not be isolated (parsed as the whole file, §63-90) but
+    # happened to have no unresolved sizes was still reported
+    # static_from_stream_layout -- admission_check.py:decide() would then
+    # ADMIT on an analysis that never actually scoped to the entry function.
+    # make_contract.py's build_contract() already required entry_found; this
+    # brings the standalone CLI in line with it.
+    all_static = p["entry_found"] and len(p["unresolved"]) == 0
     rep = {
         "mlir": a.mlir, "extra_args": extra, "dispatches": p["dispatches"],
         "static_external_input_bytes": sum(p["inputs"]),

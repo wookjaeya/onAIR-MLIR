@@ -236,6 +236,13 @@ def sig_equal(a, b):
 # ----------------------------------------------------------------------------
 def build_contract(a, extra_args):
     notes = []
+    # D13/EVIDENCE_v0.9 SS11.9, R3 (external review): a mismatch here used to
+    # only go into `notes` -- the contract was still written with a bound
+    # that assumed the ABI/triple/ELF the reader trusts. Each check below
+    # appends to hard_fail_errors UNLESS the caller passed the matching
+    # --allow-* escape hatch, and the whole batch is raised together with the
+    # one-invocation errors (SS362 below) so a --no-validate run cannot skip it.
+    hard_fail_errors = []
 
     # ---- inputs of the ONE invocation -------------------------------------
     for p in (a.mlir, a.vmfb, a.layout_ir):
@@ -261,7 +268,10 @@ def build_contract(a, extra_args):
     if abi is None:
         notes.append("no iree.abi.declaration for @%s in the layout IR" % a.entry)
     elif not abi_matches:
-        notes.append("iree.abi.declaration disagrees with the MLIR source signature")
+        msg = "iree.abi.declaration disagrees with the MLIR source signature"
+        notes.append(msg)
+        if not a.allow_abi_mismatch:
+            hard_fail_errors.append(msg + " (pass --allow-abi-mismatch to override)")
 
     # ---- allocation schedule (entry) ---------------------------------------
     prints = parse_entry_prints(ir, a.entry)
@@ -356,7 +366,10 @@ def build_contract(a, extra_args):
                 if is_elf and (dump_elf is None or fn.endswith(".so")):
                     dump_elf = rec  # the final linked ET_DYN executable, not the intermediate .o
     if ll_triple and ll_triple.split("-")[0] != a.triple.split("-")[0]:
-        notes.append("codegen.ll target triple %s does not match --triple %s" % (ll_triple, a.triple))
+        msg = "codegen.ll target triple %s does not match --triple %s" % (ll_triple, a.triple)
+        notes.append(msg)
+        if not a.allow_triple_mismatch:
+            hard_fail_errors.append(msg + " (pass --allow-triple-mismatch to override)")
     dump_elf_in_vmfb = (dump_elf["sha256"] in embedded_shas) if (dump_elf and embedded) else None
 
     # ---- one-invocation cross-checks (EVIDENCE_v0.7 SS1.3) -----------------
@@ -374,6 +387,30 @@ def build_contract(a, extra_args):
     # but identically-named mlir file.
     mlir_stem = re.sub(r"[^0-9A-Za-z_]", "_", os.path.splitext(os.path.basename(a.mlir))[0])
     stem_in_dump = any(mlir_stem and mlir_stem in fn["name"] for fn in dump_files) if dump_files else None
+
+    # D14 (EVIDENCE_v0.9 SS11.7, external review R5): (1) and (2) above bind
+    # --vmfb and --dump-dir to each other, but neither says anything about
+    # --layout-ir -- and every number bounded_bytes reports (SS462 below) is
+    # parsed from --layout-ir alone. A layout IR carried over from a
+    # different compile (even of an identically-named model) would sail
+    # through unnoticed. Unlike the vmfb/dump-dir case there is no filename
+    # embedding the mlir basename inside --layout-ir (it starts at
+    # `util.initializer`, not `module @name`), so basename matching does not
+    # apply here; instead this checks a real, invocation-specific fact: the
+    # `stream.cmd.dispatch @NAME::...` symbols the layout IR references for
+    # its transient/output sizing must each have a per-dispatch file under
+    # --dump-dir (e.g. `module_infer_dispatch_0.mlir`) from that SAME
+    # invocation's --iree-hal-dump-executable-files-to. A stale or swapped
+    # layout IR referencing dispatch names the dump-dir never produced fails
+    # this check; a dump-dir missing a dispatch the layout IR relies on also
+    # fails it. This is still not a cryptographic proof (a compile that
+    # coincidentally reuses the same dispatch names would pass), but it is a
+    # concrete cross-artifact fact this tool did not check before D14.
+    layout_dispatch_names = sorted(set(re.findall(r"stream\.cmd\.dispatch\s+@([A-Za-z0-9_]+)", ir)))
+    dump_names = {fn["name"] for fn in dump_files}
+    layout_dispatches_in_dump = (all(any(dn in fname for fname in dump_names) for dn in layout_dispatch_names)
+                                 if (layout_dispatch_names and dump_files) else None)
+
     invocation_errors = []
     if dump_elf is not None and embedded and dump_elf_in_vmfb is False:
         invocation_errors.append(
@@ -383,10 +420,15 @@ def build_contract(a, extra_args):
         invocation_errors.append(
             "no file under --dump-dir contains the --mlir basename '%s' (mlir input path is embedded in "
             "dispatch/symbol names): --dump-dir looks like it belongs to a different compile" % mlir_stem)
-    if invocation_errors:
-        raise SystemExit("one-invocation check FAILED (not writing a contract for mismatched inputs):\n  - "
-                         + "\n  - ".join(invocation_errors))
-    single_invocation = bool(dump_elf_in_vmfb) and (stem_in_dump is not False)
+    if layout_dispatches_in_dump is False:
+        missing = [dn for dn in layout_dispatch_names if not any(dn in fname for fname in dump_names)]
+        invocation_errors.append(
+            "--layout-ir references dispatch(es) %s that have no file under --dump-dir: "
+            "--layout-ir looks like it belongs to a different compile than --dump-dir" % missing)
+    if invocation_errors or hard_fail_errors:
+        raise SystemExit("one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):\n  - "
+                         + "\n  - ".join(invocation_errors + hard_fail_errors))
+    single_invocation = bool(dump_elf_in_vmfb) and (stem_in_dump is not False) and (layout_dispatches_in_dump is not False)
 
     # ---- ELF analysis (harness/elf_stack_frame.py) --------------------------
     elf = None
@@ -398,7 +440,11 @@ def build_contract(a, extra_args):
         elf_prov = {"file": os.path.basename(a.elf_analysis), "sha256": sha256_file(a.elf_analysis),
                     "elf_sha256_in_vmfb": (elf.get("elf_sha256") in embedded_shas) if embedded else None}
         if embedded and elf.get("elf_sha256") not in embedded_shas:
-            notes.append("ELF analysed by elf_stack_frame.py is NOT the ELF embedded in the vmfb")
+            msg = "ELF analysed by elf_stack_frame.py is NOT the ELF embedded in the vmfb"
+            notes.append(msg)
+            if not a.allow_elf_analysis_mismatch:
+                raise SystemExit("one-invocation / provenance check FAILED (not writing a contract for mismatched "
+                                 "inputs):\n  - %s (pass --allow-elf-analysis-mismatch to override)" % msg)
     if elf is not None:
         stack_b = elf.get("max_dispatch_frame_bytes")
         calls = elf.get("total_call_insns")
@@ -624,6 +670,16 @@ def parse_args(argv):
     ap.add_argument("--runtime-commit", default=None, help="override (default: compiler commit short sha)")
     ap.add_argument("--schema", default=os.path.join(HERE, "..", "contracts", "contract.schema.json"))
     ap.add_argument("--no-validate", action="store_true")
+    ap.add_argument("--allow-abi-mismatch", action="store_true",
+                    help="do not hard-fail when iree.abi.declaration disagrees with the MLIR source signature "
+                         "(D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract)")
+    ap.add_argument("--allow-triple-mismatch", action="store_true",
+                    help="do not hard-fail when codegen.ll's target triple arch differs from --triple "
+                         "(D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract)")
+    ap.add_argument("--allow-elf-analysis-mismatch", action="store_true",
+                    help="do not hard-fail when --elf-analysis analysed a different ELF than the one embedded "
+                         "in --vmfb (D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract, since "
+                         "kernel_task_stack_bytes would then describe the wrong binary)")
     ap.add_argument("--extra-args", nargs="*", default=[], help="extra iree-compile flags of the invocation (must be LAST)")
     a = ap.parse_args(rest)
     a.extra_args = extra
@@ -633,6 +689,32 @@ def parse_args(argv):
 def main(argv=None):
     a = parse_args(sys.argv[1:] if argv is None else argv)
     c = build_contract(a, a.extra_args)
+
+    # R3b (EVIDENCE_v0.9 SS11.9, external review): schema validation used to
+    # run AFTER the contract was already written to --out, so an exit-3
+    # schema failure still left an invalid contract on disk for downstream
+    # tools (gen_contract_header.py etc.) to pick up. It also silently
+    # SKIPPED validation (treated as pass) whenever the `jsonschema` package
+    # was not importable. Both are fail-open. Now: validate first, refuse to
+    # write on failure OR on a missing validator, unless --no-validate was
+    # explicitly given (an intentional, logged opt-out, not a silent default).
+    if not a.no_validate:
+        ok, errs = validate(c, a.schema)
+        if ok is None:
+            print("SCHEMA VALIDATION UNAVAILABLE (%s): %s" % (a.schema, errs[0]), file=sys.stderr)
+            print("refusing to write a contract without schema validation; "
+                  "install jsonschema, or pass --no-validate to override", file=sys.stderr)
+            return 3
+        elif not ok:
+            print("SCHEMA VALIDATION FAILED (%s):" % a.schema, file=sys.stderr)
+            for e in errs:
+                print("  -", e, file=sys.stderr)
+            return 3
+        else:
+            print("schema: valid (%s)" % os.path.relpath(a.schema))
+    else:
+        print("schema: validation skipped (--no-validate)", file=sys.stderr)
+
     os.makedirs(os.path.dirname(os.path.abspath(a.out)) or ".", exist_ok=True)
     with open(a.out, "w") as f:
         json.dump(c, f, indent=2)
@@ -646,17 +728,6 @@ def main(argv=None):
              r["kernel_external_call_insns"], r["llvm_alloca_count"]))
     for n in c["provenance"]["notes"]:
         print("note:", n, file=sys.stderr)
-    if not a.no_validate:
-        ok, errs = validate(c, a.schema)
-        if ok is None:
-            print("schema:", errs[0], file=sys.stderr)
-        elif not ok:
-            print("SCHEMA VALIDATION FAILED (%s):" % a.schema, file=sys.stderr)
-            for e in errs:
-                print("  -", e, file=sys.stderr)
-            return 3
-        else:
-            print("schema: valid (%s)" % os.path.relpath(a.schema))
     return 0
 
 

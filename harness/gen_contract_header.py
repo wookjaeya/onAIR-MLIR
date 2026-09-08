@@ -31,6 +31,17 @@ Macro set (shared C interface of E14 Stage 1; keep names stable):
 Contracts written before E14 Stage 1 lack the new fields; they default as
 documented above (bound known unless bound_method == "NONE"; kernel stack 0 and
 unknown; entry "infer").
+
+Fail-closed checks (D13/EVIDENCE_v0.9 SS11.9, external review R3/R3b/8.3): before
+D13 this generator's ONLY validation was that artifact.sha256 was 64 hex
+characters. A contract with a negative bounded_bytes, or an unrecognized
+bound_method, or no kernel_task_stack_* field, was all silently accepted and
+turned into a header the C gate (`bounded <= budget`) would then ADMIT
+unconditionally against. This tool now refuses to write a header (non-zero
+exit, no file written) when any of those hold, unless the caller passes the
+matching --allow-* flag as an explicit, logged override:
+  --allow-unknown-stack   write CONTRACT_KERNEL_STACK_BYTES_KNOWN=0 with a
+                          bound-known contract instead of refusing
 """
 import json
 import math
@@ -43,6 +54,9 @@ def c_str(s):
 
 def is_int(v):
     return isinstance(v, int) and not isinstance(v, bool)
+
+
+BOUND_METHOD_WHITELIST = {"static_from_stream_schedule", "static_from_stream_layout", "NONE"}
 
 
 def long_or(v, default=-1):
@@ -65,11 +79,14 @@ def shape_from(c, kind, fallback):
 
 
 def main():
-    if len(sys.argv) != 3:
-        print("usage: gen_contract_header.py contract.json out.h", file=sys.stderr)
+    argv = [x for x in sys.argv[1:] if not x.startswith("--allow-")]
+    flags = {x for x in sys.argv[1:] if x.startswith("--allow-")}
+    allow_unknown_stack = "--allow-unknown-stack" in flags
+    if len(argv) != 2:
+        print("usage: gen_contract_header.py contract.json out.h [--allow-unknown-stack]", file=sys.stderr)
         return 2
-    c = json.load(open(sys.argv[1]))
-    out = sys.argv[2]
+    c = json.load(open(argv[0]))
+    out = argv[1]
     r = c["resources"]
     a = c["artifact"]
     v = c.get("validity") or {}
@@ -82,7 +99,18 @@ def main():
     method = r.get("bound_method") or "unspecified"
     bounded = r.get("bounded_bytes")
     unresolved = r.get("unresolved_sizes") or []
-    bound_known = (method != "NONE") and is_int(bounded) and not unresolved
+
+    # D13 (EVIDENCE_v0.9 SS11.9, R3/R3b/8.3): fail-closed instead of the
+    # previous behaviour of accepting anything and letting a bad value ride
+    # into CONTRACT_BOUND_KNOWN=1 -- which the C gate (`bounded <= budget`)
+    # would then treat as a real, admissible bound.
+    if method not in BOUND_METHOD_WHITELIST:
+        raise SystemExit("gen_contract_header: refusing unrecognized resources.bound_method %r "
+                         "(allowed: %s)" % (method, sorted(BOUND_METHOD_WHITELIST)))
+    if bounded is not None and (not is_int(bounded) or bounded < 0):
+        raise SystemExit("gen_contract_header: refusing negative/non-integer resources.bounded_bytes %r" % (bounded,))
+
+    bound_known = (method != "NONE") and is_int(bounded) and bounded >= 0 and not unresolved
     if not bound_known:
         bounded = None
     # Use the per-invocation worst case (frame + return address + any stack
@@ -93,13 +121,37 @@ def main():
     if stack is None:
         stack = r.get("kernel_task_stack_bytes")
     stack_known = is_int(stack)
+    # D13/D15 (EVIDENCE_v0.9 SS11.5, SS11.9): a bound-known contract with no
+    # kernel stack analysis used to still get a header
+    # (CONTRACT_KERNEL_STACK_BYTES_KNOWN=0, CONTRACT_KERNEL_STACK_BYTES=0L)
+    # that nothing downstream actually checks -- the admission gate would
+    # ADMIT as if the kernel used zero extra stack. Refuse by default; the
+    # caller can opt in explicitly (e.g. while iterating on a new model
+    # before ELF analysis is wired up) via --allow-unknown-stack.
+    if bound_known and not stack_known and not allow_unknown_stack:
+        raise SystemExit("gen_contract_header: bound_method=%s but no kernel_task_stack_invocation_bytes/"
+                         "kernel_task_stack_bytes in resources -- refusing to emit a header with an implicit "
+                         "0 B kernel stack (pass --allow-unknown-stack to override)" % method)
     entry = v.get("entry") or m.get("entry") or "infer"
     in_shape, in_src = shape_from(c, "input", [1, 9])
     out_shape, out_src = shape_from(c, "output", [1, 2])
     n_in = len(i.get("inputs") or []) or 1
     n_out = len(i.get("outputs") or []) or 1
+    dtypes = {t2.get("dtype") for t2 in (i.get("inputs") or []) + (i.get("outputs") or [])}
+    # D13 (EVIDENCE_v0.9 SS11.9, R3): native_learner.c and ai_learner.c both
+    # hardcode a single f32 input and a single f32 output
+    # (IREE_HAL_ELEMENT_TYPE_FLOAT_32 literal, one push/pop each) -- neither
+    # checks CONTRACT_NUM_INPUTS/OUTPUTS at all. A bound-known contract for a
+    # model with a different interface would ADMIT and then fail inside
+    # iree_runtime_call_invoke with an argument-count mismatch, or silently
+    # misinterpret non-f32 bytes as f32. Refuse at generation time instead --
+    # this is the precondition the existing C runtimes already assume.
+    if bound_known and (n_in != 1 or n_out != 1 or dtypes - {"f32"}):
+        raise SystemExit("gen_contract_header: bound_method=%s but interface is not the single-f32-input/"
+                         "single-f32-output shape native_learner.c/ai_learner.c hardcode "
+                         "(inputs=%d outputs=%d dtypes=%s)" % (method, n_in, n_out, sorted(dtypes)))
     sha = a["sha256"]
-    if len(sha) != 64:
+    if len(sha) != 64 or not all(ch in "0123456789abcdefABCDEF" for ch in sha):
         raise SystemExit("artifact.sha256 is not 64 hex chars")
 
     lines = [
