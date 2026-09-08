@@ -22,7 +22,12 @@
  *
  * Exit codes: 0 ok, 2 usage, 3 NOT_ADMITTED, 4 cannot open/read artifact,
  * 5 CONTRACT_ARTIFACT_MISMATCH, 6 UNKNOWN_BOUND, 7 runtime load failed (cleaned up),
- * 8 loaded but no inference completed (per-call failures; first status in the run line).
+ * 8 loaded but no inference completed (per-call failures; first status in the run line),
+ * 9 bound known but the contract interface is not the single-f32-in/single-f32-out
+ *   shape this runtime hardcodes (EVIDENCE_v0.10 Phase 3 / R3 defense-in-depth --
+ *   gen_contract_header.py already refuses to emit such a header for a bound-known
+ *   contract, so this should be unreachable for any header it produced; it only
+ *   fires on a stale or hand-edited contract_gen.h).
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,7 +41,8 @@
  * otherwise silently default the gate (e.g. an unknown bound must refuse). */
 #if !defined(CONTRACT_BOUND_KNOWN) || !defined(CONTRACT_INPUT_RANK) || !defined(CONTRACT_INPUT_SHAPE) || \
     !defined(CONTRACT_OUTPUT_ELEMS) || !defined(CONTRACT_ENTRY) || !defined(CONTRACT_KERNEL_STACK_BYTES) || \
-    !defined(CONTRACT_MODEL_NAME) || !defined(CONTRACT_TARGET_TRIPLE) || !defined(CONTRACT_DRIVER)
+    !defined(CONTRACT_MODEL_NAME) || !defined(CONTRACT_TARGET_TRIPLE) || !defined(CONTRACT_DRIVER) || \
+    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS)
 #error "contract_gen.h is missing Stage 1 macros: regenerate it with harness/gen_contract_header.py"
 #endif
 /* A contract whose shapes are not all static cannot carry a static bound; refuse it as
@@ -132,11 +138,36 @@ int main(int argc, char** argv) {
     return 6;
   }
   if (bounded > budget) { printf("{\"stage\":\"exit\",\"reason\":\"not admitted\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 3; }
+  /* EVIDENCE_v0.10 Phase 3 (R3 defense-in-depth): this runtime pushes exactly
+   * one f32 input and pops exactly one f32 output (below). gen_contract_header.py
+   * already refuses to emit a bound-known header whose interface is not that
+   * shape, so this should never fire for a header it produced -- it only
+   * catches a stale or hand-edited contract_gen.h. */
+  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1) {
+    printf("{\"stage\":\"exit\",\"reason\":\"bound known but interface is not the single-f32-input/single-f32-output "
+           "shape this runtime hardcodes\",\"num_inputs\":%d,\"num_outputs\":%d,\"cleanup_calls\":%d}\n",
+           CONTRACT_NUM_INPUTS, CONTRACT_NUM_OUTPUTS, g.cleanup_calls);
+    return 9;
+  }
 
   /* ---- artifact binding: hash the exact bytes that will be handed to IREE ---- */
   FILE* f = fopen(vmfb_path, "rb"); if (!f) { printf("{\"stage\":\"exit\",\"reason\":\"cannot open artifact\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 4; }
   fseek(f, 0, SEEK_END); long n = ftell(f); fseek(f, 0, SEEK_SET);
   if (n <= 0) { fclose(f); printf("{\"stage\":\"exit\",\"reason\":\"cannot read artifact\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 4; }
+  /* R8/EVIDENCE_v0.9 §11.9, EVIDENCE_v0.10 Phase 3: compare the file size
+   * against the contract BEFORE allocating a buffer sized by an unverified
+   * file. An artifact whose size already disagrees with the contract cannot
+   * possibly hash-match it, so this is not a behavior change for any file
+   * that DOES match (the hash check below still runs); it only removes the
+   * unbounded malloc()+fread() that used to happen first for one that does not. */
+  if (n != (long)CONTRACT_ARTIFACT_BYTES) {
+    fclose(f);
+    printf("{\"stage\":\"binding\",\"verdict\":\"CONTRACT_ARTIFACT_MISMATCH\",\"artifact_bytes\":%ld,"
+           "\"contract_artifact_bytes\":%ld,\"reason\":\"size mismatch, refused before allocation\"}\n",
+           n, (long)CONTRACT_ARTIFACT_BYTES);
+    printf("{\"stage\":\"exit\",\"reason\":\"contract does not describe this artifact; runtime not created\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
+    return 5;
+  }
   g.blob = malloc((size_t)n); g.blob_len = n;
   if (!g.blob || fread(g.blob, 1, (size_t)n, f) != (size_t)n) {
     fclose(f); cleanup();
@@ -144,7 +175,7 @@ int main(int argc, char** argv) {
   }
   fclose(f);
   char hex[65]; sha256_hex(g.blob, (size_t)n, hex);
-  int bound_ok = (n == (long)CONTRACT_ARTIFACT_BYTES) && (strcmp(hex, CONTRACT_ARTIFACT_SHA256) == 0);
+  int bound_ok = (strcmp(hex, CONTRACT_ARTIFACT_SHA256) == 0);   /* size already verified above */
   printf("{\"stage\":\"binding\",\"verdict\":\"%s\",\"artifact_bytes\":%ld,\"artifact_sha256\":\"%.16s...\",\"contract_sha256\":\"%.16s...\"}\n",
          bound_ok ? "MATCH" : "CONTRACT_ARTIFACT_MISMATCH", n, hex, CONTRACT_ARTIFACT_SHA256);
   if (!bound_ok) {

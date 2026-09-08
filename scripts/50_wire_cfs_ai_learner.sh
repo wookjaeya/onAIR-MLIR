@@ -23,13 +23,34 @@ cp "$BENCH_DIR"/native/cfs_app/fsw/src/*.c "$BENCH_DIR"/native/cfs_app/fsw/src/*
 # the actual build directory on this machine.
 sed -i "s#set(IREE_SRC \"/tmp/iree-src\")#set(IREE_SRC \"$(dirname "$IREE_B")\")#" apps/ai_learner/CMakeLists.txt
 
+# EVIDENCE_v0.10 Phase 3 (D15/EVIDENCE_v0.9 §11.5): AI_LEARNER_Init() now
+# actually REJECTS init if the ES-reported task stack is below
+# AI_LEARNER_STACK_BASE_BYTES + CONTRACT_KERNEL_STACK_BYTES (it used to be
+# telemetry-only). This script used to hardcode the startup-script stack at
+# exactly AI_LEARNER_STACK_BASE_BYTES (262144), ignoring the header's kernel
+# stack figure entirely -- WIRING.md §4 always said the entry must be
+# base + CONTRACT_KERNEL_STACK_BYTES; only scripts/51_build_cfs_aarch64.sh
+# actually did that. On x86-64 this was a latent bug: for any model with a
+# nonzero kernel_task_stack_bytes it would now start the app 1 kernel-stack
+# short of what its own gate demands. Compute it from whichever
+# contract_gen.h has just been copied in (falls back to 0, same as script 51,
+# if the header predates the Stage 1 macro set).
+CONTRACT_HEADER="apps/ai_learner/fsw/src/contract_gen.h"
+KERNEL_STACK_BYTES="$(sed -n 's/^#define[[:space:]]\+CONTRACT_KERNEL_STACK_BYTES[[:space:]]\+\([0-9]\+\).*/\1/p' "$CONTRACT_HEADER" | head -1)"
+KERNEL_STACK_BYTES="${KERNEL_STACK_BYTES:-0}"
+STACK_BASE_BYTES="${AI_LEARNER_STACK_BASE_BYTES:-262144}"
+STARTUP_STACK=$((STACK_BASE_BYTES + KERNEL_STACK_BYTES))
+echo "ai_learner startup stack: base=$STACK_BASE_BYTES + kernel=$KERNEL_STACK_BYTES = $STARTUP_STACK"
+
 # Register the app: bundle build (add app + link order + startup script entry).
 grep -q "ai_learner" sample_defs/targets.cmake || \
   sed -i 's/^list(APPEND MISSION_GLOBAL_APPLIST sample_app sample_lib)/list(APPEND MISSION_GLOBAL_APPLIST sample_app sample_lib ai_learner)/' \
     sample_defs/targets.cmake
-grep -q "ai_learner" sample_defs/generate_startup.cmake || \
-  sed -i 's|        "CFE_APP, sample_app,  SAMPLE_APP_Main,    SAMPLE_APP,   50,   32768, 0x0, 0;\\n"|        "CFE_APP, sample_app,  SAMPLE_APP_Main,    SAMPLE_APP,   50,   32768, 0x0, 0;\\n"\n        "CFE_APP, ai_learner,  AI_LEARNER_AppMain, AI_LEARNER,   55,   262144, 0x0, 0;\\n"|' \
-    sample_defs/generate_startup.cmake
+sed -i '/CFE_APP, ai_learner,/d' sample_defs/generate_startup.cmake
+sed -i 's|^\(        "CFE_APP, sample_app,  SAMPLE_APP_Main,    SAMPLE_APP,   50,   32768, 0x0, 0;\\n"\)$|\1\n        "CFE_APP, ai_learner,  AI_LEARNER_AppMain, AI_LEARNER,   55,   '"$STARTUP_STACK"', 0x0, 0;\\n"|' \
+  sample_defs/generate_startup.cmake
+grep -q "CFE_APP, ai_learner,  AI_LEARNER_AppMain, AI_LEARNER,   55,   $STARTUP_STACK, 0x0, 0;" sample_defs/generate_startup.cmake \
+  || { echo "ERROR: startup entry patch failed (stack $STARTUP_STACK) in sample_defs/generate_startup.cmake" >&2; exit 1; }
 
 # cFS applies -std=c99 -pedantic -Werror to apps; IREE headers need gnu11.
 grep -q "target_compile_options(ai_learner" apps/ai_learner/CMakeLists.txt || cat >> apps/ai_learner/CMakeLists.txt <<'CM'
@@ -37,9 +58,15 @@ target_compile_options(ai_learner PRIVATE -std=gnu11 -Wno-pedantic -Wno-error -W
 CM
 
 make native_std.prep
+ARCH_DIR="build-native_std/native/default_cpu1"
+if [ -n "${AI_LEARNER_BUDGET_BYTES:-}" ] || [ -n "${AI_LEARNER_STACK_BASE_BYTES:-}" ]; then
+  cmake ${AI_LEARNER_BUDGET_BYTES:+-DAI_LEARNER_BUDGET_BYTES="$AI_LEARNER_BUDGET_BYTES"} \
+        ${AI_LEARNER_STACK_BASE_BYTES:+-DAI_LEARNER_STACK_BASE_BYTES="$AI_LEARNER_STACK_BASE_BYTES"} \
+        "$ARCH_DIR"
+fi
 make native_std.install
 
-MODEL_SRC="$BENCH_DIR/native/model_16384_baked.vmfb"
+MODEL_SRC="${MODEL_VMFB:-$BENCH_DIR/native/model_16384_baked.vmfb}"
 EXE_DIR="build-native_std/exe/cpu1"
 if [ -f "$MODEL_SRC" ]; then
   cp "$MODEL_SRC" "$EXE_DIR/cf/model.vmfb"

@@ -1,20 +1,35 @@
-/* E12 / E14 Stage 1: AI_LEARNER cFS app -- compiled IREE Learner inside cFS.
+/* E12 / E14 Stage 1 / E15 Phase 3 (EVIDENCE_v0.10 §Phase 3, R4/R8): AI_LEARNER
+ * cFS app -- compiled IREE Learner inside cFS.
  *
  * Init (gate order must not change):
- *   1. admission: contract bounded_bytes vs AI_LEARNER_BUDGET_BYTES, BEFORE the
- *      IREE runtime is created and before the artifact is even opened.
- *      A contract without a static bound (CONTRACT_BOUND_KNOWN == 0) is refused
- *      as UNKNOWN_BOUND at the same point.
- *   2. binding: sha256 of the exact bytes read from /cf/model.vmfb vs the
- *      contract; CONTRACT_ARTIFACT_MISMATCH refuses before any runtime allocation.
- *   3. runtime creation (instance -> device -> session), then the SAME bytes are
+ *   1. task-stack gate: ES-reported task stack size vs AI_LEARNER_STACK_BASE_BYTES
+ *      + CONTRACT_KERNEL_STACK_BYTES (AArch64 dispatch functions carry a stack
+ *      frame; it is budgeted on the task stack, not in the HAL contract). This
+ *      is an actual rejection now (D15/EVIDENCE_v0.9 §11.5: it used to be
+ *      computed AFTER every other resource was already acquired and reported
+ *      as telemetry only, never enforced) -- it runs first because it costs
+ *      nothing to acquire (CFE_ES_GetAppInfo, no allocation) and is the one
+ *      check native_learner.c cannot exercise at all (it has no ES task).
+ *   2. admission: contract bounded_bytes vs AI_LEARNER_BUDGET_BYTES, still
+ *      before the IREE runtime is created and before the artifact is even
+ *      opened. A contract without a static bound (CONTRACT_BOUND_KNOWN == 0)
+ *      is refused as UNKNOWN_BOUND at the same point. A bound-known contract
+ *      whose interface is not the single-f32-in/single-f32-out shape this app
+ *      hardcodes (CONTRACT_NUM_INPUTS/OUTPUTS != 1) is refused here too --
+ *      defense-in-depth: gen_contract_header.py already refuses to emit such a
+ *      header for a bound-known contract (E15), so this should be unreachable
+ *      for any header it produced.
+ *   3. binding: sha256 of the exact bytes read from /cf/model.vmfb vs the
+ *      contract; CONTRACT_ARTIFACT_MISMATCH refuses before any runtime
+ *      allocation. The file size is compared against contract.artifact.bytes
+ *      BEFORE malloc() (R8/EVIDENCE_v0.9 §11.9): a file whose size already
+ *      disagrees cannot hash-match, so this removes the unbounded allocation
+ *      that used to happen first for such a file without changing behavior
+ *      for one that does match.
+ *   4. runtime creation (instance -> device -> session), then the SAME bytes are
  *      handed to the session. Any IREE failure here (A5: corrupted artifact whose
  *      hash matches the contract) is an ERROR event + cleanup + init failure; every
  *      IREE status is checked, reported and freed (no abort-on-status macro is used).
- *   4. task-stack accounting evidence: ES-reported stack size vs
- *      AI_LEARNER_STACK_BASE_BYTES + CONTRACT_KERNEL_STACK_BYTES (AArch64 dispatch
- *      functions carry a 16 B AAPCS64 frame; it is budgeted on the task stack,
- *      not in the HAL contract).
  * Loop: subscribe to CFE_ES_HK_TLM_MID (periodic ES housekeeping telemetry) and
  *       run one inference per received packet, using packet payload bytes as
  *       features. Every AI_LEARNER_REPORT_EVERY inferences emit an EVS event and
@@ -43,7 +58,8 @@
 
 #if !defined(CONTRACT_BOUND_KNOWN) || !defined(CONTRACT_INPUT_RANK) || !defined(CONTRACT_INPUT_SHAPE) || \
     !defined(CONTRACT_OUTPUT_ELEMS) || !defined(CONTRACT_ENTRY) || !defined(CONTRACT_KERNEL_STACK_BYTES) || \
-    !defined(CONTRACT_MODEL_NAME) || !defined(CONTRACT_TARGET_TRIPLE) || !defined(CONTRACT_DRIVER)
+    !defined(CONTRACT_MODEL_NAME) || !defined(CONTRACT_TARGET_TRIPLE) || !defined(CONTRACT_DRIVER) || \
+    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS)
 #error "contract_gen.h is missing Stage 1 macros: regenerate it with harness/gen_contract_header.py"
 #endif
 /* A contract whose shapes are not all static cannot carry a static bound; refuse it as
@@ -67,7 +83,8 @@
 
 enum {
   EID_NOT_ADMITTED = 1, EID_NO_FILE = 2, EID_INIT_OK = 3, EID_REPORT = 4, EID_MISMATCH = 5,
-  EID_UNKNOWN_BOUND = 6, EID_LOAD_FAILED = 7, EID_STACK = 8, EID_INIT_FAIL = 9, EID_INFER_FAIL = 10
+  EID_UNKNOWN_BOUND = 6, EID_LOAD_FAILED = 7, EID_STACK = 8, EID_INIT_FAIL = 9, EID_INFER_FAIL = 10,
+  EID_STACK_REJECT = 11, EID_INTERFACE_MISMATCH = 12
 };
 
 static struct {
@@ -162,6 +179,31 @@ static void AI_LEARNER_AdmissionJson(const char* verdict) {
 static int32 AI_LEARNER_Init(void) {
   CFE_EVS_Register(NULL, 0, CFE_EVS_EventFilter_BINARY);
 
+  /* ---- task-stack gate: ES-reported task stack vs base + kernel dispatch frame.
+   * Runs FIRST -- before admission, before the artifact, before any IREE call --
+   * because CFE_ES_GetAppID()/GetAppInfo() acquire nothing that needs releasing,
+   * so there is no cost to checking it before anything else exists to clean up.
+   * D15/EVIDENCE_v0.9 §11.5: previously this was computed after the IREE
+   * runtime, session, input buffer and SB pipe were already created, and its
+   * result (kernel_stack_accounted) was reported but never enforced -- an
+   * insufficient stack could not stop the app from starting. It now can. */
+  CFE_ES_AppId_t app_id; CFE_ES_AppInfo_t info; long es_stack = -1;
+  memset(&info, 0, sizeof info);
+  if (CFE_ES_GetAppID(&app_id) == CFE_SUCCESS && CFE_ES_GetAppInfo(&info, app_id) == CFE_SUCCESS) es_stack = (long)info.StackSize;
+  long stack_needed = (long)AI_LEARNER_STACK_BASE_BYTES + (long)CONTRACT_KERNEL_STACK_BYTES;
+  int stack_accounted = es_stack >= stack_needed;
+  AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"stack\",\"es_stack_size\":%ld,\"stack_base_bytes\":%ld,\"contract_kernel_stack_bytes\":%ld,\"kernel_stack_accounted\":%s}\n",
+                  es_stack, (long)AI_LEARNER_STACK_BASE_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES, stack_accounted ? "true" : "false");
+  if (!stack_accounted) {
+    CFE_EVS_SendEvent(EID_STACK_REJECT, CFE_EVS_EventType_CRITICAL,
+      "AI_LEARNER stack insufficient: es=%ld needed=%ld (base=%ld+kernel=%ld); app will not start",
+      es_stack, stack_needed, (long)AI_LEARNER_STACK_BASE_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES);
+    AI_LEARNER_Cleanup();
+    return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
+  CFE_EVS_SendEvent(EID_STACK, CFE_EVS_EventType_INFORMATION, "AI_LEARNER stack: es=%ld base=%ld kernel=%ld accounted=%d",
+                    es_stack, (long)AI_LEARNER_STACK_BASE_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES, stack_accounted);
+
   /* ---- admission gate: contract vs app budget, before any runtime allocation and before the artifact is opened ---- */
   if (!GATE_BOUND_KNOWN) {
     CFE_EVS_SendEvent(EID_UNKNOWN_BOUND, CFE_EVS_EventType_CRITICAL,
@@ -179,6 +221,18 @@ static int32 AI_LEARNER_Init(void) {
     return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
   AI_LEARNER_AdmissionJson("ADMIT");
+  /* EVIDENCE_v0.10 Phase 3 (R3 defense-in-depth): this app pushes exactly one
+   * f32 input and pops exactly one f32 output (AI_LEARNER_Infer below).
+   * gen_contract_header.py already refuses to emit a bound-known header whose
+   * interface is not that shape (E15), so this should be unreachable for any
+   * header it produced -- it only catches a stale or hand-edited contract_gen.h. */
+  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1) {
+    CFE_EVS_SendEvent(EID_INTERFACE_MISMATCH, CFE_EVS_EventType_CRITICAL,
+      "AI_LEARNER: bound known but interface is not single-f32-in/single-f32-out (num_inputs=%d num_outputs=%d); app will not start",
+      (int)CONTRACT_NUM_INPUTS, (int)CONTRACT_NUM_OUTPUTS);
+    AI_LEARNER_Cleanup();
+    return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
 
   /* ---- artifact binding: hash the exact bytes to be handed to IREE, before any runtime allocation ---- */
   char local_path[OS_MAX_LOCAL_PATH_LEN];
@@ -193,7 +247,24 @@ static int32 AI_LEARNER_Init(void) {
     AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
   fseek(f, 0, SEEK_END); g.blob_len = ftell(f); fseek(f, 0, SEEK_SET);
-  g.blob = g.blob_len > 0 ? malloc((size_t)g.blob_len) : NULL;
+  /* R8/EVIDENCE_v0.9 §11.9, EVIDENCE_v0.10 Phase 3: compare the file size
+   * against contract.artifact.bytes BEFORE allocating a buffer sized by an
+   * unverified file. A file whose size already disagrees cannot possibly
+   * hash-match the contract, so this changes nothing for a file that DOES
+   * match (the hash check below still runs for it); it only removes the
+   * unbounded malloc()+fread() that used to happen first for a file whose
+   * size alone already proves the mismatch. */
+  if (g.blob_len != (long)CONTRACT_ARTIFACT_BYTES) {
+    fclose(f);
+    CFE_EVS_SendEvent(EID_MISMATCH, CFE_EVS_EventType_CRITICAL,
+      "AI_LEARNER CONTRACT_ARTIFACT_MISMATCH: %s is %ld B, contract expects %ld B; refused before allocation",
+      AI_LEARNER_MODEL_FILE, g.blob_len, (long)CONTRACT_ARTIFACT_BYTES);
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"binding\",\"verdict\":\"CONTRACT_ARTIFACT_MISMATCH\",\"artifact_bytes\":%ld,"
+                    "\"contract_artifact_bytes\":%ld,\"reason\":\"size mismatch, refused before allocation\"}\n",
+                    g.blob_len, (long)CONTRACT_ARTIFACT_BYTES);
+    AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
+  g.blob = malloc((size_t)g.blob_len);
   if (!g.blob || fread(g.blob, 1, (size_t)g.blob_len, f) != (size_t)g.blob_len) {
     fclose(f);
     CFE_EVS_SendEvent(EID_NO_FILE, CFE_EVS_EventType_ERROR, "AI_LEARNER: cannot read %s (%ld B)", AI_LEARNER_MODEL_FILE, g.blob_len);
@@ -201,7 +272,7 @@ static int32 AI_LEARNER_Init(void) {
   }
   fclose(f);
   char hex[65]; sha256_hex(g.blob, (size_t)g.blob_len, hex);
-  int bound = (g.blob_len == (long)CONTRACT_ARTIFACT_BYTES) && (strcmp(hex, CONTRACT_ARTIFACT_SHA256) == 0);
+  int bound = (strcmp(hex, CONTRACT_ARTIFACT_SHA256) == 0);   /* size already verified above */
   AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"binding\",\"verdict\":\"%s\",\"artifact_bytes\":%ld,\"artifact_sha256\":\"%.16s\",\"contract_sha256\":\"%.16s\"}\n",
                   bound ? "MATCH" : "CONTRACT_ARTIFACT_MISMATCH", g.blob_len, hex, CONTRACT_ARTIFACT_SHA256);
   if (!bound) {
@@ -250,16 +321,6 @@ static int32 AI_LEARNER_Init(void) {
     AI_LEARNER_Cleanup(); return sb;
   }
 
-  /* ---- task-stack accounting evidence: what ES actually gave this app vs base + kernel frame ---- */
-  CFE_ES_AppId_t app_id; CFE_ES_AppInfo_t info; long es_stack = -1;
-  memset(&info, 0, sizeof info);
-  if (CFE_ES_GetAppID(&app_id) == CFE_SUCCESS && CFE_ES_GetAppInfo(&info, app_id) == CFE_SUCCESS) es_stack = (long)info.StackSize;
-  long stack_needed = (long)AI_LEARNER_STACK_BASE_BYTES + (long)CONTRACT_KERNEL_STACK_BYTES;
-  int accounted = es_stack >= stack_needed;
-  AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"stack\",\"es_stack_size\":%ld,\"stack_base_bytes\":%ld,\"contract_kernel_stack_bytes\":%ld,\"kernel_stack_accounted\":%s}\n",
-                  es_stack, (long)AI_LEARNER_STACK_BASE_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES, accounted ? "true" : "false");
-  CFE_EVS_SendEvent(EID_STACK, CFE_EVS_EventType_INFORMATION, "AI_LEARNER stack: es=%ld base=%ld kernel=%ld accounted=%d",
-                    es_stack, (long)AI_LEARNER_STACK_BASE_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES, accounted);
   CFE_EVS_SendEvent(EID_INIT_OK, CFE_EVS_EventType_INFORMATION, "AI_LEARNER initialized: model %s (%ld B), rss_delta_init=%ld KB",
                     CONTRACT_MODEL_NAME, g.blob_len, g.rss_kb_init1 - g.rss_kb_init0);
   return CFE_SUCCESS;
