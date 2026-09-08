@@ -327,9 +327,6 @@ def structural_hard_fail_cases(root):
         import make_contract as mc
     except Exception as e:
         return [Result("structural-hard-fail: make_contract importable", False, str(e)[:200])]
-    if mc.maw is None or getattr(mc.maw, "ir", None) is None:
-        return [Result("structural-hard-fail: iree.compiler.ir available (prerequisite)", False,
-                       "mlir_alloc_walk's structural extractor is not usable in this environment")]
 
     def args(allow_structural_mismatch=False):
         return argparse.Namespace(
@@ -343,16 +340,50 @@ def structural_hard_fail_cases(root):
 
     def run_build(allow_structural_mismatch=False):
         try:
-            mc.build_contract(args(allow_structural_mismatch), [])
-            return True, None
+            c = mc.build_contract(args(allow_structural_mismatch), [])
+            return True, None, c
         except SystemExit as e:
-            return False, str(e)
+            return False, str(e), None
+
+    # E19 code review finding #11: the "iree.compiler.ir not installed"
+    # graceful-degradation path (EVIDENCE_v0.14_E19.md SS4) was checked by hand
+    # during the E19 session but had no repeatable test -- and this function's
+    # OWN prerequisite check below (bailing out when the real package is
+    # missing) meant that in an environment lacking iree.compiler.ir, this
+    # whole test group would report FAILURES instead of verifying the one
+    # behaviour that matters there. Test it directly by replacing mc.maw
+    # itself (not just parse_alloc_ir_structural) with a stand-in whose
+    # `ir` attribute is None -- exactly what happens when the import at the
+    # top of make_contract.py fails -- independent of whether the real
+    # package happens to be installed in THIS test run.
+    orig_maw = mc.maw
+
+    class _FakeUnavailableMaw:
+        ir = None
+        _IMPORT_ERROR = "simulated: iree.compiler.ir not installed"
+
+    try:
+        mc.maw = _FakeUnavailableMaw()
+        ok, err, c = run_build()
+        bounded = c["resources"]["bounded_bytes"] if c else None
+        results.append(Result("structural-hard-fail: iree.compiler.ir unavailable -> graceful degrade (not hard-fail)",
+                              ok and bounded is not None, "ok=%s err=%s bounded_bytes=%s" % (ok, err, bounded)))
+        avail = c["provenance"]["structural_walker"]["available"] if c else None
+        results.append(Result("structural-hard-fail: degrade path records available=False (not silently omitted)",
+                              avail is False, "available=%s" % avail))
+    finally:
+        mc.maw = orig_maw
+
+    if mc.maw is None or getattr(mc.maw, "ir", None) is None:
+        results.append(Result("structural-hard-fail: iree.compiler.ir available (prerequisite for remaining cases)",
+                              False, "mlir_alloc_walk's structural extractor is not usable in this environment"))
+        return results
 
     orig_fn = mc.maw.parse_alloc_ir_structural
 
     # sanity: unpatched, matched conv2d artifacts must still be ACCEPTED
     # in-process (proves the monkeypatch technique itself, not just its target).
-    ok, err = run_build()
+    ok, err, _ = run_build()
     results.append(Result("structural-hard-fail: unpatched conv2d ACCEPTED (sanity)", ok, err or ""))
 
     try:
@@ -361,12 +392,48 @@ def structural_hard_fail_cases(root):
             real["inputs"] = [x + 1 for x in real["inputs"]] if real["inputs"] else [999999]
             return real
         mc.maw.parse_alloc_ir_structural = fake_mismatch
-        ok, err = run_build(allow_structural_mismatch=False)
-        results.append(Result("structural-hard-fail: structural/regex disagreement -> refused",
+        ok, err, _ = run_build(allow_structural_mismatch=False)
+        results.append(Result("structural-hard-fail: structural/regex disagreement on inputs -> refused",
                               not ok, err or "wrote a contract despite disagreement"))
-        ok2, err2 = run_build(allow_structural_mismatch=True)
+        ok2, err2, _ = run_build(allow_structural_mismatch=True)
         results.append(Result("structural-hard-fail: --allow-structural-mismatch overrides the disagreement",
                               ok2, err2 or ""))
+    finally:
+        mc.maw.parse_alloc_ir_structural = orig_fn
+
+    # E19 review finding #7 (test-gap): the only diff kind exercised above is
+    # "inputs" -- constants(sum) was never simulated, which is exactly the
+    # branch that had the dense_sum/const_b bug (see the "structural
+    # (non-regex) cross-check" comment in make_contract.py). Force a genuine
+    # constants(sum) mismatch (not just a value that happens to differ from
+    # dense_sum but still equals const_b, which the padding regression case
+    # below covers) and confirm it is still caught.
+    try:
+        def fake_constants_mismatch(ir_text, entry):
+            real = dict(orig_fn(ir_text, entry))
+            real["constants"] = [sum(real.get("constants", [])) + 999999]
+            return real
+        mc.maw.parse_alloc_ir_structural = fake_constants_mismatch
+        ok, err, _ = run_build(allow_structural_mismatch=False)
+        results.append(Result("structural-hard-fail: structural/regex disagreement on constants(sum) -> refused",
+                              not ok, err or "wrote a contract despite disagreement"))
+    finally:
+        mc.maw.parse_alloc_ir_structural = orig_fn
+
+    # E19 review finding #4 (test-gap): dispatches is explicitly informational
+    # (does not gate bound_method, see make_contract.py) -- confirm a
+    # dispatches-only difference does NOT trigger a hard fail, so a future
+    # change that accidentally starts comparing it cannot go unnoticed either.
+    try:
+        def fake_dispatches_only(ir_text, entry):
+            real = dict(orig_fn(ir_text, entry))
+            real["dispatches"] = real.get("dispatches", 0) + 1
+            return real
+        mc.maw.parse_alloc_ir_structural = fake_dispatches_only
+        ok, err, c = run_build(allow_structural_mismatch=False)
+        diffs = c["provenance"]["structural_walker"]["diffs"] if c else None
+        results.append(Result("structural-hard-fail: dispatches-only difference does NOT refuse (informational)",
+                              ok and diffs == [], "ok=%s err=%s diffs=%s" % (ok, err, diffs)))
     finally:
         mc.maw.parse_alloc_ir_structural = orig_fn
 
@@ -374,15 +441,184 @@ def structural_hard_fail_cases(root):
         def fake_raise(ir_text, entry):
             raise RuntimeError("simulated: layout IR printer format changed in a future IREE version")
         mc.maw.parse_alloc_ir_structural = fake_raise
-        ok, err = run_build(allow_structural_mismatch=False)
+        ok, err, _ = run_build(allow_structural_mismatch=False)
         results.append(Result("structural-hard-fail: structural parser exception -> refused",
                               not ok, err or "wrote a contract despite a structural-parse exception"))
+        # E19 review finding #5 (test-gap): the override was tested for the
+        # disagreement branch above but not for this exception branch.
+        ok2, err2, _ = run_build(allow_structural_mismatch=True)
+        results.append(Result("structural-hard-fail: --allow-structural-mismatch overrides a parse exception too",
+                              ok2, err2 or ""))
     finally:
         mc.maw.parse_alloc_ir_structural = orig_fn
 
     # confirm the monkeypatch was fully undone (no cross-test leakage)
-    ok, err = run_build()
+    ok, err, _ = run_build()
     results.append(Result("structural-hard-fail: monkeypatch restored, conv2d ACCEPTED again", ok, err or ""))
+    return results
+
+
+# ----------------------------------------------------------------------------
+# E19 code review (2026-09): two real false-hard-fail bugs in the first
+# version of make_contract.py's structural cross-check, both confirmed by
+# reproduction against REAL stored layout IR text (surgical, targeted edits --
+# same methodology as the ABI/triple-mismatch cases in
+# make_contract_negative_cases(), not hand-mangling into something no real
+# compiler would emit):
+#   Bug A: the cross-check compared `structural` against `whole`
+#          (smb.parse_alloc_ir on the raw file, which assumes the entry
+#          function's LAST print in the file is its most-lowered one) instead
+#          of `p` (chosen by lowering_score, independent of file order --
+#          what the contract's numbers actually come from). Any layout IR
+#          where the lowered print happens NOT to be last in the file (this
+#          module's own docstring says print order depends on thread
+#          scheduling) would false-hard-fail even though the structural
+#          extractor and the ACTUAL contract value fully agree.
+#   Bug B: the constants(sum) comparison used `dense_sum` (raw per-tensor
+#          sum) instead of `const_b` (packed_sum when nonzero, else
+#          dense_sum -- the value the contract actually reports). The
+#          structural extractor's constants sum tracks the PACKED
+#          stream.resource.alloc size, so any model with nonzero constant
+#          packing padding/dedup would false-hard-fail forever.
+# Both fixed by comparing against p/const_b instead of whole/dense_sum (see
+# make_contract.py). These tests reproduce the exact failing condition
+# against a REAL stored fixture and confirm the fix accepts it.
+# ----------------------------------------------------------------------------
+def structural_bugfix_regression_cases(root, tmp):
+    results = []
+    try:
+        sys.path.insert(0, HERE)
+        import make_contract as mc
+    except Exception as e:
+        return [Result("structural-bugfix: make_contract importable", False, str(e)[:200])]
+    if mc.maw is None or getattr(mc.maw, "ir", None) is None:
+        return [Result("structural-bugfix: iree.compiler.ir available (prerequisite)", False,
+                       "mlir_alloc_walk's structural extractor is not usable in this environment")]
+
+    aarch64_dir = os.path.join(root, "aarch64")
+
+    def run_cli(model, layout_ir, dump_dir, elf_json, out, extra_flags=()):
+        inv = load(os.path.join(aarch64_dir, "vmfb", "%s.invocation.json" % model))
+        ti = TARGET_INFO["aarch64"]
+        cmd = [PY, MAKE_CONTRACT, "--mlir", inv["mlir"], "--vmfb", inv["vmfb"],
+              "--layout-ir", layout_ir, "--dump-dir", dump_dir, "--triple", ti["triple"], "--cpu", ti["cpu"],
+              "--model-name", model, "--out", out, "--no-validate",
+              "--extra-args", "--mlir-elide-elementsattrs-if-larger=16"] + list(extra_flags)
+        return run(cmd)
+
+    # ---- Bug A: physically swap the two @infer print chunks in a real,
+    # unedited stored layout IR (conv2d, whose entry function is printed
+    # twice at different lowering states -- confirmed via
+    # provenance.entry_print_states_differ=true in the stored contract).
+    # Nothing in the chunks themselves changes, only their order in the file
+    # -- simulating exactly the thread-scheduling-dependent print order this
+    # project's own docstring (make_contract.py, top) warns about.
+    conv2d_layout = os.path.join(aarch64_dir, "layout_ir", "conv2d.layout_ir.txt")
+    conv2d_dump = os.path.join(aarch64_dir, "dump", "conv2d")
+    conv2d_elf = os.path.join(aarch64_dir, "elf", "conv2d.elf_analysis.json")
+    if os.path.isfile(conv2d_layout) and os.path.isdir(conv2d_dump) and os.path.isfile(conv2d_elf):
+        text = open(conv2d_layout, encoding="utf-8", errors="replace").read()
+        headers = list(mc.DUMP_HEADER_RE.finditer(text))
+        segs = [text[h.start():(headers[i + 1].start() if i + 1 < len(headers) else len(text))]
+               for i, h in enumerate(headers)]
+        # each seg is HEADER-LINE + body; the entry function signature is the
+        # body's first line, not the header's (matches make_contract.py's own
+        # split_dumps()-based chunk classification, which strips the header
+        # before checking).
+        infer_idx = [i for i, s in enumerate(segs)
+                    if re.match(r"(util\.func|func\.func)\s+public\s+@infer\b", s[len(headers[i].group(0)):].lstrip())]
+        if len(infer_idx) >= 2 and headers:
+            a_idx, b_idx = infer_idx[0], infer_idx[1]
+            swapped = list(segs)
+            swapped[a_idx], swapped[b_idx] = swapped[b_idx], swapped[a_idx]
+            swapped_text = text[:headers[0].start()] + "".join(swapped)
+            swapped_path = os.path.join(tmp, "conv2d_swapped_print_order.layout_ir.txt")
+            with open(swapped_path, "w") as f:
+                f.write(swapped_text)
+            out = os.path.join(tmp, "bugfix_bugA_conv2d.json")
+            rc, o, err = run_cli("conv2d", swapped_path, conv2d_dump, conv2d_elf, out)
+            accepted = rc == 0 and os.path.isfile(out)
+            results.append(Result("structural-bugfix(A): print-order-swapped conv2d layout IR still ACCEPTED",
+                                  accepted, "rc=%d stderr=%s" % (rc, err.strip()[:300])))
+            if accepted:
+                c = load(out)
+                sw = c["provenance"]["structural_walker"]
+                results.append(Result("structural-bugfix(A): structural cross-check agrees despite reordering",
+                                      sw.get("available") is True and sw.get("agrees_with_regex_parser") is True,
+                                      str(sw)))
+                orig_layout_ir = load(os.path.join(aarch64_dir, "vmfb", "conv2d.invocation.json"))["layout_ir"]
+                orig_out = os.path.join(tmp, "bugfix_bugA_conv2d_orig.json")
+                rc0, o0, err0 = run_cli("conv2d", orig_layout_ir, conv2d_dump, conv2d_elf, orig_out)
+                if rc0 == 0 and os.path.isfile(orig_out):
+                    same_bound = load(orig_out)["resources"]["bounded_bytes"] == c["resources"]["bounded_bytes"]
+                    results.append(Result("structural-bugfix(A): bounded_bytes unchanged by the reorder",
+                                          same_bound, "orig=%s swapped=%s"
+                                          % (load(orig_out)["resources"]["bounded_bytes"], c["resources"]["bounded_bytes"])))
+        else:
+            results.append(Result("structural-bugfix(A): conv2d has >=2 @infer print chunks (prerequisite)",
+                                  False, "found %d" % len(infer_idx)))
+    else:
+        results.append(Result("structural-bugfix(A): conv2d fixtures present", False, "missing dump_dir or elf_json"))
+
+    # ---- Bug B: edit ONLY the packed constant-buffer size (every occurrence
+    # of the SAME symbolic constant that sizes #util.composite/
+    # stream.resource.alloc/stream.file.read/stream.resource.subview for the
+    # packed buffer) in a real stored layout IR (mlp16k), leaving the
+    # per-tensor dense declarations untouched -- simulating 64-byte alignment
+    # padding on the packed buffer (packed_sum > dense_sum), a case
+    # make_contract.py's own packed_constant_buffers()/dense_sum machinery
+    # already anticipates (see the "packed constant buffers ... smaller than
+    # the dense constant sum" note) but the structural cross-check did not.
+    mlp_layout = os.path.join(aarch64_dir, "layout_ir", "mlp16k.layout_ir.txt")
+    mlp_dump = os.path.join(aarch64_dir, "dump", "mlp16k")
+    mlp_elf = os.path.join(aarch64_dir, "elf", "mlp16k.elf_analysis.json")
+    if os.path.isfile(mlp_layout) and os.path.isdir(mlp_dump) and os.path.isfile(mlp_elf):
+        text = open(mlp_layout, encoding="utf-8", errors="replace").read()
+        m = re.search(r"#util\.composite<(\d+)xi8", text)
+        if m:
+            packed_orig = int(m.group(1))
+            padded = packed_orig + 64
+            # every occurrence of "%c<packed_orig>" and the bare packed size
+            # literal that sizes the SAME packed buffer -- NOT the per-tensor
+            # dense declarations a few lines above, which use different
+            # symbol names/sizes entirely (see grep confirming this in the
+            # E19 review's reproduction).
+            padded_text = re.sub(r"\b%%c%d\b" % packed_orig, "%%c%d" % padded, text)
+            padded_text = padded_text.replace("#util.composite<%dxi8" % packed_orig,
+                                              "#util.composite<%dxi8" % padded)
+            padded_text = re.sub(r"\barith\.constant %d :" % packed_orig, "arith.constant %d :" % padded, padded_text)
+            if padded_text == text:
+                results.append(Result("structural-bugfix(B): packed-size edit actually changed the fixture "
+                                      "(prerequisite)", False, "no occurrences substituted"))
+            else:
+                padded_path = os.path.join(tmp, "mlp16k_padded_constants.layout_ir.txt")
+                with open(padded_path, "w") as f:
+                    f.write(padded_text)
+                out = os.path.join(tmp, "bugfix_bugB_mlp16k.json")
+                rc, o, err = run_cli("mlp16k", padded_path, mlp_dump, mlp_elf, out)
+                accepted = rc == 0 and os.path.isfile(out)
+                results.append(Result("structural-bugfix(B): packing-padded mlp16k layout IR still ACCEPTED",
+                                      accepted, "rc=%d stderr=%s" % (rc, err.strip()[:300])))
+                if accepted:
+                    c = load(out)
+                    r = c["resources"]
+                    sw = c["provenance"]["structural_walker"]
+                    correct_bound = (r.get("module_resident_constant_bytes") == padded
+                                    and r.get("module_resident_constant_dense_sum_bytes") == packed_orig)
+                    results.append(Result("structural-bugfix(B): contract reports the PADDED (packed) size, "
+                                          "not the pre-pad dense sum",
+                                          correct_bound, "module_resident_constant_bytes=%s dense_sum_bytes=%s"
+                                          % (r.get("module_resident_constant_bytes"),
+                                             r.get("module_resident_constant_dense_sum_bytes"))))
+                    results.append(Result("structural-bugfix(B): structural cross-check agrees on the padded size",
+                                          sw.get("available") is True and sw.get("agrees_with_regex_parser") is True,
+                                          str(sw)))
+        else:
+            results.append(Result("structural-bugfix(B): mlp16k has a #util.composite constant buffer (prerequisite)",
+                                  False, "pattern not found"))
+    else:
+        results.append(Result("structural-bugfix(B): mlp16k fixtures present", False, "missing dump_dir or elf_json"))
+
     return results
 
 
@@ -494,14 +730,17 @@ def structural_walker_checks(root):
                 results.append(Result("structural: %s/%s extraction succeeds" % (tgt, model), False, str(e)[:200]))
                 continue
             regex_based = smb.parse_alloc_ir(text, "infer")
-            exact_keys = ("inputs", "outputs", "transient_slabs")
-            diffs = [k for k in exact_keys if sorted(structural.get(k, [])) != sorted(regex_based.get(k, []))]
-            if sum(structural.get("constants", [])) != sum(regex_based.get("constants", [])):
-                diffs.append("constants(sum)")
-            if structural.get("entry_found") != regex_based.get("entry_found"):
-                diffs.append("entry_found")
-            if bool(structural.get("unresolved")) != bool(regex_based.get("unresolved")):
-                diffs.append("unresolved(presence)")
+            # E19 code review: this diff logic used to be reimplemented here,
+            # in make_contract.py, and in mlir_alloc_walk.py's own
+            # --cross-check -- all three independently, and two of them had
+            # the same latent bug (comparing against the wrong constants
+            # reference). Now there is exactly one implementation
+            # (maw.diff_against_regex); this call mirrors the CLI's own
+            # default (no constants_reference override) since this test is
+            # validating the standalone tool, not make_contract.py's
+            # production wiring (see structural_hard_fail_cases() below for
+            # that).
+            diffs = maw.diff_against_regex(structural, regex_based)
             results.append(Result("structural: %s/%s agrees with regex parser" % (tgt, model), not diffs,
                                   "" if not diffs else "disagree on %s" % diffs))
 
@@ -538,6 +777,7 @@ def main():
         all_results += make_contract_negative_cases(a.root, tmp)
         all_results += structural_walker_checks(a.root)
         all_results += structural_hard_fail_cases(a.root)
+        all_results += structural_bugfix_regression_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
 

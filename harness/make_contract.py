@@ -365,16 +365,35 @@ def build_contract(a, extra_args):
     elif maw is not None:
         structural_error = "iree.compiler.ir not importable (%s)" % getattr(maw, "_IMPORT_ERROR", "?")
 
-    structural_diffs = []
-    if structural is not None:
-        exact_keys = ("inputs", "outputs", "transient_slabs")
-        structural_diffs = [k for k in exact_keys if sorted(structural.get(k, [])) != sorted(whole.get(k, []))]
-        if sum(structural.get("constants", [])) != dense_sum:
-            structural_diffs.append("constants(sum)")
-        if structural.get("entry_found") != whole.get("entry_found"):
-            structural_diffs.append("entry_found")
-        if bool(structural.get("unresolved")) != bool(whole.get("unresolved")):
-            structural_diffs.append("unresolved(presence)")
+    # E19 code review (2026-09) found two false-hard-fail bugs in the first
+    # version of this block, both confirmed by real reproduction:
+    #   (1) it compared `structural` against `whole` (smb.parse_alloc_ir on the
+    #       WHOLE file, which -- per static_mem_bound.py's own "take the LAST
+    #       occurrence" comment -- assumes the entry function's last print in
+    #       the file is its most-lowered one). The contract's actual numbers
+    #       come from `p` (chosen just above by lowering_score, NOT file
+    #       order) precisely because that assumption can be wrong -- this
+    #       module's own docstring says the print order depends on thread
+    #       scheduling. Comparing against `whole` instead of `p` meant a
+    #       structurally-correct extraction could be hard-refused merely
+    #       because the file happened to print the lowered chunk first.
+    #   (2) it compared structural's constants sum against `dense_sum` (the
+    #       raw per-tensor sum). structural's constants sum is actually the
+    #       PACKED stream.resource.alloc size (see mlir_alloc_walk.py's
+    #       _extract_constants), i.e. it tracks packed_sum, not dense_sum --
+    #       the same distinction this file already carries as const_b
+    #       (packed_sum when nonzero, else dense_sum; see above). Any model
+    #       with nonzero constant-packing padding/dedup (padding != 0) would
+    #       false-hard-fail forever, even though const_b -- what the contract
+    #       actually reports -- was correct.
+    # Both are fixed by comparing against what the contract actually signs
+    # (p, const_b) instead of the legacy/reference-only values (whole,
+    # dense_sum); the diff logic itself now lives once, in
+    # mlir_alloc_walk.diff_against_regex, so make_contract.py and
+    # mlir_alloc_walk.py's own --cross-check CLI cannot independently drift
+    # into the same bug again.
+    structural_diffs = (maw.diff_against_regex(structural, p, constants_reference=const_b)
+                        if structural is not None else [])
 
     if not structural_available:
         structural_note = ("structural (iree.compiler.ir) cross-check unavailable%s: skipped, the regex "
@@ -394,11 +413,12 @@ def build_contract(a, extra_args):
         "dispatches": structural.get("dispatches") if structural is not None else None,
         "note": structural_note,
     }
-    if structural_available and structural is None:
-        notes.append(structural_note)
-        if not a.allow_structural_mismatch:
-            hard_fail_errors.append(structural_note + " (pass --allow-structural-mismatch to override)")
-    elif structural_diffs:
+    # only note the "agrees" case in structural_prov (above), not in the
+    # top-level notes list -- matches pre-existing behaviour for every other
+    # silently-passing check in this function, and keeps the 14 stored
+    # contracts' provenance.notes list byte-for-byte unchanged (regression
+    # check, harness/contract_negative_tests.py).
+    if structural_available and (structural is None or structural_diffs):
         notes.append(structural_note)
         if not a.allow_structural_mismatch:
             hard_fail_errors.append(structural_note + " (pass --allow-structural-mismatch to override)")

@@ -234,6 +234,40 @@ def parse_alloc_ir_structural(ir_text, entry="infer"):
     return best[1]
 
 
+def diff_against_regex(structural, regex_based, constants_reference=None):
+    """Compare a structural extraction (parse_alloc_ir_structural) against a
+    regex-based one (static_mem_bound.parse_alloc_ir) -- both have the SAME
+    return shape -- and return the list of field names that disagree. This is
+    the ONE place this comparison is implemented; both this module's own
+    --cross-check CLI below and harness/make_contract.py's mandatory
+    cross-check (E19) call it, so the disagreement rule cannot drift between
+    the two the way it did before this function existed (E19 code review,
+    2026-09: both call sites independently reimplemented this logic and both
+    had the same constants(sum) bug -- see constants_reference below).
+
+    constants_reference overrides what "constants(sum)" is compared against.
+    Default (None) uses regex_based's own constants sum, appropriate for a
+    standalone diagnostic run with no other context (this module's --cross-check
+    CLI). make_contract.py instead passes const_b (module_resident_constant_bytes
+    -- packed_sum when nonzero, else dense_sum): structural's constants sum is
+    the packed stream.resource.alloc size (see _extract_constants above), which
+    is NOT always equal to regex_based's raw per-tensor dense sum whenever
+    constant packing pads or deduplicates (make_contract.py already tracks this
+    distinction as packed_sum vs dense_sum, with a note when they differ) --
+    comparing against the wrong one false-hard-fails a contract whose bound is
+    actually correct."""
+    exact_keys = ("inputs", "outputs", "transient_slabs")
+    diffs = [k for k in exact_keys if sorted(structural.get(k, [])) != sorted(regex_based.get(k, []))]
+    target = sum(regex_based.get("constants", [])) if constants_reference is None else constants_reference
+    if sum(structural.get("constants", [])) != target:
+        diffs.append("constants(sum)")
+    if structural.get("entry_found") != regex_based.get("entry_found"):
+        diffs.append("entry_found")
+    if bool(structural.get("unresolved")) != bool(regex_based.get("unresolved")):
+        diffs.append("unresolved(presence)")
+    return diffs
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("layout_ir", help="stderr of --mlir-print-ir-after=iree-stream-layout-slices")
@@ -254,23 +288,22 @@ def main():
         # compared by SUM only: the regex path lists one entry per `dense`
         # declaration in the initializer, this walker lists one entry per
         # stream.resource.alloc (the packed allocation covering all of
-        # them) -- different granularity, same total, and the total (not the
-        # per-tensor breakdown) is what bounded_bytes actually uses
-        # (make_contract.py's packed_constant_buffers/dense_sum). dispatches
-        # is informational only in both tools (does not gate bound_method),
-        # so a difference there is reported but does not fail the check.
-        # "unresolved" only compared by presence: the two tools report
-        # DIFFERENT diagnostic strings for the same condition by design
-        # (SSA operand name vs. op name) -- what matters is whether either
-        # found a reason to refuse a static bound, not the message text.
-        exact_keys = ("inputs", "outputs", "transient_slabs")
-        diffs = [k for k in exact_keys if sorted(structural.get(k, [])) != sorted(regex_based.get(k, []))]
-        if sum(structural.get("constants", [])) != sum(regex_based.get("constants", [])):
-            diffs.append("constants(sum)")
-        if structural.get("entry_found") != regex_based.get("entry_found"):
-            diffs.append("entry_found")
-        if bool(structural.get("unresolved")) != bool(regex_based.get("unresolved")):
-            diffs.append("unresolved(presence)")
+        # them) -- different granularity. The two totals are equal ONLY when
+        # there is no constant-packing padding/dedup (structural's sum is
+        # really the PACKED total -- make_contract.py's packed_sum -- not the
+        # raw per-tensor dense sum; a standalone run has no packed_sum to
+        # compare against, so this falls back to regex_based's own dense sum
+        # and can show a "constants(sum)" DISAGREE on a padded model that
+        # make_contract.py's own cross-check, given the real packed_sum via
+        # constants_reference, would not -- diagnostic-only, not a bug in the
+        # contract path). dispatches is informational only in both tools
+        # (does not gate bound_method), so a difference there is reported but
+        # does not fail the check. "unresolved" only compared by presence:
+        # the two tools report DIFFERENT diagnostic strings for the same
+        # condition by design (SSA operand name vs. op name) -- what matters
+        # is whether either found a reason to refuse a static bound, not the
+        # message text.
+        diffs = diff_against_regex(structural, regex_based)
         if structural.get("dispatches") != regex_based.get("dispatches"):
             print("note: dispatches differ (informational, does not gate bound_method): "
                  "structural=%s regex=%s" % (structural.get("dispatches"), regex_based.get("dispatches")), file=sys.stderr)
