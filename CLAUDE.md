@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.10**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.11**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -52,7 +52,17 @@ A4·A6·A7·A8 시나리오 7/7 PASS(단, 계획 대비 대폭 축소 — 아래
 심볼을 dump-dir과 대조)을 각각 직접 재현 후 거부로 전환. 신규 `harness/contract_negative_tests.py`
 음성 20건+단위 5건+회귀 26건 = **51/51 PASS**. 보관된 v0.9 14개 계약·헤더를 이 도구로 재생성해
 **diff 0**(회귀 없음) 확인. **범위 밖(명시)**: C 게이트 자체(스택 거부 분기, blob 크기 선검사, 입출력
-런타임 gate)는 x86-64/cFS 환경 재구축이 필요해 미착수 — 아래 우선순위 2에서 이어감.
+런타임 gate)는 x86-64/cFS 환경 재구축이 필요해 미착수 — v0.11에서 이어감.
+
+**v0.11에서 완료된 것 (E16, `docs/EVIDENCE_v0.11_E16.md`)**: 이 세션에서 x86-64 환경(cFS
+native_std, IREE C 런타임)을 재구축해 D15·R8을 실제 cFS 기동으로 검증·수정 — `ai_learner.c`의
+스택 확인을 `Init()` 최선두(자원 획득 전)로 옮기고 `accounted=false`에서 실제 거부하는 분기 신설
+(이전엔 텔레메트리뿐), blob `malloc` 전 파일 크기를 계약과 선검사(다르면 해시 계산 없이 즉시 거부),
+두 실행기에 인터페이스(단일 f32 in/out) defense-in-depth 추가. 실제 `core-cpu1`으로 정상/스택거부/
+크기불일치/NOT_ADMITTED 4개 시나리오를 기동해 EVS 이벤트·JSON 필드로 확인. 부수 발견: `scripts/50_wire_cfs_ai_learner.sh`
+가 `WIRING.md`의 stack=base+kernel 규칙을 어기고 262144로 하드코딩하던 버그(신규 gate가 즉시 드러냄,
+수정함). **범위 밖(명시)**: AArch64 게스트 재구축·재현(A2 전 모델·A5b·재시작 2회+DELETE·정상 종료
+cleanup)은 여전히 미착수.
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -93,17 +103,17 @@ A4·A6·A7·A8 시나리오 7/7 PASS(단, 계획 대비 대폭 축소 — 아래
 
 v0.9.1 정정(외부 검토 2건, `docs/EVIDENCE_v0.9_E14_stage1.md` §11)에서 두 검토가 합의한 순서를
 그대로 우선순위로 쓴다 — **모델·시나리오 수를 늘리는 것보다 "어떤 정보가 없거나 잘못됐을 때 절대
-ADMIT하지 않는가"를 먼저 닫는다.** 항목 1(도구 레벨)은 v0.10(E15)에서 완료됐다.
+ADMIT하지 않는가"를 먼저 닫는다.** 항목 1(도구 레벨)은 v0.10(E15), 항목 2의 C 게이트 부분은
+v0.11(E16)에서 완료됐다.
 
-1. ~~fail-closed 계약 verifier~~ — **완료(v0.10/E15, `docs/EVIDENCE_v0.10_E15.md`)**. 남은 것은
-   C 게이트 자체의 fail-closed 전환(아래 2번에 흡수: 스택 거부 분기, blob 크기 선검사, 입출력
-   런타임 gate — x86-64 환경 재구축 필요).
-2. **C 게이트 보강 + 남은 cFS 음성·생명주기 시험** (환경 재구축 필요) — 스택 미달 거부 분기 추가
-   (현재는 텔레메트리일 뿐, §11.5) + 확인 시점을 자원 획득 이전으로, blob 할당 전
-   `artifact.bytes` 선검사, `CONTRACT_NUM_INPUTS/OUTPUTS`·dtype 런타임 gate; mlp16k·multibranch·
+1. ~~fail-closed 계약 verifier~~ — **완료(v0.10/E15)**.
+2. ~~C 게이트 보강~~(스택 실거부·blob 크기 선검사·인터페이스 gate) — **완료(v0.11/E16,
+   `docs/EVIDENCE_v0.11_E16.md`, x86-64 native_std 실기동 검증)**. 남은 것은 **AArch64 게스트에서의
+   재현**(환경 재구축 필요, 아래 3번으로 번호 재사용하지 않고 그대로 유지): mlp16k·multibranch·
    dynamic의 cFS 레벨 A2(경계값 B-1/B/B+1), 구조 손상 기반 A5b(임의 bit flip이 아니라 FlatBuffer/VM
    bytecode/embedded ELF 필드를 목표로), 재시작 2회 후 DELETE, 정상 STOP/DELETE 종료 후 해제 카운터
-   확인(현재 정상 종료 경로는 cleanup 미검증, §11.2).
+   확인(현재 정상 종료 경로는 cleanup 미검증, §11.2), 새 스택 거부 gate·크기 선검사를 게스트에서도
+   재확인.
 3. **정규 MLIR/IREE pass** — 텍스트 정규식 파서(E15로 fail-closed는 됐으나 여전히 정규식 기반)를
    compiler 내부 Operation·Type·SSA 정보로 대체. 평가지표: 알려진 allocation 누락 없음, 미지원
    표현 무시 안 함, compiler 버전 변경 시 명시적 실패, 기존 파서와 정상 모델에서 동일 값, 적대적
@@ -121,7 +131,10 @@ ADMIT하지 않는가"를 먼저 닫는다.** 항목 1(도구 레벨)은 v0.10(E
 **환경 참고**: 이 컨테이너는 세션마다 새로 시작되며 `~/onair-mlir-bench`(cFS 빌드, IREE C 런타임,
 AArch64 게스트 이미지)가 비어 있을 수 있다. 항목 1은 `iree-compile`(동일 커밋 필요)과
 `results/e14_aarch64_qemu/`의 보관 산출물만으로 재구축 없이 완료했다(`harness/contract_negative_tests.py`
-로 재검증 가능). 항목 2 이후는 `scripts/99_bootstrap_all.sh` 등으로 환경을 다시 세워야 한다.
+로 재검증 가능). 항목 2의 C 게이트 부분은 x86-64만 재구축(`scripts/10_build_cfs.sh` +
+`scripts/40_setup_iree_source_runtime.sh` + `scripts/50_wire_cfs_ai_learner.sh`, 총 수 분)해 v0.11에서
+완료했다 — AArch64 게스트(`scripts/70-73_*.sh`, 수 시간·QEMU 불안정)는 여전히 남은 항목 2의 나머지에서
+필요하다.
 
 ## 저장소 지도
 
@@ -149,7 +162,8 @@ docs/
   EVIDENCE_v0.8_E14_aarch64.md 교차 ISA(x86-64/AArch64) 계약 건전성, Stage 0
   EVIDENCE_v0.9_E14_stage1.md  qemu-system-aarch64 게스트 + cFS-in-guest + 모델셋 확장, Stage 1
                                (§11 정오표: 외부 검토 2건 반영, A5b 미실행·7/7 범위·스택 gate 아님 등)
-  EVIDENCE_v0.10_E15.md       ★ 최신. 계약 도구 fail-closed 전환 + 음성 시험(51/51 PASS), D12-D14 수정
+  EVIDENCE_v0.10_E15.md        계약 도구 fail-closed 전환 + 음성 시험(51/51 PASS), D12-D14 수정
+  EVIDENCE_v0.11_E16.md       ★ 최신. C 게이트 보강(스택 실거부·blob 크기 선검사), x86-64 native_std 실기동 검증, D15 수정
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)

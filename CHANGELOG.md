@@ -2,6 +2,26 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.11] 2026-09-08
+- E16: C 게이트 보강(`docs/EVIDENCE_v0.11_E16.md`) — 환경(cFS native_std, IREE C 런타임 x86-64)을
+  이 세션에서 재구축해 실제 `core-cpu1` + `AI_LEARNER`로 검증.
+- D15 조치: `ai_learner.c`의 스택 확인을 `AI_LEARNER_Init()` 최선두로 이동하고, `accounted=false`
+  에서 초기화를 실제로 거부하는 분기(`EID_STACK_REJECT`)를 신설. 이전엔 확인이 IREE 세션·입력버퍼·
+  SB 파이프 생성 뒤에서 텔레메트리로만 기록됐다. 배포된 startup script의 스택 값만 인위적으로 줄여
+  실제 cFS 기동에서 거부(admission/binding 단계 도달 안 함, EVS CRITICAL, cleanup_calls:1, cFS core는
+  OPERATIONAL 유지)를 확인.
+- R8 조치: `ai_learner.c`/`native_learner.c` 모두 `malloc` 전에 파일 크기를 `contract.artifact.bytes`와
+  비교하도록 수정 — 크기가 다르면 해시 계산·할당 없이 즉시 `CONTRACT_ARTIFACT_MISMATCH`. 크기가 같은
+  경우의 기존 해시 비교 경로는 변경 없음(모델 교체 시나리오로 양쪽 다 검증).
+- 두 실행기에 인터페이스(단일 f32 입력·출력) defense-in-depth 게이트 추가(신규 종료 코드/이벤트) —
+  E15의 `gen_contract_header.py` 검증을 우회한 손편집 헤더에 대한 마지막 방어선.
+- 부수 발견·수정: `scripts/50_wire_cfs_ai_learner.sh`가 `WIRING.md`가 명시한 "stack = base + kernel"
+  규칙을 따르지 않고 시작 스크립트 스택을 항상 262144로 하드코딩하던 버그. D15의 실제 거부 gate를
+  x86-64에 적용하자마자 non-zero kernel stack을 가진 모델(예: mlp16k, kernel=16 B)에서 상시 거부로
+  드러났다 — `scripts/51_build_cfs_aarch64.sh`와 동일한 계산으로 수정.
+- 범위 밖(명시): AArch64 게스트 재구축·재현(A2 경계값 전 모델·A5b 구조 손상·재시작 2회+DELETE·정상
+  종료 cleanup 확인)은 이번에도 하지 않음 — 다음 우선순위로 유지.
+
 ## [v0.10] 2026-09-08
 - E15: 계약 도구 fail-closed 전환 + 음성 시험(`docs/EVIDENCE_v0.10_E15.md`). v0.9.1이 정정으로 남긴
   D12·D13·D14를 실제로 수정.
