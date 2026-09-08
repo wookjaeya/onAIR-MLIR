@@ -2,6 +2,30 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.10] 2026-09-08
+- E15: 계약 도구 fail-closed 전환 + 음성 시험(`docs/EVIDENCE_v0.10_E15.md`). v0.9.1이 정정으로 남긴
+  D12·D13·D14를 실제로 수정.
+- `harness/static_mem_bound.py::parse_alloc_ir`: 정규식이 한 줄(`[^\n]*`)로 한정돼 있어 MLIR이 연산을
+  여러 줄로 출력하면 크기를 조용히 누락하던 결함(직접 재현으로 확인)을 경계 있는 non-greedy 패턴으로
+  수정. entry 함수 본문의 자원 op를 화이트리스트와 대조해 미인식 op를 `unresolved`로 승격(이전엔 무시).
+  독립 실행 경로의 `all_static`에 `entry_found` 누락도 수정(D12).
+- `harness/make_contract.py`: one-invocation 검사에 layout IR을 결합(D14) — layout IR이 참조하는
+  dispatch 심볼이 `--dump-dir`에 실제 파일로 있는지 확인, 없으면 거부. ABI 불일치·target triple
+  불일치·ELF 분석 대상 불일치를 note에서 hard fail로 승격(각각 `--allow-*` 플래그로만 우회 가능).
+  스키마 검증을 파일 기록 전으로 이동, `jsonschema` 부재 시 이제 실패(이전엔 조용히 건너뜀).
+- `harness/gen_contract_header.py`: `bound_method` 화이트리스트, `bounded_bytes` 비음수 검사,
+  bound-known 계약의 커널 스택 필드 필수화(`--allow-unknown-stack`로만 우회), 입출력 개수·dtype이
+  native/cFS C 런타임이 하드코딩한 단일 f32 입출력과 다르면 거부, sha256 hex 검증 강화.
+- 신규 `harness/contract_negative_tests.py`: 위 변경들이 실제로 "거부돼야 할 입력을 거부하는지" 확인하는
+  음성 시험(20건) + 단위 시험(5건) + 회귀 시험(26건) = **51/51 PASS**.
+- 회귀 확인: 보관된 v0.9의 14개 계약(mlp16k·mlp16k_swap·conv2d·conv2d_swap·multibranch·
+  multibranch_swap·dynamic × aarch64/x86_64)을 원본 layout IR·dump-dir·ELF 분석에서 fail-closed
+  도구로 재생성 — **14/14 계약·14/14 헤더 값 완전 불변**(diff 0). 이번 전환이 기존 유효 입력의
+  결과를 바꾸지 않았음을 증명.
+- 범위 밖(명시): C 게이트 자체(스택 미달 거부 분기, blob 할당 전 크기 선검사, 입출력 개수 런타임
+  gate)는 x86-64/cFS 환경 재구축이 필요해 이번 실험에 포함하지 않음(EVIDENCE_v0.10 §5, EVIDENCE_v0.9
+  §11.9 Phase 3). 정규 MLIR/IREE pass, AArch64 게스트 재현(A5b 등)도 마찬가지로 범위 밖.
+
 ## [v0.9.1] 2026-09-08
 - 외부 검토 2건(`docs/reviews/REVIEW_v0_9_CODE_AND_MD_AMENDMENTS.md`,
   `docs/reviews/OPINION_v0_9_SPACE_CPU_AI_INTEGRATED.md`, 기준 커밋 `33e1ebc`)을 코드·원자료와 직접

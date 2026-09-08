@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.9.1**(정정판, git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.10**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -45,6 +45,14 @@ A4·A6·A7·A8 시나리오 7/7 PASS(단, 계획 대비 대폭 축소 — 아래
 계약 도구 체인이 **fail-open**임도 확인(D11–D15) — 파서가 미인식 할당을 조용히 무시하고,
 헤더 생성기는 음수 `bounded_bytes`를 `BOUND_KNOWN=1`로 통과시켜 C 게이트가 무조건 ADMIT함.
 14개 계약 자체의 값은 vmfb 실물과 재대조해 14/14 일치 확인(도구 결함이 기존 값을 반증하지는 않음).
+
+**v0.10에서 완료된 것 (E15, `docs/EVIDENCE_v0.10_E15.md`)**: v0.9.1이 정정으로 남긴 D12·D13·D14를
+실제로 fail-closed로 수정 — 파서의 줄바꿈 누락·미인식 op 무시, 헤더 생성기의 음수/미지원
+`bound_method`·스택 미상 수용·다중입력/비f32 수용, one-invocation의 layout IR 미결합(D14, dispatch
+심볼을 dump-dir과 대조)을 각각 직접 재현 후 거부로 전환. 신규 `harness/contract_negative_tests.py`
+음성 20건+단위 5건+회귀 26건 = **51/51 PASS**. 보관된 v0.9 14개 계약·헤더를 이 도구로 재생성해
+**diff 0**(회귀 없음) 확인. **범위 밖(명시)**: C 게이트 자체(스택 거부 분기, blob 크기 선검사, 입출력
+런타임 gate)는 x86-64/cFS 환경 재구축이 필요해 미착수 — 아래 우선순위 2에서 이어감.
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -85,21 +93,21 @@ A4·A6·A7·A8 시나리오 7/7 PASS(단, 계획 대비 대폭 축소 — 아래
 
 v0.9.1 정정(외부 검토 2건, `docs/EVIDENCE_v0.9_E14_stage1.md` §11)에서 두 검토가 합의한 순서를
 그대로 우선순위로 쓴다 — **모델·시나리오 수를 늘리는 것보다 "어떤 정보가 없거나 잘못됐을 때 절대
-ADMIT하지 않는가"를 먼저 닫는다.**
+ADMIT하지 않는가"를 먼저 닫는다.** 항목 1(도구 레벨)은 v0.10(E15)에서 완료됐다.
 
-1. **fail-closed 계약 verifier (E15, 최우선)** — `static_mem_bound.py`의 파서가 미인식 자원 할당
-   연산을 조용히 무시하는 결함(직접 재현됨, §11.9)과 `gen_contract_header.py`가 음수
-   `bounded_bytes`·미지원 `bound_method`를 통과시키는 결함을 fail-closed로 전환. 허용 `bound_method`
-   화이트리스트, 모든 크기의 비음수 검사, 입출력 개수·dtype·entry ABI 검증, one-invocation 검사에
-   layout IR 결합(현재 미결합, §11.7). 음성 시험 스위트로 "거부돼야 할 입력이 실제로 거부되는지"
-   확인하고, 보관된 14개 계약을 재생성해 값 불변(회귀) 확인.
-2. **남은 cFS 음성·생명주기 시험** (환경 재구축 필요) — mlp16k·multibranch·dynamic의 cFS 레벨 A2
-   (경계값 B-1/B/B+1), 구조 손상 기반 A5b(임의 bit flip이 아니라 FlatBuffer/VM bytecode/embedded ELF
-   필드를 목표로), 실제 스택 미달 설정과 거부 동작(현재는 거부 분기 자체가 없음, §11.5), 재시작 2회
-   후 DELETE, 정상 STOP/DELETE 종료 후 해제 카운터 확인(현재 정상 종료 경로는 cleanup 미검증, §11.2).
-3. **정규 MLIR/IREE pass** — 텍스트 정규식 파서를 compiler 내부 Operation·Type·SSA 정보로 대체.
-   평가지표: 알려진 allocation 누락 없음, 미지원 표현 무시 안 함, compiler 버전 변경 시 명시적 실패,
-   기존 파서와 정상 모델에서 동일 값, 적대적 변형에서 과소 추정 방지.
+1. ~~fail-closed 계약 verifier~~ — **완료(v0.10/E15, `docs/EVIDENCE_v0.10_E15.md`)**. 남은 것은
+   C 게이트 자체의 fail-closed 전환(아래 2번에 흡수: 스택 거부 분기, blob 크기 선검사, 입출력
+   런타임 gate — x86-64 환경 재구축 필요).
+2. **C 게이트 보강 + 남은 cFS 음성·생명주기 시험** (환경 재구축 필요) — 스택 미달 거부 분기 추가
+   (현재는 텔레메트리일 뿐, §11.5) + 확인 시점을 자원 획득 이전으로, blob 할당 전
+   `artifact.bytes` 선검사, `CONTRACT_NUM_INPUTS/OUTPUTS`·dtype 런타임 gate; mlp16k·multibranch·
+   dynamic의 cFS 레벨 A2(경계값 B-1/B/B+1), 구조 손상 기반 A5b(임의 bit flip이 아니라 FlatBuffer/VM
+   bytecode/embedded ELF 필드를 목표로), 재시작 2회 후 DELETE, 정상 STOP/DELETE 종료 후 해제 카운터
+   확인(현재 정상 종료 경로는 cleanup 미검증, §11.2).
+3. **정규 MLIR/IREE pass** — 텍스트 정규식 파서(E15로 fail-closed는 됐으나 여전히 정규식 기반)를
+   compiler 내부 Operation·Type·SSA 정보로 대체. 평가지표: 알려진 allocation 누락 없음, 미지원
+   표현 무시 안 함, compiler 버전 변경 시 명시적 실패, 기존 파서와 정상 모델에서 동일 값, 적대적
+   변형에서 과소 추정 방지(EVIDENCE_v0.10 §5가 남긴 한계).
 4. **동일 경계의 대안 비교** — TFLite Micro(정적 아레나) 등과 같은 메모리 경계에서 비교해
    "왜 MLIR/IREE 경로여야 하는가"에 답한다. 전제(TFLM이 컴파일 시 아레나 크기를 제공하는가)부터
    1차 문서로 확인할 것. 지표: 과소 추정 발생률, tightness/과도한 거부, 분석 가능 범위, 재생성
@@ -111,9 +119,9 @@ ADMIT하지 않는가"를 먼저 닫는다.**
 7. RTEMS 단계(제안서 §17) — Linux AArch64 단계가 통과했으므로 이제 착수 가능하나 우선순위는 낮음.
 
 **환경 참고**: 이 컨테이너는 세션마다 새로 시작되며 `~/onair-mlir-bench`(cFS 빌드, IREE C 런타임,
-AArch64 게스트 이미지)가 비어 있을 수 있다. 항목 1(도구 수정·음성 시험·계약 재생성)은
-`iree-compile`(동일 커밋 필요)과 `results/e14_aarch64_qemu/`의 보관 산출물만으로 재구축 없이 가능하다.
-항목 2 이후는 `scripts/99_bootstrap_all.sh` 등으로 환경을 다시 세워야 한다.
+AArch64 게스트 이미지)가 비어 있을 수 있다. 항목 1은 `iree-compile`(동일 커밋 필요)과
+`results/e14_aarch64_qemu/`의 보관 산출물만으로 재구축 없이 완료했다(`harness/contract_negative_tests.py`
+로 재검증 가능). 항목 2 이후는 `scripts/99_bootstrap_all.sh` 등으로 환경을 다시 세워야 한다.
 
 ## 저장소 지도
 
@@ -139,7 +147,9 @@ docs/
   EVIDENCE_v0.6_E11.md        E11/E12: Native C 변형, cFS 앱 통합 (최초)
   EVIDENCE_v0.7_E13.md        계약-아티팩트 결합, 계측 정정, E13 LLVM/ELF 코드 대응
   EVIDENCE_v0.8_E14_aarch64.md 교차 ISA(x86-64/AArch64) 계약 건전성, Stage 0
-  EVIDENCE_v0.9_E14_stage1.md ★ 최신. qemu-system-aarch64 게스트 + cFS-in-guest + 모델셋 확장, Stage 1
+  EVIDENCE_v0.9_E14_stage1.md  qemu-system-aarch64 게스트 + cFS-in-guest + 모델셋 확장, Stage 1
+                               (§11 정오표: 외부 검토 2건 반영, A5b 미실행·7/7 범위·스택 gate 아님 등)
+  EVIDENCE_v0.10_E15.md       ★ 최신. 계약 도구 fail-closed 전환 + 음성 시험(51/51 PASS), D12-D14 수정
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
@@ -160,9 +170,11 @@ scripts/
   99_bootstrap_all.sh              ★ 전체 순서 실행 (x86-64 기준; aarch64는 60-62, 70-73 별도 실행)
 harness/                    실험 스크립트
   static_mem_bound.py, admission_check.py, platform_check.py 등  E0-E13 기반 도구
-  make_contract.py            ★ SAME iree-compile 호출 산출물에서만 계약 JSON 생성 (one-invocation 검증 포함)
+  make_contract.py            ★ SAME iree-compile 호출 산출물에서만 계약 JSON 생성 (one-invocation 검증,
+                               fail-closed: layout IR↔dump-dir 결합·ABI/triple/ELF 불일치 hard fail, E15)
   elf_stack_frame.py          ★ IREE embedded-ELF 정적 분석 (x86-64/AArch64 공통 정의, EVIDENCE_v0.9 §5 근거)
-  gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h)
+  gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h; fail-closed 검증 E15)
+  contract_negative_tests.py  ★ E15: 계약 도구 음성 시험(20건)+단위 시험(5건)+14/14 회귀 시험, 51/51 PASS
   e14_matrix.py                모델×타깃 컴파일·계약추출 파이프라인 (compile/extract 단계)
   cross_target_compare.py      타깃 간 계약/ELF 비교표
   gen_model_conv2d.py, gen_model_multibranch.py  Stage 1 모델 생성기 (베이킹 가중치)
