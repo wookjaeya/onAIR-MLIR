@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 ext/
 /tmp/
+native/native_learner
+*.o
+*.log
+!native/results/*.log
