@@ -1,0 +1,103 @@
+{
+  "tool": "harness/cross_target_compare.py",
+  "tol_out0": 1e-05,
+  "models": {
+    "dynamic": {
+      "targets": [
+        "aarch64-unknown-linux-gnu/cortex-a53",
+        "x86_64-unknown-linux-gnu/host"
+      ],
+      "rows": [
+        {
+          "contract_file": "contract.dynamic.aarch64.json",
+          "target": "aarch64-unknown-linux-gnu/cortex-a53",
+          "triple": "aarch64-unknown-linux-gnu",
+          "cpu": "cortex-a53",
+          "bound_method": "NONE",
+          "bounded_bytes": null,
+          "static_per_call_bytes": null,
+          "static_transient_bytes": null,
+          "static_io_bytes": null,
+          "module_resident_constant_bytes": 0,
+          "vmfb_sha256": "b19498666a94c19de03be9afcc939c8de130775843fb70e068c176148252fed1",
+          "vmfb_bytes": 13482,
+          "elf_bytes": 7440,
+          "elf_sha256": "7a6a9a90a0259ccfc2f01b5cff0c5567564630b51b7b4e0617bf257c5e14e36c",
+          "llvm_alloca_count": 0,
+          "elf_call_insns": 0,
+          "elf_stack_frame_bytes": 144,
+          "kernel_stack_classification": "bucket_2_task_stack_budget",
+          "dispatches": 2,
+          "constants_confirmed_in_artifact": false,
+          "single_invocation": true,
+          "compiler": "IREE 3.11.0rc20260316 e4a3b04",
+          "native": null
+        },
+        {
+          "contract_file": "contract.dynamic.x86_64.json",
+          "target": "x86_64-unknown-linux-gnu/host",
+          "triple": "x86_64-unknown-linux-gnu",
+          "cpu": "host",
+          "bound_method": "NONE",
+          "bounded_bytes": null,
+          "static_per_call_bytes": null,
+          "static_transient_bytes": null,
+          "static_io_bytes": null,
+          "module_resident_constant_bytes": 0,
+          "vmfb_sha256": "f7e165679424fffa6e55a074e07b6a8d567eca12f94df008f9ce8d51b3f15f76",
+          "vmfb_bytes": 18914,
+          "elf_bytes": 12040,
+          "elf_sha256": "0b4e69fc48c5ce87b45104065f7a8c46bf37a2366181e1e76b4c6cc502fded93",
+          "llvm_alloca_count": 0,
+          "elf_call_insns": 0,
+          "elf_stack_frame_bytes": 3376,
+          "kernel_stack_classification": "bucket_2_task_stack_budget",
+          "dispatches": 2,
+          "constants_confirmed_in_artifact": false,
+          "single_invocation": true,
+          "compiler": "IREE 3.11.0rc20260316 e4a3b04",
+          "native": null
+        }
+      ],
+      "identical_bounded_bytes": false,
+      "identical_per_call_bytes": false,
+      "identical_constant_bytes": true,
+      "all_bounds_known": false,
+      "vmfb_sha256_all_distinct": true,
+      "elf_stack_frame_bytes_by_target": {
+        "aarch64-unknown-linux-gnu/cortex-a53": 144,
+        "x86_64-unknown-linux-gnu/host": 3376
+      },
+      "elf_call_insns_by_target": {
+        "aarch64-unknown-linux-gnu/cortex-a53": 0,
+        "x86_64-unknown-linux-gnu/host": 0
+      },
+      "llvm_alloca_count_by_target": {
+        "aarch64-unknown-linux-gnu/cortex-a53": 0,
+        "x86_64-unknown-linux-gnu/host": 0
+      },
+      "both_sound": null,
+      "sound_by_target": {
+        "aarch64-unknown-linux-gnu/cortex-a53": null,
+        "x86_64-unknown-linux-gnu/host": null
+      },
+      "out0_agreement": {
+        "values": {},
+        "max_abs_diff": null,
+        "tol": 1e-05,
+        "agree": null
+      }
+    }
+  },
+  "summary": {
+    "models": 1,
+    "all_models_identical_bounded_bytes": true,
+    "models_with_unknown_bound": [
+      "dynamic"
+    ],
+    "models_both_sound": [],
+    "models_not_sound": [],
+    "models_out0_agree": [],
+    "models_out0_disagree": []
+  }
+}
