@@ -196,6 +196,24 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    처음엔 그렇게 시작해서 D2·D3 등 결함을 거쳐 검증됐다는 점을 상기할 것 — 같은 함정을 TFLM 비교에도
    적용해야 한다). 실제 비교 실험은 TFLM 빌드 도구체인(이 컨테이너에 없음, 별도 환경 구축 필요)이
    있어야 착수 가능 — 다음 세션 항목.
+   **빌드 착수 시도 결과(이 세션, 실험 아님 — host 빌드 성공 못 함)**: TFLM은 더 이상 Makefile
+   빌드(`tensorflow/lite/micro/tools/make/`)를 제공하지 않고 **Bazel(bzlmod) 전용**으로
+   전환됐다(예제 디렉터리도 별도 저장소로 이관돼 이 저장소엔 `hello_world`가 없음) — 대신
+   `arena_used_bytes()`를 직접 assert하는 `micro_interpreter_test.cc`를 빌드 타깃으로 시도했다.
+   **막힌 지점**: 이 세션의 GitHub 접근 브로커가 `git clone/fetch`(smart-HTTP)는 허용하지만
+   Bazel의 `http_archive`가 쓰는 tarball 다운로드(`codeload.github.com`, `bcr.bazel.build`)는
+   **일괄 403**으로 차단한다 — 같은 공개 저장소라도 프로토콜에 따라 결과가 다르다는 뜻. 우회는
+   가능함을 확인했다(각 의존성을 `git clone` + 수동 `BUILD.bazel`/`REPO.bazel` 작성 +
+   `--override_repository`로 4단계까지 성공: `bats-core`·`flatbuffers`·`kissfft` 통과, `grpc`
+   에서 멈춤 — grpc 자체가 protobuf/abseil/c-ares/re2/boringssl 등 대형 의존 트리를 갖고 있고,
+   이건 실제 C++ 로직과 무관한 `testing` 패키지의 pip 요구사항 로딩 때문에 끌려온 것). **판단**:
+   근본적 차단(원리적 불가능)이 아니라 **의존 트리 깊이를 사전에 알 수 없는 노동집약적 우회
+   작업**이다 — 다음 세션이 이어받을 인수인계 경로: `/root/tflite-micro-work/tflite-micro`(클론),
+   `/root/tflite-micro-work/bin/{bazel-real,bazelisk}`(bazel 8.7.0),
+   `/root/tflite-micro-work/bazel_overrides.sh`(현재까지의 override 플래그),
+   `/root/tflite-micro-work/{bats-local,flatbuffers-src,kissfft-src}`(수동 준비 완료 의존성).
+   다음 필요한 작업은 `grpc` 오버라이드를 같은 패턴으로 계속하는 것. (`/home/user/onAIR-MLIR`는
+   이 시도 동안 전혀 건드리지 않았음 — `git status` clean 확인됨.)
 5. **임무 유사 workload + 다중 AI 앱 동시 admission** — 단일 앱 계약 수용 규칙(1–3)이 끝난 뒤 착수.
    다중 앱은 전역 예산의 예약·해제·경합 설계가 새로 필요하다(현재는 전역 예약 없음).
 6. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
