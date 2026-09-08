@@ -59,11 +59,19 @@
 | "모델 크기가 바뀌면 순위 붕괴 (ρ=+0.18)" | EVIDENCE v0.2 §4 | E6b: 가중치 복사 인공물, ρ=+0.81 | v0.3 |
 | "Pareto front 5개" | EVIDENCE v0.2 §3 | E6b: 상충 미관측 | v0.3 |
 | "E5 메모리 축 반증 배수 5.2–30.4×" | EVIDENCE v0.2 §5 | E6: 배수는 런타임 컨텍스트 귀속; 프로그램 정적 65.6 KB | v0.3 |
+| "A5b(`runtime_load_failed`)를 native 레벨에서 확인했다" | EVIDENCE v0.9 §4.1·§9 | 외부 검토 2건(REVIEW/OPINION v0.9) 대조: native·cFS 로그 어디에도 A5b 실행 흔적 없음(§3 표엔 A5a만), `runtime_load_failed` 7/7 `null` | v0.9.1 |
+| "7/7 PASS"가 원래 계획한 cFS 시나리오 전체를 뜻한다 | EVIDENCE v0.9 §4.1 | 외부 검토 2건: 계획 31개 중 7개만 실행, expect 축소(min_completed 15→3 등), 전부 timeout(EXIT=124) 종료 | v0.9.1 |
+| "커널 스택을 별도 회계해 자체 확인하도록 구현했다"가 admission gate를 뜻한다 | EVIDENCE v0.9 §5·§7-#8 | 외부 검토 2건: `accounted=false`에서도 초기화 거부 분기 없음(`ai_learner.c:258-265`), 자원 획득 이후에 계산되는 텔레메트리 | v0.9.1 |
 
 ## 방법론 결함 이력
 
 | ID | 결함 | 영향 실험 | 발견 경로 | 조치 |
 |---|---|---|---|---|
+| D15 | 스택 회계(`kernel_stack_accounted`)가 admission gate가 아니라 텔레메트리 — `accounted=false`에서도 거부 분기가 없고, 위치도 IREE 세션·입력버퍼·SB 파이프 생성 이후. 게다가 빌드 스크립트가 startup에 써넣은 `base+kernel`을 앱이 그대로 되읽어 `>=`로 비교하므로 구조상 항상 참(항등식). base 262,144 B는 "E12부터 써온" 관례 상수이며 저장소 어디에도 실측 스택 사용량 근거 없음 | E14-S1(§4.1·§5, cFS `AI_LEARNER`) | 외부 검토 2건(REVIEW R4 / OPINION §8.4) → 코드 대조로 확인 | EVIDENCE_v0.9 §11.5(§11.3 합격기준 #8 재판정)로 표현 축소; 거부 분기 추가는 E15 이후 항목(환경 재구축 필요) |
+| D14 | one-invocation 검증(D10 수정분)이 layout IR을 검사에 결합하지 않음 — bound를 만드는 모든 수치가 layout IR에서 나오는데 `single_invocation` 판정식(`make_contract.py:389`)에 layout IR 변수가 없음. `layout_ir_sha256`은 기록만 되고 무엇과도 대조 안 됨 → 다른 컴파일 호출의 layout IR + 올바른 vmfb/dump-dir 조합이 검사를 통과할 수 있음 | E14-S1 계약 도구화 | 외부 검토 2건(REVIEW R5 / OPINION §8.5) → 코드 대조로 확인 | EVIDENCE_v0.9 §11.7로 표현 축소("대표적 산출물 혼입 탐지"); layout IR 결합은 E15로 이관 |
+| D13 | 계약 생성기 체인이 fail-open — (a) `static_mem_bound.py`의 정규식 파서가 한 줄(`[^\n]*`) 한정이라 미인식 자원 할당 연산이 `unresolved`가 아니라 조용히 무시됨(줄바꿈만 넣어 재현: outputs/transient_slabs가 사라져도 `unresolved=[]` 유지), (b) `gen_contract_header.py`가 `bounded_bytes`의 부호를 검사하지 않아 음수가 `CONTRACT_BOUND_KNOWN=1`로 헤더에 실리고 C 게이트(`bounded<=budget`)가 무조건 ADMIT, (c) `bound_method`가 `"NONE"` 하나만 막는 블랙리스트(소문자 `none` 등 통과) | 계약 도구 전반(`static_mem_bound.py`, `make_contract.py`, `gen_contract_header.py`) | 외부 검토 2건(REVIEW R2·R3 / OPINION §8.2·§8.3) → 직접 재현으로 확인 | EVIDENCE_v0.9 §11.9로 기록; 보관된 14개 계약 값 자체는 vmfb 재대조로 14/14 일치(반증 아님). fail-closed 전환은 E15 |
+| D12 | `static_mem_bound.py:239`의 독립 실행 경로에서 `all_static = len(unresolved)==0`이 `entry_found`를 누락 — entry 함수를 못 찾아 IR 전체를 파싱한 경우에도 `bound_method=static_from_stream_layout`을 출력, `admission_check.py:57`이 이를 받아 ADMIT 가능 | `static_mem_bound.py` 단독 실행 경로(`make_contract.py`의 `all_static`은 `entry_found`를 포함해 영향 없음) | 외부 검토 코드 대조 중 추가 발견 | EVIDENCE_v0.9 §11.9; E15에서 `entry_found` 포함하도록 수정 예정 |
+| D11 | EVIDENCE_v0.9 §4.1·§9와 CLAUDE.md가 A5b(계약 해시가 손상 파일을 가리키는 경우, `runtime_load_failed` 경로)를 "native 레벨에서 확인했다"고 서술했으나 실제로는 native·cFS 어느 레벨에서도 실행되지 않음(§3 표에는 A5a만 존재, 문서 자체가 자기모순) | E14-S1 문서화(§4.1·§9) | 외부 검토 2건(REVIEW R1 / OPINION §8.1) → native/cfs 로그·summary.json 전수 대조로 확인 | EVIDENCE_v0.9 §11.1로 정정(서술 철회), CLAUDE.md 갱신; 실제 A5b 재현(구조 손상 기반)은 E15 이후 환경 재구축 항목 |
 | D10 | 계약 생성기의 `provenance.single_invocation`이 하드코딩 `true` — one-invocation 규칙을 검증해야 할 도구가 실제로는 검증을 안 해 서로 다른 컴파일 호출의 산출물을 섞어도 통과시킴 | E14-S1 계약 도구화 | 적대적 리뷰(워크플로우) | dump-dir 실행파일이 vmfb에 임베디드돼있는지(sha256) + dump-dir 파일명에 입력 basename이 포함되는지, 두 신호로 실제 검증 추가 |
 | D9 | v0.7/v0.8이 x86-64·AArch64 스택 프레임에 서로 다른 정의(x86=`sub`만, AArch64=callee-save만)를 적용 — "AArch64만 프레임이 있다"는 서술이 정의 불일치의 인공물이었음 | E14-S1(§5, `elf_stack_frame.py`) | 두 ISA에 같은 정의 적용해 재분석 | 통일된 정의(callee-save+지역=frame_bytes, +복귀주소=invocation_stack_bytes)로 EVIDENCE_v0.9 §5.1 정정 |
 | D7 | 호출당 할당 = 초기화 비용 포함 상각값 | 검토 v0.6 §5 | 지표 의미 | 정상 상태 카운터 차이(65,544) |

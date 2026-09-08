@@ -2,6 +2,35 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.9.1] 2026-09-08
+- 외부 검토 2건(`docs/reviews/REVIEW_v0_9_CODE_AND_MD_AMENDMENTS.md`,
+  `docs/reviews/OPINION_v0_9_SPACE_CPU_AI_INTEGRATED.md`, 기준 커밋 `33e1ebc`)을 코드·원자료와 직접
+  대조해 반영. `docs/EVIDENCE_v0.9_E14_stage1.md` §11(정오표) 신설, 기존 §0–§10은 고쳐쓰지 않음.
+- 정정: A5b(계약 해시가 손상 파일을 가리키는 경우, `runtime_load_failed` 경로)를 "native에서
+  확인했다"는 §4.1·§9 서술을 **철회**. native·cFS 어느 레벨에서도 A5b는 실행되지 않았다
+  (`runtime_load_failed` 7/7 `null`). §3 표에는 A5a 행만 있어 문서 자체가 자기모순이었다(D11).
+- 정정: "7/7 PASS"의 범위를 명시. 계획(31개 시나리오) 대비 7개만 실행, expect 조건이 축소됐고
+  (`min_completed` 15→3 등, `hal_peak_le_bounded` 독립 대조 삭제), 7개 전부 `EXIT=124`(timeout SIGINT)
+  로 종료돼 **정상 종료 시의 자원 회수는 미검증**(정상 시나리오 cleanup 0회).
+- 정정: 스택 회계(`kernel_stack_accounted`)가 admission gate가 아니라 텔레메트리임을 명시(D15).
+  `accounted=false`에서도 초기화를 거부하는 분기가 없고, 빌드가 startup에 써넣은 `base+kernel`을
+  앱이 그대로 되읽어 비교하므로 구조상 항상 참에 가까운 항등식이다. 합격기준 #8의 표현을
+  "task stack 설정에 반영·확인"으로 축소.
+- 정정: conv2d의 HAL peak가 native(1,352 B)와 cFS(3,528 B=bounded)에서 다름을 명시 — "HAL peak =
+  contract" 일반화 금지. cross-target 비교(`comparison/*.json`)는 계약 수치 비교일 뿐 실행 대조가
+  아님(`native`/`both_sound` 전부 null)도 명시.
+- 정정: one-invocation 검증(D10)이 layout IR을 검사에 결합하지 않음을 확인(D14) — "대표적 산출물
+  혼입 탐지"로 표현 축소.
+- 결함 원장 추가: D11(A5b 무근거 서술) · D12(`static_mem_bound.py` 단독 경로의 `entry_found` 누락) ·
+  D13(계약 도구 체인의 fail-open — 파서 미인식 할당 무시, 헤더 생성기의 음수 bound·미지원 method 통과) ·
+  D14(one-invocation의 layout IR 미결합) · D15(스택 회계 항등식 구조).
+- 중심 문장 개정판(§11.8)으로 CLAUDE.md 갱신, "지금 바로 이어서 할 일"을 두 외부 검토가 합의한
+  우선순위(fail-closed verifier(E15) → 남은 cFS 음성·생명주기 시험 → 정규 MLIR pass → 대안 비교 →
+  임무 유사 workload·다중 앱)로 교체.
+- 보관된 14개 계약의 `artifact.bytes`/`sha256`을 vmfb 실물과 독립 재계산 — **14/14 일치**(도구 결함이
+  기존 계약 값 자체를 반증하지 않음을 확인).
+- 다음 실험(E15, 계약 도구 fail-closed 전환 + 음성 시험)은 `docs/EVIDENCE_v0.10_E15.md`에서 별도 등록.
+
 ## [v0.9] 2026-09-08
 - E14 Stage 1(Claude Code 이관분): qemu-system-aarch64 Linux 게스트 + cFS-in-guest + Conv2D/multi-branch/
   동적형상 모델. `docs/EVIDENCE_v0.9_E14_stage1.md`.

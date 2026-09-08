@@ -354,3 +354,152 @@ GUEST_DIR=... python3 harness/e14_cfs_scenarios.py <scenarios.json> --remote-roo
 ```
 
 산출물: `results/e14_aarch64_qemu/{environment,models,aarch64,x86_64,native,cfs,comparison}/`.
+
+---
+
+## 11. 정오표 (v0.9.1, 외부 검토 2건 반영)
+
+CLAUDE.md 규율에 따라 이 절은 위 §0–§10을 고쳐쓰지 않고 **덧붙이는 정정**이다. 외부 검토 2건
+(`docs/reviews/REVIEW_v0_9_CODE_AND_MD_AMENDMENTS.md`, `docs/reviews/OPINION_v0_9_SPACE_CPU_AI_INTEGRATED.md`,
+기준 커밋 `33e1ebc`)을 코드·원자료와 직접 대조해 확인했다. 아래 (a)–(g)는 전부 실측으로 확정된 사실이며,
+근거는 `EXPERIMENT_LOG.md`의 D11–D15로도 등록했다.
+
+### 11.1 (a) A5b는 실행되지 않았다 — §4.1·§9 서술 철회
+
+§4.1(177–179행)과 §9(309–311행)는 "A5b(계약 해시가 손상 파일을 가리키는 경우, `runtime_load_failed`
+경로)를 §3의 native 레벨에서 확인했다"고 서술한다. **이 서술을 철회한다.** 실제로:
+
+- §3 표(140–150행)에는 A5a 행만 있고 A5b 행은 없다 — 문서 자체가 이미 자기모순이었다.
+- `results/e14_aarch64_qemu/native/logs/qemu_user/`에는 `conv2d.A5a_corrupt_gate.log`만 있고 A5b 로그가
+  없다. `native/summary.json`에도 A5a 항목만 존재한다.
+- `results/e14_aarch64_qemu/cfs/`의 7개 로그·summary.json 어디에도 A5a/A5b 흔적이 없다(`grep -rn
+  "A5a\|A5b\|corrupt"` 0건). `runtime_load_failed` 필드는 **7개 시나리오 전부 `null`**이다.
+
+A5a(원본 계약 + 손상 VMFB → 해시 불일치로 거부, `CONTRACT_ARTIFACT_MISMATCH`)는 native 레벨에서
+실행·확인됐다. 그러나 A5b(손상 VMFB의 해시를 계약에 넣어 binding은 통과시키고 IREE 로더가 구조 손상을
+안전하게 처리해야 하는 경로)는 **native·cFS 어느 레벨에서도 한 번도 실행되지 않았다**. 코드 경로
+(`native/native_learner.c:104,162-183`, `native/cfs_app/fsw/src/ai_learner.c:148`)는 존재하지만 미검증
+상태다. `CLAUDE.md`의 "cFS 레벨 재현만 잔여"라는 서술도 (b)와 함께 정정한다 — native 레벨도 미수행이었다.
+
+임의 오프셋의 bit flip(offset 4096)은 가중치만 바꿀 수 있어 A5b 재현에 부적합하다는 지적(검토 §8.1)도
+맞다 — 재시도 시 FlatBuffer/VM bytecode/embedded ELF의 **구조 필드**를 목표로 손상시켜야 한다.
+
+### 11.2 (b) 7/7 PASS의 범위 — 계획 대비 대폭 축소, timeout 종료
+
+§4.1의 "7/7 PASS"는 저장소 checker 기준으로는 사실이지만, 다음 범위로 한정해서 인용해야 한다.
+
+- **계획 대비**: `harness/e14_make_scenarios.py`의 기본 시나리오는 3모델×10종+A8=31개다. 실제 실행은
+  7개(A1×2, A3·A4·A6·A7·A8 각 mlp16k 1개씩)이며, mlp16k A1·A2(9개 전부)·A5a·A5b(6개 전부)는 cFS 레벨에서
+  미실행이다.
+- **종료 방식**: 7개 로그 전부 `EXIT=124` — `harness/e14_cfs_scenarios.py:150`의 `timeout -s INT`가 고정
+  벽시계 시간 후 core-cpu1 전체에 SIGINT를 보내 종료시킨 것이다. checker(`e14_cfs_scenarios.py:101-130`)는
+  `core_exit_code`를 판정에 쓰지 않는다.
+- **정상 종료 자원 회수는 미검증**: `AI_LEARNER_Cleanup()`은 `CFE_ES_RunLoop()`가 false를 반환할 때만
+  호출되는데(`ai_learner.c:330-341`), 이는 ES 명령(RESTART/DELETE 등)으로만 일어난다. SIGINT/processor
+  reset 종료에서는 도달하지 않는다. 실제로 정상 실행 시나리오(A1_conv2d, A1_multibranch, A6_mlp16k_repeat)
+  는 cleanup **0회**다 — 이 세 시나리오는 정상 종료 시의 자원 회수 근거로 쓸 수 없다.
+- **expect 축소**: 실행에 쓰인 시나리오 JSON은 `e14_make_scenarios.py` 산출물이 아닌 축소판이다(desc가
+  한국어로 별도 작성됨). A1의 `min_completed`는 계획 15 → 실제 3, A6은 30 → 15, A7의 `min_init_count`는
+  3 → 2(재시작 2회+DELETE 계획 대비 재시작 1회, DELETE 미실행). A1/A6/A7 expect에서 **`hal_peak_le_bounded`
+  (하네스가 계약값과 독립적으로 대조하는 유일한 항목)가 삭제**돼 있다 — 남은 `peak_within_bounded`는 앱이
+  스스로 출력한 값을 그대로 신뢰한다.
+- **A7 "15/15"는 재시작 후 카운터**다. 앱 lifetime 누적 20회(5+15)가 아니다.
+
+### 11.3 (c) §7 합격기준 재판정
+
+| # | 기존 판정 | 정정 |
+|---|---|---|
+| 1 | PASS — "§4.1(cFS 3건, A1×2·A6·**A7**) 전부 `peak_within_bounded=true`" | A7의 expect에는 `peak_within_bounded`가 없었다(값 자체는 true로 기록되나 판정에 관여하지 않음). 근거를 A1×2·A6 3건으로 좁힌다. native 9건 근거는 유지 |
+| 4 | 부분 PASS | 판정 유지하되, "부분"의 의미가 (b)의 계획 축소를 포함함을 명시 — mlp16k·multibranch cFS 레벨 A2는 전혀 실행되지 않았다(생략이 아니라 애초에 미실행) |
+| 7 | PASS — "실패·정상 종료에서 crash·double-free 없음" | (b)에 따라 "**실패·재시작 경로**에서 crash·double-free 없음"으로 범위 축소. 정상 종료(SIGINT) 경로는 cleanup을 타지 않으므로 이중 해제 여부 자체가 관측되지 않았다 |
+| 8 | PASS — "커널의 계약 밖 메모리가 ... 별도 예산으로 명시됨" | `kernel_stack_accounted`는 **admission gate가 아니라 텔레메트리**다(§11.5). "task stack 설정에 반영하고, 초기화 시 그 설정값이 충분한지 스스로 확인해 로그로 남겼다"로 표현을 좁힌다. "전체 task stack 안전을 보장했다"는 의미가 아니다 |
+
+### 11.4 (d) cross-target 비교는 실행 검증이 아니다
+
+§6의 `harness/cross_target_compare.py` 산출물(`comparison/cross_target.*.json`)은 **계약 문서(정적
+수치) 간 비교**만이다. `--native-summaries`를 전달하지 않아 `native`, `both_sound`,
+`out0_agreement.agree`가 4개 파일 전부에서 `null`이다. "세 정적 모델의 계약값이 두 target에서 동일했다"는
+§6 서술은 유지하되, 양쪽 타깃의 **실행 결과(HAL peak 건전성, 출력값)까지 대조했다는 함의는 없다.**
+
+부수 정정: §6 표의 "스택(a64/x86, B)" 열(16/16, 191/239, 16/16, 144/3,447)은 §5의 invocation 정의
+(callee-save+지역+복귀주소+재정렬패딩)이며, `comparison/*.json`의 `elf_stack_frame_bytes_by_target`
+(16/8, 128/168, 16/8, 144/3,376 — frame 정의)과는 다른 수치다. §6이 이 출처 차이를 명시하지 않아 JSON과
+직접 대조하면 불일치로 보인다 — 두 수치 모두 유효하나 정의가 다르다.
+
+### 11.5 (e) 스택 회계는 admission gate가 아니라 설정·보고다
+
+§5·§7-#8이 "HAL 계약이 아닌 태스크 스택 예산으로 별도 회계해 ... 자체 확인하도록 구현했다"고 쓴 부분은
+사실이지만, **"확인"이 초기화를 막는 분기로 이어지지 않는다는 점을 §5에 명시했어야 했다.**
+`ai_learner.c:253-262`의 `accounted = es_stack >= stack_needed`는 계산 후 `EID_STACK` 이벤트(severity
+INFORMATION)로 로그만 남기고, 바로 다음 줄(`:263-265`)이 `EID_INIT_OK` + `return CFE_SUCCESS`다.
+`accounted=false`에서 초기화를 거부하는 분기는 없다. 이 확인의 위치도 IREE 인스턴스·세션·모듈·입력
+버퍼·SB 파이프 생성(`:218-247`) **이후**다.
+
+추가로, 이 확인은 구조상 항상 참에 가깝다: `scripts/51_build_cfs_aarch64.sh:101,151`이 cFS startup
+스크립트에 `AI_LEARNER_STACK_BASE_BYTES(262,144) + CONTRACT_KERNEL_STACK_BYTES`를 써넣고, 앱은
+`es_stack >= 같은 두 상수의 합`을 검사한다 — 빌드·시작 스크립트를 손으로 건드리지 않는 한 false가 될 수
+없다. 로그값도 정확히 일치한다(262,335 = 262,144+191, 262,160 = 262,144+16). 그리고 base 262,144는
+"E12부터 써온 값"(`ai_learner.c:59`, `CMakeLists.txt:11`)이라는 관례 상수이며, 저장소 어디에도 실제
+스택 사용량(high-water mark 등) 측정이 없다 — 측정된 것은 커널 부분(16~191 B)뿐이고 base(전체의 99.9%
+이상)는 측정 근거가 없다. `feat[CONTRACT_INPUT_ELEMS]`(`ai_learner.c:281`, 최대 conv2d 256 B) 같은
+앱 자신의 입력 크기 의존 스택 배열도 `stack_needed` 계산에 포함되지 않는다.
+
+### 11.6 (f) conv2d의 tightness는 구성에 따라 다르다 — "HAL peak = contract" 일반화 금지
+
+§2.1·§4.1이 보고하는 conv2d HAL peak는 native(qemu-user) **1,352 B**와 cFS(게스트) **3,528 B**(=
+bounded_bytes, tight)로 서로 다르다. 차이 2,176 B는 정확히 `module_resident_constant_bytes`와 같다 —
+상수가 두 실행 경로에서 어떻게 매핑·계측되는지의 차이로 보이나, **이번 정정에서도 인과를 확정하지
+않는다**(후속 조사 대상, §9에 등록). 올바른 서술은:
+
+> 관측한 실행 구성에서 HAL peak는 부분 계약(bounded_bytes) 이하였으며, tightness는 런타임 구성과 상수
+> 매핑 방식에 따라 달랐다(native conv2d 1,352 ≤ 3,528; cFS conv2d 3,528 = 3,528).
+
+"모든 모델에서 HAL peak = contract"라는 문장은 쓰지 않는다 — conv2d native 결과와 모순된다.
+
+### 11.7 (g) one-invocation 검증의 표현 축소
+
+§0.4(D10)가 "실제 검증 추가"라고 서술한 one-invocation 검사(`make_contract.py:362-389`)는 임베디드 ELF
+sha256 매칭과 dump 파일명 basename 포함 여부, 두 신호만 본다. **layout IR은 이 검사에 전혀 결합돼 있지
+않다** — `single_invocation` 계산식(`:389`)에 layout IR 관련 변수가 없고, `layout_ir_sha256`(`:566`)은
+기록만 될 뿐 무엇과도 대조되지 않는다. 그런데 bound를 만드는 모든 수치(§2.1의 per-call/상수/bounded)는
+layout IR에서만 나온다 — 즉 "다른 컴파일 호출의 layout IR + 올바른 vmfb/dump-dir 조합"은 현재 검사를
+전부 통과하고 `single_invocation: true`가 찍힌다. D10은 "대표적인 산출물 혼입(ELF·파일명)을 탐지한다"로
+표현을 좁혀야 하며, "one-invocation 규칙을 실제로 검증한다"는 표현은 layout IR 결합 전까지 쓰지 않는다.
+후속 조치는 §12(D14)와 `EXPERIMENT_LOG.md` E15에 등록했다.
+
+### 11.8 중심 문장(§8) 개정판
+
+§8의 초안 문장에서 검증 범위를 벗어난 부분(자원 회수를 "전 경로"로 읽을 수 있는 표현, 스택 확인을
+admission으로 읽을 수 있는 표현)을 다음과 같이 좁힌다. 판정 자체(H3, 메모리 축의 시험 조건 내 성립)는
+바뀌지 않는다.
+
+> 정적 메모리 계약(per-call 버퍼 + 모듈 상주 상수)은 MLP·Conv2D·multi-branch 세 가지 할당 구조에서
+> x86-64와 AArch64(Cortex-A53, QEMU 시스템 에뮬레이션) 모두 동일한 값으로 산출됐고, 시험한 실행
+> 구성에서 각 타깃의 HAL 관측 피크 이하였다(tightness는 구성에 따라 다름, §11.6). 같은 계약을 AArch64
+> 게스트 안의 cFS `AI_LEARNER` 앱 초기화 admission에 연결해, 선택된 7개 시나리오(정상 허용·모델 교체
+> 거부·모델 파일 부재·반복 추론 무결성·동적 형상(UNKNOWN_BOUND) 거부·앱 재시작 1회)를 실행 검증했다
+> (원래 계획한 전체 시나리오의 완주는 아니며, 정상 종료 시의 자원 회수는 미검증, §11.2). AArch64
+> 코드생성이 도입하는 고정 태스크 스택 잔차는 모델의 지역 버퍼 유무에 따라 16 B(MLP·multi-branch)에서
+> 191 B(Conv2D, 동적 재정렬 패딩 포함)까지 달랐으며, HAL 계약이 아닌 태스크 스택 예산으로 별도 회계해
+> 시작 스크립트에 반영하고 런타임이 그 설정값의 충분성을 스스로 확인해 보고하도록 구현했다(초기화를
+> 거부하는 gate는 아님, §11.5).
+
+### 11.9 추가로 확인된 도구 결함 (fail-open) — 후속 실험 E15로 이관
+
+이번 대조에서 §11.1–11.8과 별개로, 계약 생성 도구 체인이 **fail-open**임을 직접 재현으로 확인했다.
+상세는 `EXPERIMENT_LOG.md` D11–D15, 착수 계획은 `docs/EVIDENCE_v0.10_E15.md`(작성 예정) 참조.
+
+- `static_mem_bound.py`의 정규식 파서가 한 줄(`[^\n]*`) 한정이라 미인식 할당 연산이 `unresolved`가 아니라
+  **조용히 무시**된다(conv2d layout IR에 줄바꿈만 넣어 재현: `outputs=[8]→[]`, `transient_slabs=[1088]→[]`,
+  `unresolved=[]` 유지).
+- `gen_contract_header.py`는 `bounded_bytes`의 부호를 검사하지 않는다 — **음수 bound가
+  `CONTRACT_BOUND_KNOWN=1`로 헤더에 실리고, C 게이트(`bounded <= budget`)가 이를 어떤 예산에서도
+  무조건 ADMIT한다.** 이는 §5·§7-#1이 전제하는 "bounded_bytes가 항상 유효한 양수 상한"이라는 가정이
+  도구 레벨에서 강제되지 않음을 뜻한다(단, 이번 실험의 14개 계약 값 자체는 모두 양수로 재확인됨 —
+  §7의 native/cFS 결과 자체는 영향받지 않는다).
+- `bound_method`는 `"NONE"` 하나만 막는 블랙리스트라 미지원 값(예: 소문자 `none`, 임의 문자열)도
+  `BOUND_KNOWN=1`이 된다.
+
+이 항목들은 **보관된 14개 계약의 정확성 자체를 반증하지 않는다**(정상 컴파일 경로에서는 재현되지 않음).
+그러나 도구가 "미지원 입력은 명시적으로 거부한다"는 안전 속성을 아직 갖추지 못했다는 뜻이므로, §8의
+판정 문장에는 반영하지 않되 다음 우선순위 작업(E15)의 근거로 못박는다.

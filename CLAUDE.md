@@ -8,25 +8,43 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.9** (git tag). 중심 주장은 v0.9의 결론 문장을 그대로 쓴다 — 지어내지 말 것:
+연구. 현재 버전: **v0.9.1**(정정판, git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
+§11.8이 정본, 아래는 그 요약):
 
 > 정적 메모리 계약(per-call 버퍼 + 모듈 상주 상수)은 MLP·Conv2D·multi-branch 세 가지 할당
 > 구조에서 x86-64와 AArch64(Cortex-A53, QEMU 시스템 에뮬레이션) 모두 동일한 값으로 산출됐고,
-> 각 타깃의 HAL 관측 피크를 빠짐없이 포괄했다. 같은 계약을 AArch64 게스트 안의 cFS
-> `AI_LEARNER` 앱 초기화 admission에 연결해, 정상 허용·모델 교체 거부·모델 파일 부재·반복
-> 추론 무결성·동적 형상(UNKNOWN_BOUND) 거부·앱 재시작 시 자원 회수까지 실행 검증했다(7/7).
+> 시험한 실행 구성에서 각 타깃의 HAL 관측 피크 이하였다(tightness는 구성에 따라 다름 — conv2d
+> native 1,352 ≤ 3,528 vs cFS 3,528 = 3,528). 같은 계약을 AArch64 게스트 안의 cFS
+> `AI_LEARNER` 앱 초기화 admission에 연결해, 선택된 7개 시나리오(정상 허용·모델 교체 거부·
+> 모델 파일 부재·반복 추론 무결성·동적 형상(UNKNOWN_BOUND) 거부·앱 재시작 1회)를 실행
+> 검증했다(원래 계획한 전체 시나리오의 완주는 아니며, 정상 종료 시의 자원 회수는 미검증).
 > AArch64 코드생성이 도입하는 고정 태스크 스택 잔차는 모델의 지역 버퍼 유무에 따라 16 B(MLP·
 > multi-branch)에서 191 B(Conv2D, 동적 재정렬 패딩 포함)까지 달랐으며, HAL 계약이 아닌 태스크
-> 스택 예산으로 별도 회계해 시작 스크립트에 실제로 반영하고 런타임에 그 사실을 자체 확인하도록
-> 구현했다. 동일 경계의 대안 비교는 여전히 후속 대상이다.
+> 스택 예산으로 별도 회계해 시작 스크립트에 반영하고 런타임이 그 설정값의 충분성을 스스로
+> 확인해 보고하도록 구현했다(초기화를 거부하는 gate는 아님). 동일 경계의 대안 비교는 여전히
+> 후속 대상이다.
 
 **절대 하지 말 것**: H1(AOT가 더 빠르다)이나 H2(계약 기반 lowering 선택이 유리하다)를 다시
 주가설로 세우지 말 것 — 둘 다 실험으로 기각/격하됐다(`EXPERIMENT_LOG.md`의 가설 판정 이력 참조).
 
 **v0.9에서 완료된 것**: E14 Stage 1(qemu-system-aarch64 전체 시스템 + cFS-in-guest)을 Claude
 Code에서 완료했다 — MLP 외 Conv2D·multi-branch·동적형상 모델 추가, cFS 게스트 안에서 A1·A3·
-A4·A6·A7·A8 시나리오 7/7 PASS, 계약 도구 자체의 검증 결함(D9·D10, `docs/EVIDENCE_v0.9_E14_stage1.md`
-§0.4) 발견·수정. 상세는 `docs/EVIDENCE_v0.9_E14_stage1.md` 참조.
+A4·A6·A7·A8 시나리오 7/7 PASS(단, 계획 대비 대폭 축소 — 아래 v0.9.1 참조), 계약 도구 자체의
+검증 결함(D9·D10, `docs/EVIDENCE_v0.9_E14_stage1.md` §0.4) 발견·수정. 상세는
+`docs/EVIDENCE_v0.9_E14_stage1.md` 참조.
+
+**v0.9.1에서 정정된 것 (외부 검토 2건 반영, `docs/EVIDENCE_v0.9_E14_stage1.md` §11)**: A5b가
+"native에서 확인됨"이라는 서술은 **실행 근거가 없어 철회**(native·cFS 어디에도 A5b 미실행,
+`runtime_load_failed`는 7/7 `null`). 7/7 PASS는 계획(31개 시나리오) 대비 대폭 축소된 7개 결과이며
+전부 timeout(`EXIT=124`)으로 종료돼 **정상 종료 시의 자원 회수는 미검증**. 스택 회계
+(`kernel_stack_accounted`)는 admission gate가 아니라 텔레메트리이며 구조상 항상 참에 가까운
+항등식(빌드가 써넣은 값을 앱이 그대로 되읽어 비교). conv2d의 HAL peak는 native 1,352 vs cFS
+3,528로 tightness가 구성마다 다름 — "HAL peak = contract" 일반화 금지. cross-target 비교
+(`comparison/*.json`)는 계약 수치 비교일 뿐 실행 대조가 아님(`native`/`both_sound` 전부 null).
+계약 도구 체인이 **fail-open**임도 확인(D11–D15) — 파서가 미인식 할당을 조용히 무시하고,
+헤더 생성기는 음수 `bounded_bytes`를 `BOUND_KNOWN=1`로 통과시켜 C 게이트가 무조건 ADMIT함.
+14개 계약 자체의 값은 vmfb 실물과 재대조해 14/14 일치 확인(도구 결함이 기존 값을 반증하지는 않음).
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -65,20 +83,37 @@ A4·A6·A7·A8 시나리오 7/7 PASS, 계약 도구 자체의 검증 결함(D9·
 
 ## 지금 바로 이어서 할 일 (Claude Code, 우선순위 1)
 
-E14 Stage 1은 완료됐다(v0.9). 다음 우선순위는 외부 검토 `REVIEW_v0_6_E13_RESEARCH_DIRECTION.md`
-§9-5와 `docs/EVIDENCE_v0.9_E14_stage1.md` §9(한계)가 남겨둔 항목이다:
+v0.9.1 정정(외부 검토 2건, `docs/EVIDENCE_v0.9_E14_stage1.md` §11)에서 두 검토가 합의한 순서를
+그대로 우선순위로 쓴다 — **모델·시나리오 수를 늘리는 것보다 "어떤 정보가 없거나 잘못됐을 때 절대
+ADMIT하지 않는가"를 먼저 닫는다.**
 
-1. **동일 경계의 대안 비교** — TFLite Micro(정적 아레나) 등과 같은 메모리 경계에서 비교해
+1. **fail-closed 계약 verifier (E15, 최우선)** — `static_mem_bound.py`의 파서가 미인식 자원 할당
+   연산을 조용히 무시하는 결함(직접 재현됨, §11.9)과 `gen_contract_header.py`가 음수
+   `bounded_bytes`·미지원 `bound_method`를 통과시키는 결함을 fail-closed로 전환. 허용 `bound_method`
+   화이트리스트, 모든 크기의 비음수 검사, 입출력 개수·dtype·entry ABI 검증, one-invocation 검사에
+   layout IR 결합(현재 미결합, §11.7). 음성 시험 스위트로 "거부돼야 할 입력이 실제로 거부되는지"
+   확인하고, 보관된 14개 계약을 재생성해 값 불변(회귀) 확인.
+2. **남은 cFS 음성·생명주기 시험** (환경 재구축 필요) — mlp16k·multibranch·dynamic의 cFS 레벨 A2
+   (경계값 B-1/B/B+1), 구조 손상 기반 A5b(임의 bit flip이 아니라 FlatBuffer/VM bytecode/embedded ELF
+   필드를 목표로), 실제 스택 미달 설정과 거부 동작(현재는 거부 분기 자체가 없음, §11.5), 재시작 2회
+   후 DELETE, 정상 STOP/DELETE 종료 후 해제 카운터 확인(현재 정상 종료 경로는 cleanup 미검증, §11.2).
+3. **정규 MLIR/IREE pass** — 텍스트 정규식 파서를 compiler 내부 Operation·Type·SSA 정보로 대체.
+   평가지표: 알려진 allocation 누락 없음, 미지원 표현 무시 안 함, compiler 버전 변경 시 명시적 실패,
+   기존 파서와 정상 모델에서 동일 값, 적대적 변형에서 과소 추정 방지.
+4. **동일 경계의 대안 비교** — TFLite Micro(정적 아레나) 등과 같은 메모리 경계에서 비교해
    "왜 MLIR/IREE 경로여야 하는가"에 답한다. 전제(TFLM이 컴파일 시 아레나 크기를 제공하는가)부터
-   1차 문서로 확인할 것 — 지금까지 이 서술은 "미검증"으로 표시돼 있다.
-2. **다중 AI 앱 동시 admission** (현재는 단일 앱만 시험) — v0.9의 AArch64 게스트 cFS 인프라를
-   그대로 재사용 가능(`scripts/51_build_cfs_aarch64.sh`, `harness/e14_cfs_scenarios.py`).
-3. **E14 Stage 1 잔여 항목** (시간 예산으로 생략, `EVIDENCE_v0.9_E14_stage1.md` §9 한계 참조):
-   mlp16k·multibranch·dynamic에 대한 cFS 레벨 A2(경계값 B-1/B/B+1) 재검증(현재는 conv2d만),
-   A5b(`runtime_load_failed`, 계약 해시가 손상 파일을 가리키는 경우) cFS 레벨 재현.
-4. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
+   1차 문서로 확인할 것. 지표: 과소 추정 발생률, tightness/과도한 거부, 분석 가능 범위, 재생성
+   자동화, stale contract 탐지, 분석·통합 비용.
+5. **임무 유사 workload + 다중 AI 앱 동시 admission** — 단일 앱 계약 수용 규칙(1–3)이 끝난 뒤 착수.
+   다중 앱은 전역 예산의 예약·해제·경합 설계가 새로 필요하다(현재는 전역 예약 없음).
+6. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
    있어야 착수 가능. 이 컨테이너에서는 원리적으로 불가능하다.
-5. RTEMS 단계(제안서 §17) — Linux AArch64 단계가 통과했으므로 이제 착수 가능하나 우선순위는 낮음.
+7. RTEMS 단계(제안서 §17) — Linux AArch64 단계가 통과했으므로 이제 착수 가능하나 우선순위는 낮음.
+
+**환경 참고**: 이 컨테이너는 세션마다 새로 시작되며 `~/onair-mlir-bench`(cFS 빌드, IREE C 런타임,
+AArch64 게스트 이미지)가 비어 있을 수 있다. 항목 1(도구 수정·음성 시험·계약 재생성)은
+`iree-compile`(동일 커밋 필요)과 `results/e14_aarch64_qemu/`의 보관 산출물만으로 재구축 없이 가능하다.
+항목 2 이후는 `scripts/99_bootstrap_all.sh` 등으로 환경을 다시 세워야 한다.
 
 ## 저장소 지도
 
