@@ -255,6 +255,88 @@
       },
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 262160,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 16,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": {
+        "app": "AI_LEARNER",
+        "stage": "run",
+        "model": "mlp16k",
+        "target": "aarch64-unknown-linux-gnu",
+        "attempted": 20,
+        "completed": 20,
+        "fail_input": 0,
+        "fail_invoke": 0,
+        "fail_output": 0,
+        "mean_us": 11715.0,
+        "max_us": 21111.17,
+        "last_us": 11284.34,
+        "out0": 1.41199,
+        "out": [
+          1.411992,
+          1.098279
+        ]
+      },
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "mlp16k",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 20,
+        "hal_peak": 786476,
+        "peak_within_bounded": true,
+        "hal_bytes_per_call_amortized": 101590.6,
+        "process_rss_kb": 7460,
+        "process_rss_delta_init_kb": 1452
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:03:35.71839 66/1/AI_LEARNER 8: AI_LEARNER stack: es=262160 base=262144 kernel=16 accounted=1",
+        "EVS Port1 1980-012-14:03:35.72102 66/1/AI_LEARNER 3: AI_LEARNER initialized: model mlp16k (732795 B), rss_delta_init=1452 KB",
+        "..EVS Port1 1980-012-14:03:54.69091 66/1/AI_LEARNER 4: AI_LEARNER completed=5/5 mean=13867.2us max=21111.2us hal_peak=786476 within_bounded=1",
+        "EVS Port1 1980-012-14:04:14.66455 66/1/AI_LEARNER 4: AI_LEARNER completed=10/10 mean=12326.7us max=21111.2us hal_peak=786476 within_bounded=1",
+        "...EVS Port1 1980-012-14:04:34.67446 66/1/AI_LEARNER 4: AI_LEARNER completed=15/15 mean=12182.6us max=21111.2us hal_peak=786476 within_bounded=1",
+        "EVS Port1 1980-012-14:04:54.66947 66/1/AI_LEARNER 4: AI_LEARNER completed=20/20 mean=11715.0us max=21111.2us hal_peak=786476 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "A6_mlp16k_repeat",
+      "model": "mlp16k",
+      "scenario": "A6 \ubc18\ubcf5 \ucd94\ub860: attempted==completed, \uc2e4\ud328 0",
+      "seconds": 90,
+      "commands_sent": [],
+      "log": "results/e14_aarch64_qemu/cfs/logs/A6_mlp16k_repeat.log",
+      "expect": {
+        "admission": "ADMIT",
+        "binding": "MATCH",
+        "cfs_operational": true,
+        "no_crash": true,
+        "min_completed": 15,
+        "no_failures": true,
+        "peak_within_bounded": true
+      },
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }
