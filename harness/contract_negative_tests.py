@@ -181,6 +181,47 @@ def header_negative_cases(root, tmp):
     rc, out, err = run([PY, GEN_HEADER, cpath, hpath, "--allow-unknown-stack"])
     results.append(Result("header-neg: missing stack + --allow-unknown-stack -> accepted (explicit override)",
                           rc == 0 and os.path.exists(hpath), "rc=%d stderr=%s" % (rc, err.strip()[:160])))
+
+    # F6 (external review, 2026-09): a NUMERIC stack figure whose own analysis
+    # flags it as unreliable (dynamic alloca, unresolved external calls, or a
+    # classification other than none/bucket_2) used to still get
+    # CONTRACT_KERNEL_STACK_BYTES_KNOWN=1 -- only "is it an int" was checked,
+    # not "did elf_stack_frame.py's own classify() trust it". Each of the
+    # three untrusted signals must independently refuse (int stack value kept
+    # unchanged, so the ONLY thing making these bad is the flag).
+    try_mutation("stack figure present but kernel_dynamic_stack_alloc=true (F6)",
+                lambda c: c["resources"].__setitem__("kernel_dynamic_stack_alloc", True))
+    try_mutation("stack figure present but kernel_external_call_insns!=0 (F6)",
+                lambda c: c["resources"].__setitem__("kernel_external_call_insns", 1))
+    try_mutation("stack figure present but kernel_stack_classification=bucket_4_unaccounted_dynamic_stack (F6)",
+                lambda c: c["resources"].__setitem__("kernel_stack_classification",
+                                                      "bucket_4_unaccounted_dynamic_stack"))
+    # --allow-unknown-stack must still let the untrusted-classification case
+    # through too (same override, now covering both "absent" and "untrusted").
+    c = copy.deepcopy(base)
+    c["resources"]["kernel_dynamic_stack_alloc"] = True
+    cpath = os.path.join(tmp, "hdr_allow_untrusted_stack.json")
+    hpath = cpath[:-5] + ".h"
+    write_json(c, cpath)
+    rc, out, err = run([PY, GEN_HEADER, cpath, hpath, "--allow-unknown-stack"])
+    results.append(Result("header-neg: untrusted stack (F6) + --allow-unknown-stack -> accepted (explicit override)",
+                          rc == 0 and os.path.exists(hpath), "rc=%d stderr=%s" % (rc, err.strip()[:160])))
+
+    # F7 (external review, 2026-09): the C interface gate claimed to check
+    # "single-f32" but had no dtype macro to check at all -- confirm the new
+    # CONTRACT_DTYPES_ALL_F32 macro is actually emitted, and is 0 for the
+    # existing non-f32-dtype negative case above (not just refused before
+    # reaching macro emission, which the "non-f32 dtype" mutation already
+    # covers by refusing outright -- this checks the ACCEPTED, f32 case emits
+    # the macro as 1 so the C-level check in ai_learner.c/native_learner.c has
+    # something real to test).
+    cpath = os.path.join(tmp, "hdr_dtype_macro_sanity.json")
+    hpath = cpath[:-5] + ".h"
+    write_json(base, cpath)
+    rc, out, err = run([PY, GEN_HEADER, cpath, hpath])
+    macro_present = rc == 0 and os.path.isfile(hpath) and "CONTRACT_DTYPES_ALL_F32 1" in open(hpath).read()
+    results.append(Result("header-neg: CONTRACT_DTYPES_ALL_F32 emitted as 1 for an all-f32 contract (F7)",
+                          macro_present, "rc=%d" % rc))
     return results
 
 
@@ -206,7 +247,12 @@ def make_contract_negative_cases(root, tmp):
               "--extra-args", "--mlir-elide-elementsattrs-if-larger=16"]
         if elf_analysis:
             cmd[cmd.index("--out"):cmd.index("--out")] = ["--elf-analysis", elf_analysis]
-        return cmd + list(extra_flags)
+        # make_contract.py's parse_args() takes EVERYTHING after a bare
+        # --extra-args verbatim (it's the iree-compile flags of the
+        # invocation) -- any of our own --allow-* flags must go BEFORE it or
+        # they silently become iree-compile args instead of reaching argparse.
+        extra_args_idx = cmd.index("--extra-args")
+        return cmd[:extra_args_idx] + list(extra_flags) + cmd[extra_args_idx:]
 
     def try_case(name, model, tgt, layout_ir, dump_dir, elf_analysis=None, extra_flags=()):
         out = os.path.join(tmp, "mc_%s.json" % re.sub(r"\W+", "_", name))
@@ -295,6 +341,50 @@ def make_contract_negative_cases(root, tmp):
     if os.path.isdir(mlp_dump):
         try_case("dump-dir belongs to a different model (D10 regression)",
                  "conv2d", "aarch64", inv["layout_ir"], mlp_dump, elf_json)
+
+    # F1 (external review, 2026-09): an empty --dump-dir makes every
+    # one-invocation signal None ("could not evaluate") rather than False
+    # ("verified mismatch") -- the old checks only ever caught False, so this
+    # used to write a fully "valid" contract with single_invocation=false and
+    # not one note explaining why. Must now be refused by default, and
+    # writable only with the matching --allow-unverified-invocation override.
+    empty_dump = os.path.join(tmp, "f1_empty_dump")
+    os.makedirs(empty_dump, exist_ok=True)
+    try_case("--dump-dir is empty, one-invocation signals unverifiable (F1)",
+             "conv2d", "aarch64", inv["layout_ir"], empty_dump, elf_json)
+    out = os.path.join(tmp, "f1_override.json")
+    cmd = base_cmd("conv2d", "aarch64", inv["layout_ir"], empty_dump, out, elf_json,
+                   extra_flags=("--allow-unverified-invocation",))
+    rc, o, err = run(cmd)
+    c = load(out) if (rc == 0 and os.path.exists(out)) else None
+    results.append(Result("make_contract-neg: --allow-unverified-invocation overrides the empty --dump-dir (F1)",
+                          rc == 0 and c is not None and c["provenance"]["single_invocation"] is False,
+                          "rc=%d stderr=%s" % (rc, err.strip()[:200])))
+
+    # F2 (external review, 2026-09): iree.abi.declaration being ENTIRELY
+    # ABSENT from the layout IR used to only add a note, unlike a declaration
+    # that disagrees with the source (handled above, hard fail by default) --
+    # an asymmetry between "no reflection to check against" and "reflection
+    # disagrees" that let the contract trust the source signature alone with
+    # no compiler cross-check at all. Must now be refused by default too.
+    if os.path.isfile(inv["layout_ir"]):
+        ir_text = open(inv["layout_ir"]).read()
+        no_abi = re.sub(r',?\s*iree\.reflection = \{iree\.abi\.declaration = "[^"]*"\}', "", ir_text)
+        if no_abi != ir_text and "iree.abi.declaration" not in no_abi:
+            no_abi_path = os.path.join(tmp, "conv2d_no_abi.layout_ir.txt")
+            with open(no_abi_path, "w") as f:
+                f.write(no_abi)
+            try_case("iree.abi.declaration entirely absent from layout IR (F2)",
+                     "conv2d", "aarch64", no_abi_path, dump_dir, elf_json)
+            out = os.path.join(tmp, "f2_override.json")
+            cmd = base_cmd("conv2d", "aarch64", no_abi_path, dump_dir, out, elf_json,
+                           extra_flags=("--allow-missing-abi-declaration",))
+            rc, o, err = run(cmd)
+            results.append(Result("make_contract-neg: --allow-missing-abi-declaration overrides the absence (F2)",
+                                  rc == 0 and os.path.exists(out), "rc=%d stderr=%s" % (rc, err.strip()[:200])))
+        else:
+            results.append(Result("make_contract-neg: F2 fixture present (abi declaration removable)", False,
+                                  "could not cleanly remove iree.abi.declaration from layout IR"))
     return results
 
 
@@ -328,34 +418,43 @@ def structural_hard_fail_cases(root):
     except Exception as e:
         return [Result("structural-hard-fail: make_contract importable", False, str(e)[:200])]
 
-    def args(allow_structural_mismatch=False):
+    def args(allow_structural_mismatch=False, allow_missing_structural_checker=False):
         return argparse.Namespace(
             mlir=inv["mlir"], vmfb=inv["vmfb"], layout_ir=inv["layout_ir"], dump_dir=dump_dir,
             triple=TARGET_INFO["aarch64"]["triple"], cpu=TARGET_INFO["aarch64"]["cpu"],
             model_name="conv2d", entry="infer", driver="local-sync", profile=None,
             elf_analysis=elf_json, runtime_commit=None,
             allow_abi_mismatch=False, allow_triple_mismatch=False, allow_elf_analysis_mismatch=False,
+            allow_missing_abi_declaration=False, allow_unverified_invocation=False,
             allow_structural_mismatch=allow_structural_mismatch,
+            allow_missing_structural_checker=allow_missing_structural_checker,
         )
 
-    def run_build(allow_structural_mismatch=False):
+    def run_build(allow_structural_mismatch=False, allow_missing_structural_checker=False):
         try:
-            c = mc.build_contract(args(allow_structural_mismatch), [])
+            c = mc.build_contract(args(allow_structural_mismatch, allow_missing_structural_checker), [])
             return True, None, c
         except SystemExit as e:
             return False, str(e), None
 
-    # E19 code review finding #11: the "iree.compiler.ir not installed"
-    # graceful-degradation path (EVIDENCE_v0.14_E19.md SS4) was checked by hand
-    # during the E19 session but had no repeatable test -- and this function's
-    # OWN prerequisite check below (bailing out when the real package is
-    # missing) meant that in an environment lacking iree.compiler.ir, this
-    # whole test group would report FAILURES instead of verifying the one
-    # behaviour that matters there. Test it directly by replacing mc.maw
-    # itself (not just parse_alloc_ir_structural) with a stand-in whose
-    # `ir` attribute is None -- exactly what happens when the import at the
-    # top of make_contract.py fails -- independent of whether the real
-    # package happens to be installed in THIS test run.
+    # E19 code review finding #11: the "iree.compiler.ir not installed" path
+    # (EVIDENCE_v0.14_E19.md SS4) was checked by hand during the E19 session
+    # but had no repeatable test -- and this function's OWN prerequisite check
+    # below (bailing out when the real package is missing) meant that in an
+    # environment lacking iree.compiler.ir, this whole test group would report
+    # FAILURES instead of verifying the behaviour that matters there. Test it
+    # directly by replacing mc.maw itself (not just parse_alloc_ir_structural)
+    # with a stand-in whose `ir` attribute is None -- exactly what happens
+    # when the import at the top of make_contract.py fails -- independent of
+    # whether the real package happens to be installed in THIS test run.
+    #
+    # F3 (external review, 2026-09): make_contract.py's default changed --
+    # this project calls the structural cross-check MANDATORY, so a missing
+    # checker is now refused by default too (previously it silently degraded
+    # to regex-only, which the review correctly pointed out made "mandatory"
+    # an overstatement). Confirm BOTH directions: default refuses, and the
+    # explicit --allow-missing-structural-checker override still degrades
+    # gracefully with the number correctly computed by the regex path alone.
     orig_maw = mc.maw
 
     class _FakeUnavailableMaw:
@@ -364,11 +463,15 @@ def structural_hard_fail_cases(root):
 
     try:
         mc.maw = _FakeUnavailableMaw()
-        ok, err, c = run_build()
-        bounded = c["resources"]["bounded_bytes"] if c else None
-        results.append(Result("structural-hard-fail: iree.compiler.ir unavailable -> graceful degrade (not hard-fail)",
-                              ok and bounded is not None, "ok=%s err=%s bounded_bytes=%s" % (ok, err, bounded)))
-        avail = c["provenance"]["structural_walker"]["available"] if c else None
+        ok, err, c = run_build(allow_missing_structural_checker=False)
+        results.append(Result("structural-hard-fail: iree.compiler.ir unavailable -> refused by default (F3)",
+                              not ok, err or "wrote a contract despite a missing structural checker"))
+
+        ok2, err2, c2 = run_build(allow_missing_structural_checker=True)
+        bounded = c2["resources"]["bounded_bytes"] if c2 else None
+        results.append(Result("structural-hard-fail: --allow-missing-structural-checker overrides, degrades gracefully",
+                              ok2 and bounded is not None, "ok=%s err=%s bounded_bytes=%s" % (ok2, err2, bounded)))
+        avail = c2["provenance"]["structural_walker"]["available"] if c2 else None
         results.append(Result("structural-hard-fail: degrade path records available=False (not silently omitted)",
                               avail is False, "available=%s" % avail))
     finally:
@@ -761,6 +864,45 @@ def structural_walker_checks(root):
                                   any("dealloca" in u for u in r["unresolved"]), str(r["unresolved"])))
         finally:
             maw.KNOWN_ENTRY_OPS = orig
+
+    # F5 (external review, 2026-09): stream.resource.pack's non-constant
+    # index operands used to be silently dropped instead of going to
+    # unresolved (the sibling stream.tensor.import / stream.resource.alloca
+    # branches both use the symmetric "bucket if ok else unresolved" pattern;
+    # only pack was missing the else). Real IREE Stream_ResourcePackOp
+    # assembly syntax (verified against iree-org/iree upstream
+    # StreamOps.td/resource_ops.mlir, not guessed) with one constant slice
+    # size and one non-constant (arith.addi of a block argument) -- current
+    # corpus has none of this op so this is the only coverage for it.
+    pack_ir = '''
+module {
+  util.func public @infer(%arg0: index) -> index {
+    %c128 = arith.constant 128 : index
+    %c64 = arith.constant 64 : index
+    %nonconst = arith.addi %arg0, %c64 : index
+    %0:3 = stream.resource.pack offset(%c128) slices({
+      [0, 9] = %c64,
+      [3, 8] = %nonconst,
+    }) : index
+    util.return %0#0 : index
+  }
+}
+'''
+    if maw.ir is None:
+        results.append(Result("structural: stream.resource.pack non-constant slice size -> unresolved (F5)",
+                              False, "iree.compiler.ir not importable in this environment"))
+        return results
+    try:
+        ctx = maw.ir.Context()
+        mod = maw.ir.Module.parse(pack_ir, ctx)
+        entries = maw._find_entry_candidates(mod.operation, "infer")
+        r = maw._extract_from_entry(entries[0]) if entries else None
+        ok = bool(r) and any("addi" in u or "non_constant" in u for u in r.get("unresolved", []))
+        results.append(Result("structural: stream.resource.pack non-constant slice size -> unresolved (F5)",
+                              ok, str(r) if r else "entry @infer not found"))
+    except Exception as e:
+        results.append(Result("structural: stream.resource.pack non-constant slice size -> unresolved (F5)",
+                              False, "exception: %s" % str(e)[:200]))
     return results
 
 

@@ -166,12 +166,20 @@ def _extract_from_entry(entry_op):
             # not skipped. (Not exercised by the current model corpus -- none
             # of the 14 stored layout IRs use stream.resource.pack in the
             # entry body -- but must not be silently ignored if one does.)
+            # F5 (external review, 2026-09): this branch used to only append on
+            # ok=True -- a non-constant index operand (e.g. a runtime-computed
+            # slice size) was silently dropped instead of going to unresolved,
+            # contradicting the comment above and the sibling branches
+            # (stream.tensor.import / stream.resource.alloca) two cases up,
+            # which both use the symmetric (bucket if ok else unresolved)
+            # pattern. Reproduced directly with a synthesized
+            # stream.resource.pack whose size operand is an arith.addi result.
             for opd in o.operands:
                 if str(opd.type) != "index":
                     continue
                 v, ok = _resolve_index_value(opd)
-                if ok:
-                    result["transient_slices"].append(v)
+                (result["transient_slices"] if ok else result["unresolved"]).append(
+                    v if ok else "pack_slice:%s" % v)
         # stream.tensor.export / stream.resource.dealloca: consume an
         # already-counted resource, allocate nothing new -- intentionally
         # not sized (matches static_mem_bound.py's KNOWN_ENTRY_OPS treatment).

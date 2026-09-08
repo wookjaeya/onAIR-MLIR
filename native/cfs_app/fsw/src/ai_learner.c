@@ -59,7 +59,7 @@
 #if !defined(CONTRACT_BOUND_KNOWN) || !defined(CONTRACT_INPUT_RANK) || !defined(CONTRACT_INPUT_SHAPE) || \
     !defined(CONTRACT_OUTPUT_ELEMS) || !defined(CONTRACT_ENTRY) || !defined(CONTRACT_KERNEL_STACK_BYTES) || \
     !defined(CONTRACT_MODEL_NAME) || !defined(CONTRACT_TARGET_TRIPLE) || !defined(CONTRACT_DRIVER) || \
-    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS)
+    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS) || !defined(CONTRACT_DTYPES_ALL_F32)
 #error "contract_gen.h is missing Stage 1 macros: regenerate it with harness/gen_contract_header.py"
 #endif
 /* A contract whose shapes are not all static cannot carry a static bound; refuse it as
@@ -226,10 +226,14 @@ static int32 AI_LEARNER_Init(void) {
    * gen_contract_header.py already refuses to emit a bound-known header whose
    * interface is not that shape (E15), so this should be unreachable for any
    * header it produced -- it only catches a stale or hand-edited contract_gen.h. */
-  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1) {
+  /* F7 (external review, 2026-09): the message above already claimed to check
+   * "single-f32" while the condition only ever checked input/output COUNT --
+   * there was no macro carrying dtype for C to test. CONTRACT_DTYPES_ALL_F32
+   * (gen_contract_header.py) closes that: now the condition matches the name. */
+  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1 || !CONTRACT_DTYPES_ALL_F32) {
     CFE_EVS_SendEvent(EID_INTERFACE_MISMATCH, CFE_EVS_EventType_CRITICAL,
-      "AI_LEARNER: bound known but interface is not single-f32-in/single-f32-out (num_inputs=%d num_outputs=%d); app will not start",
-      (int)CONTRACT_NUM_INPUTS, (int)CONTRACT_NUM_OUTPUTS);
+      "AI_LEARNER: bound known but interface is not single-f32-in/single-f32-out (num_inputs=%d num_outputs=%d dtypes_all_f32=%d); app will not start",
+      (int)CONTRACT_NUM_INPUTS, (int)CONTRACT_NUM_OUTPUTS, (int)CONTRACT_DTYPES_ALL_F32);
     AI_LEARNER_Cleanup();
     return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }

@@ -121,6 +121,26 @@ def main():
     if stack is None:
         stack = r.get("kernel_task_stack_bytes")
     stack_known = is_int(stack)
+    # F6 (external review, 2026-09): a numeric stack figure is not by itself a
+    # trustworthy bound -- elf_stack_frame.py's own classify() says so in its
+    # own classification_note ("no static task-stack bound -- revise contract
+    # boundary before admission" for bucket_4_unaccounted_dynamic_stack;
+    # "callee stack use is not visible in this ELF" for bucket_3/4 unresolved
+    # calls), but this generator used to only ask "is it an int", not "did the
+    # analysis that produced it say it doesn't trust it". A contract whose
+    # kernel_dynamic_stack_alloc=true or kernel_external_call_insns!=0 (or a
+    # classification other than none/bucket_2_task_stack_budget) got
+    # CONTRACT_KERNEL_STACK_BYTES_KNOWN=1 anyway. Reproduced directly by
+    # editing a stored contract to that combination and generating a header.
+    # Treat "the analysis itself flagged this as unreliable" the same as
+    # "no figure at all" -- same --allow-unknown-stack escape hatch.
+    stack_classification = r.get("kernel_stack_classification")
+    stack_untrusted = (
+        bool(r.get("kernel_dynamic_stack_alloc"))
+        or bool(r.get("kernel_external_call_insns"))
+        or stack_classification not in (None, "none", "bucket_2_task_stack_budget"))
+    if stack_untrusted:
+        stack_known = False
     # D13/D15 (EVIDENCE_v0.9 SS11.5, SS11.9): a bound-known contract with no
     # kernel stack analysis used to still get a header
     # (CONTRACT_KERNEL_STACK_BYTES_KNOWN=0, CONTRACT_KERNEL_STACK_BYTES=0L)
@@ -129,6 +149,13 @@ def main():
     # caller can opt in explicitly (e.g. while iterating on a new model
     # before ELF analysis is wired up) via --allow-unknown-stack.
     if bound_known and not stack_known and not allow_unknown_stack:
+        if stack_untrusted:
+            raise SystemExit("gen_contract_header: bound_method=%s and a numeric stack figure is present "
+                             "(%r), but the ELF analysis flagged it as unreliable (kernel_stack_classification=%r "
+                             "kernel_dynamic_stack_alloc=%r kernel_external_call_insns=%r) -- refusing to emit "
+                             "a header that would report it as known (pass --allow-unknown-stack to override)"
+                             % (method, stack, stack_classification, r.get("kernel_dynamic_stack_alloc"),
+                                r.get("kernel_external_call_insns")))
         raise SystemExit("gen_contract_header: bound_method=%s but no kernel_task_stack_invocation_bytes/"
                          "kernel_task_stack_bytes in resources -- refusing to emit a header with an implicit "
                          "0 B kernel stack (pass --allow-unknown-stack to override)" % method)
@@ -179,6 +206,16 @@ def main():
         "#define CONTRACT_SHAPES_STATIC %d" % (1 if all(d >= 0 for d in in_shape + out_shape) else 0),
         "#define CONTRACT_NUM_INPUTS %d" % n_in,
         "#define CONTRACT_NUM_OUTPUTS %d" % n_out,
+        # F7 (external review, 2026-09): native_learner.c/ai_learner.c's C-level
+        # interface gate checked CONTRACT_NUM_INPUTS/OUTPUTS but not dtype --
+        # the event message called it a "single-f32" check while the actual
+        # condition never referenced f32 at all, because no dtype macro
+        # existed for the C code to check. This project generates the header
+        # from a validated contract (dtype already refused above if not all
+        # f32), so today's normal path is safe -- but a stale or hand-edited
+        # contract_gen.h (the exact threat model the C comment names) can have
+        # correct counts and wrong dtypes with nothing in C to catch it.
+        "#define CONTRACT_DTYPES_ALL_F32 %d" % (1 if bound_known and not (dtypes - {"f32"}) else 0),
         "#define CONTRACT_DRIVER %s" % c_str(v.get("driver", "local-sync")),
         "#endif",
     ]

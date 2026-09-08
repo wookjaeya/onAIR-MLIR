@@ -36,16 +36,18 @@ What is parsed from where
                                        E19: a SECOND, independent reader of the
                                        same layout IR, via IREE's own MLIR
                                        Python API (iree.compiler.ir) instead of
-                                       regex (EVIDENCE_v0.13/E18). Used only as
-                                       a mandatory cross-check against
-                                       static_mem_bound.parse_alloc_ir -- if the
-                                       package is missing this step is skipped
-                                       (noted, not hard-failed: the regex path
-                                       alone is still the fail-closed baseline
-                                       E15 established); if it IS available but
+                                       regex (EVIDENCE_v0.13/E18). Used as a
+                                       MANDATORY cross-check against
+                                       static_mem_bound.parse_alloc_ir: if it
                                        disagrees or cannot parse the IR, the
                                        contract is refused (see
-                                       --allow-structural-mismatch).
+                                       --allow-structural-mismatch); if the
+                                       package is not installed at all, the
+                                       contract is ALSO refused by default
+                                       (F3, external review 2026-09 -- a
+                                       missing checker is not a passing one;
+                                       see --allow-missing-structural-checker
+                                       for the explicit opt-out).
 
 Caveat recorded in provenance (found while writing this): with the default
 multi-threaded pass manager, --mlir-print-ir-after prints EVERY function
@@ -283,8 +285,17 @@ def build_contract(a, extra_args):
     abi = abi_declaration(ir, a.entry)
     abi_matches = (abi is not None and sig_equal(abi["inputs"], sig["inputs"])
                    and sig_equal(abi["outputs"], sig["outputs"]))
+    # F2 (external review, 2026-09): a MISSING iree.abi.declaration used to only
+    # go into `notes` -- unlike a declaration that disagrees with the source
+    # (handled below), an absent one skipped the compiler's own reflection
+    # cross-check entirely and still let the contract trust the source
+    # signature alone. Missing is not the same as agreeing; treat it the same
+    # as a mismatch (hard fail unless explicitly overridden).
     if abi is None:
-        notes.append("no iree.abi.declaration for @%s in the layout IR" % a.entry)
+        msg = "no iree.abi.declaration for @%s in the layout IR" % a.entry
+        notes.append(msg)
+        if not a.allow_missing_abi_declaration:
+            hard_fail_errors.append(msg + " (pass --allow-missing-abi-declaration to override)")
     elif not abi_matches:
         msg = "iree.abi.declaration disagrees with the MLIR source signature"
         notes.append(msg)
@@ -396,8 +407,10 @@ def build_contract(a, extra_args):
                         if structural is not None else [])
 
     if not structural_available:
-        structural_note = ("structural (iree.compiler.ir) cross-check unavailable%s: skipped, the regex "
-                           "parser remains the sole extraction method (same fail-closed baseline as before E19)"
+        structural_note = ("structural (iree.compiler.ir) cross-check unavailable%s: this project calls it "
+                           "a MANDATORY cross-check, so a genuinely missing checker is refused by default "
+                           "the same as an active disagreement (F3, external review 2026-09) -- pass "
+                           "--allow-missing-structural-checker to proceed with the regex parser alone"
                            % ((" (%s)" % structural_error) if structural_error else ""))
     elif structural is None:
         structural_note = "structural (iree.compiler.ir) cross-check could not parse the layout IR: %s" % structural_error
@@ -424,6 +437,8 @@ def build_contract(a, extra_args):
             hard_fail_errors.append(structural_note + " (pass --allow-structural-mismatch to override)")
     elif not structural_available:
         notes.append(structural_note)
+        if not a.allow_missing_structural_checker:
+            hard_fail_errors.append(structural_note)
 
     # ---- artifact ---------------------------------------------------------
     dump_txt, dump_err = iree_dump_module(a.vmfb)
@@ -517,7 +532,28 @@ def build_contract(a, extra_args):
     layout_dispatches_in_dump = (all(any(dn in fname for fname in dump_names) for dn in layout_dispatch_names)
                                  if (layout_dispatch_names and dump_files) else None)
 
+    # F1 (external review, 2026-09): the three one-invocation signals above
+    # (dump_elf_in_vmfb, stem_in_dump, layout_dispatches_in_dump) are each
+    # tri-state -- True (verified same-invocation), False (verified NOT the
+    # same, e.g. D10/D14), or None ("could not evaluate", e.g. --dump-dir was
+    # empty). The checks below only ever caught the False case; a --dump-dir
+    # with zero files makes every signal None, invocation_errors stays empty,
+    # and the contract is written with single_invocation=false and NOT ONE
+    # note explaining why -- "did not find a mismatch" silently became
+    # equivalent to "confirmed the same invocation". Reproduced directly:
+    # --dump-dir pointed at an empty directory writes a fully "valid"
+    # contract. Fail closed on "could not verify" the same as on "verified
+    # mismatch", with the same --allow-* escape hatch pattern.
     invocation_errors = []
+    if not dump_files:
+        msg = ("--dump-dir '%s' contains no files: none of the one-invocation cross-checks "
+              "(embedded-ELF match, mlir-basename match, layout-ir dispatch match) could be "
+              "evaluated -- this looks like --iree-hal-dump-executable-files-to was not passed "
+              "to the compile, or --dump-dir points at the wrong directory, not like a verified "
+              "same-invocation compile" % a.dump_dir)
+        notes.append(msg)
+        if not a.allow_unverified_invocation:
+            invocation_errors.append(msg + " (pass --allow-unverified-invocation to override)")
     if dump_elf is not None and embedded and dump_elf_in_vmfb is False:
         invocation_errors.append(
             "--dump-dir's linked executable (%s, sha256 %s) is NOT embedded in --vmfb: "
@@ -780,6 +816,15 @@ def parse_args(argv):
     ap.add_argument("--allow-abi-mismatch", action="store_true",
                     help="do not hard-fail when iree.abi.declaration disagrees with the MLIR source signature "
                          "(D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract)")
+    ap.add_argument("--allow-missing-abi-declaration", action="store_true",
+                    help="do not hard-fail when iree.abi.declaration is absent from the layout IR entirely "
+                         "(F2, external review 2026-09; the compiler's own reflection cross-check of the "
+                         "source signature is then skipped -- default is to refuse writing the contract)")
+    ap.add_argument("--allow-unverified-invocation", action="store_true",
+                    help="do not hard-fail when --dump-dir is empty and the one-invocation cross-checks "
+                         "(embedded-ELF match, mlir-basename match, layout-ir dispatch match) could not be "
+                         "evaluated at all (F1, external review 2026-09; default is to refuse writing the "
+                         "contract -- 'could not verify' is not the same as 'verified')")
     ap.add_argument("--allow-triple-mismatch", action="store_true",
                     help="do not hard-fail when codegen.ll's target triple arch differs from --triple "
                          "(D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract)")
@@ -791,8 +836,13 @@ def parse_args(argv):
                     help="do not hard-fail when the structural (iree.compiler.ir) extractor "
                          "(harness/mlir_alloc_walk.py, E18/E19) disagrees with, or cannot parse what, "
                          "the regex parser read from the same layout IR (default is to refuse writing "
-                         "the contract; does not apply when iree.compiler.ir is simply not installed, "
-                         "which is a skip, not a mismatch)")
+                         "the contract; does not cover iree.compiler.ir being entirely uninstalled -- "
+                         "see --allow-missing-structural-checker for that, F3 external review 2026-09)")
+    ap.add_argument("--allow-missing-structural-checker", action="store_true",
+                    help="do not hard-fail when iree.compiler.ir is not installed at all, so the structural "
+                         "cross-check never ran (F3, external review 2026-09; default is to refuse writing "
+                         "the contract with the regex parser alone, since this project calls the structural "
+                         "cross-check MANDATORY -- a missing checker should not silently mean 'skip')")
     ap.add_argument("--extra-args", nargs="*", default=[], help="extra iree-compile flags of the invocation (must be LAST)")
     a = ap.parse_args(rest)
     a.extra_args = extra

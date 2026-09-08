@@ -42,7 +42,7 @@
 #if !defined(CONTRACT_BOUND_KNOWN) || !defined(CONTRACT_INPUT_RANK) || !defined(CONTRACT_INPUT_SHAPE) || \
     !defined(CONTRACT_OUTPUT_ELEMS) || !defined(CONTRACT_ENTRY) || !defined(CONTRACT_KERNEL_STACK_BYTES) || \
     !defined(CONTRACT_MODEL_NAME) || !defined(CONTRACT_TARGET_TRIPLE) || !defined(CONTRACT_DRIVER) || \
-    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS)
+    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS) || !defined(CONTRACT_DTYPES_ALL_F32)
 #error "contract_gen.h is missing Stage 1 macros: regenerate it with harness/gen_contract_header.py"
 #endif
 /* A contract whose shapes are not all static cannot carry a static bound; refuse it as
@@ -143,10 +143,14 @@ int main(int argc, char** argv) {
    * already refuses to emit a bound-known header whose interface is not that
    * shape, so this should never fire for a header it produced -- it only
    * catches a stale or hand-edited contract_gen.h. */
-  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1) {
+  /* F7 (external review, 2026-09): the message and comment above already
+   * called this a "single-f32" check while the condition only ever checked
+   * input/output COUNT -- there was no macro carrying dtype for C to test.
+   * CONTRACT_DTYPES_ALL_F32 (gen_contract_header.py) closes that. */
+  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1 || !CONTRACT_DTYPES_ALL_F32) {
     printf("{\"stage\":\"exit\",\"reason\":\"bound known but interface is not the single-f32-input/single-f32-output "
-           "shape this runtime hardcodes\",\"num_inputs\":%d,\"num_outputs\":%d,\"cleanup_calls\":%d}\n",
-           CONTRACT_NUM_INPUTS, CONTRACT_NUM_OUTPUTS, g.cleanup_calls);
+           "shape this runtime hardcodes\",\"num_inputs\":%d,\"num_outputs\":%d,\"dtypes_all_f32\":%d,\"cleanup_calls\":%d}\n",
+           CONTRACT_NUM_INPUTS, CONTRACT_NUM_OUTPUTS, CONTRACT_DTYPES_ALL_F32, g.cleanup_calls);
     return 9;
   }
 
