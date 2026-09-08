@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.17**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.18**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -144,6 +144,31 @@ iree.compiler.ir 두 경로) 신설. 이 세션 내 실제 `git clone`으로 재
 설치 시 **107/107**, 미설치 시 크래시 없이 **77/77 + 3 SKIP**. README의 "환경 구축 불필요"가
 이제 정확한 주장이 됨. **여전히 남은 것**: F4, F8, F10 — E23로 이연.
 
+**v0.18에서 완료된 것 (E23, `docs/EVIDENCE_v0.18_E23.md`)**: 외부 검토(v0.15)의 잔여 4건과,
+**E22가 만든 CI가 실제 실행에서 잡아낸 신규 크래시 1건**을 처리했다. F8(D26): A5b가
+`EVIDENCE_v0.12` §2.1이 서술한 구조 손상이 아니라 A5a와 **동일한** 임의 bit flip을 쓰고 있었고
+두 방식을 구분하는 필드조차 없었다(E17 결과 자체는 수작업 구조 손상으로 얻은 것이라 반증되지
+않지만, 저장소 코드만으로는 재현 불가였다) — `harness/corrupt_vmfb.py`를 신설해 두 방식을 실제
+코드로 만들고(ZIP64/STORED 컨테이너를 풀지 않고 `module.fb` 첫 4바이트만 덮고 양쪽 CRC32를
+갱신하는 외과적 패치), `corrupt_method`를 필수화(누락·미인식은 `ValueError`). 보관 vmfb 8/8에서
+컨테이너 CRC 유효·타 엔트리 불변·크기 동일·**결정적**(호스트가 만든 corruptsha 계약의 해시가
+게스트 산출물과 같아야 하므로 필수 성질)을 확인하고, `iree.runtime`으로 실제 로드해 E17이 cFS
+에서 본 것과 **같은 오류 문자열**(`FlatBuffer length prefix out of bounds, prefix 4294967295`)로
+거부됨을 확인 — A5b의 네 번째 레벨. F10(D27): OnAIR `CompiledLearner`가 계약이 지목한 vmfb를
+sha256·크기 검사 없이 로드하고 있었다(C 경로는 크기 선검사→sha256→자원 획득 전 거부를 이미
+하고 있어 A3·A5a에서 비대칭) — `plugins/compiled_learner/artifact_binding.py` 신설(stdlib 전용),
+`verify_artifact_hash=True` 기본, 계약에 해당 필드가 없으면 검사 생략이 아니라 거부. F4는 표현
+정정(§3), F11은 not-a-defect 판정 유지 + admission JSON에 `"scope":"per_app_local_budget"` 명시.
+**D25(방법론적으로 가장 중요)**: `iree-dump-module` 바이너리 부재 시 uncaught
+`FileNotFoundError`로 전체 크래시 — D24와 같은 부류의 두 번째 지점인데, **E22가 D24를 확인할 때
+쓴 `sys.meta_path` import 차단은 Python 모듈만 숨기고 콘솔 스크립트는 PATH에 남기므로 이 조건을
+원리적으로 재현할 수 없었다.** 사람이 아니라 **CI가** 잡았다. 두 함수가 `OSError`를 잡고,
+`artifact_rodata_segments`는 `([],[])`가 아니라 `(None,None)`을 반환해 "관측 못 함"과 "관측했고
+없음"을 구분한다(상수 독립 확인 불가는 `null` + 기본 거부). `contract_negative_tests.py`
+107/107 → **125/125**, 모듈만 부재 95/95+3 SKIP, **도구·모듈 모두 부재 50/50+5 SKIP(크래시 없음)**.
+`EVIDENCE_v0.13_E18.md` §7·`EVIDENCE_v0.17_E22.md` §6에 정오표 추가.
+
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -271,11 +296,21 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    **외부 검토 F11(v0.15, E23에서 확인)과 합침**: 현재 admission이 "이 부분 계약 값이 로컬
    정책 한도 이하인가"를 판정할 뿐 "온보드 컴퓨터 전체가 이 모델을 수용 가능한가"를 판정하는
    게 아니라는 지적은 이미 위 문장이 말하는 것과 같은 한계다(새 결함 아님, 검증 결과
-   not-a-defect로 판정 — `docs/EVIDENCE_v0.18_E23.md` §F11 참조). 계약 JSON 자신의
+   not-a-defect로 판정 — `docs/EVIDENCE_v0.18_E23.md` §4 참조). 계약 JSON 자신의
    `resources.scope`/`bound_assumptions` 필드가 이 한계를 매 계약마다 이미 명시하고 있다.
    F11이 추가로 짚은 요소 중 **allocator fragmentation**만은 이 저장소 어디에도 명시적으로
    다뤄진 적이 없어 보인다 — 다중 앱 설계 시 위 5개 요소(IREE runtime context, OSAL/cFS 메모리,
-   다른 앱, 동시 실행, task stack)에 이것도 추가로 반영할 것.
+   다른 앱, 동시 실행, task stack)에 이것도 추가로 반영할 것. E23은 판정 산출물 자체가 범위를
+   말하도록 `ai_learner.c`의 admission JSON에 `"scope":"per_app_local_budget"`을 추가했다.
+8. **OnAIR↔native/cFS 경로의 동일성 (외부 검토 F10의 나머지 절반)** — E23이 F10의 즉시
+   고칠 수 있는 부분(OnAIR 플러그인의 계약-아티팩트 바인딩 게이트 부재, D27)은 닫았지만,
+   리뷰가 지적한 **구조적 단절은 그대로 남아 있다**: OnAIR 플러그인은 `weights.npz`를 별도
+   인수로 받고 native/cFS는 baked-weight vmfb를 쓰며, cFS 앱은 플러그인의 이식이 아니라 별도
+   C 앱이고(`CFE_ES_HK_TLM_MID` payload를 feature로 사용), **같은 입력에 대해 OnAIR Python /
+   OnAIR IREE / native C / cFS 앱의 출력이 동치라는 end-to-end 시험이 없다**. "OnAIR에서 생성된
+   AI workload가 같은 의미로 cFS에 배포됐다"는 주장을 하려면 이 동치 시험이 필요하다(현재
+   결과는 그 주장의 근거가 아니다 — `docs/EVIDENCE_v0.18_E23.md` §2). 착수 전제: OnAIR 설치
+   (`scripts/20_setup_onair.sh`)와 x86-64 IREE C 런타임 재구축.
 6. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
    있어야 착수 가능. 이 컨테이너에서는 원리적으로 불가능하다.
 7. RTEMS 단계(제안서 §17) — Linux AArch64 단계가 통과했으므로 이제 착수 가능하나 우선순위는 낮음.
@@ -327,8 +362,12 @@ docs/
                                실제 재현·수정, 회귀 시험 고정, 96/96
   EVIDENCE_v0.16_E21.md        외부 검토(v0.15) fail-open 결함 6건(F1/F2/F3/F5/F6/F7,
                                D18-D23) 실제 재현·수정, revert-confirm-fail, 107/107
-  EVIDENCE_v0.17_E22.md       ★ 최신. F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
+  EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
+                               (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
+  EVIDENCE_v0.18_E23.md       ★ 최신. 외부 검토 잔여 4건(F4/F8/F10/F11) + CI가 잡은 신규
+                               크래시 D25. A5a·A5b 손상 방식 코드화(D26), OnAIR 바인딩
+                               게이트(D27), 125/125
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
@@ -358,8 +397,11 @@ harness/                    실험 스크립트
   gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h; fail-closed 검증 E15; 스택 불신뢰
                                분류 거부 E21 D22, CONTRACT_DTYPES_ALL_F32 신설 E21 D23)
   contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선·과잉거부·
-                               fail-open 회귀 시험, 107/107 PASS(E15+E18+E19+E20+E21); iree.compiler.ir
-                               미설치 환경에서는 크래시 없이 77/77+3 SKIP(E22, fresh clone 실제 재현)
+                               fail-open·손상방식·OnAIR 바인딩 회귀 시험, 125/125 PASS
+                               (E15+E18+E19+E20+E21+E23); 모듈만 부재 95/95+3 SKIP, 도구·모듈 모두
+                               부재(진짜 무의존성 체크아웃) 50/50+5 SKIP, 크래시 없음(E22+E23 D24·D25)
+  corrupt_vmfb.py             ★ E23: A5a(flip)·A5b(flatbuffer_root_uoffset) 손상 방식 실제 구현 —
+                               ZIP64/STORED 외과적 패치 + CRC 갱신, corruptsha 계약 생성, 미인식 method 거부(D26)
   mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치;
                                E19부터 make_contract.py의 필수 크로스체크로 결선됨(대체 아님);
                                E20: diff_against_regex 공유 헬퍼로 통합(3곳 중복 제거);
@@ -368,10 +410,13 @@ harness/                    실험 스크립트
   cross_target_compare.py      타깃 간 계약/ELF 비교표
   gen_model_conv2d.py, gen_model_multibranch.py  Stage 1 모델 생성기 (베이킹 가중치)
   e14_cfs_scenarios.py, e14_make_scenarios.py     게스트 cFS 시나리오 실행기/생성기
+                               (E23: 시나리오의 corrupt_method 필수화 — 누락·미인식이면 거부, D26)
   cfs_cmd.py                    cFE CI_LAB UDP 명령 전송 (A7 재시작/삭제 시나리오용)
 contracts/                  계약 스키마 + 채워진 예시 (v0.4 memory_boundary 결정, v0.7 artifact binding)
 models/                     기본 MLIR 모델
 plugins/                    OnAIR AIPlugin 구현체 (compiled_learner=IREE, python_learner=NumPy 베이스라인)
+  compiled_learner/artifact_binding.py  ★ E23: 계약-아티팩트 바인딩 게이트(크기→sha256, stdlib 전용) —
+                               C 경로와 같은 순서·같은 거부 조건, verify_artifact_hash=True 기본(D27)
 native/                     Python 없는 C 경로: native_learner.c, cfs_app/ (cFS 앱 소스) — 둘 다 계약
                              헤더만으로 모델 독립적(v0.9); cfs_app/toolchain-aarch64-linux-gnu.cmake
 e13/                        LLVM IR·ELF 덤프 (x86-64 host/generic 설정 비교)

@@ -2,6 +2,31 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.18] 2026-09-08
+- E23: 외부 검토(v0.15) 잔여 4건 처리(`docs/EVIDENCE_v0.18_E23.md`) — F4(표현 정정),
+  F8(A5a·A5b 손상 방식 코드화), F10(OnAIR 바인딩 갭), F11(범위 명시).
+- **판정(D26)**: A5b 시나리오가 EVIDENCE_v0.12 §2.1의 구조 손상이 아니라 A5a와 동일한 임의
+  bit flip을 쓰고 있었음 — 두 방식을 구분하는 필드조차 없어 저장소 코드로는 E17의 A5b를
+  재현할 수 없었다. `harness/corrupt_vmfb.py` 신설(ZIP64/STORED 외과적 패치 + CRC 갱신),
+  `corrupt_method` 필수화(누락·미인식은 거부). 보관 vmfb 8/8에서 컨테이너 유효·타 엔트리
+  불변·크기 동일·결정적 확인, `iree.runtime`으로 실제 로드해 E17과 같은 오류 문자열로
+  거부됨을 확인(A5b의 네 번째 레벨).
+- **판정(D27)**: OnAIR `CompiledLearner`가 계약이 지목한 vmfb를 sha256·크기 검사 없이
+  로드하고 있었음(C 경로는 두 검사를 자원 획득 전에 수행). `artifact_binding.py` 신설,
+  `verify_artifact_hash=True` 기본, 계약에 해당 필드가 없으면 검사 생략이 아니라 거부.
+- **정정(D25)**: `iree-dump-module` 부재 시 uncaught `FileNotFoundError`로 전체 크래시.
+  **E22가 만든 CI의 without-deps 레그가 첫 실행에서 실제로 잡았다** — E22의
+  `sys.meta_path` import 차단은 모듈만 숨기고 콘솔 스크립트를 남기므로 원리적으로 재현
+  불가능했던 조건. `OSError` 포착 + `(None,None)` 반환으로 "관측 못 함"과 "관측했고 없음"을
+  구분, 상수 독립 확인 불가는 `null` + 기본 거부, 하네스는 `iree_tools_available()`로 SKIP.
+- **정정**: `docs/EVIDENCE_v0.17_E22.md` §6 정오표 추가(§1의 "패키지가 아예 없는 환경을
+  시뮬레이션" 서술은 "모듈만 없는 환경"으로 정정, §4 판정은 D25 수정 이후에 참).
+- **정정**: `docs/EVIDENCE_v0.13_E18.md` §7 정오표 추가 — `Operation.walk()` 서술은 실제
+  구현(자체 재귀 `_walk()`)과 다름, "정규 MLIR pass" 명칭은 "MLIR API 기반 구조적
+  post-processing verifier"로 정정(수치·판정 불변).
+- `contract_negative_tests.py` 107/107 → **125/125**. 도구·모듈 모두 부재한 환경에서도
+  크래시 없이 50/50 + 5 SKIP. 14개 보관 계약 diff 0 유지.
+
 ## [v0.17] 2026-09-08
 - E22: 외부 검토 F9 재현성 실제 확보(`docs/EVIDENCE_v0.17_E22.md`) — "96/96, 환경 구축
   불필요"가 fresh clone에서 재현되지 않던 문제를 실제 `git clone`으로 재현 후 해결.

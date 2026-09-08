@@ -112,3 +112,33 @@ cd /tmp/freshclone
 pip install -r requirements.txt
 python3 harness/contract_negative_tests.py   # 107/107
 ```
+
+## 6. 정오표 (E23이 발견, 철회 아님 — 정정)
+
+§1의 "`iree.compiler.ir`을 … `sys.meta_path` 훅으로 import 시점에 차단해 **'패키지가 아예 없는
+환경'을 가역적으로 시뮬레이션**"이라는 서술은 **과장이었다**. 그 훅은 Python 모듈만 숨기고
+`iree-compile`·`iree-dump-module` **콘솔 스크립트는 PATH에 그대로 남긴다** — 실제 시뮬레이션한
+것은 "패키지가 없는 환경"이 아니라 **"모듈만 없는 환경"**이다.
+
+이 차이는 실재했다. §2.4에서 함께 도입한 CI의 `without-deps` 레그(진짜로 `iree-base-compiler`를
+설치하지 않는 GitHub 러너)가 이 문서 작성 직후 첫 실행에서 **실패**했다:
+
+```
+FileNotFoundError: [Errno 2] No such file or directory: 'iree-dump-module'
+  harness/make_contract.py:229 in iree_dump_module
+```
+
+D24와 같은 부류(요약 출력 전 uncaught 예외로 전체 사망)의 **두 번째 지점**이며, 위 시뮬레이션
+으로는 원리적으로 재현할 수 없는 조건이다. 신규 결함 **D25**로 등록하고
+`docs/EVIDENCE_v0.18_E23.md` §5에서 수정했다.
+
+따라서 정정되는 것은 다음 두 가지다.
+
+- §1의 "77/77 + 3 SKIP"은 **모듈만 부재한 환경**의 수치로 읽어야 한다(그 조건에서는 참).
+  진짜 의존성 없는 체크아웃의 수치가 아니며, 그 환경에서는 크래시했다.
+- §4의 판정("README의 '환경 구축 불필요'는 이제 정확한 주장이다")은 **D25 수정 이후에** 참이
+  된다. E23 기준 실측: 전체 환경 125/125, 모듈만 부재 95/95+3 SKIP, **도구·모듈 모두 부재
+  50/50+5 SKIP(크래시 없음)**.
+
+§3(범위 밖)이 "CI 워크플로우 자체가 실제로 초록불로 실행되는지는 … 별도 확인 대상"이라고
+남겨둔 항목이 바로 이 결과로 닫혔다 — 그리고 그 첫 실행이 곧바로 실제 결함을 하나 잡았다.
