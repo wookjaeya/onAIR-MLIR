@@ -1,0 +1,83 @@
+{
+  "scenarios": [
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 262335,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 191,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": {
+        "app": "AI_LEARNER",
+        "stage": "run",
+        "model": "conv2d",
+        "target": "aarch64-unknown-linux-gnu",
+        "attempted": 5,
+        "completed": 5,
+        "fail_input": 0,
+        "fail_invoke": 0,
+        "fail_output": 0,
+        "mean_us": 5443.59,
+        "max_us": 9668.16,
+        "last_us": 4758.02,
+        "out0": -0.02151,
+        "out": [
+          -0.021506,
+          0.030801
+        ]
+      },
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "conv2d",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 5,
+        "hal_peak": 3528,
+        "peak_within_bounded": true,
+        "hal_bytes_per_call_amortized": 1582.4,
+        "process_rss_kb": 7132,
+        "process_rss_delta_init_kb": 864
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:03:21.17098 66/1/AI_LEARNER 8: AI_LEARNER stack: es=262335 base=262144 kernel=191 accounted=1",
+        "EVS Port1 1980-012-14:03:21.17741 66/1/AI_LEARNER 3: AI_LEARNER initialized: model conv2d (15505 B), rss_delta_init=864 KB",
+        "...EVS Port1 1980-012-14:03:40.65414 66/1/AI_LEARNER 4: AI_LEARNER completed=5/5 mean=5443.6us max=9668.2us hal_peak=3528 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "A1_conv2d",
+      "model": "conv2d",
+      "scenario": "A1 \uc815\uc0c1: conv2d \uacc4\uc57d+\uc815\uc0c1 vmfb, \uc608\uc0b0 1MiB",
+      "seconds": 40,
+      "commands_sent": [],
+      "log": "results/e14_aarch64_qemu/cfs/logs/A1_conv2d.log",
+      "expect": {
+        "admission": "ADMIT",
+        "binding": "MATCH",
+        "cfs_operational": true,
+        "no_crash": true,
+        "min_completed": 3,
+        "peak_within_bounded": true,
+        "kernel_stack_accounted": true
+      },
+      "expect_failures": [],
+      "pass": true
+    }
+  ]
+}
