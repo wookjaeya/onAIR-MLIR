@@ -2,6 +2,27 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.16] 2026-09-08
+- E21: 외부 검토(v0.15 최신본, `docs/reviews/REVIEW_v0_15_LATEST.md`) fail-open 결함 6건 수정
+  (`docs/EVIDENCE_v0.16_E21.md`) — 11개 finding(F1–F11)을 독립 에이전트 11개로 병렬 검증(9건
+  confirmed, 1건 partially_confirmed=F3, 1건 not-a-defect=F11), 코드 fail-open 결함 6건(F1,
+  F2, F3, F5, F6, F7)을 실제 재현 후 수정.
+- **정정**: F2(ABI 반사 부재 미거부)·F3(구조적 검증기 미설치시 opportunistic)·F5(stream.resource.pack
+  비상수 unresolved 누락)는 검증 과정에서 원 리뷰의 severity(주로 P0)가 과대평가였음이 확인됨.
+  특히 F3은 "MANDATORY라 부르면서 은폐"라는 리뷰의 프레이밍이 과장으로 판정됨(이 정확한 예외가
+  이미 5곳에 문서화·E19에서 시험됨) — 다만 표현과 동작의 정책적 불일치는 타당해 기본값은 변경.
+- 수정: F1(빈 `--dump-dir`로 one-invocation 신호 전부 None → 통과)은 기본 하드 실패
+  (`--allow-unverified-invocation`), F2(ABI 반사 부재)는 기본 하드 실패
+  (`--allow-missing-abi-declaration`), F3(구조적 검증기 미설치)은 기본 하드 실패
+  (`--allow-missing-structural-checker`), F5(`stream.resource.pack` 비상수 슬라이스)는
+  형제 분기와 대칭인 unresolved 처리로 수정(IREE 상류 실제 문법으로 재현), F6(스택 분석이
+  스스로 불신뢰로 분류해도 KNOWN=1)은 세 신호 중 하나라도 불신뢰면 강제 미확인 처리, F7(C 게이트가
+  "single-f32"라 주장하나 dtype 미검사)은 `CONTRACT_DTYPES_ALL_F32` 매크로 신설 + C 양쪽 게이트
+  반영.
+- 전 6건 수정 전 코드로 되돌려 신규 시험이 실제로 실패함을 확인(revert-and-confirm-fail).
+  `contract_negative_tests.py` 96/96 → **107/107**. 보관 14개 헤더는 신규 매크로 반영해 재생성
+  (계약 수치 자체는 diff 0 유지). F4/F8/F9/F10/F11은 후속 실험(E22/E23)으로 이연.
+
 ## [v0.15] 2026-09-08
 - E20: E19 구조적 크로스체크 적대적 코드 리뷰(`docs/EVIDENCE_v0.15_E20.md`) — 이 세션 내에서
   E19의 diff를 4개 독립 관점(정확성/시험 커버리지/단순화/강건성) 병렬 리뷰 + finding당 3인 반박

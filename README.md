@@ -4,11 +4,18 @@ NASA cFS/OnAIR AI 플러그인을 MLIR/IREE로 컴파일하고, 컴파일러의 
 정적 메모리 계약으로 배치 전 admission 판정을 수행하는 연구용 저장소.
 
 **시작점**: [`CLAUDE.md`](./CLAUDE.md) — 프로젝트 컨텍스트, 작업 규율, 환경 구축, 현재 상태.
-**현재 버전**: v0.15 (`git tag` 대신 커밋 이력·`CHANGELOG.md`로 확인 — 태그 푸시는 이 실행 환경의 정책 제약으로 보류 중, `EXPERIMENT_LOG.md` 참조). 최신 근거: [`docs/EVIDENCE_v0.15_E20.md`](./docs/EVIDENCE_v0.15_E20.md)(E19 구조적 크로스체크 적대적 리뷰 + 과잉 거부 결함 2건 실제 재현·수정). 이전 근거: [`docs/EVIDENCE_v0.14_E19.md`](./docs/EVIDENCE_v0.14_E19.md)(정규 MLIR pass 2단계: 구조적 추출기를 make_contract.py에 필수 크로스체크로 결선 — **§8 정오표 필수 확인**), [`docs/EVIDENCE_v0.13_E18.md`](./docs/EVIDENCE_v0.13_E18.md)(정규 MLIR pass 1단계: 구조적 할당 추출기), [`docs/EVIDENCE_v0.12_E17.md`](./docs/EVIDENCE_v0.12_E17.md)(AArch64 게스트 재현: A5b 최초 실행), [`docs/EVIDENCE_v0.11_E16.md`](./docs/EVIDENCE_v0.11_E16.md)(C 게이트 보강), [`docs/EVIDENCE_v0.10_E15.md`](./docs/EVIDENCE_v0.10_E15.md)(계약 도구 fail-closed 전환), [`docs/EVIDENCE_v0.9_E14_stage1.md`](./docs/EVIDENCE_v0.9_E14_stage1.md) — **§11 정오표(외부 검토 2건 반영) 필수 확인**.
+**현재 버전**: v0.16 (`git tag` 대신 커밋 이력·`CHANGELOG.md`로 확인 — 태그 푸시는 이 실행 환경의 정책 제약으로 보류 중, `EXPERIMENT_LOG.md` 참조). 최신 근거: [`docs/EVIDENCE_v0.16_E21.md`](./docs/EVIDENCE_v0.16_E21.md)(외부 검토 fail-open 결함 6건 실제 재현·수정). 이전 근거: [`docs/EVIDENCE_v0.15_E20.md`](./docs/EVIDENCE_v0.15_E20.md)(E19 구조적 크로스체크 적대적 리뷰 + 과잉 거부 결함 2건 실제 재현·수정), [`docs/EVIDENCE_v0.14_E19.md`](./docs/EVIDENCE_v0.14_E19.md)(정규 MLIR pass 2단계: 구조적 추출기를 make_contract.py에 필수 크로스체크로 결선 — **§8 정오표 필수 확인**), [`docs/EVIDENCE_v0.13_E18.md`](./docs/EVIDENCE_v0.13_E18.md)(정규 MLIR pass 1단계: 구조적 할당 추출기), [`docs/EVIDENCE_v0.12_E17.md`](./docs/EVIDENCE_v0.12_E17.md)(AArch64 게스트 재현: A5b 최초 실행), [`docs/EVIDENCE_v0.11_E16.md`](./docs/EVIDENCE_v0.11_E16.md)(C 게이트 보강), [`docs/EVIDENCE_v0.10_E15.md`](./docs/EVIDENCE_v0.10_E15.md)(계약 도구 fail-closed 전환), [`docs/EVIDENCE_v0.9_E14_stage1.md`](./docs/EVIDENCE_v0.9_E14_stage1.md) — **§11 정오표(외부 검토 2건 반영) 필수 확인**.
 **전체 실험 이력**: [`EXPERIMENT_LOG.md`](./EXPERIMENT_LOG.md).
 
 ```bash
 bash scripts/99_bootstrap_all.sh   # 전체 환경 구축 (최초 1회)
 python3 harness/platform_check.py  # 이 머신의 타이밍 증거 등급 확인
-python3 harness/contract_negative_tests.py  # 계약 도구 fail-closed 회귀·음성·구조적 추출기 일치·크로스체크 배선·과잉거부 회귀 시험, 96/96 (환경 구축 불필요)
+python3 harness/contract_negative_tests.py  # 계약 도구 fail-closed 회귀·음성·구조적 추출기 일치·크로스체크 배선·과잉거부·fail-open 회귀 시험, 107/107
 ```
+
+**주의(fresh clone 재현성, 외부 검토 F9 — 아직 미해결, 후속 실험 예정)**: 위 96/107 수치는
+`iree-base-compiler`(iree.compiler.ir 바인딩)와 `iree-base-runtime`이 설치돼 있고
+`results/e14_aarch64_qemu/*/dump/`(현재 `.gitignore`로 저장소에서 제외됨) 산출물이 로컬에 남아
+있는 작업 환경에서 확인된 값이다. 진짜 fresh clone(위 두 조건이 없는 상태)에서는 회귀 시험
+다수가 SKIP이 아니라 FAIL/예외로 죽는 것을 확인했다 — "환경 구축 불필요"는 현재 부정확한
+주장이며 다음 실험(E22)에서 다룬다.
