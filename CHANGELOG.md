@@ -2,6 +2,17 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.7] 2026-09-08
+- 외부 검토(`REVIEW_v0_6_E13_RESEARCH_DIRECTION.md`) §9 순서대로 반영.
+- 계약–아티팩트 결합: `artifact.sha256/bytes` + `validity`; `harness/gen_contract_header.py`로 헤더 생성; gate가 IREE에 넘길 바이트를 해시 비교 (D6).
+- E11b: peak↔bounded 비교(D5 수정), 정상 상태 per-call 65,544 B(D7 수정), 단계별 카운터.
+- E11c/E12c: 같은 ABI 모델 교체 → 런타임 생성 전 거부 (standalone exit 5 / cFS 기동 거부).
+- E12d: 모델 파일 부재 → cleanup, cFS OPERATIONAL. `AI_LEARNER_Cleanup()` 모든 실패 지점·종료에 적용.
+- E13: 단일 컴파일 호출 덤프. 커널 LLVM IR alloca 0·외부 호출 0, ELF call 0·스택 프레임 0. host AVX-512 FMA(34) vs generic 스칼라(mulss 9) — E4/E5/E6b 원인 규명.
+- 규칙: 계약·덤프·배치 아티팩트는 **한 컴파일 호출**에서 생성 (파일명만 달라도 vmfb 해시가 바뀜).
+- 표현 수정(검토 §7): RSS 관측값, Python 제거 단일 귀속 불가, init delta 프로세스 전체, 지연 설명은 후보, 타 앱 무영향 미검증, gate 위치는 IREE 초기화 이전.
+- 문서: `docs/EVIDENCE_v0.7_E13.md`.
+
 ## [v0.6] 2026-09-08
 - IREE 런타임 소스 빌드(컴파일러 동일 커밋 e4a3b04, 최소 구성, PIC).
 - E11: Native C 변형. 런타임 생성 전 admission; HAL 피크 786,476 = bounded_bytes(상수가 allocator를 통과하는 구성); RSS 4.3 MB(Python 41.5 MB); median 32.2 µs.

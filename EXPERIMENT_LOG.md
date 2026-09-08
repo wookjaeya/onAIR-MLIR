@@ -18,6 +18,10 @@
 | E5 | 2026-09-07 | lowering 특성화 (10종 × 3크기, 메모리 포함) | FUNCTIONAL_ONLY (binary·RSS는 결정론적) | `harness/characterize.py`, `results_characterization_*.json` | Pareto 5개; 크기 간 ρ=+0.18; **메모리 축 반증** (B0 40 KB vs 1216 KB) | EVIDENCE v0.2 | 833edb6 |
 | E6 | 2026-09-07 | 정적 메모리 상한 산출 (P2b) | 결정론적 | `harness/static_mem_bound.py`, `harness/static_bound_sweep.py`, `results_static_bound.json` | 정적 상한 = HAL 피크, 30/30 sound, tightness 1.0; 설정 불변 | EVIDENCE v0.3 §1 | 45213d6 |
 | **E6c** | 2026-09-07 | 베이킹 모델 정적 상한 IR 파싱 (검토 §5 분모 해소) | 결정론적 | `results_static_bound_baked.json` | 30/30 sound·tight; 상수 720,896 B 모듈 상주로 분리 귀속 | EVIDENCE v0.3 §7 | (v0.3.1) |
+| **E11b** | 2026-09-08 | standalone 계측 정정 + 결합 | 결정론적(HAL·해시) | `native/native_learner.c`, `summary.json` | peak↔bounded true; 정상 상태 per-call **65,544**; 3200/3200 완료; binding MATCH | EVIDENCE v0.7 §2 | 0e887df |
+| **E11c** | 2026-09-08 | 모델 교체(같은 ABI) + 계약 A | 결정론적 | 동상 | CONTRACT_ARTIFACT_MISMATCH, exit 5, 런타임 미생성 | v0.7 §1.2 | 0e887df |
+| **E12b/c/d** | 2026-09-08 | cFS: 일치 / 교체 / 파일 부재 | 결정론적 | `native/results/cfs_run_*.log` | 25/25 완료 / 기동 거부+cleanup / cleanup; 3경우 cFS OPERATIONAL | v0.7 §1–3 | 0e887df |
+| **E13** | 2026-09-08 | 계약 IR ↔ LLVM IR ↔ ELF 대응 (host/generic) | 결정론적 | `e13/`, `contracts/contract.e13_host.json` | 커널 alloca 0·call 0·스택 프레임 0; host AVX-512 FMA 34 vs generic 스칼라; 같은 호출 계약 MATCH | v0.7 §4 | 0e887df |
 | **E11** | 2026-09-08 | Native C 변형 (standalone, Python 없음) | FUNCTIONAL_ONLY (HAL·RSS·admission은 결정론적) | `native/native_learner.c`, `native/build.sh`, `native/results/summary.json` | admission ADMIT/NOT_ADMITTED(exit 3); HAL 피크 786,476 = bounded; RSS 4.3 MB; median 32.2 µs | EVIDENCE v0.6 §2 | 271a237 |
 | **E12** | 2026-09-08 | cFS 앱 `AI_LEARNER` 통합 | 동상 | `native/cfs_app/`, `native/results/cfs_run_*.log` | ADMIT: ES HK 패킷 추론 25회, 피크=bounded; NOT_ADMITTED: 앱 기동 거부, cFS OPERATIONAL 유지 | EVIDENCE v0.6 §3 | 271a237 |
 | **E9** | 2026-09-08 | 할당 구조 4사례 (정렬·수명·대형·fusion) | 결정론적 | `harness/structural_cases.py`, `results_structural_cases.json` | slice 합은 2/4 과소(D3); post-layout 슬랩 4/4 sound·tight | EVIDENCE v0.5 §1 | (v0.5) |
@@ -35,6 +39,7 @@
 | v0.1 | 부분 기각 | 강화 (근거 noise 안쪽) | 미검증 | E1–E4 |
 | v0.2 | 기각 유지 | **확립** (결정론적 근거로 교체) | 미검증(입력 확보) | E5 |
 | **v0.3** | 기각 유지 (격차 2.2–4.1×로 정정) | **격하: 부분 지지** (ρ 근거 철회) | **메모리 축 전제 충족** (정적 상한 sound) | E6, E6b |
+| **v0.7** | 변화 없음 | 변화 없음 (설정별 지연 차이의 구조적 원인 확인: AVX-512 FMA vs 스칼라) | 검증 범위 확장: 결합·계측·실패 처리·코드 대응 | E11b/c, E12b/c/d, E13 |
 | **v0.6** | 변화 없음 (Native 1.84×) | 변화 없음 | **cFS 앱 배치 형태에서도 성립** (단일 앱·모델·native_std); 경계 (b) 런타임 구성 2종에서 견고 | E11, E12 |
 | **v0.5** | 변화 없음 | 변화 없음 | 시험 조건 내 성립, **근거 강화** (구조 4종, 경계값, 상수 독립 검증); 중심 문장을 검토 §8 권고로 교체 | E9, E10, E7b |
 | **v0.4** | 변화 없음 | 변화 없음 (E7 config-invariance는 메모리 판정에 선택 불필요라는 반대 증거) | **메모리 축, 시험 조건 내 성립** (경계 b, 240/240, E8) | E7, E8 |
@@ -55,6 +60,9 @@
 
 | ID | 결함 | 영향 실험 | 발견 경로 | 조치 |
 |---|---|---|---|---|
+| D7 | 호출당 할당 = 초기화 비용 포함 상각값 | 검토 v0.6 §5 | 지표 의미 | 정상 상태 카운터 차이(65,544) |
+| D6 | 계약이 아티팩트를 식별하지 않음 | 검토 v0.6 §3 | gate 보장 조건부 | sha256·크기 결합, 헤더 생성 |
+| D5 | 전체 HAL 피크를 per-call 계약과 비교 | 검토 v0.6 §4 | summary 누락 | bounded 비교 |
 | D4 | 세션 해제 전 모듈 데이터 free → 해제 시 segfault | E11 하네스 종료 | 측정값 무영향 | 해제 순서 수정 |
 | D3 | 상한 = slice 합 → 정렬 패딩 무시로 과소 추정 (E9-A 48<128, E9-B 84<128) | v0.3–v0.4 상한 방법 | 검토 §7 예측 → E9 실증 | post-layout transient alloca 크기로 교체; MLP 60/60 재검증 |
 | D2 | 정적 상한 파서가 initializer 내 상수 임포트를 입력으로 오귀속; 런타임 컨텍스트를 721 KB 과대 산정 | E6b 해석, contract 예시 | 외부 검토 §5·§6 + E6c | 엔트리 함수 스코프 파싱, 상수 별도 집계, 정오표 |
