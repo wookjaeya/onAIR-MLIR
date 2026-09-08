@@ -197,6 +197,7 @@
   },
   "provenance": {
     "single_invocation": true,
+    "mlir_basename_in_dump_dir_files": true,
     "tool": "harness/make_contract.py",
     "mlir_file": "multibranch_baked.mlir",
     "mlir_sha256": "579dfe0b75f3c52864efdfd55822ad018058d2641c3835f925b2ea4bd66cbcee",
@@ -321,7 +322,7 @@
     "dump_elf_sha256_in_vmfb": true,
     "elf_analysis": {
       "file": "multibranch.elf_analysis.json",
-      "sha256": "8b0a96a33cb9682540ffabd680965dd7864cb8bcdf26847f0d528b810d42d3dd",
+      "sha256": "21680f20fbd7cd96420f6b8571fd18e0f1e51bd1f20ff25c5b4451653a103718",
       "elf_sha256_in_vmfb": true
     },
     "notes": [],

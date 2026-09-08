@@ -195,6 +195,7 @@
   },
   "provenance": {
     "single_invocation": true,
+    "mlir_basename_in_dump_dir_files": true,
     "tool": "harness/make_contract.py",
     "mlir_file": "mlp4k_baked.mlir",
     "mlir_sha256": "2940c16a55bc9ea718a81bce79827ffe73663c8a3ef03713c1abd6bb9ad66070",
@@ -289,7 +290,7 @@
     "dump_elf_sha256_in_vmfb": true,
     "elf_analysis": {
       "file": "mlp16k_swap.elf_analysis.json",
-      "sha256": "90a44fc6cbc5c8653b0f13777884fb789a71a75722553419944ceef1324efbf1",
+      "sha256": "ac307bae3319113710886934d7ab87b06574a22ab718fa8ad1cc3a24601d0a72",
       "elf_sha256_in_vmfb": true
     },
     "notes": [],

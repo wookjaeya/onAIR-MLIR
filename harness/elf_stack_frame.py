@@ -104,6 +104,8 @@ class Elf64:
     .file_extent to learn where this ELF ends."""
 
     def __init__(self, data):
+        if len(data) < 16:
+            raise ValueError("too short to be an ELF header (%d bytes)" % len(data))
         if data[:4] != ELF_MAGIC:
             raise ValueError("not an ELF file (bad magic)")
         if data[4] != 2:
@@ -495,6 +497,13 @@ A64_QREG = re.compile(r"\bq\d+\b")
 X86_PUSH = re.compile(r"^push[q]?\s+%(\w+)$")
 X86_POP = re.compile(r"^pop[q]?\s+%(\w+)$")
 X86_MOV_RSP_RBP = re.compile(r"^mov[q]?\s+%rsp,\s*%rbp$")
+# `lea -N(%rbp),%rsp` resets rsp to a fixed offset from rbp in one step -- the
+# x86-64 counterpart of AArch64's `mov sp, x29`, seen after a realigned (`and
+# $-N,%rsp`) frame. It restores an unknown mix of locals+padding that this
+# analyzer does not attempt to reconcile against local_alloc_bytes byte-for-byte
+# (unlike the plain `add $imm,%rsp` case) -- frame_balanced is reported as None
+# rather than guessed when this idiom appears (E14 Stage 1 review finding).
+X86_LEA_RBP_RSP = re.compile(r"^lea[q]?\s+-(0x[0-9a-f]+|\d+)\(%rbp\),\s*%rsp$")
 X86_SUB_RSP_IMM = re.compile(r"^sub[q]?\s+\$(0x[0-9a-f]+|\d+),\s*%rsp$")
 X86_ADD_RSP_IMM = re.compile(r"^add[q]?\s+\$(0x[0-9a-f]+|\d+),\s*%rsp$")
 X86_SUB_RSP_REG = re.compile(r"^sub[q]?\s+%\w+,\s*%rsp$")
@@ -612,7 +621,7 @@ def analyze_x86_64(fn):
     r = dict(callee_save_bytes=0, local_alloc_bytes=0, restore_bytes=0, dynamic_stack_alloc=False,
              has_frame_record=False, call_insns=0, call_targets=[], ret_insns=0,
              sp_relative_mem_ops=0, sp_relative_mem_op_list=[], prologue=[], epilogue=[],
-             realign_max_pad_bytes=0, push_insns_total=0, pop_insns_total=0, sp_relative_lea=0)
+             realign_max_pad_bytes=0, push_insns_total=0, pop_insns_total=0, sp_relative_lea=0, lea_rbp_rsp_epilogue=False)
     push_rbp = fp_setup = False
     prologue_pushes = 0
     in_prologue = True
@@ -678,6 +687,9 @@ def analyze_x86_64(fn):
             mask = imm(mm.group(1)) & 0xFFFFFFFFFFFFFFFF
             align = (~mask + 1) & mask if mask else 0
             r["realign_max_pad_bytes"] = max(r["realign_max_pad_bytes"], max(align - 1, 0))
+        if X86_LEA_RBP_RSP.match(t):
+            r["lea_rbp_rsp_epilogue"] = True
+            r["epilogue"].append(t)
         if m not in ("push", "pushq", "pop", "popq", "call", "callq", "ret", "retq", "leave") and mem_re.search(ops):
             if m.startswith("lea"):
                 r["sp_relative_lea"] += 1
@@ -689,7 +701,11 @@ def analyze_x86_64(fn):
     r["has_frame_record"] = push_rbp and fp_setup
     r["frame_bytes"] = r["callee_save_bytes"] + r["local_alloc_bytes"]
     r["restore_bytes"] += 8 * r["pop_insns_total"]
-    r["frame_balanced"] = (r["restore_bytes"] == r["frame_bytes"]) if r["ret_insns"] else None
+    # `lea -N(%rbp),%rsp` folds the local+realignment restore into one instruction
+    # this analyzer does not attempt to size -- report "not determined" instead
+    # of a spurious mismatch (frame_bytes/invocation_stack_bytes are unaffected).
+    r["frame_balanced"] = (None if r.get("lea_rbp_rsp_epilogue") else
+                           ((r["restore_bytes"] == r["frame_bytes"]) if r["ret_insns"] else None))
     r["return_address_bytes"] = 8
     r["vector_insns"] = vec
     if vec["zmm_refs"]:

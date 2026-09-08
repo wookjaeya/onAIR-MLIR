@@ -203,6 +203,7 @@
   },
   "provenance": {
     "single_invocation": true,
+    "mlir_basename_in_dump_dir_files": true,
     "tool": "harness/make_contract.py",
     "mlir_file": "conv2d_baked.mlir",
     "mlir_sha256": "d65a9c7dc52f4d6a23a7b77e2b9b8dd257817b44fdd935f6dd944c5d55067018",
@@ -312,7 +313,7 @@
     "dump_elf_sha256_in_vmfb": true,
     "elf_analysis": {
       "file": "conv2d.elf_analysis.json",
-      "sha256": "abfb2d35a5cce576626117c16d39bbfa6dfbf52638cb8a8461dddf91cf9bf576",
+      "sha256": "e2cf231073178353f0151c12619f832e9e730d7753f187202058a7b3be860060",
       "elf_sha256_in_vmfb": true
     },
     "notes": [],

@@ -195,6 +195,7 @@
   },
   "provenance": {
     "single_invocation": true,
+    "mlir_basename_in_dump_dir_files": true,
     "tool": "harness/make_contract.py",
     "mlir_file": "multibranch_swap_baked.mlir",
     "mlir_sha256": "e54882eff17f967df1e07ac273ee5cdca23650bc30afddb1e65b2dd94393a8fd",

@@ -359,6 +359,35 @@ def build_contract(a, extra_args):
         notes.append("codegen.ll target triple %s does not match --triple %s" % (ll_triple, a.triple))
     dump_elf_in_vmfb = (dump_elf["sha256"] in embedded_shas) if (dump_elf and embedded) else None
 
+    # ---- one-invocation cross-checks (EVIDENCE_v0.7 SS1.3) -----------------
+    # A contract is only evidence if --vmfb, --layout-ir and --dump-dir all came
+    # from the SAME iree-compile call. Nothing here proves that positively (we
+    # were not the ones who ran the compiler) but two independent signals catch
+    # the case that matters -- someone passing artifacts from different models
+    # or different compiles: (1) the vmfb must physically embed the dump-dir's
+    # linked executable (byte-identical, checked by sha256 above), and (2) the
+    # dump-dir's file names must carry the mlir input's own basename (the input
+    # path is baked into symbol/file names -- the exact fact EVIDENCE_v0.7 SS1.3
+    # is about). Both are necessary, neither is sufficient by itself: (1) alone
+    # would not catch two same-named models compiled from different source
+    # files; (2) alone would not catch a stale vmfb rebuilt from a since-edited
+    # but identically-named mlir file.
+    mlir_stem = re.sub(r"[^0-9A-Za-z_]", "_", os.path.splitext(os.path.basename(a.mlir))[0])
+    stem_in_dump = any(mlir_stem and mlir_stem in fn["name"] for fn in dump_files) if dump_files else None
+    invocation_errors = []
+    if dump_elf is not None and embedded and dump_elf_in_vmfb is False:
+        invocation_errors.append(
+            "--dump-dir's linked executable (%s, sha256 %s) is NOT embedded in --vmfb: "
+            "these are not outputs of the same iree-compile invocation" % (dump_elf["name"], dump_elf["sha256"][:16]))
+    if dump_files and stem_in_dump is False:
+        invocation_errors.append(
+            "no file under --dump-dir contains the --mlir basename '%s' (mlir input path is embedded in "
+            "dispatch/symbol names): --dump-dir looks like it belongs to a different compile" % mlir_stem)
+    if invocation_errors:
+        raise SystemExit("one-invocation check FAILED (not writing a contract for mismatched inputs):\n  - "
+                         + "\n  - ".join(invocation_errors))
+    single_invocation = bool(dump_elf_in_vmfb) and (stem_in_dump is not False)
+
     # ---- ELF analysis (harness/elf_stack_frame.py) --------------------------
     elf = None
     elf_prov = {"file": None, "sha256": None, "elf_sha256_in_vmfb": None}
@@ -470,7 +499,7 @@ def build_contract(a, extra_args):
     contract = {
         "model": {
             "name": a.model_name,
-            "sha256": hashlib.sha256(src.encode("utf-8")).hexdigest(),
+            "sha256": sha256_file(a.mlir),  # raw file bytes, not the decoded/newline-translated text (`src`)
             "file": os.path.basename(a.mlir),
             "bytes": os.path.getsize(a.mlir),
             "entry": a.entry,
@@ -528,7 +557,8 @@ def build_contract(a, extra_args):
             "binding_rule": BINDING_RULE,
         },
         "provenance": {
-            "single_invocation": True,
+            "single_invocation": single_invocation,
+            "mlir_basename_in_dump_dir_files": stem_in_dump,
             "tool": "harness/make_contract.py",
             "mlir_file": os.path.basename(a.mlir),
             "mlir_sha256": None,  # filled below

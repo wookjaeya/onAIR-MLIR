@@ -113,6 +113,7 @@
         "sub    $0x80,%rsp"
       ],
       "epilogue": [
+        "lea    -0x20(%rbp),%rsp",
         "pop    %rbx",
         "pop    %r12",
         "pop    %r14",
@@ -123,8 +124,9 @@
       "push_insns_total": 5,
       "pop_insns_total": 5,
       "sp_relative_lea": 1,
+      "lea_rbp_rsp_epilogue": true,
       "frame_bytes": 168,
-      "frame_balanced": false,
+      "frame_balanced": null,
       "return_address_bytes": 8,
       "vector_insns": {
         "vfmadd": 1,
@@ -171,6 +173,7 @@
         "sub    $0x80,%rsp"
       ],
       "epilogue": [
+        "lea    -0x18(%rbp),%rsp",
         "pop    %rbx",
         "pop    %r14",
         "pop    %r15",
@@ -180,8 +183,9 @@
       "push_insns_total": 4,
       "pop_insns_total": 4,
       "sp_relative_lea": 1,
+      "lea_rbp_rsp_epilogue": true,
       "frame_bytes": 160,
-      "frame_balanced": false,
+      "frame_balanced": null,
       "return_address_bytes": 8,
       "vector_insns": {
         "vfmadd": 1,
@@ -224,6 +228,7 @@
       "push_insns_total": 1,
       "pop_insns_total": 1,
       "sp_relative_lea": 0,
+      "lea_rbp_rsp_epilogue": false,
       "frame_bytes": 8,
       "frame_balanced": true,
       "return_address_bytes": 8,
@@ -263,6 +268,7 @@
       "push_insns_total": 0,
       "pop_insns_total": 0,
       "sp_relative_lea": 0,
+      "lea_rbp_rsp_epilogue": false,
       "frame_bytes": 0,
       "frame_balanced": true,
       "return_address_bytes": 8,
@@ -306,6 +312,6 @@
   },
   "any_dynamic_stack_alloc": false,
   "any_sp_relative_mem_ops": true,
-  "all_dispatch_frames_balanced": false,
+  "all_dispatch_frames_balanced": true,
   "classification_note": "bucket (2) TASK-STACK: each dispatch function reserves at most 168 B of stack (callee-saved + 128 B explicit locals with 10 sp-relative load/store(s) (spills/locals)), 0 call instructions -> call depth 1 below the runtime; per-invocation stack = 239 B incl. return address. Not HAL memory (not in bounded_bytes); add it explicitly to the task/thread stack budget."
 }
