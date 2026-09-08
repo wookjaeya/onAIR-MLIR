@@ -1,0 +1,634 @@
+#!/usr/bin/env python3
+"""harness/make_contract.py -- build a deployment contract JSON from the SAVED
+outputs of ONE iree-compile invocation (one-invocation rule, EVIDENCE_v0.7 SS1.3).
+
+The invocation must have been of the form
+
+  iree-compile M.mlir --iree-hal-target-backends=llvm-cpu \
+      --iree-llvmcpu-target-triple=T --iree-llvmcpu-target-cpu=C \
+      --mlir-print-ir-after=iree-stream-layout-slices \
+      --iree-hal-dump-executable-files-to=D \
+      -o V.vmfb 2> IR.txt
+
+and this script is then given M, V, IR.txt and D (plus, optionally, the JSON
+that harness/elf_stack_frame.py produced from the ELF in D).  It NEVER runs
+iree-compile itself: every number it writes is parsed from files that the same
+command line left behind, so the contract describes the very bytes in V.
+
+What is parsed from where
+-------------------------
+  static_mem_bound.parse_alloc_ir(IR)  per-call inputs / outputs / transient
+                                       slabs / dispatches of the entry function,
+                                       module-resident constants
+  static_mem_bound.entry_arg_shapes(M) entry input shapes (source signature)
+  entry_result_shapes(M)               entry output shapes (source signature;
+                                       added here, same style)
+  IR  iree.abi.declaration             the compiler's own view of the entry
+                                       signature (cross-check of the source)
+  iree-dump-module V                   .rodata segments (independent check of the
+                                       constant total), executable format string,
+                                       VM bytecode size
+  D/*.codegen.ll, D/*.so               target triple of the generated code, ELF
+                                       bytes/sha256 (must equal the ELF embedded
+                                       in V)
+  --elf-analysis JSON                  kernel stack frame / call / alloca facts
+
+Caveat recorded in provenance (found while writing this): with the default
+multi-threaded pass manager, --mlir-print-ir-after prints EVERY function
+separately and TWICE (the pass runs in two pipeline phases), in an order that
+depends on thread scheduling.  The two prints of the entry function are at
+different lowering states (the first has no stream.resource.alloca yet).  This
+script therefore parses every print of the entry function and uses the most
+lowered one, instead of trusting "the last one in the file".  The sha256 of the
+printed IR is consequently NOT reproducible across invocations unless
+--mlir-disable-threading is passed; the vmfb, the ELF and the numbers are.
+
+Exit codes: 0 ok; 2 input problem; 3 contract written but schema validation failed.
+"""
+import argparse
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+import static_mem_bound as smb  # noqa: E402  (parse_alloc_ir, entry_arg_shapes, artifact_rodata_segments)
+try:
+    import elf_stack_frame as esf  # noqa: E402  optional: locate ELFs inside the vmfb
+except Exception:  # pragma: no cover
+    esf = None
+
+MEMORY_BOUNDARY = "per_call_plus_module_constants"
+BOUND_METHOD_STATIC = "static_from_stream_layout"
+BOUND_METHOD_NONE = "NONE"
+BINDING_RULE = ("the gate must hash the exact bytes handed to the IREE session and compare "
+                "with artifact.sha256 before any runtime allocation")
+DUMP_HEADER_RE = re.compile(r"^// -----// IR Dump After [^\n]*\n", re.M)
+TENSOR_RE = re.compile(r"tensor<((?:[0-9?]+x)*)([a-z]+[0-9]*)>")
+
+
+# ----------------------------------------------------------------------------
+# small helpers
+# ----------------------------------------------------------------------------
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def read_text(path):
+    with open(path, encoding="utf-8", errors="replace") as f:
+        return f.read()
+
+
+def tensors_in(text):
+    """All `tensor<AxBx..xdtype>` types in `text`, in order."""
+    out = []
+    for m in TENSOR_RE.finditer(text):
+        dims = [d for d in m.group(1).split("x") if d]
+        out.append({"shape": [None if d == "?" else int(d) for d in dims],
+                    "dtype": m.group(2),
+                    "static": all(d != "?" for d in dims)})
+    return out
+
+
+def _balanced_paren(text, start):
+    """text[start] == '(' -> index just past the matching ')' (or -1)."""
+    depth = 0
+    for i in range(start, len(text)):
+        c = text[i]
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+            if depth == 0:
+                return i + 1
+    return -1
+
+
+def entry_signature(src, entry="infer"):
+    """Inputs / outputs of `func.func @entry(...) -> ...` parsed from MLIR source.
+    Returns {"inputs": [tensor...], "outputs": [tensor...]} or None."""
+    m = re.search(r"func\.func\s+(?:public\s+|private\s+)?@" + re.escape(entry) + r"\s*\(", src)
+    if not m:
+        return None
+    a0 = m.end() - 1
+    a1 = _balanced_paren(src, a0)
+    if a1 < 0:
+        return None
+    args = src[a0:a1]
+    rest = src[a1:]
+    results = ""
+    mr = re.match(r"\s*->\s*", rest)
+    if mr:
+        r2 = rest[mr.end():]
+        if r2.startswith("("):
+            results = r2[:_balanced_paren(r2, 0)]
+        else:
+            mt = re.match(r"[^\s{]+", r2)
+            results = mt.group(0) if mt else ""
+    return {"inputs": tensors_in(args), "outputs": tensors_in(results)}
+
+
+def entry_result_shapes(mlir_path, entry="infer"):
+    """Static result shapes of the entry function, parsed from source -- the
+    output-side twin of static_mem_bound.entry_arg_shapes().  None if the entry
+    is missing, has no tensor results, or any result dim is dynamic."""
+    sig = entry_signature(read_text(mlir_path), entry)
+    if not sig or not sig["outputs"]:
+        return None
+    if not all(t["static"] for t in sig["outputs"]):
+        return None
+    return [tuple(t["shape"]) for t in sig["outputs"]]
+
+
+def abi_declaration(ir, entry="infer"):
+    """The compiler's `iree.abi.declaration = "sync func @entry(...) -> (...)"`
+    reflection string from the layout IR (the same invocation's view of the
+    entry signature)."""
+    m = re.search(r'iree\.abi\.declaration = "(?:sync|async) func @' + re.escape(entry) + r'\((.*?)\) -> \((.*?)\)"', ir)
+    if not m:
+        return None
+    return {"inputs": tensors_in(m.group(1)), "outputs": tensors_in(m.group(2)),
+            "raw": m.group(0)[len('iree.abi.declaration = "'):-1]}
+
+
+def split_dumps(ir):
+    """The printed IR as a list of per-dump chunks (one per `IR Dump After` header)."""
+    parts = DUMP_HEADER_RE.split(ir)
+    chunks = [p for p in parts if p.strip()]
+    return chunks if chunks else [ir]
+
+
+def parse_entry_prints(ir, entry):
+    """Run static_mem_bound.parse_alloc_ir on EVERY print of the entry function."""
+    prints = []
+    for i, ch in enumerate(split_dumps(ir)):
+        first = ch.lstrip().split("\n", 1)[0]
+        if re.match(r"(util\.func|func\.func)\s+public\s+@" + re.escape(entry) + r"\b", first):
+            p = smb.parse_alloc_ir(ch, entry)
+            lowering_score = (p["dispatches"],
+                              len(p["outputs"]) + len(p["transient_slabs"]) + len(p["unresolved"]),
+                              len(p["inputs"]))
+            prints.append({"chunk_index": i, "parsed": p, "lowering_score": lowering_score,
+                           "sha256": hashlib.sha256(ch.encode()).hexdigest()})
+    return prints
+
+
+def packed_constant_buffers(ir):
+    """Sizes of the packed module-constant buffers (`#util.composite<Nxi8`, i.e.
+    what stream.resource.try_map / alloc actually map or allocate), taken from
+    the initializer print that carries them.  Per-chunk sums; the max over chunks
+    guards against the same initializer being printed twice."""
+    best = []
+    for ch in split_dumps(ir):
+        sizes = [int(n) for n in re.findall(r"#util\.composite<(\d+)xi8", ch)]
+        if sum(sizes) > sum(best):
+            best = sizes
+    return best
+
+
+def subset_sum_match(total, segs, max_segments=24):
+    """True if `total` equals the sum of some non-empty subset of `segs`."""
+    if total <= 0 or not segs:
+        return False
+    segs = list(segs)[:max_segments]
+    reach = {0}
+    for s in segs:
+        reach |= {r + s for r in reach}
+    return total in reach
+
+
+def iree_dump_module(vmfb):
+    r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    if r.returncode != 0:
+        return None, r.stderr[-500:]
+    return r.stdout, None
+
+
+def compiler_version():
+    """`iree-compile --version` -> (short "IREE <ver> <sha7>", raw first lines, full sha)."""
+    try:
+        r = subprocess.run(["iree-compile", "--version"], capture_output=True, text=True)
+        raw = (r.stdout or "") + (r.stderr or "")
+    except OSError as e:
+        return None, "iree-compile not runnable: %s" % e, None
+    m = re.search(r"IREE compiler version\s+(\S+)\s+@\s+([0-9a-f]+)", raw)
+    if not m:
+        return None, raw.strip(), None
+    return "IREE %s %s" % (m.group(1), m.group(2)[:7]), raw.strip(), m.group(2)
+
+
+def tensor_json(t):
+    return {"shape": list(t["shape"]), "dtype": t["dtype"]}
+
+
+def sig_equal(a, b):
+    return [tensor_json(t) for t in a] == [tensor_json(t) for t in b]
+
+
+# ----------------------------------------------------------------------------
+def build_contract(a, extra_args):
+    notes = []
+
+    # ---- inputs of the ONE invocation -------------------------------------
+    for p in (a.mlir, a.vmfb, a.layout_ir):
+        if not os.path.isfile(p):
+            raise SystemExit("input file not found: %s" % p)
+    if a.dump_dir and not os.path.isdir(a.dump_dir):
+        raise SystemExit("dump dir not found: %s" % a.dump_dir)
+
+    src = read_text(a.mlir)
+    ir = read_text(a.layout_ir)
+    vmfb_bytes = os.path.getsize(a.vmfb)
+    vmfb_sha = sha256_file(a.vmfb)
+
+    # ---- entry signature: source vs compiler reflection --------------------
+    sig = entry_signature(src, a.entry)
+    if sig is None:
+        raise SystemExit("entry function @%s not found in %s" % (a.entry, a.mlir))
+    arg_shapes = smb.entry_arg_shapes(a.mlir, a.entry)          # reused helper (inputs)
+    res_shapes = entry_result_shapes(a.mlir, a.entry)           # output-side twin
+    abi = abi_declaration(ir, a.entry)
+    abi_matches = (abi is not None and sig_equal(abi["inputs"], sig["inputs"])
+                   and sig_equal(abi["outputs"], sig["outputs"]))
+    if abi is None:
+        notes.append("no iree.abi.declaration for @%s in the layout IR" % a.entry)
+    elif not abi_matches:
+        notes.append("iree.abi.declaration disagrees with the MLIR source signature")
+
+    # ---- allocation schedule (entry) ---------------------------------------
+    prints = parse_entry_prints(ir, a.entry)
+    whole = smb.parse_alloc_ir(ir, a.entry)                     # reference behaviour: last print
+    if prints:
+        chosen = max(prints, key=lambda p: (p["lowering_score"], p["chunk_index"]))
+        p = chosen["parsed"]
+        states = {json.dumps({k: pr["parsed"][k] for k in ("inputs", "outputs", "transient_slabs",
+                                                           "transient_slices", "unresolved", "dispatches")},
+                             sort_keys=True) for pr in prints}
+        entry_prov = {"entry_prints_in_dump": len(prints),
+                      "entry_print_states_differ": len(states) > 1,
+                      "entry_print_used_chunk_index": chosen["chunk_index"],
+                      "entry_print_used_sha256": chosen["sha256"],
+                      "entry_print_used_is_last": chosen is prints[-1],
+                      "agrees_with_parse_alloc_ir_last_print": all(
+                          p[k] == whole[k] for k in ("inputs", "outputs", "transient_slabs", "unresolved", "dispatches"))}
+    else:
+        p = whole
+        entry_prov = {"entry_prints_in_dump": 0, "entry_print_states_differ": None,
+                      "entry_print_used_chunk_index": None, "entry_print_used_is_last": None,
+                      "agrees_with_parse_alloc_ir_last_print": True}
+        notes.append("entry function @%s not found as a separate dump; parsed the whole IR" % a.entry)
+    if not p["entry_found"]:
+        notes.append("entry function @%s NOT found in layout IR; bound cannot be established" % a.entry)
+
+    unresolved = list(p["unresolved"])
+    all_static = p["entry_found"] and not unresolved
+    inputs_b = sum(p["inputs"])
+    outputs_b = sum(p["outputs"])
+    transient_b = sum(p["transient_slabs"])
+    io_b = inputs_b + outputs_b
+
+    # ---- module-resident constants -----------------------------------------
+    dense_consts = list(whole["constants"])          # `<constant>{%cN} = dense...` (established method)
+    dense_sum = sum(dense_consts)
+    packed = packed_constant_buffers(ir)             # `#util.composite<Nxi8` (what try_map/alloc maps)
+    packed_sum = sum(packed)
+    if packed_sum > 0:
+        const_b, const_method = packed_sum, "packed_constant_buffers(#util.composite)"
+    else:
+        const_b, const_method = dense_sum, "sum_of_stream_constants(= dense)"
+    padding = (packed_sum - dense_sum) if (packed_sum > 0 and dense_sum > 0) else 0
+    if packed_sum > 0 and dense_sum > 0 and packed_sum < dense_sum:
+        notes.append("packed constant buffers (%d B) smaller than the dense constant sum (%d B): "
+                     "some constants were inlined into executables or deduplicated" % (packed_sum, dense_sum))
+
+    # ---- artifact ---------------------------------------------------------
+    dump_txt, dump_err = iree_dump_module(a.vmfb)
+    rod = smb.artifact_rodata_segments(a.vmfb)
+    if isinstance(rod, tuple) and len(rod) == 2:
+        ext_segs, data_segs = list(rod[0]), list(rod[1])
+    else:  # older static_mem_bound returned one list
+        ext_segs, data_segs = list(rod), list(rod)
+    consts_confirmed = subset_sum_match(const_b, data_segs)
+    consts_confirmed_dense = subset_sum_match(dense_sum, data_segs)
+    exec_fmt = None
+    bytecode_bytes = None
+    if dump_txt:
+        m = re.search(r"embedded-elf-[\w]+", dump_txt)
+        exec_fmt = m.group(0) if m else None
+        m = re.search(r"Bytecode:\s+(\d+)\s+bytes", dump_txt)
+        bytecode_bytes = int(m.group(1)) if m else None
+    else:
+        notes.append("iree-dump-module failed: %s" % dump_err)
+    embedded = []
+    if esf is not None:
+        with open(a.vmfb, "rb") as f:
+            blob = f.read()
+        for e in esf.locate_embedded_elfs(blob):
+            embedded.append({"offset": e["offset"], "bytes": e["size"], "arch": e["arch"], "sha256": e["sha256"]})
+        del blob
+    embedded_shas = {e["sha256"] for e in embedded}
+
+    # ---- dump dir ---------------------------------------------------------
+    dump_files = []
+    ll_triple = None
+    dump_elf = None
+    if a.dump_dir:
+        for fn in sorted(os.listdir(a.dump_dir)):
+            fp = os.path.join(a.dump_dir, fn)
+            if not os.path.isfile(fp):
+                continue
+            rec = {"name": fn, "bytes": os.path.getsize(fp), "sha256": sha256_file(fp)}
+            dump_files.append(rec)
+            if fn.endswith(".codegen.ll") and ll_triple is None:
+                m = re.search(r'target triple = "([^"]+)"', read_text(fp))
+                ll_triple = m.group(1) if m else None
+            if fn.endswith((".so", ".elf")):
+                with open(fp, "rb") as f:
+                    is_elf = f.read(4) == b"\x7fELF"
+                if is_elf and (dump_elf is None or fn.endswith(".so")):
+                    dump_elf = rec  # the final linked ET_DYN executable, not the intermediate .o
+    if ll_triple and ll_triple.split("-")[0] != a.triple.split("-")[0]:
+        notes.append("codegen.ll target triple %s does not match --triple %s" % (ll_triple, a.triple))
+    dump_elf_in_vmfb = (dump_elf["sha256"] in embedded_shas) if (dump_elf and embedded) else None
+
+    # ---- ELF analysis (harness/elf_stack_frame.py) --------------------------
+    elf = None
+    elf_prov = {"file": None, "sha256": None, "elf_sha256_in_vmfb": None}
+    if a.elf_analysis:
+        if not os.path.isfile(a.elf_analysis):
+            raise SystemExit("elf analysis not found: %s" % a.elf_analysis)
+        elf = json.load(open(a.elf_analysis))
+        elf_prov = {"file": os.path.basename(a.elf_analysis), "sha256": sha256_file(a.elf_analysis),
+                    "elf_sha256_in_vmfb": (elf.get("elf_sha256") in embedded_shas) if embedded else None}
+        if embedded and elf.get("elf_sha256") not in embedded_shas:
+            notes.append("ELF analysed by elf_stack_frame.py is NOT the ELF embedded in the vmfb")
+    if elf is not None:
+        stack_b = elf.get("max_dispatch_frame_bytes")
+        calls = elf.get("total_call_insns")
+        alloca = (elf.get("llvm_ir") or {}).get("alloca_count")
+        dyn = bool(elf.get("any_dynamic_stack_alloc"))
+        if dyn:
+            cls = "bucket_4_unaccounted_dynamic_stack"
+        elif calls:
+            cls = "bucket_3_or_4_unresolved_calls"
+        elif stack_b:
+            cls = "bucket_2_task_stack_budget"
+        else:
+            cls = "none"
+        kernel = {
+            "kernel_task_stack_bytes": stack_b,
+            "kernel_task_stack_invocation_bytes": elf.get("max_dispatch_invocation_stack_bytes"),
+            "kernel_task_stack_bytes_source": "elf_stack_frame.py max_dispatch_frame_bytes (max over dispatch functions; callee-saved + locals)",
+            "kernel_external_call_insns": calls,
+            "llvm_alloca_count": alloca,
+            "llvm_external_calls": (elf.get("llvm_ir") or {}).get("external_calls"),
+            "kernel_dynamic_stack_alloc": dyn,
+            "kernel_stack_classification": cls,
+            "kernel_stack_note": elf.get("classification_note"),
+            "kernel_elf_bytes": elf.get("elf_bytes"),
+            "kernel_elf_sha256": elf.get("elf_sha256"),
+            "kernel_elf_arch": elf.get("arch"),
+            "kernel_dispatch_functions": elf.get("dispatch_functions"),
+            "kernel_total_insns": elf.get("total_insns"),
+            "kernel_vector_insns": elf.get("vector_insns_total"),
+        }
+    else:
+        kernel = {
+            "kernel_task_stack_bytes": None,
+            "kernel_task_stack_invocation_bytes": None,
+            "kernel_task_stack_bytes_source": None,
+            "kernel_external_call_insns": None,
+            "llvm_alloca_count": None,
+            "llvm_external_calls": None,
+            "kernel_dynamic_stack_alloc": None,
+            "kernel_stack_classification": "unknown",
+            "kernel_stack_note": "no --elf-analysis given: kernel stack frame / calls / alloca not established",
+            "kernel_elf_bytes": dump_elf["bytes"] if dump_elf else None,
+            "kernel_elf_sha256": dump_elf["sha256"] if dump_elf else None,
+            "kernel_elf_arch": None,
+            "kernel_dispatch_functions": None,
+            "kernel_total_insns": None,
+            "kernel_vector_insns": None,
+        }
+        notes.append("kernel_task_stack_bytes is null (no ELF analysis supplied)")
+
+    # ---- compiler / runtime identity ---------------------------------------
+    comp_short, comp_raw, comp_sha = compiler_version()
+    runtime_commit = a.runtime_commit or (comp_sha[:7] if comp_sha else None)
+
+    # ---- assemble -------------------------------------------------------------
+    first_in = tensor_json(sig["inputs"][0]) if sig["inputs"] else None
+    first_out = tensor_json(sig["outputs"][0]) if sig["outputs"] else None
+    assumptions = ["static shapes", "single in-flight call (no concurrency)",
+                   "%s driver" % a.driver, "entry function @%s only" % a.entry]
+
+    resources = {
+        "memory_boundary": MEMORY_BOUNDARY,
+        "static_external_input_bytes": inputs_b if all_static else None,
+        "static_external_output_bytes": outputs_b if all_static else None,
+        "static_io_bytes": io_b if all_static else None,
+        "static_transient_bytes": transient_b if all_static else None,
+        "transient_slabs_post_layout": list(p["transient_slabs"]),
+        "transient_slice_sum_diagnostic": sum(p["transient_slices"]),
+        "static_per_call_bytes": (io_b + transient_b) if all_static else None,
+        "module_resident_constant_bytes": const_b,
+        "module_resident_constant_method": const_method,
+        "module_resident_constant_dense_sum_bytes": dense_sum,
+        "module_resident_constant_buffers_packed": packed,
+        "module_resident_constant_packing_padding_bytes": padding,
+        "bounded_bytes": (io_b + transient_b + const_b) if all_static else None,
+        "bound_method": BOUND_METHOD_STATIC if all_static else BOUND_METHOD_NONE,
+        "bound_source": "post-layout stream.resource.alloca sizes of the entry function after iree-stream-layout-slices "
+                        "(alignment and lifetime reuse resolved by the compiler) + packed module constants",
+        "unresolved_sizes": unresolved,
+        "resolved_partial_sums_when_unbounded": (None if all_static else
+                                                 {"inputs": inputs_b, "outputs": outputs_b, "transient": transient_b}),
+        "bound_assumptions": assumptions,
+        "entry_function_found": p["entry_found"],
+        "dispatches": p["dispatches"],
+        "binary_size_bytes": vmfb_bytes,
+        "vm_bytecode_bytes": bytecode_bytes,
+        "artifact_rodata_external_segments": ext_segs,
+        "artifact_rodata_data_segments": data_segs,
+        "constants_independently_confirmed_in_artifact": consts_confirmed,
+        "constants_dense_sum_confirmed_in_artifact": consts_confirmed_dense,
+        "constants_check_note": ("module constant total %d B equals a subset-sum of the flatbuffer .rodata segments %s (iree-dump-module)"
+                                 % (const_b, data_segs) if consts_confirmed else
+                                 "module constant total %d B NOT matched by artifact .rodata segments %s" % (const_b, data_segs)),
+        "scope": "program-allocated buffers only; excludes IREE runtime context (VM, HAL device, module tables) and the task stack",
+    }
+    resources.update(kernel)
+
+    contract = {
+        "model": {
+            "name": a.model_name,
+            "sha256": hashlib.sha256(src.encode("utf-8")).hexdigest(),
+            "file": os.path.basename(a.mlir),
+            "bytes": os.path.getsize(a.mlir),
+            "entry": a.entry,
+        },
+        "interface": {
+            "input": first_in,
+            "output": first_out,
+            "inputs": [tensor_json(t) for t in sig["inputs"]],
+            "outputs": [tensor_json(t) for t in sig["outputs"]],
+            "all_static": all(t["static"] for t in sig["inputs"] + sig["outputs"]),
+            "source_arg_shapes_static": [list(s) for s in arg_shapes] if arg_shapes else None,
+            "source_result_shapes_static": [list(s) for s in res_shapes] if res_shapes else None,
+            "abi_declaration": abi["raw"] if abi else None,
+            "abi_declaration_matches_source": abi_matches,
+        },
+        "target": {
+            "triple": a.triple,
+            "cpu": a.cpu,
+            "profile": a.profile or a.cpu,
+            "driver": a.driver,
+            "backend": "llvm-cpu",
+            "executable_format": "embedded-elf",
+            "executable_format_in_artifact": exec_fmt,
+            "codegen_ll_target_triple": ll_triple,
+            "extra_args": extra_args,
+        },
+        "resources": resources,
+        "timing": {
+            "boundary": "L1_kernel",
+            "execution_bound_us": None,
+            "bound_method": None,
+            "sample_count": None,
+            "platform_timing_grade": "FUNCTIONAL_ONLY",
+            "note": "no execution bound: latency is never evidence on a FUNCTIONAL_ONLY platform (harness/platform_check.py)",
+        },
+        "artifact": {
+            "file": os.path.basename(a.vmfb),
+            "sha256": vmfb_sha,
+            "bytes": vmfb_bytes,
+            "embedded_executables": embedded,
+            "produced_by": "single iree-compile invocation that also emitted the layout IR (--mlir-print-ir-after=iree-stream-layout-slices) "
+                           "and the executable dumps (--iree-hal-dump-executable-files-to); this contract was parsed from those outputs",
+        },
+        "validity": {
+            "entry": a.entry,
+            "input": first_in,
+            "output": first_out,
+            "driver": a.driver,
+            "profile": a.profile or a.cpu,
+            "compiler": comp_short,
+            "compiler_version_raw": comp_raw,
+            "compiler_commit": comp_sha,
+            "runtime_commit": runtime_commit,
+            "assumptions": assumptions,
+            "binding_rule": BINDING_RULE,
+        },
+        "provenance": {
+            "single_invocation": True,
+            "tool": "harness/make_contract.py",
+            "mlir_file": os.path.basename(a.mlir),
+            "mlir_sha256": None,  # filled below
+            "layout_ir_file": os.path.basename(a.layout_ir),
+            "layout_ir_sha256": sha256_file(a.layout_ir),
+            "layout_ir_bytes": os.path.getsize(a.layout_ir),
+            "layout_ir_dump_count": len(DUMP_HEADER_RE.findall(ir)),
+            "layout_ir_note": "per-function dumps in thread-dependent order (multi-threaded pass manager); "
+                              "the entry function is printed once per pipeline phase -- the most-lowered print is used",
+            "dump_dir": a.dump_dir,
+            "dump_dir_files": dump_files,
+            "dump_elf": dump_elf,
+            "dump_elf_sha256_in_vmfb": dump_elf_in_vmfb,
+            "elf_analysis": elf_prov,
+            "notes": notes,
+        },
+    }
+    contract["provenance"].update(entry_prov)
+    contract["provenance"]["mlir_sha256"] = contract["model"]["sha256"]
+    return contract
+
+
+
+def validate(contract, schema_path):
+    try:
+        import jsonschema
+    except ImportError:
+        return None, ["jsonschema not importable; validation skipped"]
+    schema = json.load(open(schema_path))
+    v = jsonschema.Draft202012Validator(schema)
+    errs = ["%s: %s" % ("/".join(str(x) for x in e.absolute_path) or "<root>", e.message[:200])
+            for e in v.iter_errors(contract)]
+    return (len(errs) == 0), errs
+
+
+def parse_args(argv):
+    # everything after a bare `--extra-args` is taken verbatim (values start with "--")
+    extra = []
+    if "--extra-args" in argv:
+        i = argv.index("--extra-args")
+        extra = argv[i + 1:]
+        argv = argv[:i]
+    rest = []
+    for tok in argv:
+        if tok.startswith("--extra-args="):
+            extra.append(tok.split("=", 1)[1])
+        else:
+            rest.append(tok)
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--mlir", required=True, help="MLIR source given to iree-compile")
+    ap.add_argument("--vmfb", required=True, help="vmfb written by -o of the SAME invocation")
+    ap.add_argument("--layout-ir", required=True, help="stderr of the SAME invocation (--mlir-print-ir-after=iree-stream-layout-slices)")
+    ap.add_argument("--dump-dir", required=True, help="--iree-hal-dump-executable-files-to directory of the SAME invocation")
+    ap.add_argument("--triple", required=True)
+    ap.add_argument("--cpu", required=True)
+    ap.add_argument("--model-name", required=True)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--entry", default="infer")
+    ap.add_argument("--driver", default="local-sync")
+    ap.add_argument("--profile", default=None, help="target.profile label (default: --cpu)")
+    ap.add_argument("--elf-analysis", default=None, help="JSON from harness/elf_stack_frame.py on the ELF in --dump-dir")
+    ap.add_argument("--runtime-commit", default=None, help="override (default: compiler commit short sha)")
+    ap.add_argument("--schema", default=os.path.join(HERE, "..", "contracts", "contract.schema.json"))
+    ap.add_argument("--no-validate", action="store_true")
+    ap.add_argument("--extra-args", nargs="*", default=[], help="extra iree-compile flags of the invocation (must be LAST)")
+    a = ap.parse_args(rest)
+    a.extra_args = extra
+    return a
+
+
+def main(argv=None):
+    a = parse_args(sys.argv[1:] if argv is None else argv)
+    c = build_contract(a, a.extra_args)
+    os.makedirs(os.path.dirname(os.path.abspath(a.out)) or ".", exist_ok=True)
+    with open(a.out, "w") as f:
+        json.dump(c, f, indent=2)
+        f.write("\n")
+    r = c["resources"]
+    print("wrote %s: bound_method=%s bounded=%s per_call=%s io=%s transient=%s constants=%s dispatches=%s "
+          "artifact=%s B sha256=%s kernel_stack=%s calls=%s alloca=%s"
+          % (a.out, r["bound_method"], r["bounded_bytes"], r["static_per_call_bytes"], r["static_io_bytes"],
+             r["static_transient_bytes"], r["module_resident_constant_bytes"], r["dispatches"],
+             c["artifact"]["bytes"], c["artifact"]["sha256"][:16], r["kernel_task_stack_bytes"],
+             r["kernel_external_call_insns"], r["llvm_alloca_count"]))
+    for n in c["provenance"]["notes"]:
+        print("note:", n, file=sys.stderr)
+    if not a.no_validate:
+        ok, errs = validate(c, a.schema)
+        if ok is None:
+            print("schema:", errs[0], file=sys.stderr)
+        elif not ok:
+            print("SCHEMA VALIDATION FAILED (%s):" % a.schema, file=sys.stderr)
+            for e in errs:
+                print("  -", e, file=sys.stderr)
+            return 3
+        else:
+            print("schema: valid (%s)" % os.path.relpath(a.schema))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

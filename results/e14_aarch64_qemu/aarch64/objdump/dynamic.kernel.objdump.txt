@@ -1,0 +1,626 @@
+
+results/e14_aarch64_qemu/aarch64/elf/dynamic.kernel.elf:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+0000000000010600 <iree_hal_executable_library_query-0x990>:
+   10600:	d10243ff 	sub	sp, sp, #0x90
+   10604:	6d0223e9 	stp	d9, d8, [sp, #32]
+   10608:	a9037bfd 	stp	x29, x30, [sp, #48]
+   1060c:	a9046ffc 	stp	x28, x27, [sp, #64]
+   10610:	a90567fa 	stp	x26, x25, [sp, #80]
+   10614:	a9065ff8 	stp	x24, x23, [sp, #96]
+   10618:	a90757f6 	stp	x22, x21, [sp, #112]
+   1061c:	a9084ff4 	stp	x20, x19, [sp, #128]
+   10620:	9100c3fd 	add	x29, sp, #0x30
+   10624:	a941ac29 	ldp	x9, x11, [x1, #24]
+   10628:	52800808 	mov	w8, #0x40                  	// #64
+   1062c:	b940004e 	ldr	w14, [x2]
+   10630:	f9400129 	ldr	x9, [x9]
+   10634:	d37df1cc 	lsl	x12, x14, #3
+   10638:	927a718a 	and	x10, x12, #0x7ffffffc0
+   1063c:	927a718d 	and	x13, x12, #0x7ffffffc0
+   10640:	927d098c 	and	x12, x12, #0x38
+   10644:	f9000fea 	str	x10, [sp, #24]
+   10648:	cb0d012a 	sub	x10, x9, x13
+   1064c:	f101015f 	cmp	x10, #0x40
+   10650:	9a88b149 	csel	x9, x10, x8, lt	// lt = tstop
+   10654:	937ffd48 	asr	x8, x10, #63
+   10658:	ca08012d 	eor	x13, x9, x8
+   1065c:	9100fdb0 	add	x16, x13, #0x3f
+   10660:	f10001bf 	cmp	x13, #0x0
+   10664:	9a8d420d 	csel	x13, x16, x13, mi	// mi = first
+   10668:	a9403d6a 	ldp	x10, x15, [x11]
+   1066c:	ca8d1910 	eor	x16, x8, x13, asr #6
+   10670:	f940096b 	ldr	x11, [x11, #16]
+   10674:	d37ae60d 	lsl	x13, x16, #6
+   10678:	f100061f 	cmp	x16, #0x1
+   1067c:	540019eb 	b.lt	109b8 <iree_hal_executable_library_query-0x5d8>  // b.tstop
+   10680:	d37ef588 	lsl	x8, x12, #2
+   10684:	8b0801f1 	add	x17, x15, x8
+   10688:	aa1f03e0 	mov	x0, xzr
+   1068c:	8b080161 	add	x1, x11, x8
+   10690:	52800482 	mov	w2, #0x24                  	// #36
+   10694:	528000a3 	mov	w3, #0x5                   	// #5
+   10698:	3dc20620 	ldr	q0, [x17, #2064]
+   1069c:	3dc20221 	ldr	q1, [x17, #2048]
+   106a0:	f9400fe8 	ldr	x8, [sp, #24]
+   106a4:	6f00e415 	movi	v21.2d, #0x0
+   106a8:	6f00e419 	movi	v25.2d, #0x0
+   106ac:	aa1f03f9 	mov	x25, xzr
+   106b0:	6f00e417 	movi	v23.2d, #0x0
+   106b4:	52800038 	mov	w24, #0x1                   	// #1
+   106b8:	6f00e418 	movi	v24.2d, #0x0
+   106bc:	8b080004 	add	x4, x0, x8
+   106c0:	6f00e414 	movi	v20.2d, #0x0
+   106c4:	6f00e416 	movi	v22.2d, #0x0
+   106c8:	6f00e412 	movi	v18.2d, #0x0
+   106cc:	9b022885 	madd	x5, x4, x2, x10
+   106d0:	6f00e413 	movi	v19.2d, #0x0
+   106d4:	6f00e410 	movi	v16.2d, #0x0
+   106d8:	910090a6 	add	x6, x5, #0x24
+   106dc:	6f00e411 	movi	v17.2d, #0x0
+   106e0:	910120a7 	add	x7, x5, #0x48
+   106e4:	6f00e404 	movi	v4.2d, #0x0
+   106e8:	9101b0b3 	add	x19, x5, #0x6c
+   106ec:	6f00e407 	movi	v7.2d, #0x0
+   106f0:	910240b4 	add	x20, x5, #0x90
+   106f4:	6f00e402 	movi	v2.2d, #0x0
+   106f8:	9102d0b5 	add	x21, x5, #0xb4
+   106fc:	6f00e405 	movi	v5.2d, #0x0
+   10700:	910360b6 	add	x22, x5, #0xd8
+   10704:	6f00e403 	movi	v3.2d, #0x0
+   10708:	9103f0b7 	add	x23, x5, #0xfc
+   1070c:	6f00e406 	movi	v6.2d, #0x0
+   10710:	8b192228 	add	x8, x17, x25, lsl #8
+   10714:	bc7978dd 	ldr	s29, [x6, x25, lsl #2]
+   10718:	bc7978ba 	ldr	s26, [x5, x25, lsl #2]
+   1071c:	b240033a 	orr	x26, x25, #0x1
+   10720:	bc7978fe 	ldr	s30, [x7, x25, lsl #2]
+   10724:	b27f033b 	orr	x27, x25, #0x2
+   10728:	ad40711b 	ldp	q27, q28, [x8]
+   1072c:	8b1a2228 	add	x8, x17, x26, lsl #8
+   10730:	bc797adf 	ldr	s31, [x22, x25, lsl #2]
+   10734:	bc797ae8 	ldr	s8, [x23, x25, lsl #2]
+   10738:	4f9d1398 	fmla	v24.4s, v28.4s, v29.s[0]
+   1073c:	bc7a78a9 	ldr	s9, [x5, x26, lsl #2]
+   10740:	4f9d1377 	fmla	v23.4s, v27.4s, v29.s[0]
+   10744:	bc797a9d 	ldr	s29, [x20, x25, lsl #2]
+   10748:	4f9a1375 	fmla	v21.4s, v27.4s, v26.s[0]
+   1074c:	4f9a1399 	fmla	v25.4s, v28.4s, v26.s[0]
+   10750:	bc797a7a 	ldr	s26, [x19, x25, lsl #2]
+   10754:	4f9e1396 	fmla	v22.4s, v28.4s, v30.s[0]
+   10758:	4f9e1374 	fmla	v20.4s, v27.4s, v30.s[0]
+   1075c:	bc797abe 	ldr	s30, [x21, x25, lsl #2]
+   10760:	4f9d1391 	fmla	v17.4s, v28.4s, v29.s[0]
+   10764:	b2400739 	orr	x25, x25, #0x3
+   10768:	4f9d1370 	fmla	v16.4s, v27.4s, v29.s[0]
+   1076c:	4f9a1393 	fmla	v19.4s, v28.4s, v26.s[0]
+   10770:	4f9a1372 	fmla	v18.4s, v27.4s, v26.s[0]
+   10774:	4f9e1387 	fmla	v7.4s, v28.4s, v30.s[0]
+   10778:	4f9e1364 	fmla	v4.4s, v27.4s, v30.s[0]
+   1077c:	bc7a78de 	ldr	s30, [x6, x26, lsl #2]
+   10780:	ad40691d 	ldp	q29, q26, [x8]
+   10784:	4f9f1362 	fmla	v2.4s, v27.4s, v31.s[0]
+   10788:	8b1b2228 	add	x8, x17, x27, lsl #8
+   1078c:	4f881363 	fmla	v3.4s, v27.4s, v8.s[0]
+   10790:	bc7a78fb 	ldr	s27, [x7, x26, lsl #2]
+   10794:	4f9f1385 	fmla	v5.4s, v28.4s, v31.s[0]
+   10798:	bc7a7adf 	ldr	s31, [x22, x26, lsl #2]
+   1079c:	4f881386 	fmla	v6.4s, v28.4s, v8.s[0]
+   107a0:	bc7a7a7c 	ldr	s28, [x19, x26, lsl #2]
+   107a4:	4f9e13b7 	fmla	v23.4s, v29.4s, v30.s[0]
+   107a8:	bc7b78a8 	ldr	s8, [x5, x27, lsl #2]
+   107ac:	4f9e1358 	fmla	v24.4s, v26.4s, v30.s[0]
+   107b0:	bc7a7a9e 	ldr	s30, [x20, x26, lsl #2]
+   107b4:	4f9b13b4 	fmla	v20.4s, v29.4s, v27.s[0]
+   107b8:	4f9b1356 	fmla	v22.4s, v26.4s, v27.s[0]
+   107bc:	bc7a7abb 	ldr	s27, [x21, x26, lsl #2]
+   107c0:	4f9c13b2 	fmla	v18.4s, v29.4s, v28.s[0]
+   107c4:	4f9e13b0 	fmla	v16.4s, v29.4s, v30.s[0]
+   107c8:	4f9e1351 	fmla	v17.4s, v26.4s, v30.s[0]
+   107cc:	bc7a7afe 	ldr	s30, [x23, x26, lsl #2]
+   107d0:	4f9c1353 	fmla	v19.4s, v26.4s, v28.s[0]
+   107d4:	4f8913b5 	fmla	v21.4s, v29.4s, v9.s[0]
+   107d8:	4f9b13a4 	fmla	v4.4s, v29.4s, v27.s[0]
+   107dc:	4f9b1347 	fmla	v7.4s, v26.4s, v27.s[0]
+   107e0:	4f9f13a2 	fmla	v2.4s, v29.4s, v31.s[0]
+   107e4:	ad40711b 	ldp	q27, q28, [x8]
+   107e8:	4f9e13a3 	fmla	v3.4s, v29.4s, v30.s[0]
+   107ec:	8b192228 	add	x8, x17, x25, lsl #8
+   107f0:	bc7b78dd 	ldr	s29, [x6, x27, lsl #2]
+   107f4:	4f891359 	fmla	v25.4s, v26.4s, v9.s[0]
+   107f8:	4f9f1345 	fmla	v5.4s, v26.4s, v31.s[0]
+   107fc:	bc7978bf 	ldr	s31, [x5, x25, lsl #2]
+   10800:	4f9e1346 	fmla	v6.4s, v26.4s, v30.s[0]
+   10804:	bc7b78fa 	ldr	s26, [x7, x27, lsl #2]
+   10808:	bc7b7a7e 	ldr	s30, [x19, x27, lsl #2]
+   1080c:	4f9d1398 	fmla	v24.4s, v28.4s, v29.s[0]
+   10810:	4f9d1377 	fmla	v23.4s, v27.4s, v29.s[0]
+   10814:	bc7b7a9d 	ldr	s29, [x20, x27, lsl #2]
+   10818:	4f9a1396 	fmla	v22.4s, v28.4s, v26.s[0]
+   1081c:	4f9a1374 	fmla	v20.4s, v27.4s, v26.s[0]
+   10820:	bc7b7aba 	ldr	s26, [x21, x27, lsl #2]
+   10824:	4f9e1393 	fmla	v19.4s, v28.4s, v30.s[0]
+   10828:	4f9e1372 	fmla	v18.4s, v27.4s, v30.s[0]
+   1082c:	bc7b7ade 	ldr	s30, [x22, x27, lsl #2]
+   10830:	4f9d1391 	fmla	v17.4s, v28.4s, v29.s[0]
+   10834:	4f9d1370 	fmla	v16.4s, v27.4s, v29.s[0]
+   10838:	bc7b7afd 	ldr	s29, [x23, x27, lsl #2]
+   1083c:	4f881375 	fmla	v21.4s, v27.4s, v8.s[0]
+   10840:	4f881399 	fmla	v25.4s, v28.4s, v8.s[0]
+   10844:	4f9a1387 	fmla	v7.4s, v28.4s, v26.s[0]
+   10848:	4f9a1364 	fmla	v4.4s, v27.4s, v26.s[0]
+   1084c:	4f9e1385 	fmla	v5.4s, v28.4s, v30.s[0]
+   10850:	ad406908 	ldp	q8, q26, [x8]
+   10854:	4f9d1386 	fmla	v6.4s, v28.4s, v29.s[0]
+   10858:	2a1803e8 	mov	w8, w24
+   1085c:	bc7978dc 	ldr	s28, [x6, x25, lsl #2]
+   10860:	4f9e1362 	fmla	v2.4s, v27.4s, v30.s[0]
+   10864:	4f9d1363 	fmla	v3.4s, v27.4s, v29.s[0]
+   10868:	bc7978fb 	ldr	s27, [x7, x25, lsl #2]
+   1086c:	bc797a7d 	ldr	s29, [x19, x25, lsl #2]
+   10870:	2a1f03f8 	mov	w24, wzr
+   10874:	4f9f1115 	fmla	v21.4s, v8.4s, v31.s[0]
+   10878:	4f9c1117 	fmla	v23.4s, v8.4s, v28.s[0]
+   1087c:	4f9c1358 	fmla	v24.4s, v26.4s, v28.s[0]
+   10880:	bc797a9c 	ldr	s28, [x20, x25, lsl #2]
+   10884:	4f9b1114 	fmla	v20.4s, v8.4s, v27.s[0]
+   10888:	4f9b1356 	fmla	v22.4s, v26.4s, v27.s[0]
+   1088c:	bc797abb 	ldr	s27, [x21, x25, lsl #2]
+   10890:	4f9d1112 	fmla	v18.4s, v8.4s, v29.s[0]
+   10894:	4f9d1353 	fmla	v19.4s, v26.4s, v29.s[0]
+   10898:	bc797add 	ldr	s29, [x22, x25, lsl #2]
+   1089c:	4f9c1110 	fmla	v16.4s, v8.4s, v28.s[0]
+   108a0:	4f9c1351 	fmla	v17.4s, v26.4s, v28.s[0]
+   108a4:	bc797afc 	ldr	s28, [x23, x25, lsl #2]
+   108a8:	4f9f1359 	fmla	v25.4s, v26.4s, v31.s[0]
+   108ac:	52800099 	mov	w25, #0x4                   	// #4
+   108b0:	4f9b1104 	fmla	v4.4s, v8.4s, v27.s[0]
+   108b4:	4f9b1347 	fmla	v7.4s, v26.4s, v27.s[0]
+   108b8:	4f9d1102 	fmla	v2.4s, v8.4s, v29.s[0]
+   108bc:	4f9d1345 	fmla	v5.4s, v26.4s, v29.s[0]
+   108c0:	4f9c1103 	fmla	v3.4s, v8.4s, v28.s[0]
+   108c4:	4f9c1346 	fmla	v6.4s, v26.4s, v28.s[0]
+   108c8:	3707f248 	tbnz	w8, #0, 10710 <iree_hal_executable_library_query-0x880>
+   108cc:	b2400085 	orr	x5, x4, #0x1
+   108d0:	9b022888 	madd	x8, x4, x2, x10
+   108d4:	b27f0086 	orr	x6, x4, #0x2
+   108d8:	b2400487 	orr	x7, x4, #0x3
+   108dc:	9b0228b5 	madd	x21, x5, x2, x10
+   108e0:	b27e0093 	orr	x19, x4, #0x4
+   108e4:	9b0228d6 	madd	x22, x6, x2, x10
+   108e8:	aa030094 	orr	x20, x4, x3
+   108ec:	bd40211a 	ldr	s26, [x8, #32]
+   108f0:	9b0228e8 	madd	x8, x7, x2, x10
+   108f4:	9b022a77 	madd	x23, x19, x2, x10
+   108f8:	f100e01f 	cmp	x0, #0x38
+   108fc:	bd4022bb 	ldr	s27, [x21, #32]
+   10900:	b27f0495 	orr	x21, x4, #0x6
+   10904:	bd4022dc 	ldr	s28, [x22, #32]
+   10908:	9b022a96 	madd	x22, x20, x2, x10
+   1090c:	4f9a1035 	fmla	v21.4s, v1.4s, v26.s[0]
+   10910:	4f9a1019 	fmla	v25.4s, v0.4s, v26.s[0]
+   10914:	bd40211a 	ldr	s26, [x8, #32]
+   10918:	4f9b1037 	fmla	v23.4s, v1.4s, v27.s[0]
+   1091c:	9b022aa8 	madd	x8, x21, x2, x10
+   10920:	4f9b1018 	fmla	v24.4s, v0.4s, v27.s[0]
+   10924:	bd4022fb 	ldr	s27, [x23, #32]
+   10928:	b2400897 	orr	x23, x4, #0x7
+   1092c:	4f9c1034 	fmla	v20.4s, v1.4s, v28.s[0]
+   10930:	4f9c1016 	fmla	v22.4s, v0.4s, v28.s[0]
+   10934:	bd4022dc 	ldr	s28, [x22, #32]
+   10938:	9b022af6 	madd	x22, x23, x2, x10
+   1093c:	4f9a1032 	fmla	v18.4s, v1.4s, v26.s[0]
+   10940:	4f9a1013 	fmla	v19.4s, v0.4s, v26.s[0]
+   10944:	bd40211a 	ldr	s26, [x8, #32]
+   10948:	4f9b1030 	fmla	v16.4s, v1.4s, v27.s[0]
+   1094c:	8b042028 	add	x8, x1, x4, lsl #8
+   10950:	4f9b1011 	fmla	v17.4s, v0.4s, v27.s[0]
+   10954:	8b052024 	add	x4, x1, x5, lsl #8
+   10958:	bd4022db 	ldr	s27, [x22, #32]
+   1095c:	4f9c1024 	fmla	v4.4s, v1.4s, v28.s[0]
+   10960:	4f9c1007 	fmla	v7.4s, v0.4s, v28.s[0]
+   10964:	ad006515 	stp	q21, q25, [x8]
+   10968:	4f9a1022 	fmla	v2.4s, v1.4s, v26.s[0]
+   1096c:	8b062028 	add	x8, x1, x6, lsl #8
+   10970:	4f9a1005 	fmla	v5.4s, v0.4s, v26.s[0]
+   10974:	ad006097 	stp	q23, q24, [x4]
+   10978:	4f9b1023 	fmla	v3.4s, v1.4s, v27.s[0]
+   1097c:	8b072024 	add	x4, x1, x7, lsl #8
+   10980:	4f9b1006 	fmla	v6.4s, v0.4s, v27.s[0]
+   10984:	ad005914 	stp	q20, q22, [x8]
+   10988:	8b132028 	add	x8, x1, x19, lsl #8
+   1098c:	91002005 	add	x5, x0, #0x8
+   10990:	ad004c92 	stp	q18, q19, [x4]
+   10994:	8b142024 	add	x4, x1, x20, lsl #8
+   10998:	aa0503e0 	mov	x0, x5
+   1099c:	ad004510 	stp	q16, q17, [x8]
+   109a0:	8b152028 	add	x8, x1, x21, lsl #8
+   109a4:	ad001c84 	stp	q4, q7, [x4]
+   109a8:	8b172024 	add	x4, x1, x23, lsl #8
+   109ac:	ad001502 	stp	q2, q5, [x8]
+   109b0:	ad001883 	stp	q3, q6, [x4]
+   109b4:	54ffe763 	b.cc	106a0 <iree_hal_executable_library_query-0x8f0>  // b.lo, b.ul, b.last
+   109b8:	eb0d0128 	subs	x8, x9, x13
+   109bc:	f9000be8 	str	x8, [sp, #16]
+   109c0:	5400102d 	b.le	10bc4 <iree_hal_executable_library_query-0x3cc>
+   109c4:	52812008 	mov	w8, #0x900                 	// #2304
+   109c8:	d372c611 	lsl	x17, x16, #14
+   109cc:	d343fdc0 	lsr	x0, x14, #3
+   109d0:	d37b09c1 	ubfiz	x1, x14, #5, #3
+   109d4:	9b087e10 	mul	x16, x16, x8
+   109d8:	8b0101ef 	add	x15, x15, x1
+   109dc:	8b003a31 	add	x17, x17, x0, lsl #14
+   109e0:	52800101 	mov	w1, #0x8                   	// #8
+   109e4:	9ba84008 	umaddl	x8, w0, w8, x16
+   109e8:	912001f0 	add	x16, x15, #0x800
+   109ec:	b37b09d1 	bfi	x17, x14, #5, #3
+   109f0:	8b11016e 	add	x14, x11, x17
+   109f4:	8b080148 	add	x8, x10, x8
+   109f8:	52800482 	mov	w2, #0x24                  	// #36
+   109fc:	a9003be8 	stp	x8, x14, [sp]
+   10a00:	1400000d 	b	10a34 <iree_hal_executable_library_query-0x55c>
+   10a04:	f9400be8 	ldr	x8, [sp, #16]
+   10a08:	910101ad 	add	x13, x13, #0x40
+   10a0c:	eb0901bf 	cmp	x13, x9
+   10a10:	d1010108 	sub	x8, x8, #0x40
+   10a14:	f9000be8 	str	x8, [sp, #16]
+   10a18:	f94007e8 	ldr	x8, [sp, #8]
+   10a1c:	91401108 	add	x8, x8, #0x4, lsl #12
+   10a20:	f90007e8 	str	x8, [sp, #8]
+   10a24:	f94003e8 	ldr	x8, [sp]
+   10a28:	91240108 	add	x8, x8, #0x900
+   10a2c:	f90003e8 	str	x8, [sp]
+   10a30:	54000caa 	b.ge	10bc4 <iree_hal_executable_library_query-0x3cc>  // b.tcont
+   10a34:	cb0d0123 	sub	x3, x9, x13
+   10a38:	f100047f 	cmp	x3, #0x1
+   10a3c:	54fffe4b 	b.lt	10a04 <iree_hal_executable_library_query-0x58c>  // b.tstop
+   10a40:	a94123f3 	ldp	x19, x8, [sp, #16]
+   10a44:	aa1f03e4 	mov	x4, xzr
+   10a48:	a9401fe6 	ldp	x6, x7, [sp]
+   10a4c:	8b0801a5 	add	x5, x13, x8
+   10a50:	14000007 	b	10a6c <iree_hal_executable_library_query-0x524>
+   10a54:	91002084 	add	x4, x4, #0x8
+   10a58:	d1002273 	sub	x19, x19, #0x8
+   10a5c:	912000e7 	add	x7, x7, #0x800
+   10a60:	910480c6 	add	x6, x6, #0x120
+   10a64:	eb03009f 	cmp	x4, x3
+   10a68:	54fffcea 	b.ge	10a04 <iree_hal_executable_library_query-0x58c>  // b.tcont
+   10a6c:	f100067f 	cmp	x19, #0x1
+   10a70:	8b0d0091 	add	x17, x4, x13
+   10a74:	9a9fc668 	csinc	x8, x19, xzr, gt
+   10a78:	cb110135 	sub	x21, x9, x17
+   10a7c:	f100211f 	cmp	x8, #0x8
+   10a80:	9a81b114 	csel	x20, x8, x1, lt	// lt = tstop
+   10a84:	f10006bf 	cmp	x21, #0x1
+   10a88:	540001cb 	b.lt	10ac0 <iree_hal_executable_library_query-0x4d0>  // b.tstop
+   10a8c:	aa1f03f6 	mov	x22, xzr
+   10a90:	aa0703ee 	mov	x14, x7
+   10a94:	aa1f03e8 	mov	x8, xzr
+   10a98:	d503201f 	nop
+   10a9c:	d503201f 	nop
+   10aa0:	b82869df 	str	wzr, [x14, x8]
+   10aa4:	91001108 	add	x8, x8, #0x4
+   10aa8:	f100811f 	cmp	x8, #0x20
+   10aac:	54ffffa1 	b.ne	10aa0 <iree_hal_executable_library_query-0x4f0>  // b.any
+   10ab0:	910006d6 	add	x22, x22, #0x1
+   10ab4:	910401ce 	add	x14, x14, #0x100
+   10ab8:	eb1402df 	cmp	x22, x20
+   10abc:	54fffec1 	b.ne	10a94 <iree_hal_executable_library_query-0x4fc>  // b.any
+   10ac0:	f9400fe8 	ldr	x8, [sp, #24]
+   10ac4:	aa1f03ee 	mov	x14, xzr
+   10ac8:	8b0400b7 	add	x23, x5, x4
+   10acc:	8b080236 	add	x22, x17, x8
+   10ad0:	52800028 	mov	w8, #0x1                   	// #1
+   10ad4:	14000006 	b	10aec <iree_hal_executable_library_query-0x4a4>
+   10ad8:	d503201f 	nop
+   10adc:	d503201f 	nop
+   10ae0:	2a1f03e8 	mov	w8, wzr
+   10ae4:	5280008e 	mov	w14, #0x4                   	// #4
+   10ae8:	3607fb78 	tbz	w24, #0, 10a54 <iree_hal_executable_library_query-0x53c>
+   10aec:	2a0803f8 	mov	w24, w8
+   10af0:	f10006bf 	cmp	x21, #0x1
+   10af4:	54ffff6b 	b.lt	10ae0 <iree_hal_executable_library_query-0x4b0>  // b.tstop
+   10af8:	aa1f03f9 	mov	x25, xzr
+   10afc:	8b0e21e8 	add	x8, x15, x14, lsl #8
+   10b00:	8b0e08db 	add	x27, x6, x14, lsl #2
+   10b04:	8b1902ee 	add	x14, x23, x25
+   10b08:	aa1f03fc 	mov	x28, xzr
+   10b0c:	aa0803f1 	mov	x17, x8
+   10b10:	8b0e217e 	add	x30, x11, x14, lsl #8
+   10b14:	8b0c0380 	add	x0, x28, x12
+   10b18:	aa1f03ee 	mov	x14, xzr
+   10b1c:	aa1103fa 	mov	x26, x17
+   10b20:	bc607bc0 	ldr	s0, [x30, x0, lsl #2]
+   10b24:	bc6e6b61 	ldr	s1, [x27, x14]
+   10b28:	910011ce 	add	x14, x14, #0x4
+   10b2c:	bd400342 	ldr	s2, [x26]
+   10b30:	9104035a 	add	x26, x26, #0x100
+   10b34:	f10041df 	cmp	x14, #0x10
+   10b38:	1f020020 	fmadd	s0, s1, s2, s0
+   10b3c:	bc207bc0 	str	s0, [x30, x0, lsl #2]
+   10b40:	54ffff21 	b.ne	10b24 <iree_hal_executable_library_query-0x46c>  // b.any
+   10b44:	9100079c 	add	x28, x28, #0x1
+   10b48:	91001231 	add	x17, x17, #0x4
+   10b4c:	f100239f 	cmp	x28, #0x8
+   10b50:	54fffe21 	b.ne	10b14 <iree_hal_executable_library_query-0x47c>  // b.any
+   10b54:	91000739 	add	x25, x25, #0x1
+   10b58:	9100937b 	add	x27, x27, #0x24
+   10b5c:	eb14033f 	cmp	x25, x20
+   10b60:	54fffd21 	b.ne	10b04 <iree_hal_executable_library_query-0x48c>  // b.any
+   10b64:	2a1f03e8 	mov	w8, wzr
+   10b68:	5280008e 	mov	w14, #0x4                   	// #4
+   10b6c:	3707fc18 	tbnz	w24, #0, 10aec <iree_hal_executable_library_query-0x4a4>
+   10b70:	aa1f03f1 	mov	x17, xzr
+   10b74:	aa0703f5 	mov	x21, x7
+   10b78:	d503201f 	nop
+   10b7c:	d503201f 	nop
+   10b80:	8b160228 	add	x8, x17, x22
+   10b84:	aa1f03ee 	mov	x14, xzr
+   10b88:	9b022908 	madd	x8, x8, x2, x10
+   10b8c:	d503201f 	nop
+   10b90:	bd402100 	ldr	s0, [x8, #32]
+   10b94:	bc6e6a01 	ldr	s1, [x16, x14]
+   10b98:	bc6e6aa2 	ldr	s2, [x21, x14]
+   10b9c:	1f010800 	fmadd	s0, s0, s1, s2
+   10ba0:	bc2e6aa0 	str	s0, [x21, x14]
+   10ba4:	910011ce 	add	x14, x14, #0x4
+   10ba8:	f10081df 	cmp	x14, #0x20
+   10bac:	54ffff21 	b.ne	10b90 <iree_hal_executable_library_query-0x400>  // b.any
+   10bb0:	91000631 	add	x17, x17, #0x1
+   10bb4:	910402b5 	add	x21, x21, #0x100
+   10bb8:	eb14023f 	cmp	x17, x20
+   10bbc:	54fffe21 	b.ne	10b80 <iree_hal_executable_library_query-0x410>  // b.any
+   10bc0:	17ffffa5 	b	10a54 <iree_hal_executable_library_query-0x53c>
+   10bc4:	a9484ff4 	ldp	x20, x19, [sp, #128]
+   10bc8:	2a1f03e0 	mov	w0, wzr
+   10bcc:	a94757f6 	ldp	x22, x21, [sp, #112]
+   10bd0:	a9465ff8 	ldp	x24, x23, [sp, #96]
+   10bd4:	a94567fa 	ldp	x26, x25, [sp, #80]
+   10bd8:	a9446ffc 	ldp	x28, x27, [sp, #64]
+   10bdc:	a9437bfd 	ldp	x29, x30, [sp, #48]
+   10be0:	6d4223e9 	ldp	d9, d8, [sp, #32]
+   10be4:	910243ff 	add	sp, sp, #0x90
+   10be8:	d65f03c0 	ret
+   10bec:	00000000 	udf	#0
+   10bf0:	a9ba7bfd 	stp	x29, x30, [sp, #-96]!
+   10bf4:	a9016ffc 	stp	x28, x27, [sp, #16]
+   10bf8:	a90267fa 	stp	x26, x25, [sp, #32]
+   10bfc:	a9035ff8 	stp	x24, x23, [sp, #48]
+   10c00:	a90457f6 	stp	x22, x21, [sp, #64]
+   10c04:	a9054ff4 	stp	x20, x19, [sp, #80]
+   10c08:	910003fd 	mov	x29, sp
+   10c0c:	a941ac28 	ldp	x8, x11, [x1, #24]
+   10c10:	52800809 	mov	w9, #0x40                  	// #64
+   10c14:	b940004d 	ldr	w13, [x2]
+   10c18:	f940010a 	ldr	x10, [x8]
+   10c1c:	d37ae5a8 	lsl	x8, x13, #6
+   10c20:	cb08014a 	sub	x10, x10, x8
+   10c24:	f101015f 	cmp	x10, #0x40
+   10c28:	937ffd4c 	asr	x12, x10, #63
+   10c2c:	9a89b149 	csel	x9, x10, x9, lt	// lt = tstop
+   10c30:	ca0c012f 	eor	x15, x9, x12
+   10c34:	9100fdf0 	add	x16, x15, #0x3f
+   10c38:	f10001ff 	cmp	x15, #0x0
+   10c3c:	9a8f420f 	csel	x15, x16, x15, mi	// mi = first
+   10c40:	a940296e 	ldp	x14, x10, [x11]
+   10c44:	ca8f198f 	eor	x15, x12, x15, asr #6
+   10c48:	f940096b 	ldr	x11, [x11, #16]
+   10c4c:	d37ae5ec 	lsl	x12, x15, #6
+   10c50:	f10005ff 	cmp	x15, #0x1
+   10c54:	54000deb 	b.lt	10e10 <iree_hal_executable_library_query-0x180>  // b.tstop
+   10c58:	528000a3 	mov	w3, #0x5                   	// #5
+   10c5c:	aa1f03e1 	mov	x1, xzr
+   10c60:	b2400110 	orr	x16, x8, #0x1
+   10c64:	b27f0111 	orr	x17, x8, #0x2
+   10c68:	b2400500 	orr	x0, x8, #0x3
+   10c6c:	b27e0102 	orr	x2, x8, #0x4
+   10c70:	aa030103 	orr	x3, x8, x3
+   10c74:	b27f0504 	orr	x4, x8, #0x6
+   10c78:	b2400905 	orr	x5, x8, #0x7
+   10c7c:	8b0d39c6 	add	x6, x14, x13, lsl #14
+   10c80:	2f00e404 	movi	d4, #0x0
+   10c84:	8b080027 	add	x7, x1, x8
+   10c88:	2f00e407 	movi	d7, #0x0
+   10c8c:	92800073 	mov	x19, #0xfffffffffffffffc    	// #-4
+   10c90:	2f00e405 	movi	d5, #0x0
+   10c94:	91004154 	add	x20, x10, #0x10
+   10c98:	2f00e406 	movi	d6, #0x0
+   10c9c:	aa0603f5 	mov	x21, x6
+   10ca0:	2f00e403 	movi	d3, #0x0
+   10ca4:	2f00e402 	movi	d2, #0x0
+   10ca8:	2f00e400 	movi	d0, #0x0
+   10cac:	2f00e401 	movi	d1, #0x0
+   10cb0:	6d7f4292 	ldp	d18, d16, [x20, #-16]
+   10cb4:	91001273 	add	x19, x19, #0x4
+   10cb8:	2d405ab1 	ldp	s17, s22, [x21]
+   10cbc:	f100f27f 	cmp	x19, #0x3c
+   10cc0:	bd4102b3 	ldr	s19, [x21, #256]
+   10cc4:	bd4202b4 	ldr	s20, [x21, #512]
+   10cc8:	bd4302b5 	ldr	s21, [x21, #768]
+   10ccc:	0f911244 	fmla	v4.2s, v18.2s, v17.s[0]
+   10cd0:	bd4402b1 	ldr	s17, [x21, #1024]
+   10cd4:	0f931247 	fmla	v7.2s, v18.2s, v19.s[0]
+   10cd8:	bd4502b3 	ldr	s19, [x21, #1280]
+   10cdc:	0f941245 	fmla	v5.2s, v18.2s, v20.s[0]
+   10ce0:	bd4602b4 	ldr	s20, [x21, #1536]
+   10ce4:	0f951246 	fmla	v6.2s, v18.2s, v21.s[0]
+   10ce8:	bd4702b5 	ldr	s21, [x21, #1792]
+   10cec:	0f911243 	fmla	v3.2s, v18.2s, v17.s[0]
+   10cf0:	0f931242 	fmla	v2.2s, v18.2s, v19.s[0]
+   10cf4:	bd4206b3 	ldr	s19, [x21, #516]
+   10cf8:	0f941240 	fmla	v0.2s, v18.2s, v20.s[0]
+   10cfc:	bd4306b4 	ldr	s20, [x21, #772]
+   10d00:	0f951241 	fmla	v1.2s, v18.2s, v21.s[0]
+   10d04:	bd4106b2 	ldr	s18, [x21, #260]
+   10d08:	bd4406b5 	ldr	s21, [x21, #1028]
+   10d0c:	0f961204 	fmla	v4.2s, v16.2s, v22.s[0]
+   10d10:	bd4506b6 	ldr	s22, [x21, #1284]
+   10d14:	0f921207 	fmla	v7.2s, v16.2s, v18.s[0]
+   10d18:	0f931205 	fmla	v5.2s, v16.2s, v19.s[0]
+   10d1c:	bd4606b3 	ldr	s19, [x21, #1540]
+   10d20:	0f941206 	fmla	v6.2s, v16.2s, v20.s[0]
+   10d24:	bd4706b4 	ldr	s20, [x21, #1796]
+   10d28:	0f951203 	fmla	v3.2s, v16.2s, v21.s[0]
+   10d2c:	0f961202 	fmla	v2.2s, v16.2s, v22.s[0]
+   10d30:	0f931200 	fmla	v0.2s, v16.2s, v19.s[0]
+   10d34:	bd410ab3 	ldr	s19, [x21, #264]
+   10d38:	0f941201 	fmla	v1.2s, v16.2s, v20.s[0]
+   10d3c:	bd420ab0 	ldr	s16, [x21, #520]
+   10d40:	6cc24a91 	ldp	d17, d18, [x20], #32
+   10d44:	2d415ab5 	ldp	s21, s22, [x21, #8]
+   10d48:	bd430ab4 	ldr	s20, [x21, #776]
+   10d4c:	0f931227 	fmla	v7.2s, v17.2s, v19.s[0]
+   10d50:	bd450ab3 	ldr	s19, [x21, #1288]
+   10d54:	0f901225 	fmla	v5.2s, v17.2s, v16.s[0]
+   10d58:	0f951224 	fmla	v4.2s, v17.2s, v21.s[0]
+   10d5c:	bd440ab5 	ldr	s21, [x21, #1032]
+   10d60:	bd460ab0 	ldr	s16, [x21, #1544]
+   10d64:	0f941226 	fmla	v6.2s, v17.2s, v20.s[0]
+   10d68:	bd470ab4 	ldr	s20, [x21, #1800]
+   10d6c:	0f931222 	fmla	v2.2s, v17.2s, v19.s[0]
+   10d70:	bd430eb3 	ldr	s19, [x21, #780]
+   10d74:	0f951223 	fmla	v3.2s, v17.2s, v21.s[0]
+   10d78:	0f901220 	fmla	v0.2s, v17.2s, v16.s[0]
+   10d7c:	bd410eb0 	ldr	s16, [x21, #268]
+   10d80:	0f941221 	fmla	v1.2s, v17.2s, v20.s[0]
+   10d84:	bd420eb1 	ldr	s17, [x21, #524]
+   10d88:	bd440eb4 	ldr	s20, [x21, #1036]
+   10d8c:	0f901247 	fmla	v7.2s, v18.2s, v16.s[0]
+   10d90:	bd450eb0 	ldr	s16, [x21, #1292]
+   10d94:	0f911245 	fmla	v5.2s, v18.2s, v17.s[0]
+   10d98:	bd460eb1 	ldr	s17, [x21, #1548]
+   10d9c:	0f961244 	fmla	v4.2s, v18.2s, v22.s[0]
+   10da0:	0f931246 	fmla	v6.2s, v18.2s, v19.s[0]
+   10da4:	bd470eb3 	ldr	s19, [x21, #1804]
+   10da8:	0f901242 	fmla	v2.2s, v18.2s, v16.s[0]
+   10dac:	910042b5 	add	x21, x21, #0x10
+   10db0:	0f941243 	fmla	v3.2s, v18.2s, v20.s[0]
+   10db4:	0f911240 	fmla	v0.2s, v18.2s, v17.s[0]
+   10db8:	0f931241 	fmla	v1.2s, v18.2s, v19.s[0]
+   10dbc:	54fff7a3 	b.cc	10cb0 <iree_hal_executable_library_query-0x2e0>  // b.lo, b.ul, b.last
+   10dc0:	8b010213 	add	x19, x16, x1
+   10dc4:	8b010234 	add	x20, x17, x1
+   10dc8:	fc277964 	str	d4, [x11, x7, lsl #3]
+   10dcc:	8b010007 	add	x7, x0, x1
+   10dd0:	91002035 	add	x21, x1, #0x8
+   10dd4:	f100e03f 	cmp	x1, #0x38
+   10dd8:	fc337967 	str	d7, [x11, x19, lsl #3]
+   10ddc:	8b010053 	add	x19, x2, x1
+   10de0:	fc347965 	str	d5, [x11, x20, lsl #3]
+   10de4:	8b010094 	add	x20, x4, x1
+   10de8:	fc277966 	str	d6, [x11, x7, lsl #3]
+   10dec:	8b010067 	add	x7, x3, x1
+   10df0:	fc337963 	str	d3, [x11, x19, lsl #3]
+   10df4:	8b0100b3 	add	x19, x5, x1
+   10df8:	912000c6 	add	x6, x6, #0x800
+   10dfc:	aa1503e1 	mov	x1, x21
+   10e00:	fc277962 	str	d2, [x11, x7, lsl #3]
+   10e04:	fc347960 	str	d0, [x11, x20, lsl #3]
+   10e08:	fc337961 	str	d1, [x11, x19, lsl #3]
+   10e0c:	54fff3a3 	b.cc	10c80 <iree_hal_executable_library_query-0x310>  // b.lo, b.ul, b.last
+   10e10:	eb0c0130 	subs	x16, x9, x12
+   10e14:	54000aed 	b.le	10f70 <iree_hal_executable_library_query-0x20>
+   10e18:	d377d9f1 	lsl	x17, x15, #9
+   10e1c:	d372c5ef 	lsl	x15, x15, #14
+   10e20:	8b0d2631 	add	x17, x17, x13, lsl #9
+   10e24:	8b0d39ef 	add	x15, x15, x13, lsl #14
+   10e28:	8b0b0231 	add	x17, x17, x11
+   10e2c:	8b0f01ce 	add	x14, x14, x15
+   10e30:	9100122d 	add	x13, x17, #0x4
+   10e34:	5280010f 	mov	w15, #0x8                   	// #8
+   10e38:	14000008 	b	10e58 <iree_hal_executable_library_query-0x138>
+   10e3c:	d503201f 	nop
+   10e40:	9101018c 	add	x12, x12, #0x40
+   10e44:	d1010210 	sub	x16, x16, #0x40
+   10e48:	910801ad 	add	x13, x13, #0x200
+   10e4c:	914011ce 	add	x14, x14, #0x4, lsl #12
+   10e50:	eb09019f 	cmp	x12, x9
+   10e54:	540008ea 	b.ge	10f70 <iree_hal_executable_library_query-0x20>  // b.tcont
+   10e58:	cb0c0131 	sub	x17, x9, x12
+   10e5c:	f100063f 	cmp	x17, #0x1
+   10e60:	54ffff0b 	b.lt	10e40 <iree_hal_executable_library_query-0x150>  // b.tstop
+   10e64:	aa1f03e0 	mov	x0, xzr
+   10e68:	8b080181 	add	x1, x12, x8
+   10e6c:	aa0e03e2 	mov	x2, x14
+   10e70:	aa0d03e3 	mov	x3, x13
+   10e74:	aa1003e4 	mov	x4, x16
+   10e78:	14000008 	b	10e98 <iree_hal_executable_library_query-0xf8>
+   10e7c:	d503201f 	nop
+   10e80:	91002000 	add	x0, x0, #0x8
+   10e84:	d1002084 	sub	x4, x4, #0x8
+   10e88:	91010063 	add	x3, x3, #0x40
+   10e8c:	91200042 	add	x2, x2, #0x800
+   10e90:	eb11001f 	cmp	x0, x17
+   10e94:	54fffd6a 	b.ge	10e40 <iree_hal_executable_library_query-0x150>  // b.tcont
+   10e98:	f100049f 	cmp	x4, #0x1
+   10e9c:	8b0c0006 	add	x6, x0, x12
+   10ea0:	9a9fc485 	csinc	x5, x4, xzr, gt
+   10ea4:	cb060126 	sub	x6, x9, x6
+   10ea8:	f10020bf 	cmp	x5, #0x8
+   10eac:	9a8fb0a5 	csel	x5, x5, x15, lt	// lt = tstop
+   10eb0:	f10004df 	cmp	x6, #0x1
+   10eb4:	540000eb 	b.lt	10ed0 <iree_hal_executable_library_query-0xc0>  // b.tstop
+   10eb8:	aa0303e7 	mov	x7, x3
+   10ebc:	d37df0b3 	lsl	x19, x5, #3
+   10ec0:	f81fc0ff 	stur	xzr, [x7, #-4]
+   10ec4:	910020e7 	add	x7, x7, #0x8
+   10ec8:	f1002273 	subs	x19, x19, #0x8
+   10ecc:	54ffffa1 	b.ne	10ec0 <iree_hal_executable_library_query-0xd0>  // b.any
+   10ed0:	aa1f03f5 	mov	x21, xzr
+   10ed4:	8b000027 	add	x7, x1, x0
+   10ed8:	aa0203f3 	mov	x19, x2
+   10edc:	aa0a03f4 	mov	x20, x10
+   10ee0:	14000007 	b	10efc <iree_hal_executable_library_query-0x94>
+   10ee4:	910012b6 	add	x22, x21, #0x4
+   10ee8:	f100f2bf 	cmp	x21, #0x3c
+   10eec:	91008294 	add	x20, x20, #0x20
+   10ef0:	91004273 	add	x19, x19, #0x10
+   10ef4:	aa1603f5 	mov	x21, x22
+   10ef8:	54fffc42 	b.cs	10e80 <iree_hal_executable_library_query-0x110>  // b.hs, b.nlast
+   10efc:	f10004df 	cmp	x6, #0x1
+   10f00:	54ffff2b 	b.lt	10ee4 <iree_hal_executable_library_query-0xac>  // b.tstop
+   10f04:	aa1f03f6 	mov	x22, xzr
+   10f08:	aa1303f7 	mov	x23, x19
+   10f0c:	d503201f 	nop
+   10f10:	8b1600f8 	add	x24, x7, x22
+   10f14:	2a1f03fc 	mov	w28, wzr
+   10f18:	aa1f03f9 	mov	x25, xzr
+   10f1c:	8b180d78 	add	x24, x11, x24, lsl #3
+   10f20:	d37ef73e 	lsl	x30, x25, #2
+   10f24:	aa1f03fb 	mov	x27, xzr
+   10f28:	2a1c03fa 	mov	w26, w28
+   10f2c:	8b1e029c 	add	x28, x20, x30
+   10f30:	bc7e6b00 	ldr	s0, [x24, x30]
+   10f34:	bc7b6ae1 	ldr	s1, [x23, x27]
+   10f38:	9100137b 	add	x27, x27, #0x4
+   10f3c:	bc408782 	ldr	s2, [x28], #8
+   10f40:	f100437f 	cmp	x27, #0x10
+   10f44:	1f020020 	fmadd	s0, s1, s2, s0
+   10f48:	bc397b00 	str	s0, [x24, x25, lsl #2]
+   10f4c:	54ffff41 	b.ne	10f34 <iree_hal_executable_library_query-0x5c>  // b.any
+   10f50:	5280003c 	mov	w28, #0x1                   	// #1
+   10f54:	52800039 	mov	w25, #0x1                   	// #1
+   10f58:	3607fe5a 	tbz	w26, #0, 10f20 <iree_hal_executable_library_query-0x70>
+   10f5c:	910006d6 	add	x22, x22, #0x1
+   10f60:	910402f7 	add	x23, x23, #0x100
+   10f64:	eb0502df 	cmp	x22, x5
+   10f68:	54fffd41 	b.ne	10f10 <iree_hal_executable_library_query-0x80>  // b.any
+   10f6c:	17ffffde 	b	10ee4 <iree_hal_executable_library_query-0xac>
+   10f70:	a9454ff4 	ldp	x20, x19, [sp, #80]
+   10f74:	2a1f03e0 	mov	w0, wzr
+   10f78:	a94457f6 	ldp	x22, x21, [sp, #64]
+   10f7c:	a9435ff8 	ldp	x24, x23, [sp, #48]
+   10f80:	a94267fa 	ldp	x26, x25, [sp, #32]
+   10f84:	a9416ffc 	ldp	x28, x27, [sp, #16]
+   10f88:	a8c67bfd 	ldp	x29, x30, [sp], #96
+   10f8c:	d65f03c0 	ret
+
+0000000000010f90 <iree_hal_executable_library_query>:
+   10f90:	d503201f 	nop
+   10f94:	10080568 	adr	x8, 21040 <iree_hal_executable_library_query+0x100b0>
+   10f98:	7100181f 	cmp	w0, #0x6
+   10f9c:	9a9f0100 	csel	x0, x8, xzr, eq	// eq = none
+   10fa0:	d65f03c0 	ret

@@ -1,0 +1,231 @@
+{
+  "tool": "harness/elf_stack_frame.py",
+  "elf": "results/e14_aarch64_qemu/x86_64/elf/mlp16k_swap.kernel.elf",
+  "arch": "x86_64",
+  "elf_bytes": 5248,
+  "elf_sha256": "056108a6185659ce3ea6541f50ed5401756a1b93e4e4c2138b21f6f0b3ff2183",
+  "objdump": {
+    "tool": "objdump",
+    "file_format": "elf64-x86-64"
+  },
+  "elf_type": "ET_DYN",
+  "sections": {
+    ".dynsym": 48,
+    ".hash": 24,
+    ".dynstr": 35,
+    ".rela.dyn": 408,
+    ".rodata": 416,
+    ".eh_frame": 112,
+    ".text": 721,
+    ".data.rel.ro": 272,
+    ".dynamic": 192,
+    ".relro_padding": 1392
+  },
+  "text_bytes": 721,
+  "rodata_bytes": 416,
+  "symbols": [
+    {
+      "name": "iree_hal_executable_library_query",
+      "addr": "0x18a0"
+    }
+  ],
+  "undefined_symbols": [],
+  "relocations": {
+    "count": 17,
+    "types": {
+      "R_X86_64_RELATIVE": 17
+    },
+    "non_relative": 0
+  },
+  "exports": [
+    {
+      "ordinal": 0,
+      "name": "infer_dispatch_0_matmul_1x4096x9_f32",
+      "addr": "0x15e0"
+    },
+    {
+      "ordinal": 1,
+      "name": "infer_dispatch_1_matmul_1x2x4096_f32",
+      "addr": "0x1750"
+    }
+  ],
+  "function_split_method": "symtab+export_table(.rela.dyn)",
+  "llvm_ir": {
+    "path": "results/e14_aarch64_qemu/x86_64/llvm_ir/mlp16k_swap.module_mlp4k_baked_linked_embedded_elf_x86_64.codegen.ll",
+    "alloca_count": 0,
+    "defines": [
+      "infer_dispatch_0_matmul_1x4096x9_f32",
+      "infer_dispatch_1_matmul_1x2x4096_f32",
+      "iree_hal_executable_library_query"
+    ],
+    "declares": [
+      "llvm.assume",
+      "llvm.fmuladd.v32f32",
+      "llvm.fmuladd.v2f32"
+    ],
+    "non_intrinsic_declares": [],
+    "external_calls": [],
+    "frame_pointer_attrs": [
+      "all"
+    ],
+    "target_triple": "x86_64-unknown-unknown-eabi-elf",
+    "malloc_free_refs": 0
+  },
+  "export_names_verified_in_ll": true,
+  "functions": [
+    {
+      "name": "infer_dispatch_0_matmul_1x4096x9_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x15e0",
+      "insns": 52,
+      "padding_insns_after": 15,
+      "code_bytes": 368,
+      "callee_save_bytes": 8,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 8,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "push   %rbp",
+        "mov    %rsp,%rbp"
+      ],
+      "epilogue": [
+        "pop    %rbp"
+      ],
+      "realign_max_pad_bytes": 0,
+      "push_insns_total": 1,
+      "pop_insns_total": 1,
+      "sp_relative_lea": 0,
+      "frame_bytes": 8,
+      "frame_balanced": true,
+      "return_address_bytes": 8,
+      "vector_insns": {
+        "vfmadd": 18,
+        "mulss": 0,
+        "addss": 0,
+        "zmm_refs": 49,
+        "ymm_refs": 0,
+        "xmm_refs": 3,
+        "v_prefixed_insns": 31,
+        "avx512_broadcast_or_mask": 30
+      },
+      "neon_or_avx_width_hint": "AVX-512 (512-bit zmm)",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "infer_dispatch_1_matmul_1x2x4096_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x1750",
+      "insns": 49,
+      "padding_insns_after": 1,
+      "code_bytes": 336,
+      "callee_save_bytes": 8,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 8,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "push   %rbp",
+        "mov    %rsp,%rbp"
+      ],
+      "epilogue": [
+        "pop    %rbp"
+      ],
+      "realign_max_pad_bytes": 0,
+      "push_insns_total": 1,
+      "pop_insns_total": 1,
+      "sp_relative_lea": 0,
+      "frame_bytes": 8,
+      "frame_balanced": true,
+      "return_address_bytes": 8,
+      "vector_insns": {
+        "vfmadd": 16,
+        "mulss": 0,
+        "addss": 0,
+        "zmm_refs": 0,
+        "ymm_refs": 0,
+        "xmm_refs": 54,
+        "v_prefixed_insns": 35,
+        "avx512_broadcast_or_mask": 16
+      },
+      "neon_or_avx_width_hint": "AVX-512VL-encoded 128-bit xmm ({1toN} broadcast / mask / xmm16-31)",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "iree_hal_executable_library_query",
+      "name_source": "symtab",
+      "addr": "0x18a0",
+      "insns": 5,
+      "padding_insns_after": 0,
+      "code_bytes": null,
+      "callee_save_bytes": 0,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 0,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": false,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [],
+      "epilogue": [],
+      "realign_max_pad_bytes": 0,
+      "push_insns_total": 0,
+      "pop_insns_total": 0,
+      "sp_relative_lea": 0,
+      "frame_bytes": 0,
+      "frame_balanced": true,
+      "return_address_bytes": 8,
+      "vector_insns": {
+        "vfmadd": 0,
+        "mulss": 0,
+        "addss": 0,
+        "zmm_refs": 0,
+        "ymm_refs": 0,
+        "xmm_refs": 0,
+        "v_prefixed_insns": 0,
+        "avx512_broadcast_or_mask": 0
+      },
+      "neon_or_avx_width_hint": "no vector registers",
+      "invocation_stack_bytes": 8
+    }
+  ],
+  "dispatch_functions": [
+    "infer_dispatch_0_matmul_1x4096x9_f32",
+    "infer_dispatch_1_matmul_1x2x4096_f32"
+  ],
+  "max_dispatch_frame_bytes": 8,
+  "sum_dispatch_frame_bytes": 16,
+  "max_dispatch_invocation_stack_bytes": 16,
+  "max_dispatch_local_alloc_bytes": 0,
+  "total_call_insns": 0,
+  "total_insns": 122,
+  "total_padding_insns": 16,
+  "total_code_insns": 106,
+  "dispatch_insns": 101,
+  "vector_insns_total": {
+    "vfmadd": 34,
+    "mulss": 0,
+    "addss": 0,
+    "zmm_refs": 49,
+    "ymm_refs": 0,
+    "xmm_refs": 57,
+    "v_prefixed_insns": 66,
+    "avx512_broadcast_or_mask": 46
+  },
+  "any_dynamic_stack_alloc": false,
+  "any_sp_relative_mem_ops": false,
+  "all_dispatch_frames_balanced": true,
+  "classification_note": "bucket (2) TASK-STACK: each dispatch function reserves at most 8 B of stack (frame record/callee-saved registers only, no explicit locals and no sp-relative loads/stores (no spills, no locals)), 0 call instructions -> call depth 1 below the runtime; per-invocation stack = 16 B incl. return address. Not HAL memory (not in bounded_bytes); add it explicitly to the task/thread stack budget."
+}

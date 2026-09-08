@@ -1,14 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OnAIR AI plugin deployment contract",
-  "description": "Split per reviewer issue m2: this file describes the MODEL/ARTIFACT only. System-level schedulability belongs in analysis_report.json, not here.",
+  "description": "Split per reviewer issue m2: this file describes the MODEL/ARTIFACT only. System-level schedulability belongs in analysis_report.json, not here. Since v0.9 only target/resources/artifact are required at top level (the v0.8 AArch64 contract has no model/interface/timing block); harness/make_contract.py emits all blocks.",
   "type": "object",
   "required": [
-    "model",
-    "interface",
     "target",
     "resources",
-    "timing",
     "artifact"
   ],
   "properties": {
@@ -59,11 +56,8 @@
           "type": "string"
         },
         "profile": {
-          "enum": [
-            "fast",
-            "predictable",
-            "memory"
-          ]
+          "type": "string",
+          "description": "free-form profile label (historically fast|predictable|memory; v0.7 avx512; v0.8+ the --iree-llvmcpu-target-cpu value)"
         },
         "driver": {
           "type": "string"
@@ -96,27 +90,40 @@
           "description": "v0.4 decision (option b): bounded region = static per-call buffers + module-resident constants, both from the compiler's allocation schedule. Runtime context, stacks, cFS pipes are attributed only, never bounded."
         },
         "static_per_call_bytes": {
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "static_transient_bytes": {
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "static_io_bytes": {
-          "type": "integer"
+          "type": [
+            "integer",
+            "null"
+          ]
         },
         "module_resident_constant_bytes": {
           "type": "integer"
         },
         "bounded_bytes": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "description": "static_per_call_bytes + module_resident_constant_bytes; the figure compared against a budget"
         },
         "bound_method": {
           "enum": [
             "static_from_stream_schedule",
+            "static_from_stream_layout",
             "NONE"
           ],
-          "description": "NONE means a size was not a compile-time constant; admission must return UNBOUNDED"
+          "description": "static_from_stream_schedule: v0.3-v0.7 (pre-layout slice sums); static_from_stream_layout: v0.8+ (post-layout transient slab sizes, harness/make_contract.py). NONE means a size was not a compile-time constant; admission must return UNKNOWN_BOUND and bounded_bytes is null"
         },
         "bound_assumptions": {
           "type": "array",
@@ -135,6 +142,44 @@
         },
         "runtime_check": {
           "type": "object"
+        },
+        "kernel_task_stack_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "max stack-frame bytes over the executable's dispatch functions (ELF analysis). Task-stack budget bucket (proposal SS9.2 bucket 2), NOT part of bounded_bytes. null = not analysed"
+        },
+        "kernel_external_call_insns": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "call/bl/blr instructions in the embedded ELF; null = not analysed"
+        },
+        "llvm_alloca_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "`alloca` count in the codegen LLVM IR of the same invocation; null = not analysed"
+        },
+        "kernel_stack_classification": {
+          "enum": [
+            "none",
+            "bucket_2_task_stack_budget",
+            "bucket_3_or_4_unresolved_calls",
+            "bucket_4_unaccounted_dynamic_stack",
+            "unknown"
+          ],
+          "description": "proposal SS9.2 bucket of kernel memory outside the HAL contract"
+        },
+        "unresolved_sizes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "IR size symbols that were not compile-time constants (non-empty iff bound_method == NONE)"
         }
       }
     },
@@ -194,8 +239,31 @@
         },
         "sha256": {
           "type": "string"
+        },
+        "bytes": {
+          "type": "integer"
         }
       }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "single_invocation",
+        "layout_ir_sha256"
+      ],
+      "properties": {
+        "single_invocation": {
+          "type": "boolean",
+          "description": "true iff vmfb, layout IR and executable dumps come from ONE iree-compile invocation"
+        },
+        "layout_ir_sha256": {
+          "type": "string"
+        },
+        "dump_dir_files": {
+          "type": "array"
+        }
+      },
+      "description": "how the numbers were obtained (harness/make_contract.py)"
     }
   },
   "$defs": {
@@ -209,8 +277,12 @@
         "shape": {
           "type": "array",
           "items": {
-            "type": "integer"
-          }
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "description": "null = dynamic dimension (`?` in the MLIR signature); such a contract has bound_method NONE"
         },
         "dtype": {
           "type": "string"

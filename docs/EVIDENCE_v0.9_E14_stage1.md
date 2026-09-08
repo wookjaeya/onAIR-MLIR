@@ -78,21 +78,113 @@ vmfb·layout IR·실행 파일 덤프를 함께 생성했고, 계약은 그 산�
 |---|---|---|---|
 | mlp16k | E5–E13 베이킹 MLP h=16384 (`e14/m16k_baked.mlir`) | 1×9 → 1×2 | 180,224 (720,896 B) |
 | conv2d | `gen_model_conv2d.py`: conv3×3×1×4 → bias+ReLU → conv3×3×4×8 → ReLU → flatten 128 → matmul 128×2 | 1×8×8×1 → 1×2 | 584 (2,336 B) |
-| multibranch | `gen_model_multibranch.py`: h=ReLU(xW0); a=ReLU(hWa); b=ReLU(hWb); j=(a+b)+h; y=jW2 (합류점에서 3 텐서 동시 생존) | 1×16 → 1×2 | 9,344 (37,376 B) |
+| multibranch | `gen_model_multibranch.py`: h=ReLU(xW0); a=ReLU(hWa); b=ReLU(hWb); j=(a+b)+h (합류점에서 3 텐서 동시 생존) | 1×16 → 1×2 | 9,344 (37,376 B) |
 | dynamic | E8 동적 배치 MLP(가중치 인자) | ?×9 → ?×2 | — |
 | *_swap | 같은 ABI, 다른 바이트(seed 1; MLP는 h=4096 베이킹) | 동일 | — |
 
-### 2.1 계약 수치 [TBD 표: 모델 × 타깃: transient / io / per-call / constants / bounded / vmfb sha·bytes / ELF bytes / alloca / call / frame]
+### 2.1 계약 수치
+
+| 모델 | 타깃 | per-call(B) | 상수(B) | bounded(B) | vmfb bytes | vmfb sha256(16) | ELF bytes | alloca | call | frame(B) |
+|---|---|---:|---:|---:|---:|---|---:|---:|---:|---:|
+| mlp16k | aarch64 | 65,580 | 720,896 | 786,476 | 732,795 | a439de2130def66b | 4,960 | 0 | 0 | 16 |
+| mlp16k | x86_64 | 65,580 | 720,896 | 786,476 | 733,979 | 4d6f3807d37f0902 | 5,248 | 0 | 0 | 8(+8 ret) |
+| mlp16k_swap(h=4096) | aarch64 | 16,428 | 180,224 | 196,652 | 192,140 | b0b4f6e5068052bf | 4,976 | 0 | 0 | 16 |
+| mlp16k_swap(h=4096) | x86_64 | 16,428 | 180,224 | 196,652 | 193,308 | 9f0fd4b5fb845f9b | — | 0 | 0 | 8(+8) |
+| conv2d | aarch64 | [TBD] | 2,176 | [TBD] | 15,505 | f56ba5352cfcb036 | 6,344 | 4(alloca) | 0 | 16(callee-save)+최대176(재정렬 포함, §5) |
+| conv2d | x86_64 | [TBD] | 2,176 | [TBD] | 16,601 | bd6bfd73b4705238 | 6,608 | 3(alloca) | 0 | 최대176 |
+| conv2d_swap | aarch64 | [TBD] | 2,176 | [TBD] | 15,614 | 9c685a3fcf170f4c | 6,368 | — | 0 | 동일 |
+| multibranch | aarch64 | [TBD] | 37,376 | [TBD] | 51,594 | bfd681833ef9c3b5 | 6,872 | 0 | 0 | 16 |
+| multibranch | x86_64 | [TBD] | 37,376 | [TBD] | 53,186 | 0a62ca0e8f2bc3db | 7,568 | 0 | 0 | 8(+8) |
+| dynamic | aarch64 | — | — | UNKNOWN_BOUND | 13,482 | b19498666a94c19d | 7,440 | 0 | 0 | 144(스필 다수) |
+| dynamic | x86_64 | — | — | UNKNOWN_BOUND | 18,914 | f7e165679424fffa | 12,040 | 0 | 0 | 3,376(스필 다수) |
+
+(`[TBD]`는 `make_contract.py`로 계약 JSON을 생성한 뒤 채운다 — §2 표는 최종 문서에서 계약 파일에서 직접 읽어 재생성.)
+정적 계획(계약 수치) 자체는 mlp16k에서 두 타깃이 완전히 같다(Stage 0과 동일 이유: `iree-stream-layout-slices`가
+타깃별 코드생성보다 앞선 패스). Conv2D·multi-branch도 같은 이유로 동일할 것으로 예상되며 계약 생성 후 확인한다.
 
 ### 2.2 발견 — 256 B 이하 상수의 인라인 (conv2d)
 IREE는 256 B 이하 상수를 dispatch 실행 파일 안으로 인라인한다. conv2d의 첫 커널(144 B)과 바이어스(16 B)는 HAL 상수 버퍼가
 아니라 **임베디드 ELF의 rodata**에 있다: `module_resident_constant_bytes` 2,176 B < 소스 가중치 2,336 B(차이 160 B).
-바이트 검색으로 vmfb 내 위치를 확인했다(k1·b1은 ELF 세그먼트 내부, k2·w3는 2,176 B 상수 풀 내부).
-분류: 제안서 §9.2의 (3) **런타임 잔차 — 실행 파일 이미지**(ELF 크기로 회계), HAL 계약 밖이나 미회계 아님.
-[TBD: 계약 필드 `executable_elf_bytes`로 기록]
+바이트 검색으로 vmfb 내 위치를 확인했다(k1·b1은 ELF 세그먼트 내부, k2·w3는 2,176 B 상수 풀 내부; x86 오프셋
+10912/10848/4544/3520, aarch64 10080/10016/4544/3520). 분류: 제안서 §9.2의 **(3) 런타임 잔차 — 실행 파일 이미지**로
+분류한다(HAL 계약 밖이나 미회계는 아님; ELF 크기로 회계됨). `contracts/contract.schema.json`에 `executable_elf_bytes`
+필드로 기록한다.
 
 ---
 
+## 3. Native 실행 — 게스트 내부 (제안서 §10)
+
+[TBD: `scripts/82_run_native_guest.sh`로 게스트 내부에서 정적 링크 `native_learner_aarch64`를 각 모델(mlp16k, conv2d,
+multibranch)에 대해 실행. ADMIT(1 MiB), 경계값 B-1/B/B+1, 모델 교체(swap) MISMATCH, 파일 부재, 손상 아티팩트(§4의 A5a/A5b와
+동일 두 경로 — 게이트 단계 해시 불일치 vs. 계약이 손상 파일의 해시를 담고 있어 IREE 로드 자체가 실패하는 경우) 확인.
+dynamic 모델은 UNKNOWN_BOUND로 즉시 거부(exit 6) 확인. 워밍업 200회, 측정 10,000회(제안서 §10.3). 시간값은 QEMU 게스트
+내부 실행이라도 KVM이 아닌 TCG(호스트에 KVM 미탑재)이므로 비증거로 기록한다.]
+
+---
+
+## 4. cFS AI_LEARNER — 게스트 내부 (제안서 §11)
+
+[TBD: `harness/e14_make_scenarios.py`로 모델별 A1–A7 + UNKNOWN_BOUND(A8) 시나리오를 생성하고
+`harness/e14_cfs_scenarios.py`로 게스트에서 실행. 시나리오 정의:
+A1 정상(1 MiB) / A2 예산 B-1·B·B+1 / A3 같은 ABI 모델 교체 / A4 파일 부재 /
+A5a 손상 vmfb(게이트의 바이트 해시가 걸러냄) / A5b 손상 vmfb인데 계약이 그 손상 파일의 해시를 담고 있는 경우
+(IREE 로드 자체가 안전하게 실패해야 함 — `runtime_load_failed` 이벤트, exit 없이 cFS는 OPERATIONAL 유지) /
+A6 반복 추론(attempted==completed, 실패 0) / A7 ES 재시작×2 + 삭제(`harness/cfs_cmd.py`로 CI_LAB UDP 명령 전송,
+매 재시작마다 정확히 1회의 cleanup, 이중 해제 없음).]
+
+---
+
+## 5. 16 B 스택 프레임의 회계 (제안서 §14-8)
+
+### 5.1 정정(정정) — v0.8 §3 / v0.7 §4.3의 "x86-64는 스택 프레임이 없다"는 서술 정정
+
+Stage 1에서 만든 `harness/elf_stack_frame.py`로 보관된 e13 아티팩트를 다시 분석한 결과, **x86-64 커널도 프레임
+레코드를 갖는다**: `push %rbp; mov %rsp,%rbp … pop %rbp`가 host(0x15a0/0x1710)·generic(0x15b0에 `push %rbx` 추가/0x1690)
+양쪽 dispatch 함수 모두에 있다. 원인은 LLVM IR 속성 `"frame-pointer"="all"`이 **두 타깃 모두**에 붙어 있기 때문
+(각 `.ll`에 3회 출현) — AArch64에 한정된 현상이 아니다.
+
+기존 v0.7 §4.3은 x86-64의 "스택 프레임"을 `sub $N,%rsp`(지역변수 할당)만으로 정의해 0으로 보고했고, v0.8 §3은
+AArch64의 `stp x29,x30,[sp,#-16]!`(callee-save)을 프레임으로 잡아 16으로 보고했다 — **서로 다른 정의를 각 ISA에
+적용한 것**(신규 결함 D9). `elf_stack_frame.py`는 두 ISA에 같은 정의(callee-save + 지역 할당 = frame_bytes; 호출
+직전 스택에 실리는 복귀주소를 더한 것 = invocation_stack_bytes)를 적용한다:
+
+| | x86-64 host | x86-64 generic | AArch64 |
+|---|---:|---:|---:|
+| callee-save (frame_bytes) | 8 B (`push %rbp`) | 16 B (`push %rbp,%rbx`) / 8 B | 16 B (`stp x29,x30`) |
+| 복귀주소(호출 스택에 push) | 8 B | 8 B | 0 B(LR=x30, 프롤로그가 이미 저장) |
+| **호출당 스택(invocation_stack_bytes)** | **16 B** | **24 B** | **16 B** |
+| 지역 할당(`sub sp,sp,#N`) | 0 | 0 | 0 |
+| 호출 명령 | 0 | 0 | 0 |
+
+**결론**: mlp16k·multibranch에서 AArch64의 16 B는 **ISA 고유 이상 현상이 아니다** — x86-64도 같은 16 B(host
+기준)를 쓰며, 복귀주소가 콜스택에 있는지(x86) 링크 레지스터에 있는지(AArch64)의 차이일 뿐이다. 두 ISA 모두
+**(2) 태스크 스택 예산**으로 분류한다(호출 0개, 지역 변수 없음).
+
+### 5.2 Conv2D의 추가 발견 — 실제 지역 변수 + 스택 재정렬
+
+mlp16k·multibranch와 달리 conv2d는 `alloca`가 있다(디스패치당 2개, `alloca float, i64 4, align 64` 등 — bias/ReLU의
+채널별 누산 버퍼). 코드에도 이를 반영하는 실제 스택 사용이 나타난다:
+
+- **x86-64**: dispatch_0 callee-save 40 B + 지역 128 B + 재정렬 패딩 ≤63 B(`and $-64,%rsp`) → 프레임 168 B, 호출당
+  176 B. dispatch_1 160/168 B.
+- **AArch64**: `sub x9, sp, #0x70; and sp, x9, #0xffffffffffffffc0 …[함수 본문]… mov sp, x29` — 64바이트 정렬을
+  위해 SP를 재계산하는 **동적 스택 재정렬** 시퀀스. `elf_stack_frame.py` 첫 버전은 이 패턴을 인식하지 못해
+  callee-save 16 B만 보고했다(과소 계상) — [TBD: 도구 수정 후 재측정]. 코드상 지역 공간은 0x70(112 B)를 요청하고
+  64바이트 경계로 재정렬하므로, 최악의 경우 16(레코드) + 112(지역) + 63(정렬 패딩) = **191 B**까지 쓸 수 있다.
+
+**분류**: conv2d는 (2) 태스크 스택 예산에 **실측 지역 변수를 포함해** 분류해야 한다 — mlp16k·multibranch처럼
+"고정 16 B, 호출 0개, 지역 없음"이 아니라 **정렬 요구가 있는 가변 크기 지역 버퍼**가 있다는 점이 다르다. 이는
+제안서 §12가 Conv2D를 요구한 정확한 이유(tiling·workspace 구조)를 보여준다.
+
+### 5.3 게스트 cFS 앱 반영
+
+Stage 1의 `native/cfs_app/CMakeLists.txt`·시작 스크립트는 태스크 스택 크기를
+`AI_LEARNER_STACK_BASE_BYTES(262,144, E12 이후 기본값) + CONTRACT_KERNEL_STACK_BYTES`로 설정하고, 앱은 자신의
+`CFE_ES_GetAppInfo` 결과(`StackSize`)가 이 합계 이상인지 매 초기화마다 `stage:"stack"` JSON 줄로 보고한다(§4).
+conv2d처럼 계약의 `kernel_task_stack_bytes`가 재정렬 패딩까지 포함한 최악값을 담도록 `make_contract.py`가
+`max_dispatch_invocation_stack_bytes`(재정렬 도구 수정 후 값)를 사용한다.
+
+---
 ## 3. Native 실행 — 게스트 내부 (제안서 §10) [TBD]
 
 ## 4. cFS AI_LEARNER — 게스트 내부 (제안서 §11) [TBD: A1–A7 × 3 모델 + dynamic]

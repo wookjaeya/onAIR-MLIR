@@ -1,0 +1,98 @@
+
+results/e14_aarch64_qemu/aarch64/elf/mlp16k_swap.kernel.elf:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+00000000000105e0 <iree_hal_executable_library_query-0x160>:
+   105e0:	a9bf7bfd 	stp	x29, x30, [sp, #-16]!
+   105e4:	910003fd 	mov	x29, sp
+   105e8:	f940102a 	ldr	x10, [x1, #32]
+   105ec:	aa1f03ec 	mov	x12, xzr
+   105f0:	b940004b 	ldr	w11, [x2]
+   105f4:	a9402548 	ldp	x8, x9, [x10]
+   105f8:	d37ae56b 	lsl	x11, x11, #6
+   105fc:	f940094a 	ldr	x10, [x10, #16]
+   10600:	6f00e400 	movi	v0.2d, #0x0
+   10604:	8b0b018d 	add	x13, x12, x11
+   10608:	6f00e401 	movi	v1.2d, #0x0
+   1060c:	aa1f03ef 	mov	x15, xzr
+   10610:	8b0d092e 	add	x14, x9, x13, lsl #2
+   10614:	52800030 	mov	w16, #0x1                   	// #1
+   10618:	d503201f 	nop
+   1061c:	d503201f 	nop
+   10620:	8b0f39d1 	add	x17, x14, x15, lsl #14
+   10624:	bc6f7902 	ldr	s2, [x8, x15, lsl #2]
+   10628:	ad400e24 	ldp	q4, q3, [x17]
+   1062c:	b24001f1 	orr	x17, x15, #0x1
+   10630:	8b1139c0 	add	x0, x14, x17, lsl #14
+   10634:	4f821061 	fmla	v1.4s, v3.4s, v2.s[0]
+   10638:	4f821080 	fmla	v0.4s, v4.4s, v2.s[0]
+   1063c:	bc717902 	ldr	s2, [x8, x17, lsl #2]
+   10640:	ad400c04 	ldp	q4, q3, [x0]
+   10644:	b27f01f1 	orr	x17, x15, #0x2
+   10648:	b24005ef 	orr	x15, x15, #0x3
+   1064c:	8b1139c0 	add	x0, x14, x17, lsl #14
+   10650:	4f821061 	fmla	v1.4s, v3.4s, v2.s[0]
+   10654:	4f821080 	fmla	v0.4s, v4.4s, v2.s[0]
+   10658:	bc717902 	ldr	s2, [x8, x17, lsl #2]
+   1065c:	ad400c04 	ldp	q4, q3, [x0]
+   10660:	8b0f39d1 	add	x17, x14, x15, lsl #14
+   10664:	4f821061 	fmla	v1.4s, v3.4s, v2.s[0]
+   10668:	4f821080 	fmla	v0.4s, v4.4s, v2.s[0]
+   1066c:	bc6f7902 	ldr	s2, [x8, x15, lsl #2]
+   10670:	ad400e24 	ldp	q4, q3, [x17]
+   10674:	2a1003f1 	mov	w17, w16
+   10678:	5280008f 	mov	w15, #0x4                   	// #4
+   1067c:	2a1f03f0 	mov	w16, wzr
+   10680:	4f821061 	fmla	v1.4s, v3.4s, v2.s[0]
+   10684:	4f821080 	fmla	v0.4s, v4.4s, v2.s[0]
+   10688:	3707fcd1 	tbnz	w17, #0, 10620 <iree_hal_executable_library_query-0x120>
+   1068c:	914081ce 	add	x14, x14, #0x20, lsl #12
+   10690:	bd402102 	ldr	s2, [x8, #32]
+   10694:	8b0d094d 	add	x13, x10, x13, lsl #2
+   10698:	f100e19f 	cmp	x12, #0x38
+   1069c:	ad4011c3 	ldp	q3, q4, [x14]
+   106a0:	9100218e 	add	x14, x12, #0x8
+   106a4:	aa0e03ec 	mov	x12, x14
+   106a8:	4f821060 	fmla	v0.4s, v3.4s, v2.s[0]
+   106ac:	4f821081 	fmla	v1.4s, v4.4s, v2.s[0]
+   106b0:	ad0005a0 	stp	q0, q1, [x13]
+   106b4:	54fffa63 	b.cc	10600 <iree_hal_executable_library_query-0x140>  // b.lo, b.ul, b.last
+   106b8:	2a1f03e0 	mov	w0, wzr
+   106bc:	a8c17bfd 	ldp	x29, x30, [sp], #16
+   106c0:	d65f03c0 	ret
+	...
+   106d0:	a9bf7bfd 	stp	x29, x30, [sp, #-16]!
+   106d4:	910003fd 	mov	x29, sp
+   106d8:	f9401028 	ldr	x8, [x1, #32]
+   106dc:	2f00e400 	movi	d0, #0x0
+   106e0:	9280006b 	mov	x11, #0xfffffffffffffffc    	// #-4
+   106e4:	a940250a 	ldp	x10, x9, [x8]
+   106e8:	f9400908 	ldr	x8, [x8, #16]
+   106ec:	91409129 	add	x9, x9, #0x24, lsl #12
+   106f0:	9100214a 	add	x10, x10, #0x8
+   106f4:	2d7f1141 	ldp	s1, s4, [x10, #-8]
+   106f8:	9100116b 	add	x11, x11, #0x4
+   106fc:	6d400d22 	ldp	d2, d3, [x9]
+   10700:	f13ff17f 	cmp	x11, #0xffc
+   10704:	0f811040 	fmla	v0.2s, v2.2s, v1.s[0]
+   10708:	0f841060 	fmla	v0.2s, v3.2s, v4.s[0]
+   1070c:	2cc21141 	ldp	s1, s4, [x10], #16
+   10710:	6d410d22 	ldp	d2, d3, [x9, #16]
+   10714:	91008129 	add	x9, x9, #0x20
+   10718:	0f811040 	fmla	v0.2s, v2.2s, v1.s[0]
+   1071c:	0f841060 	fmla	v0.2s, v3.2s, v4.s[0]
+   10720:	54fffea3 	b.cc	106f4 <iree_hal_executable_library_query-0x4c>  // b.lo, b.ul, b.last
+   10724:	2a1f03e0 	mov	w0, wzr
+   10728:	fd000100 	str	d0, [x8]
+   1072c:	a8c17bfd 	ldp	x29, x30, [sp], #16
+   10730:	d65f03c0 	ret
+	...
+
+0000000000010740 <iree_hal_executable_library_query>:
+   10740:	d503201f 	nop
+   10744:	10080568 	adr	x8, 207f0 <iree_hal_executable_library_query+0x100b0>
+   10748:	7100181f 	cmp	w0, #0x6
+   1074c:	9a9f0100 	csel	x0, x8, xzr, eq	// eq = none
+   10750:	d65f03c0 	ret

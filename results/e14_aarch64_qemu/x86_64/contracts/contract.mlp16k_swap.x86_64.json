@@ -1,0 +1,303 @@
+{
+  "model": {
+    "name": "mlp16k_swap",
+    "sha256": "2940c16a55bc9ea718a81bce79827ffe73663c8a3ef03713c1abd6bb9ad66070",
+    "file": "mlp4k_baked.mlir",
+    "bytes": 609150,
+    "entry": "infer"
+  },
+  "interface": {
+    "input": {
+      "shape": [
+        1,
+        9
+      ],
+      "dtype": "f32"
+    },
+    "output": {
+      "shape": [
+        1,
+        2
+      ],
+      "dtype": "f32"
+    },
+    "inputs": [
+      {
+        "shape": [
+          1,
+          9
+        ],
+        "dtype": "f32"
+      }
+    ],
+    "outputs": [
+      {
+        "shape": [
+          1,
+          2
+        ],
+        "dtype": "f32"
+      }
+    ],
+    "all_static": true,
+    "source_arg_shapes_static": [
+      [
+        1,
+        9
+      ]
+    ],
+    "source_result_shapes_static": [
+      [
+        1,
+        2
+      ]
+    ],
+    "abi_declaration": "sync func @infer(%input0: tensor<1x9xf32>) -> (%output0: tensor<1x2xf32>)",
+    "abi_declaration_matches_source": true
+  },
+  "target": {
+    "triple": "x86_64-unknown-linux-gnu",
+    "cpu": "host",
+    "profile": "host",
+    "driver": "local-sync",
+    "backend": "llvm-cpu",
+    "executable_format": "embedded-elf",
+    "executable_format_in_artifact": "embedded-elf-x86_64",
+    "codegen_ll_target_triple": "x86_64-unknown-unknown-eabi-elf",
+    "extra_args": [
+      "--mlir-elide-elementsattrs-if-larger=16"
+    ]
+  },
+  "resources": {
+    "memory_boundary": "per_call_plus_module_constants",
+    "static_external_input_bytes": 36,
+    "static_external_output_bytes": 8,
+    "static_io_bytes": 44,
+    "static_transient_bytes": 16384,
+    "transient_slabs_post_layout": [
+      16384
+    ],
+    "transient_slice_sum_diagnostic": 0,
+    "static_per_call_bytes": 16428,
+    "module_resident_constant_bytes": 180224,
+    "module_resident_constant_method": "packed_constant_buffers(#util.composite)",
+    "module_resident_constant_dense_sum_bytes": 180224,
+    "module_resident_constant_buffers_packed": [
+      180224
+    ],
+    "module_resident_constant_packing_padding_bytes": 0,
+    "bounded_bytes": 196652,
+    "bound_method": "static_from_stream_layout",
+    "bound_source": "post-layout stream.resource.alloca sizes of the entry function after iree-stream-layout-slices (alignment and lifetime reuse resolved by the compiler) + packed module constants",
+    "unresolved_sizes": [],
+    "resolved_partial_sums_when_unbounded": null,
+    "bound_assumptions": [
+      "static shapes",
+      "single in-flight call (no concurrency)",
+      "local-sync driver",
+      "entry function @infer only"
+    ],
+    "entry_function_found": true,
+    "dispatches": 2,
+    "binary_size_bytes": 193308,
+    "vm_bytecode_bytes": 3432,
+    "artifact_rodata_external_segments": [
+      180224,
+      5248
+    ],
+    "artifact_rodata_data_segments": [
+      180224,
+      5248
+    ],
+    "constants_independently_confirmed_in_artifact": true,
+    "constants_dense_sum_confirmed_in_artifact": true,
+    "constants_check_note": "module constant total 180224 B equals a subset-sum of the flatbuffer .rodata segments [180224, 5248] (iree-dump-module)",
+    "scope": "program-allocated buffers only; excludes IREE runtime context (VM, HAL device, module tables) and the task stack",
+    "kernel_task_stack_bytes": 8,
+    "kernel_task_stack_invocation_bytes": 16,
+    "kernel_task_stack_bytes_source": "elf_stack_frame.py max_dispatch_frame_bytes (max over dispatch functions; callee-saved + locals)",
+    "kernel_external_call_insns": 0,
+    "llvm_alloca_count": 0,
+    "llvm_external_calls": [],
+    "kernel_dynamic_stack_alloc": false,
+    "kernel_stack_classification": "bucket_2_task_stack_budget",
+    "kernel_stack_note": "bucket (2) TASK-STACK: each dispatch function reserves at most 8 B of stack (frame record/callee-saved registers only, no explicit locals and no sp-relative loads/stores (no spills, no locals)), 0 call instructions -> call depth 1 below the runtime; per-invocation stack = 16 B incl. return address. Not HAL memory (not in bounded_bytes); add it explicitly to the task/thread stack budget.",
+    "kernel_elf_bytes": 5248,
+    "kernel_elf_sha256": "056108a6185659ce3ea6541f50ed5401756a1b93e4e4c2138b21f6f0b3ff2183",
+    "kernel_elf_arch": "x86_64",
+    "kernel_dispatch_functions": [
+      "infer_dispatch_0_matmul_1x4096x9_f32",
+      "infer_dispatch_1_matmul_1x2x4096_f32"
+    ],
+    "kernel_total_insns": 122,
+    "kernel_vector_insns": {
+      "vfmadd": 34,
+      "mulss": 0,
+      "addss": 0,
+      "zmm_refs": 49,
+      "ymm_refs": 0,
+      "xmm_refs": 57,
+      "v_prefixed_insns": 66,
+      "avx512_broadcast_or_mask": 46
+    }
+  },
+  "timing": {
+    "boundary": "L1_kernel",
+    "execution_bound_us": null,
+    "bound_method": null,
+    "sample_count": null,
+    "platform_timing_grade": "FUNCTIONAL_ONLY",
+    "note": "no execution bound: latency is never evidence on a FUNCTIONAL_ONLY platform (harness/platform_check.py)"
+  },
+  "artifact": {
+    "file": "mlp16k_swap.vmfb",
+    "sha256": "9f0fd4b5fb845f9ba763eaaa00d358c0b1430630039a3538608fa66bfef31244",
+    "bytes": 193308,
+    "embedded_executables": [
+      {
+        "offset": 187680,
+        "bytes": 5248,
+        "arch": "x86_64",
+        "sha256": "056108a6185659ce3ea6541f50ed5401756a1b93e4e4c2138b21f6f0b3ff2183"
+      }
+    ],
+    "produced_by": "single iree-compile invocation that also emitted the layout IR (--mlir-print-ir-after=iree-stream-layout-slices) and the executable dumps (--iree-hal-dump-executable-files-to); this contract was parsed from those outputs"
+  },
+  "validity": {
+    "entry": "infer",
+    "input": {
+      "shape": [
+        1,
+        9
+      ],
+      "dtype": "f32"
+    },
+    "output": {
+      "shape": [
+        1,
+        2
+      ],
+      "dtype": "f32"
+    },
+    "driver": "local-sync",
+    "profile": "host",
+    "compiler": "IREE 3.11.0rc20260316 e4a3b04",
+    "compiler_version_raw": "IREE (https://iree.dev):\n  IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25\n  LLVM version 23.0.0git\n  Optimized build",
+    "compiler_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+    "runtime_commit": "e4a3b04",
+    "assumptions": [
+      "static shapes",
+      "single in-flight call (no concurrency)",
+      "local-sync driver",
+      "entry function @infer only"
+    ],
+    "binding_rule": "the gate must hash the exact bytes handed to the IREE session and compare with artifact.sha256 before any runtime allocation"
+  },
+  "provenance": {
+    "single_invocation": true,
+    "tool": "harness/make_contract.py",
+    "mlir_file": "mlp4k_baked.mlir",
+    "mlir_sha256": "2940c16a55bc9ea718a81bce79827ffe73663c8a3ef03713c1abd6bb9ad66070",
+    "layout_ir_file": "mlp16k_swap.layout_ir.txt",
+    "layout_ir_sha256": "572e8d456df877845d6ed954bbc7f989a9c6fab6b714ac4304c1de581ccaa914",
+    "layout_ir_bytes": 14199,
+    "layout_ir_dump_count": 8,
+    "layout_ir_note": "per-function dumps in thread-dependent order (multi-threaded pass manager); the entry function is printed once per pipeline phase -- the most-lowered print is used",
+    "dump_dir": "results/e14_aarch64_qemu/x86_64/dump/mlp16k_swap",
+    "dump_dir_files": [
+      {
+        "name": "configured_module_infer_dispatch_0.mlir",
+        "bytes": 4331,
+        "sha256": "dd6f4755045e1de493a8e25d7ff9641edf6fea888fbc03dff10485ccbe1d7356"
+      },
+      {
+        "name": "configured_module_infer_dispatch_1.mlir",
+        "bytes": 4371,
+        "sha256": "96068195e5a116b8b25540a4e8f635e3c69b3b23357db38a77b503abce6d6561"
+      },
+      {
+        "name": "module_infer_dispatch_0.mlir",
+        "bytes": 4014,
+        "sha256": "e99eb5125a596246dd8b34fe5f08e4462fd483a586f9d281accc500484b4cf88"
+      },
+      {
+        "name": "module_infer_dispatch_0_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9429,
+        "sha256": "9318388150e387deb7680f80a449254998e2e35575205abd3b45683415824c10"
+      },
+      {
+        "name": "module_infer_dispatch_1.mlir",
+        "bytes": 4056,
+        "sha256": "0e4ac09516f0ffcd4a35cb671b0aa25ac3ff3823dd23c65d1d805e5b74b3a9b2"
+      },
+      {
+        "name": "module_infer_dispatch_1_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9431,
+        "sha256": "9e629b1dd26fe8106461628f0e2521ec866817a6f808b2145a4d90b5dbcd1c84"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.codegen.bc",
+        "bytes": 10840,
+        "sha256": "8ea76b9a981c4d6ab202d73b6c2625901d6d1a9b4ac3956c2907bd144bfe76d8"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.codegen.ll",
+        "bytes": 32873,
+        "sha256": "29638b1c0f4f873300f229f0bfa10394eb34ea8d9a84f56403b6a9ea84db4ba1"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.linked.bc",
+        "bytes": 21444,
+        "sha256": "8af8bd0e7717113affe2373b8878520446472dd4e10fa4c8b31ed49875c8ad1d"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.linked.ll",
+        "bytes": 85020,
+        "sha256": "8b03cd729c651d313391e32645921d3c44c63d138071eee68fe85ac0359128e5"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.o",
+        "bytes": 23672,
+        "sha256": "67041df4c9c6f0907ad5688662b7721be09116b0a766b14b8b52fc5475249d21"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.optimized.bc",
+        "bytes": 21220,
+        "sha256": "36f9d8000c0ad5778f2553b6b834909037f7ec4c25323178554d66b20cf0b37a"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.optimized.ll",
+        "bytes": 86300,
+        "sha256": "7cbc2b6a7e27f78d3441ce73a7f113113bc533c4dd400730f517eabaf5c5b742"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.s",
+        "bytes": 46021,
+        "sha256": "1cf1a6c7b7744060cd38d938071b543dee54fee5df1e6c93b349731e6183148c"
+      },
+      {
+        "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.so",
+        "bytes": 5248,
+        "sha256": "056108a6185659ce3ea6541f50ed5401756a1b93e4e4c2138b21f6f0b3ff2183"
+      }
+    ],
+    "dump_elf": {
+      "name": "module_mlp4k_baked_linked_embedded_elf_x86_64.so",
+      "bytes": 5248,
+      "sha256": "056108a6185659ce3ea6541f50ed5401756a1b93e4e4c2138b21f6f0b3ff2183"
+    },
+    "dump_elf_sha256_in_vmfb": true,
+    "elf_analysis": {
+      "file": "mlp16k_swap.elf_analysis.json",
+      "sha256": "90a44fc6cbc5c8653b0f13777884fb789a71a75722553419944ceef1324efbf1",
+      "elf_sha256_in_vmfb": true
+    },
+    "notes": [],
+    "entry_prints_in_dump": 2,
+    "entry_print_states_differ": true,
+    "entry_print_used_chunk_index": 6,
+    "entry_print_used_sha256": "16d36b6b0fd0c0bb62754e3f9499dfef2049c0d2b3957853894c9515d3aa37a3",
+    "entry_print_used_is_last": true,
+    "agrees_with_parse_alloc_ir_last_print": true
+  }
+}

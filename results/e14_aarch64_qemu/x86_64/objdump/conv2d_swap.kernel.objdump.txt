@@ -1,0 +1,279 @@
+
+results/e14_aarch64_qemu/x86_64/elf/conv2d_swap.kernel.elf:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000001850 <iree_hal_executable_library_query-0x3d0>:
+    1850:	55                   	push   %rbp
+    1851:	48 89 e5             	mov    %rsp,%rbp
+    1854:	41 57                	push   %r15
+    1856:	41 56                	push   %r14
+    1858:	41 54                	push   %r12
+    185a:	53                   	push   %rbx
+    185b:	48 83 e4 c0          	and    $0xffffffffffffffc0,%rsp
+    185f:	48 81 ec 80 00 00 00 	sub    $0x80,%rsp
+    1866:	48 8b 7e 20          	mov    0x20(%rsi),%rdi
+    186a:	8b 0a                	mov    (%rdx),%ecx
+    186c:	89 c8                	mov    %ecx,%eax
+    186e:	d1 e8                	shr    $1,%eax
+    1870:	83 e1 01             	and    $0x1,%ecx
+    1873:	48 8d 0c 49          	lea    (%rcx,%rcx,2),%rcx
+    1877:	c5 f8 57 c0          	vxorps %xmm0,%xmm0,%xmm0
+    187b:	8d 14 8d 00 00 00 00 	lea    0x0(,%rcx,4),%edx
+    1882:	48 03 17             	add    (%rdi),%rdx
+    1885:	48 8d 34 40          	lea    (%rax,%rax,2),%rsi
+    1889:	48 c1 e6 05          	shl    $0x5,%rsi
+    188d:	48 03 77 08          	add    0x8(%rdi),%rsi
+    1891:	c5 f8 29 44 24 40    	vmovaps %xmm0,0x40(%rsp)
+    1897:	31 ff                	xor    %edi,%edi
+    1899:	4c 8d 05 20 ec ff ff 	lea    -0x13e0(%rip),%r8        # 4c0 <iree_hal_executable_library_query-0x1760>
+    18a0:	c5 f8 28 0d d8 eb ff 	vmovaps -0x1428(%rip),%xmm1        # 480 <iree_hal_executable_library_query-0x17a0>
+    18a7:	ff 
+    18a8:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+    18af:	00 
+    18b0:	45 31 c9             	xor    %r9d,%r9d
+    18b3:	66 66 66 66 2e 0f 1f 	data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    18ba:	84 00 00 00 00 00 
+    18c0:	c4 a1 7a 10 54 8c 40 	vmovss 0x40(%rsp,%r9,4),%xmm2
+    18c7:	c4 a1 7a 11 14 8c    	vmovss %xmm2,(%rsp,%r9,4)
+    18cd:	49 ff c1             	inc    %r9
+    18d0:	49 83 f9 04          	cmp    $0x4,%r9
+    18d4:	75 ea                	jne    18c0 <iree_hal_executable_library_query-0x360>
+    18d6:	4c 8d 0c ba          	lea    (%rdx,%rdi,4),%r9
+    18da:	4d 89 c2             	mov    %r8,%r10
+    18dd:	45 31 db             	xor    %r11d,%r11d
+    18e0:	49 8d 1c 03          	lea    (%r11,%rax,1),%rbx
+    18e4:	48 c1 e3 05          	shl    $0x5,%rbx
+    18e8:	4c 01 cb             	add    %r9,%rbx
+    18eb:	4d 89 d6             	mov    %r10,%r14
+    18ee:	45 31 ff             	xor    %r15d,%r15d
+    18f1:	66 66 66 66 66 66 2e 	data16 data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    18f8:	0f 1f 84 00 00 00 00 
+    18ff:	00 
+    1900:	c4 a1 7a 10 14 bb    	vmovss (%rbx,%r15,4),%xmm2
+    1906:	45 31 e4             	xor    %r12d,%r12d
+    1909:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    1910:	c4 81 7a 10 1c a6    	vmovss (%r14,%r12,4),%xmm3
+    1916:	c4 a2 69 a9 1c a4    	vfmadd213ss (%rsp,%r12,4),%xmm2,%xmm3
+    191c:	c4 a1 7a 11 1c a4    	vmovss %xmm3,(%rsp,%r12,4)
+    1922:	49 ff c4             	inc    %r12
+    1925:	49 83 fc 04          	cmp    $0x4,%r12
+    1929:	75 e5                	jne    1910 <iree_hal_executable_library_query-0x310>
+    192b:	49 ff c7             	inc    %r15
+    192e:	49 83 c6 10          	add    $0x10,%r14
+    1932:	49 83 ff 03          	cmp    $0x3,%r15
+    1936:	75 c8                	jne    1900 <iree_hal_executable_library_query-0x320>
+    1938:	49 ff c3             	inc    %r11
+    193b:	49 83 c2 30          	add    $0x30,%r10
+    193f:	49 83 fb 03          	cmp    $0x3,%r11
+    1943:	75 9b                	jne    18e0 <iree_hal_executable_library_query-0x340>
+    1945:	c5 f0 58 14 24       	vaddps (%rsp),%xmm1,%xmm2
+    194a:	62 f1 6c 08 c2 c8 06 	vcmpnleps %xmm0,%xmm2,%k1
+    1951:	62 f1 7c 89 28 d2    	vmovaps %xmm2,%xmm2{%k1}{z}
+    1957:	4c 8d 0c 0f          	lea    (%rdi,%rcx,1),%r9
+    195b:	49 c1 e1 04          	shl    $0x4,%r9
+    195f:	c4 a1 78 29 14 0e    	vmovaps %xmm2,(%rsi,%r9,1)
+    1965:	48 ff c7             	inc    %rdi
+    1968:	48 83 ff 03          	cmp    $0x3,%rdi
+    196c:	0f 85 3e ff ff ff    	jne    18b0 <iree_hal_executable_library_query-0x370>
+    1972:	31 c0                	xor    %eax,%eax
+    1974:	48 8d 65 e0          	lea    -0x20(%rbp),%rsp
+    1978:	5b                   	pop    %rbx
+    1979:	41 5c                	pop    %r12
+    197b:	41 5e                	pop    %r14
+    197d:	41 5f                	pop    %r15
+    197f:	5d                   	pop    %rbp
+    1980:	c3                   	ret
+    1981:	cc                   	int3
+    1982:	cc                   	int3
+    1983:	cc                   	int3
+    1984:	cc                   	int3
+    1985:	cc                   	int3
+    1986:	cc                   	int3
+    1987:	cc                   	int3
+    1988:	cc                   	int3
+    1989:	cc                   	int3
+    198a:	cc                   	int3
+    198b:	cc                   	int3
+    198c:	cc                   	int3
+    198d:	cc                   	int3
+    198e:	cc                   	int3
+    198f:	cc                   	int3
+    1990:	55                   	push   %rbp
+    1991:	48 89 e5             	mov    %rsp,%rbp
+    1994:	41 57                	push   %r15
+    1996:	41 56                	push   %r14
+    1998:	53                   	push   %rbx
+    1999:	48 83 e4 c0          	and    $0xffffffffffffffc0,%rsp
+    199d:	48 81 ec 80 00 00 00 	sub    $0x80,%rsp
+    19a4:	4c 8b 46 20          	mov    0x20(%rsi),%r8
+    19a8:	be 00 04 00 00       	mov    $0x400,%esi
+    19ad:	49 03 70 08          	add    0x8(%r8),%rsi
+    19b1:	49 8b 40 10          	mov    0x10(%r8),%rax
+    19b5:	8b 0a                	mov    (%rdx),%ecx
+    19b7:	89 ca                	mov    %ecx,%edx
+    19b9:	c1 ea 02             	shr    $0x2,%edx
+    19bc:	83 e1 03             	and    $0x3,%ecx
+    19bf:	c5 f8 57 c0          	vxorps %xmm0,%xmm0,%xmm0
+    19c3:	4c 8d 0c 52          	lea    (%rdx,%rdx,2),%r9
+    19c7:	49 c1 e1 05          	shl    $0x5,%r9
+    19cb:	89 cf                	mov    %ecx,%edi
+    19cd:	c1 e7 04             	shl    $0x4,%edi
+    19d0:	4c 01 cf             	add    %r9,%rdi
+    19d3:	49 03 38             	add    (%r8),%rdi
+    19d6:	c5 fc 29 04 24       	vmovaps %ymm0,(%rsp)
+    19db:	45 31 c0             	xor    %r8d,%r8d
+    19de:	66 90                	xchg   %ax,%ax
+    19e0:	49 89 f1             	mov    %rsi,%r9
+    19e3:	49 89 fa             	mov    %rdi,%r10
+    19e6:	45 31 db             	xor    %r11d,%r11d
+    19e9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    19f0:	4c 89 cb             	mov    %r9,%rbx
+    19f3:	45 31 f6             	xor    %r14d,%r14d
+    19f6:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+    19fd:	00 00 00 
+    1a00:	c4 a1 7a 10 04 b4    	vmovss (%rsp,%r14,4),%xmm0
+    1a06:	45 31 ff             	xor    %r15d,%r15d
+    1a09:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+    1a10:	c4 81 7a 10 0c 3a    	vmovss (%r10,%r15,1),%xmm1
+    1a16:	c4 a2 71 b9 04 fb    	vfmadd231ss (%rbx,%r15,8),%xmm1,%xmm0
+    1a1c:	49 83 c7 04          	add    $0x4,%r15
+    1a20:	49 83 ff 10          	cmp    $0x10,%r15
+    1a24:	75 ea                	jne    1a10 <iree_hal_executable_library_query-0x210>
+    1a26:	c4 a1 7a 11 04 b4    	vmovss %xmm0,(%rsp,%r14,4)
+    1a2c:	49 ff c6             	inc    %r14
+    1a2f:	48 83 c3 04          	add    $0x4,%rbx
+    1a33:	49 83 fe 08          	cmp    $0x8,%r14
+    1a37:	75 c7                	jne    1a00 <iree_hal_executable_library_query-0x220>
+    1a39:	49 ff c3             	inc    %r11
+    1a3c:	49 83 c2 10          	add    $0x10,%r10
+    1a40:	49 83 e9 80          	sub    $0xffffffffffffff80,%r9
+    1a44:	49 83 fb 03          	cmp    $0x3,%r11
+    1a48:	75 a6                	jne    19f0 <iree_hal_executable_library_query-0x230>
+    1a4a:	49 ff c0             	inc    %r8
+    1a4d:	48 83 c7 60          	add    $0x60,%rdi
+    1a51:	48 81 c6 80 01 00 00 	add    $0x180,%rsi
+    1a58:	49 83 f8 03          	cmp    $0x3,%r8
+    1a5c:	75 82                	jne    19e0 <iree_hal_executable_library_query-0x240>
+    1a5e:	48 c1 e2 07          	shl    $0x7,%rdx
+    1a62:	48 01 d0             	add    %rdx,%rax
+    1a65:	c5 fc 28 04 24       	vmovaps (%rsp),%ymm0
+    1a6a:	c5 f0 57 c9          	vxorps %xmm1,%xmm1,%xmm1
+    1a6e:	62 f1 7c 28 c2 c9 06 	vcmpnleps %ymm1,%ymm0,%k1
+    1a75:	62 f1 7c a9 28 c0    	vmovaps %ymm0,%ymm0{%k1}{z}
+    1a7b:	c1 e1 05             	shl    $0x5,%ecx
+    1a7e:	c5 fc 11 84 01 40 02 	vmovups %ymm0,0x240(%rcx,%rax,1)
+    1a85:	00 00 
+    1a87:	31 c0                	xor    %eax,%eax
+    1a89:	48 8d 65 e8          	lea    -0x18(%rbp),%rsp
+    1a8d:	5b                   	pop    %rbx
+    1a8e:	41 5e                	pop    %r14
+    1a90:	41 5f                	pop    %r15
+    1a92:	5d                   	pop    %rbp
+    1a93:	c5 f8 77             	vzeroupper
+    1a96:	c3                   	ret
+    1a97:	cc                   	int3
+    1a98:	cc                   	int3
+    1a99:	cc                   	int3
+    1a9a:	cc                   	int3
+    1a9b:	cc                   	int3
+    1a9c:	cc                   	int3
+    1a9d:	cc                   	int3
+    1a9e:	cc                   	int3
+    1a9f:	cc                   	int3
+    1aa0:	55                   	push   %rbp
+    1aa1:	48 89 e5             	mov    %rsp,%rbp
+    1aa4:	48 8b 4e 20          	mov    0x20(%rsi),%rcx
+    1aa8:	48 8b 01             	mov    (%rcx),%rax
+    1aab:	48 8b 51 08          	mov    0x8(%rcx),%rdx
+    1aaf:	48 8b 49 10          	mov    0x10(%rcx),%rcx
+    1ab3:	c5 f8 57 c0          	vxorps %xmm0,%xmm0,%xmm0
+    1ab7:	48 c7 c6 f0 ff ff ff 	mov    $0xfffffffffffffff0,%rsi
+    1abe:	66 90                	xchg   %ax,%ax
+    1ac0:	c5 fb 10 8c f2 80 00 	vmovsd 0x80(%rdx,%rsi,8),%xmm1
+    1ac7:	00 00 
+    1ac9:	c5 fb 10 94 f2 88 00 	vmovsd 0x88(%rdx,%rsi,8),%xmm2
+    1ad0:	00 00 
+    1ad2:	c5 fb 10 9c f2 90 00 	vmovsd 0x90(%rdx,%rsi,8),%xmm3
+    1ad9:	00 00 
+    1adb:	c5 fb 10 a4 f2 98 00 	vmovsd 0x98(%rdx,%rsi,8),%xmm4
+    1ae2:	00 00 
+    1ae4:	c5 fb 10 ac f2 a0 00 	vmovsd 0xa0(%rdx,%rsi,8),%xmm5
+    1aeb:	00 00 
+    1aed:	c5 fb 10 b4 f2 a8 00 	vmovsd 0xa8(%rdx,%rsi,8),%xmm6
+    1af4:	00 00 
+    1af6:	c5 fb 10 bc f2 b0 00 	vmovsd 0xb0(%rdx,%rsi,8),%xmm7
+    1afd:	00 00 
+    1aff:	c5 7b 10 84 f2 b8 00 	vmovsd 0xb8(%rdx,%rsi,8),%xmm8
+    1b06:	00 00 
+    1b08:	c5 7b 10 8c f2 c0 00 	vmovsd 0xc0(%rdx,%rsi,8),%xmm9
+    1b0f:	00 00 
+    1b11:	c5 7b 10 94 f2 c8 00 	vmovsd 0xc8(%rdx,%rsi,8),%xmm10
+    1b18:	00 00 
+    1b1a:	c5 7b 10 9c f2 d0 00 	vmovsd 0xd0(%rdx,%rsi,8),%xmm11
+    1b21:	00 00 
+    1b23:	c5 7b 10 a4 f2 d8 00 	vmovsd 0xd8(%rdx,%rsi,8),%xmm12
+    1b2a:	00 00 
+    1b2c:	c5 7b 10 ac f2 e0 00 	vmovsd 0xe0(%rdx,%rsi,8),%xmm13
+    1b33:	00 00 
+    1b35:	c5 7b 10 b4 f2 e8 00 	vmovsd 0xe8(%rdx,%rsi,8),%xmm14
+    1b3c:	00 00 
+    1b3e:	c5 7b 10 bc f2 f0 00 	vmovsd 0xf0(%rdx,%rsi,8),%xmm15
+    1b45:	00 00 
+    1b47:	62 e1 ff 08 10 44 f2 	vmovsd 0xf8(%rdx,%rsi,8),%xmm16
+    1b4e:	1f 
+    1b4f:	62 f2 7d 18 98 8c b0 	vfmadd132ps 0x280(%rax,%rsi,4){1to4},%xmm0,%xmm1
+    1b56:	80 02 00 00 
+    1b5a:	62 f2 6d 18 b8 8c b0 	vfmadd231ps 0x284(%rax,%rsi,4){1to4},%xmm2,%xmm1
+    1b61:	84 02 00 00 
+    1b65:	62 f2 65 18 b8 8c b0 	vfmadd231ps 0x288(%rax,%rsi,4){1to4},%xmm3,%xmm1
+    1b6c:	88 02 00 00 
+    1b70:	62 f2 5d 18 b8 8c b0 	vfmadd231ps 0x28c(%rax,%rsi,4){1to4},%xmm4,%xmm1
+    1b77:	8c 02 00 00 
+    1b7b:	62 f2 55 18 b8 8c b0 	vfmadd231ps 0x290(%rax,%rsi,4){1to4},%xmm5,%xmm1
+    1b82:	90 02 00 00 
+    1b86:	62 f2 4d 18 b8 8c b0 	vfmadd231ps 0x294(%rax,%rsi,4){1to4},%xmm6,%xmm1
+    1b8d:	94 02 00 00 
+    1b91:	62 f2 45 18 b8 8c b0 	vfmadd231ps 0x298(%rax,%rsi,4){1to4},%xmm7,%xmm1
+    1b98:	98 02 00 00 
+    1b9c:	62 f2 3d 18 b8 8c b0 	vfmadd231ps 0x29c(%rax,%rsi,4){1to4},%xmm8,%xmm1
+    1ba3:	9c 02 00 00 
+    1ba7:	62 f2 35 18 b8 8c b0 	vfmadd231ps 0x2a0(%rax,%rsi,4){1to4},%xmm9,%xmm1
+    1bae:	a0 02 00 00 
+    1bb2:	62 f2 2d 18 b8 8c b0 	vfmadd231ps 0x2a4(%rax,%rsi,4){1to4},%xmm10,%xmm1
+    1bb9:	a4 02 00 00 
+    1bbd:	62 f2 25 18 b8 8c b0 	vfmadd231ps 0x2a8(%rax,%rsi,4){1to4},%xmm11,%xmm1
+    1bc4:	a8 02 00 00 
+    1bc8:	62 f2 1d 18 b8 8c b0 	vfmadd231ps 0x2ac(%rax,%rsi,4){1to4},%xmm12,%xmm1
+    1bcf:	ac 02 00 00 
+    1bd3:	62 f2 15 18 b8 8c b0 	vfmadd231ps 0x2b0(%rax,%rsi,4){1to4},%xmm13,%xmm1
+    1bda:	b0 02 00 00 
+    1bde:	62 f2 0d 18 b8 8c b0 	vfmadd231ps 0x2b4(%rax,%rsi,4){1to4},%xmm14,%xmm1
+    1be5:	b4 02 00 00 
+    1be9:	62 f2 05 18 b8 8c b0 	vfmadd231ps 0x2b8(%rax,%rsi,4){1to4},%xmm15,%xmm1
+    1bf0:	b8 02 00 00 
+    1bf4:	c5 f8 28 c1          	vmovaps %xmm1,%xmm0
+    1bf8:	62 f2 7d 10 b8 84 b0 	vfmadd231ps 0x2bc(%rax,%rsi,4){1to4},%xmm16,%xmm0
+    1bff:	bc 02 00 00 
+    1c03:	48 83 c6 10          	add    $0x10,%rsi
+    1c07:	48 83 fe 70          	cmp    $0x70,%rsi
+    1c0b:	0f 82 af fe ff ff    	jb     1ac0 <iree_hal_executable_library_query-0x160>
+    1c11:	c5 f8 13 01          	vmovlps %xmm0,(%rcx)
+    1c15:	31 c0                	xor    %eax,%eax
+    1c17:	5d                   	pop    %rbp
+    1c18:	c3                   	ret
+    1c19:	cc                   	int3
+    1c1a:	cc                   	int3
+    1c1b:	cc                   	int3
+    1c1c:	cc                   	int3
+    1c1d:	cc                   	int3
+    1c1e:	cc                   	int3
+    1c1f:	cc                   	int3
+
+0000000000001c20 <iree_hal_executable_library_query>:
+    1c20:	31 c0                	xor    %eax,%eax
+    1c22:	83 ff 06             	cmp    $0x6,%edi
+    1c25:	48 8d 0d f4 10 00 00 	lea    0x10f4(%rip),%rcx        # 2d20 <iree_hal_executable_library_query+0x1100>
+    1c2c:	48 0f 44 c1          	cmove  %rcx,%rax
+    1c30:	c3                   	ret

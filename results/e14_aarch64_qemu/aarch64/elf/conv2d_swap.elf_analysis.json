@@ -1,0 +1,269 @@
+{
+  "tool": "harness/elf_stack_frame.py",
+  "elf": "results/e14_aarch64_qemu/aarch64/elf/conv2d_swap.kernel.elf",
+  "arch": "aarch64",
+  "elf_bytes": 6368,
+  "elf_sha256": "27d5bbd36eb8b2c5f1bee9e5a8fb1f25046ec68a09e5f966bc3973d97aa08a07",
+  "objdump": {
+    "tool": "aarch64-linux-gnu-objdump",
+    "file_format": "elf64-littleaarch64"
+  },
+  "elf_type": "ET_DYN",
+  "sections": {
+    ".dynsym": 48,
+    ".hash": 24,
+    ".dynstr": 35,
+    ".rela.dyn": 528,
+    ".rodata": 816,
+    ".eh_frame": 128,
+    ".text": 740,
+    ".data.rel.ro": 352,
+    ".dynamic": 192,
+    ".relro_padding": 704
+  },
+  "text_bytes": 740,
+  "rodata_bytes": 816,
+  "symbols": [
+    {
+      "name": "iree_hal_executable_library_query",
+      "addr": "0x10b00"
+    }
+  ],
+  "undefined_symbols": [],
+  "relocations": {
+    "count": 22,
+    "types": {
+      "R_AARCH64_RELATIVE": 22
+    },
+    "non_relative": 0
+  },
+  "exports": [
+    {
+      "ordinal": 0,
+      "name": "infer_dispatch_0_conv_6x6x4x3x3_f32",
+      "addr": "0x10830"
+    },
+    {
+      "ordinal": 1,
+      "name": "infer_dispatch_1_conv_4x4x8x3x3x4_f32",
+      "addr": "0x10940"
+    },
+    {
+      "ordinal": 2,
+      "name": "infer_dispatch_2_matmul_1x2x128_f32",
+      "addr": "0x10a90"
+    }
+  ],
+  "function_split_method": "symtab+export_table(.rela.dyn)",
+  "llvm_ir": {
+    "path": "results/e14_aarch64_qemu/aarch64/llvm_ir/conv2d_swap.module_conv2d_swap_baked_linked_embedded_elf_arm_64.codegen.ll",
+    "alloca_count": 4,
+    "defines": [
+      "infer_dispatch_0_conv_6x6x4x3x3_f32",
+      "infer_dispatch_1_conv_4x4x8x3x3x4_f32",
+      "infer_dispatch_2_matmul_1x2x128_f32",
+      "iree_hal_executable_library_query"
+    ],
+    "declares": [
+      "llvm.assume",
+      "llvm.fmuladd.v2f32"
+    ],
+    "non_intrinsic_declares": [],
+    "external_calls": [],
+    "frame_pointer_attrs": [
+      "all"
+    ],
+    "target_triple": "aarch64-unknown-unknown-eabi-elf",
+    "malloc_free_refs": 0
+  },
+  "export_names_verified_in_ll": true,
+  "functions": [
+    {
+      "name": "infer_dispatch_0_conv_6x6x4x3x3_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x10830",
+      "insns": 68,
+      "padding_insns_after": 0,
+      "code_bytes": 272,
+      "callee_save_bytes": 16,
+      "local_alloc_bytes": 112,
+      "restore_bytes": 128,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 2,
+      "sp_relative_mem_op_list": [
+        "10858: stp xzr, xzr, [sp]",
+        "1090c: ldr q1, [sp, #64]"
+      ],
+      "prologue": [
+        "stp x29, x30, [sp, #-16]!",
+        "mov x29, sp",
+        "and sp, x9, #0xffffffffffffffc0"
+      ],
+      "epilogue": [
+        "mov sp, x29",
+        "ldp x29, x30, [sp], #16"
+      ],
+      "realign_max_pad_bytes": 63,
+      "frame_bytes": 128,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 0,
+        "fmul": 0,
+        "fadd": 1,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 11
+      },
+      "neon_or_avx_width_hint": "NEON 128-bit, compute arrangement v.4s (32-bit x4); arrangements seen: ['16b', '4s']",
+      "invocation_stack_bytes": 191
+    },
+    {
+      "name": "infer_dispatch_1_conv_4x4x8x3x3x4_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x10940",
+      "insns": 81,
+      "padding_insns_after": 0,
+      "code_bytes": 336,
+      "callee_save_bytes": 16,
+      "local_alloc_bytes": 112,
+      "restore_bytes": 128,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 2,
+      "sp_relative_mem_op_list": [
+        "10960: stp xzr, xzr, [sp]",
+        "10a54: ldr q0, [sp, #64]"
+      ],
+      "prologue": [
+        "stp x29, x30, [sp, #-16]!",
+        "mov x29, sp",
+        "and sp, x9, #0xffffffffffffffc0"
+      ],
+      "epilogue": [
+        "mov sp, x29",
+        "ldp x29, x30, [sp], #16"
+      ],
+      "realign_max_pad_bytes": 63,
+      "frame_bytes": 128,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 0,
+        "fmul": 0,
+        "fadd": 0,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 7
+      },
+      "neon_or_avx_width_hint": "NEON 128-bit, compute arrangement v.4s (32-bit x4); arrangements seen: ['16b', '4s']",
+      "invocation_stack_bytes": 191
+    },
+    {
+      "name": "infer_dispatch_2_matmul_1x2x128_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x10a90",
+      "insns": 25,
+      "padding_insns_after": 0,
+      "code_bytes": 112,
+      "callee_save_bytes": 16,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 16,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "stp x29, x30, [sp, #-16]!",
+        "mov x29, sp"
+      ],
+      "epilogue": [
+        "ldp x29, x30, [sp], #16"
+      ],
+      "realign_max_pad_bytes": 0,
+      "frame_bytes": 16,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 4,
+        "fmul": 0,
+        "fadd": 0,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 12
+      },
+      "neon_or_avx_width_hint": "NEON 64-bit, compute arrangement v.2s (32-bit x2); arrangements seen: ['2s']",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "iree_hal_executable_library_query",
+      "name_source": "symtab",
+      "addr": "0x10b00",
+      "insns": 5,
+      "padding_insns_after": 0,
+      "code_bytes": null,
+      "callee_save_bytes": 0,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 0,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": false,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [],
+      "epilogue": [],
+      "realign_max_pad_bytes": 0,
+      "frame_bytes": 0,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 0,
+        "fmul": 0,
+        "fadd": 0,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 0
+      },
+      "neon_or_avx_width_hint": "scalar (no NEON vector arrangements)",
+      "invocation_stack_bytes": 0
+    }
+  ],
+  "dispatch_functions": [
+    "infer_dispatch_0_conv_6x6x4x3x3_f32",
+    "infer_dispatch_1_conv_4x4x8x3x3x4_f32",
+    "infer_dispatch_2_matmul_1x2x128_f32"
+  ],
+  "max_dispatch_frame_bytes": 128,
+  "sum_dispatch_frame_bytes": 272,
+  "max_dispatch_invocation_stack_bytes": 191,
+  "max_dispatch_local_alloc_bytes": 112,
+  "total_call_insns": 0,
+  "total_insns": 179,
+  "total_padding_insns": 0,
+  "total_code_insns": 179,
+  "dispatch_insns": 174,
+  "vector_insns_total": {
+    "fmla": 4,
+    "fmul": 0,
+    "fadd": 1,
+    "fmls": 0,
+    "fsub": 0,
+    "neon_vreg_operands": 30
+  },
+  "any_dynamic_stack_alloc": false,
+  "any_sp_relative_mem_ops": true,
+  "all_dispatch_frames_balanced": true,
+  "classification_note": "bucket (2) TASK-STACK: each dispatch function reserves at most 128 B of stack (callee-saved + 112 B explicit locals with 4 sp-relative load/store(s) (spills/locals)), 0 call instructions -> call depth 1 below the runtime; per-invocation stack = 191 B incl. return address. Not HAL memory (not in bounded_bytes); add it explicitly to the task/thread stack budget."
+}

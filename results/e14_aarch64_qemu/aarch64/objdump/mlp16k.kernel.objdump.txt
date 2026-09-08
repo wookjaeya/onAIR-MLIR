@@ -1,0 +1,99 @@
+
+results/e14_aarch64_qemu/aarch64/elf/mlp16k.kernel.elf:     file format elf64-littleaarch64
+
+
+Disassembly of section .text:
+
+00000000000105d0 <iree_hal_executable_library_query-0x160>:
+   105d0:	a9bf7bfd 	stp	x29, x30, [sp, #-16]!
+   105d4:	910003fd 	mov	x29, sp
+   105d8:	f940102a 	ldr	x10, [x1, #32]
+   105dc:	aa1f03ec 	mov	x12, xzr
+   105e0:	b940004b 	ldr	w11, [x2]
+   105e4:	a9402548 	ldp	x8, x9, [x10]
+   105e8:	d37ae56b 	lsl	x11, x11, #6
+   105ec:	f940094a 	ldr	x10, [x10, #16]
+   105f0:	6f00e400 	movi	v0.2d, #0x0
+   105f4:	8b0b018d 	add	x13, x12, x11
+   105f8:	6f00e401 	movi	v1.2d, #0x0
+   105fc:	aa1f03ef 	mov	x15, xzr
+   10600:	8b0d092e 	add	x14, x9, x13, lsl #2
+   10604:	52800030 	mov	w16, #0x1                   	// #1
+   10608:	d503201f 	nop
+   1060c:	d503201f 	nop
+   10610:	8b0f41d1 	add	x17, x14, x15, lsl #16
+   10614:	bc6f7902 	ldr	s2, [x8, x15, lsl #2]
+   10618:	ad400e24 	ldp	q4, q3, [x17]
+   1061c:	b24001f1 	orr	x17, x15, #0x1
+   10620:	8b1141c0 	add	x0, x14, x17, lsl #16
+   10624:	4f821061 	fmla	v1.4s, v3.4s, v2.s[0]
+   10628:	4f821080 	fmla	v0.4s, v4.4s, v2.s[0]
+   1062c:	bc717902 	ldr	s2, [x8, x17, lsl #2]
+   10630:	ad400c04 	ldp	q4, q3, [x0]
+   10634:	b27f01f1 	orr	x17, x15, #0x2
+   10638:	b24005ef 	orr	x15, x15, #0x3
+   1063c:	8b1141c0 	add	x0, x14, x17, lsl #16
+   10640:	4f821061 	fmla	v1.4s, v3.4s, v2.s[0]
+   10644:	4f821080 	fmla	v0.4s, v4.4s, v2.s[0]
+   10648:	bc717902 	ldr	s2, [x8, x17, lsl #2]
+   1064c:	ad400c04 	ldp	q4, q3, [x0]
+   10650:	8b0f41d1 	add	x17, x14, x15, lsl #16
+   10654:	4f821061 	fmla	v1.4s, v3.4s, v2.s[0]
+   10658:	4f821080 	fmla	v0.4s, v4.4s, v2.s[0]
+   1065c:	bc6f7902 	ldr	s2, [x8, x15, lsl #2]
+   10660:	ad400e24 	ldp	q4, q3, [x17]
+   10664:	2a1003f1 	mov	w17, w16
+   10668:	5280008f 	mov	w15, #0x4                   	// #4
+   1066c:	2a1f03f0 	mov	w16, wzr
+   10670:	4f821061 	fmla	v1.4s, v3.4s, v2.s[0]
+   10674:	4f821080 	fmla	v0.4s, v4.4s, v2.s[0]
+   10678:	3707fcd1 	tbnz	w17, #0, 10610 <iree_hal_executable_library_query-0x120>
+   1067c:	914201ce 	add	x14, x14, #0x80, lsl #12
+   10680:	bd402102 	ldr	s2, [x8, #32]
+   10684:	8b0d094d 	add	x13, x10, x13, lsl #2
+   10688:	f100e19f 	cmp	x12, #0x38
+   1068c:	ad4011c3 	ldp	q3, q4, [x14]
+   10690:	9100218e 	add	x14, x12, #0x8
+   10694:	aa0e03ec 	mov	x12, x14
+   10698:	4f821060 	fmla	v0.4s, v3.4s, v2.s[0]
+   1069c:	4f821081 	fmla	v1.4s, v4.4s, v2.s[0]
+   106a0:	ad0005a0 	stp	q0, q1, [x13]
+   106a4:	54fffa63 	b.cc	105f0 <iree_hal_executable_library_query-0x140>  // b.lo, b.ul, b.last
+   106a8:	2a1f03e0 	mov	w0, wzr
+   106ac:	a8c17bfd 	ldp	x29, x30, [sp], #16
+   106b0:	d65f03c0 	ret
+	...
+   106c0:	a9bf7bfd 	stp	x29, x30, [sp, #-16]!
+   106c4:	910003fd 	mov	x29, sp
+   106c8:	f9401028 	ldr	x8, [x1, #32]
+   106cc:	2f00e400 	movi	d0, #0x0
+   106d0:	9280006b 	mov	x11, #0xfffffffffffffffc    	// #-4
+   106d4:	a940250a 	ldp	x10, x9, [x8]
+   106d8:	f9400908 	ldr	x8, [x8, #16]
+   106dc:	91424129 	add	x9, x9, #0x90, lsl #12
+   106e0:	9100214a 	add	x10, x10, #0x8
+   106e4:	2d7f1141 	ldp	s1, s4, [x10, #-8]
+   106e8:	9100116b 	add	x11, x11, #0x4
+   106ec:	6d400d22 	ldp	d2, d3, [x9]
+   106f0:	d342fd6c 	lsr	x12, x11, #2
+   106f4:	f13ffd9f 	cmp	x12, #0xfff
+   106f8:	0f811040 	fmla	v0.2s, v2.2s, v1.s[0]
+   106fc:	0f841060 	fmla	v0.2s, v3.2s, v4.s[0]
+   10700:	2cc21141 	ldp	s1, s4, [x10], #16
+   10704:	6d410d22 	ldp	d2, d3, [x9, #16]
+   10708:	91008129 	add	x9, x9, #0x20
+   1070c:	0f811040 	fmla	v0.2s, v2.2s, v1.s[0]
+   10710:	0f841060 	fmla	v0.2s, v3.2s, v4.s[0]
+   10714:	54fffe83 	b.cc	106e4 <iree_hal_executable_library_query-0x4c>  // b.lo, b.ul, b.last
+   10718:	2a1f03e0 	mov	w0, wzr
+   1071c:	fd000100 	str	d0, [x8]
+   10720:	a8c17bfd 	ldp	x29, x30, [sp], #16
+   10724:	d65f03c0 	ret
+	...
+
+0000000000010730 <iree_hal_executable_library_query>:
+   10730:	d503201f 	nop
+   10734:	10080568 	adr	x8, 207e0 <iree_hal_executable_library_query+0x100b0>
+   10738:	7100181f 	cmp	w0, #0x6
+   1073c:	9a9f0100 	csel	x0, x8, xzr, eq	// eq = none
+   10740:	d65f03c0 	ret
