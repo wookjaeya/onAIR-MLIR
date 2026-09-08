@@ -1,0 +1,44 @@
+name: contract-negative-tests
+
+# F9 (external review v0.15, EVIDENCE_v0.16_E22): a fresh-clone CI run is the
+# only thing that actually confirms the claim harness/contract_negative_tests.py
+# makes about itself -- until this workflow existed, "X/X, no environment setup
+# needed" was verified only in the author's own working environment (which had
+# stale local state a real fresh clone does not), and a genuinely fresh clone
+# without iree.compiler.ir installed used to crash with an uncaught exception
+# before printing any summary at all (fixed in the same experiment, E22).
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Both legs are meaningful: with-deps exercises the full suite
+        # (structural cross-check included); without-deps confirms the
+        # graceful-degradation path (SKIP, not FAIL, not a crash) that a
+        # genuinely dependency-less fresh clone hits.
+        deps: ["with-deps", "without-deps"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        if: matrix.deps == 'with-deps'
+        run: pip install -r requirements.txt
+
+      - name: Install jsonschema only (without-deps leg keeps iree.compiler.ir absent)
+        if: matrix.deps == 'without-deps'
+        run: pip install jsonschema==4.26.0
+
+      - name: Run contract_negative_tests.py
+        run: python3 harness/contract_negative_tests.py

@@ -7,5 +7,10 @@ native/native_learner
 *.log
 !native/results/*.log
 !results/e14_aarch64_qemu/**/*.log
-# E14 Stage 1: intermediate executable dumps (bitcode/asm); the kernel ELF, codegen.ll and objdump are copied next to them
-results/e14_aarch64_qemu/*/dump/
+# F9 (external review v0.15, EVIDENCE_v0.16_E22): these dumps used to be excluded here
+# ("intermediate executable dumps ... copied next to them" -- true of the ELF/codegen.ll,
+# not true of dump/ itself) -- but harness/contract_negative_tests.py's regression and
+# negative-case tests REQUIRE --dump-dir to point at real files, so excluding them broke
+# fresh-clone reproducibility (verified: 33/53 instead of the in-tree 107/107). Committed
+# instead (~6.5 MB total, intermediate MLIR/LLVM-IR/bitcode/object files, nothing sensitive).
+!results/e14_aarch64_qemu/**/dump/**/*.o

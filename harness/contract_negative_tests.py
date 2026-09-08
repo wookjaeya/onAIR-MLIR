@@ -37,6 +37,37 @@ PY = sys.executable
 MAKE_CONTRACT = os.path.join(HERE, "make_contract.py")
 GEN_HEADER = os.path.join(HERE, "gen_contract_header.py")
 
+_structural_available_cache = None
+
+
+def structural_available():
+    """Whether iree.compiler.ir is importable in THIS interpreter -- cached,
+    checked once. F9/E22 (external review, 2026-09): E21's F3 fix made
+    make_contract.py refuse to write ANY contract by default when this
+    package is missing (previously a silent regex-only degrade). That is the
+    right default for a real invocation, but it means every subprocess call
+    this test file makes to make_contract.py -- most of which are testing
+    something else entirely (an ABI mismatch, a stale dump-dir, ...) -- would
+    otherwise start failing for an unrelated reason in an environment that
+    genuinely lacks the package, rather than skipping cleanly or testing what
+    they say they test. Callers pass --allow-missing-structural-checker
+    through when this is False so behaviour stays consistent across
+    environments; main() reports the environment's actual state once."""
+    global _structural_available_cache
+    if _structural_available_cache is None:
+        rc, out, err = run([PY, "-c", "import iree.compiler.ir"])
+        _structural_available_cache = (rc == 0)
+    return _structural_available_cache
+
+
+def with_structural_override(extra_flags=()):
+    """extra_flags, plus --allow-missing-structural-checker when the real
+    package isn't available in this environment (see structural_available())."""
+    extra_flags = list(extra_flags)
+    if not structural_available() and "--allow-missing-structural-checker" not in extra_flags:
+        extra_flags.append("--allow-missing-structural-checker")
+    return extra_flags
+
 TARGET_INFO = {
     "aarch64": {"triple": "aarch64-unknown-linux-gnu", "cpu": "cortex-a53"},
     "x86_64": {"triple": "x86_64-unknown-linux-gnu", "cpu": "host"},
@@ -47,13 +78,22 @@ TARGET_INFO = {
 # small helpers
 # ----------------------------------------------------------------------------
 class Result:
-    def __init__(self, name, ok, detail=""):
+    # F9/E22 (external review): a genuinely missing prerequisite (this
+    # environment lacks iree.compiler.ir) is not the same claim as "this
+    # code is broken" -- conflating them either hides real bugs behind an
+    # expected-in-some-environments FAIL, or makes an environment without
+    # the optional package look permanently red. `skip=True` marks the
+    # former; it is excluded from both the pass and fail counts in main()'s
+    # summary and prints as SKIP, never FAIL.
+    def __init__(self, name, ok, detail="", skip=False):
         self.name = name
         self.ok = ok
         self.detail = detail
+        self.skip = skip
 
     def __repr__(self):
-        return "%-6s %-70s %s" % ("PASS" if self.ok else "FAIL", self.name, self.detail)
+        status = "SKIP" if self.skip else ("PASS" if self.ok else "FAIL")
+        return "%-6s %-70s %s" % (status, self.name, self.detail)
 
 
 def run(cmd, **kw):
@@ -247,6 +287,14 @@ def make_contract_negative_cases(root, tmp):
               "--extra-args", "--mlir-elide-elementsattrs-if-larger=16"]
         if elf_analysis:
             cmd[cmd.index("--out"):cmd.index("--out")] = ["--elf-analysis", elf_analysis]
+        # F9/E22: pass --allow-missing-structural-checker through when this
+        # environment lacks iree.compiler.ir, so these cases keep testing
+        # what they say they test (an ABI mismatch, a stale dump-dir, ...)
+        # instead of incidentally failing for an unrelated reason (E21's F3
+        # made a missing structural checker hard-fail by default). Each
+        # case's OWN --allow-* flag (if any) is unaffected -- this only
+        # suppresses that one, unrelated failure reason.
+        extra_flags = with_structural_override(extra_flags)
         # make_contract.py's parse_args() takes EVERYTHING after a bare
         # --extra-args verbatim (it's the iree-compile flags of the
         # invocation) -- any of our own --allow-* flags must go BEFORE it or
@@ -478,8 +526,8 @@ def structural_hard_fail_cases(root):
         mc.maw = orig_maw
 
     if mc.maw is None or getattr(mc.maw, "ir", None) is None:
-        results.append(Result("structural-hard-fail: iree.compiler.ir available (prerequisite for remaining cases)",
-                              False, "mlir_alloc_walk's structural extractor is not usable in this environment"))
+        results.append(Result("structural-hard-fail: remaining cases (structural/regex disagreement, etc.)",
+                              True, "skipped: iree.compiler.ir not installed in this environment", skip=True))
         return results
 
     orig_fn = mc.maw.parse_alloc_ir_structural
@@ -595,8 +643,8 @@ def structural_bugfix_regression_cases(root, tmp):
     except Exception as e:
         return [Result("structural-bugfix: make_contract importable", False, str(e)[:200])]
     if mc.maw is None or getattr(mc.maw, "ir", None) is None:
-        return [Result("structural-bugfix: iree.compiler.ir available (prerequisite)", False,
-                       "mlir_alloc_walk's structural extractor is not usable in this environment")]
+        return [Result("structural-bugfix: bugs A and B regression cases",
+                       True, "skipped: iree.compiler.ir not installed in this environment", skip=True)]
 
     aarch64_dir = os.path.join(root, "aarch64")
 
@@ -769,9 +817,15 @@ def regression_check(root, tmp):
             dump_dir = os.path.join(root, tgt, "dump", model)
             elf_json = os.path.join(root, tgt, "elf", "%s.elf_analysis.json" % model)
             new_contract = os.path.join(tmp, "regress.%s.%s.json" % (model, tgt))
+            # F9/E22: pass --allow-missing-structural-checker through when this
+            # environment lacks iree.compiler.ir, so the regression check can
+            # still run (reduced verification -- see the availability-aware
+            # assertion below) instead of every contract failing to write at
+            # all for a reason unrelated to what this check tests.
             cmd = [PY, MAKE_CONTRACT, "--mlir", inv["mlir"], "--vmfb", inv["vmfb"], "--layout-ir", inv["layout_ir"],
                   "--dump-dir", dump_dir, "--triple", ti["triple"], "--cpu", ti["cpu"], "--model-name", model,
-                  "--elf-analysis", elf_json, "--out", new_contract,
+                  "--elf-analysis", elf_json] + with_structural_override() + [
+                  "--out", new_contract,
                   "--extra-args", "--mlir-elide-elementsattrs-if-larger=16"]
             rc, o, err = run(cmd)
             if rc != 0:
@@ -780,8 +834,18 @@ def regression_check(root, tmp):
                 continue
             old = dict(flatten(load(contract_path)))
             new = dict(flatten(load(new_contract)))
+            # F9/E22: when this environment lacks iree.compiler.ir, the
+            # regenerated contract's provenance.notes legitimately gains one
+            # extra entry (the structural-checker-unavailable note) that the
+            # stored fixture -- generated in an environment that HAD the
+            # package -- does not have. That is a real, expected difference
+            # given the environment mismatch, not a regression in the numbers
+            # this check exists to catch; skip the "notes" leaf only in that
+            # case (structural_walker's own subtree is still separately
+            # asserted above via the availability-aware Result).
+            ignore_keys = IGNORE_PROVENANCE_KEYS | ({"notes"} if not structural_available() else set())
             diffs = [(k, old.get(k), new.get(k)) for k in set(old) | set(new)
-                    if k[-1] not in IGNORE_PROVENANCE_KEYS and not (set(k) & IGNORE_PROVENANCE_SUBTREES)
+                    if k[-1] not in ignore_keys and not (set(k) & IGNORE_PROVENANCE_SUBTREES)
                     and old.get(k) != new.get(k)]
             ok = not diffs
             if ok:
@@ -795,9 +859,13 @@ def regression_check(root, tmp):
             # (not just the standalone call structural_walker_checks() below makes).
             avail = new.get(("provenance", "structural_walker", "available"))
             agree = new.get(("provenance", "structural_walker", "agrees_with_regex_parser"))
-            results.append(Result("regression: %s/%s structural cross-check ran and agreed" % (tgt, model),
-                                  avail is True and agree is True,
-                                  "available=%s agrees_with_regex_parser=%s" % (avail, agree)))
+            if structural_available():
+                results.append(Result("regression: %s/%s structural cross-check ran and agreed" % (tgt, model),
+                                      avail is True and agree is True,
+                                      "available=%s agrees_with_regex_parser=%s" % (avail, agree)))
+            else:
+                results.append(Result("regression: %s/%s structural cross-check skipped (iree.compiler.ir unavailable in this environment)" % (tgt, model),
+                                      avail is False, "available=%s" % avail))
             if not ok:
                 continue
             new_hdr = os.path.join(tmp, "regress.%s.%s.h" % (model, tgt))
@@ -818,6 +886,14 @@ def structural_walker_checks(root):
         import mlir_alloc_walk as maw
     except Exception as e:
         return [Result("structural: mlir_alloc_walk importable", False, str(e)[:200])]
+    if maw.ir is None:
+        # F9/E22: this whole group needs iree.compiler.ir to exist at all --
+        # not installed is an environment fact, not a bug in this repo. One
+        # clean SKIP beats 16 misleading FAILs (14 models + whitelist test +
+        # F5 test) that would otherwise report a failure this environment
+        # cannot fix by fixing the code.
+        return [Result("structural: mlir_alloc_walk structural checks",
+                       True, "skipped: iree.compiler.ir not installed in this environment", skip=True)]
 
     models = ["mlp16k", "mlp16k_swap", "conv2d", "conv2d_swap", "multibranch", "multibranch_swap", "dynamic"]
     for tgt in ("aarch64", "x86_64"):
@@ -862,6 +938,16 @@ def structural_walker_checks(root):
             r = maw.parse_alloc_ir_structural(text, "infer")
             results.append(Result("structural: op removed from whitelist -> unresolved (fail-closed)",
                                   any("dealloca" in u for u in r["unresolved"]), str(r["unresolved"])))
+        except Exception as e:
+            # F9 (external review, 2026-09): this call was the one spot in this
+            # function without an except around parse_alloc_ir_structural -- in
+            # an environment genuinely missing iree.compiler.ir, the
+            # RuntimeError _require_bindings() raises propagated uncaught out
+            # of this whole function, killing main() before it ever printed a
+            # summary (confirmed: contract_negative_tests.py died with a raw
+            # traceback and zero PASS/FAIL lines, not a clean FAIL count).
+            results.append(Result("structural: op removed from whitelist -> unresolved (fail-closed)",
+                                  False, "exception: %s" % str(e)[:200]))
         finally:
             maw.KNOWN_ENTRY_OPS = orig
 
@@ -927,8 +1013,16 @@ def main():
         for r in all_results:
             print(r)
         print("=" * 100)
-        n_fail = sum(1 for r in all_results if not r.ok)
-        print("%d/%d checks passed" % (len(all_results) - n_fail, len(all_results)))
+        # F9/E22: skipped checks (missing iree.compiler.ir, an optional
+        # dependency) are neither passes nor failures -- reported separately
+        # so this environment's real pass/fail count stays meaningful instead
+        # of being permanently short of the in-tree total, or a real bug
+        # hiding behind an expected-here FAIL.
+        n_skip = sum(1 for r in all_results if r.skip)
+        n_fail = sum(1 for r in all_results if not r.skip and not r.ok)
+        n_pass = sum(1 for r in all_results if not r.skip and r.ok)
+        print("%d/%d checks passed%s" % (n_pass, n_pass + n_fail,
+              " (%d skipped: iree.compiler.ir not installed)" % n_skip if n_skip else ""))
         return 1 if n_fail else 0
 
 
