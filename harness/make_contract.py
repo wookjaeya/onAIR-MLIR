@@ -305,6 +305,30 @@ def sig_equal(a, b):
 # ----------------------------------------------------------------------------
 def build_contract(a, extra_args):
     notes = []
+    # R5 (external review v0.19-reframe, E24b): every --allow-* escape hatch below
+    # suppresses a refusal and leaves NO trace in the contract it then writes.
+    # An overridden contract and a fully verified one were byte-comparable
+    # except for the free-text `notes` list, which no downstream consumer
+    # parses -- gen_contract_header.py reads none of it, so a header built from
+    # a contract whose ABI/triple/ELF/one-invocation checks were all waived is
+    # indistinguishable from one whose checks all passed.
+    #
+    # `waive()` wraps the flag ACCESS rather than the refusal site: a purely
+    # mechanical patch (append next to each `hard_fail_errors.append`) misses the
+    # two combined-form gates (`if <cond> and not a.allow_...`), and a contract
+    # that then reports overrides_applied=[] / verification_grade="verified"
+    # WHILE an override was applied is strictly worse than recording nothing at
+    # all. Short-circuit evaluation gives the combined form the right semantics
+    # for free: `waive()` is only reached when the error condition holds, i.e.
+    # only when the flag actually suppresses something.
+    overrides_applied = []
+
+    def waive(flag, enabled):
+        """Return `enabled`; record `flag` when it actually suppresses a refusal."""
+        if enabled and flag not in overrides_applied:
+            overrides_applied.append(flag)
+        return bool(enabled)
+
     # D13/EVIDENCE_v0.9 SS11.9, R3 (external review): a mismatch here used to
     # only go into `notes` -- the contract was still written with a bound
     # that assumed the ABI/triple/ELF the reader trusts. Each check below
@@ -343,12 +367,12 @@ def build_contract(a, extra_args):
     if abi is None:
         msg = "no iree.abi.declaration for @%s in the layout IR" % a.entry
         notes.append(msg)
-        if not a.allow_missing_abi_declaration:
+        if not waive("--allow-missing-abi-declaration", a.allow_missing_abi_declaration):
             hard_fail_errors.append(msg + " (pass --allow-missing-abi-declaration to override)")
     elif not abi_matches:
         msg = "iree.abi.declaration disagrees with the MLIR source signature"
         notes.append(msg)
-        if not a.allow_abi_mismatch:
+        if not waive("--allow-abi-mismatch", a.allow_abi_mismatch):
             hard_fail_errors.append(msg + " (pass --allow-abi-mismatch to override)")
 
     # ---- allocation schedule (entry) ---------------------------------------
@@ -482,11 +506,11 @@ def build_contract(a, extra_args):
     # check, harness/contract_negative_tests.py).
     if structural_available and (structural is None or structural_diffs):
         notes.append(structural_note)
-        if not a.allow_structural_mismatch:
+        if not waive("--allow-structural-mismatch", a.allow_structural_mismatch):
             hard_fail_errors.append(structural_note + " (pass --allow-structural-mismatch to override)")
     elif not structural_available:
         notes.append(structural_note)
-        if not a.allow_missing_structural_checker:
+        if not waive("--allow-missing-structural-checker", a.allow_missing_structural_checker):
             hard_fail_errors.append(structural_note)
 
     # ---- artifact ---------------------------------------------------------
@@ -553,7 +577,7 @@ def build_contract(a, extra_args):
     if ll_triple and ll_triple.split("-")[0] != a.triple.split("-")[0]:
         msg = "codegen.ll target triple %s does not match --triple %s" % (ll_triple, a.triple)
         notes.append(msg)
-        if not a.allow_triple_mismatch:
+        if not waive("--allow-triple-mismatch", a.allow_triple_mismatch):
             hard_fail_errors.append(msg + " (pass --allow-triple-mismatch to override)")
     dump_elf_in_vmfb = (dump_elf["sha256"] in embedded_shas) if (dump_elf and embedded) else None
 
@@ -609,7 +633,7 @@ def build_contract(a, extra_args):
     # contract. Fail closed on "could not verify" the same as on "verified
     # mismatch", with the same --allow-* escape hatch pattern.
     invocation_errors = []
-    if rodata_unavailable and not a.allow_unverified_invocation:
+    if rodata_unavailable and not waive("--allow-unverified-invocation", a.allow_unverified_invocation):
         invocation_errors.append(rodata_unavailable + " (pass --allow-unverified-invocation to override)")
 
     # N1 (external review v0.18-followup, 2026-09): D25 above refuses "could not
@@ -635,7 +659,7 @@ def build_contract(a, extra_args):
                "observation: no subset of the flatbuffer .rodata segments %s sums to it, and the dense "
                "constant sum %d B is not confirmed either (iree-dump-module)" % (const_b, data_segs, dense_sum))
         notes.append(msg)
-        if not a.allow_unconfirmed_constants:
+        if not waive("--allow-unconfirmed-constants", a.allow_unconfirmed_constants):
             invocation_errors.append(msg + " (pass --allow-unconfirmed-constants to override)")
     if not dump_files:
         msg = ("--dump-dir '%s' contains no files: none of the one-invocation cross-checks "
@@ -644,7 +668,7 @@ def build_contract(a, extra_args):
               "to the compile, or --dump-dir points at the wrong directory, not like a verified "
               "same-invocation compile" % a.dump_dir)
         notes.append(msg)
-        if not a.allow_unverified_invocation:
+        if not waive("--allow-unverified-invocation", a.allow_unverified_invocation):
             invocation_errors.append(msg + " (pass --allow-unverified-invocation to override)")
     if dump_elf is not None and embedded and dump_elf_in_vmfb is False:
         invocation_errors.append(
@@ -690,7 +714,7 @@ def build_contract(a, extra_args):
                             % (layout_dispatch_names or "[]"))
     for m in unverifiable:
         notes.append("one-invocation signal not verified: " + m)   # never silent again
-    if unverifiable and not a.allow_unverified_invocation:
+    if unverifiable and not waive("--allow-unverified-invocation", a.allow_unverified_invocation):
         invocation_errors.append("one-invocation cross-check(s) could not be evaluated: " + "; ".join(unverifiable)
                                  + " (pass --allow-unverified-invocation to override)")
 
@@ -715,7 +739,7 @@ def build_contract(a, extra_args):
         if embedded and elf.get("elf_sha256") not in embedded_shas:
             msg = "ELF analysed by elf_stack_frame.py is NOT the ELF embedded in the vmfb"
             notes.append(msg)
-            if not a.allow_elf_analysis_mismatch:
+            if not waive("--allow-elf-analysis-mismatch", a.allow_elf_analysis_mismatch):
                 raise SystemExit("one-invocation / provenance check FAILED (not writing a contract for mismatched "
                                  "inputs):\n  - %s (pass --allow-elf-analysis-mismatch to override)" % msg)
     if elf is not None:
@@ -849,6 +873,11 @@ def build_contract(a, extra_args):
     }
     resources.update(kernel)
 
+    # --no-validate is the eleventh override. It is not a `waive()` call site
+    # because it is consumed in main() AFTER this function returns; passing it
+    # always suppresses the schema check, so record it unconditionally here.
+    waive("--no-validate", bool(getattr(a, "no_validate", False)))
+
     contract = {
         "model": {
             "name": a.model_name,
@@ -934,6 +963,12 @@ def build_contract(a, extra_args):
             "layout_dispatches_in_dump": layout_dispatches_in_dump,
             "elf_analysis": elf_prov,
             "structural_walker": structural_prov,
+            # R5 (E24b): which escape hatches were actually used, and a single
+            # machine-readable grade for consumers that will not parse the list.
+            # "verified" means every check this tool knows how to make ran and
+            # passed; it does NOT mean the contract is correct.
+            "overrides_applied": list(overrides_applied),
+            "verification_grade": "overridden" if overrides_applied else "verified",
             "notes": notes,
         },
     }

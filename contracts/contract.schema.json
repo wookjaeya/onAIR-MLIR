@@ -263,6 +263,20 @@
         },
         "dump_dir_files": {
           "type": "array"
+        },
+        "overrides_applied": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "R5/E24b: --allow-*/--no-validate flags that actually suppressed a refusal while this contract was built. OPTIONAL: contracts written before E24b have no such field, and absence must not be read as 'none were applied' (measured: requiring it rejects all 14 archived contracts -- an over-rejection of the D16/D17 kind)"
+        },
+        "verification_grade": {
+          "enum": [
+            "verified",
+            "overridden"
+          ],
+          "description": "R5/E24b: 'verified' = every check harness/make_contract.py knows how to make ran and passed (NOT a claim that the contract is correct); 'overridden' = at least one was waived. OPTIONAL for the same reason as overrides_applied"
         }
       },
       "description": "how the numbers were obtained (harness/make_contract.py)"

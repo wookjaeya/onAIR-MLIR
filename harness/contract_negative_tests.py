@@ -747,6 +747,119 @@ def make_contract_negative_cases(root, tmp):
         else:
             results.append(Result("make_contract-neg: F2 fixture present (abi declaration removable)", False,
                                   "could not cleanly remove iree.abi.declaration from layout IR"))
+
+    # ------------------------------------------------------------------
+    # R5 (external review v0.19-reframe, E24b): an applied --allow-* escape
+    # hatch left no machine-readable trace in the contract it then wrote, so a
+    # fully-verified contract and one whose ABI/triple/ELF/one-invocation
+    # checks were all waived were indistinguishable to gen_contract_header.py
+    # (which reads no provenance at all) and to every human reader who does not
+    # diff provenance.notes by hand.
+    #
+    # These cases pin BOTH directions, because "record the overrides" has an
+    # over-rejection twin: a flag that was passed but never actually suppressed
+    # anything must NOT be recorded (it would grade a healthy contract
+    # "overridden" and, through the header gate below, refuse a deployable
+    # header for a contract nothing is wrong with -- defect class (B)).
+    # ------------------------------------------------------------------
+    env_flags = set(with_structural_override(()))       # forced by THIS environment, not by the case
+    if os.path.isdir(dump_dir) and os.path.isfile(elf_json):
+        # (1) healthy inputs: nothing beyond what the environment forced.
+        # base_cmd() always passes --no-validate, which IS a real override
+        # (it suppresses the schema check unconditionally), so it belongs in
+        # the expected set.
+        out = os.path.join(tmp, "r5_clean.json")
+        rc, o, err = run(base_cmd("conv2d", "aarch64", inv["layout_ir"], dump_dir, out, elf_json))
+        c = load(out) if (rc == 0 and os.path.exists(out)) else None
+        got = set((c or {}).get("provenance", {}).get("overrides_applied") or [])
+        expect = env_flags | {"--no-validate"}
+        results.append(Result("R5: healthy contract records exactly the environment-forced overrides",
+                              c is not None and got == expect
+                              and c["provenance"]["verification_grade"] == ("overridden" if expect else "verified"),
+                              "got=%s expect=%s rc=%d" % (sorted(got), sorted(expect), rc)))
+
+        # (2) a flag passed but NOT needed must not be recorded (no false
+        # accusation): --allow-abi-mismatch on inputs whose ABI declaration
+        # agrees. waive() is only reached inside the mismatch branch, so
+        # short-circuit evaluation gives this for free -- pin it, because a
+        # "record every flag argparse saw" implementation would break it.
+        out = os.path.join(tmp, "r5_unneeded_flag.json")
+        rc, o, err = run(base_cmd("conv2d", "aarch64", inv["layout_ir"], dump_dir, out, elf_json,
+                                  extra_flags=("--allow-abi-mismatch",)))
+        c = load(out) if (rc == 0 and os.path.exists(out)) else None
+        got = set((c or {}).get("provenance", {}).get("overrides_applied") or [])
+        results.append(Result("R5: an override that suppressed nothing is NOT recorded (no false accusation)",
+                              c is not None and "--allow-abi-mismatch" not in got and got == expect,
+                              "got=%s rc=%d" % (sorted(got), rc)))
+
+        # (3) an override that DID suppress a refusal is recorded, and the
+        # grade flips. The condition used here (an --elf-analysis JSON that
+        # analysed a different ELF than the vmfb embeds) needs no iree tools
+        # and no iree.compiler.ir, so this case runs in every CI leg.
+        bad_elf = copy.deepcopy(load(elf_json))
+        bad_elf["elf_sha256"] = "0" * 64
+        bad_elf_r5 = os.path.join(tmp, "r5_bad_elf_analysis.json")
+        write_json(bad_elf, bad_elf_r5)
+        r5_over = os.path.join(tmp, "r5_overridden.json")
+        rc, o, err = run(base_cmd("conv2d", "aarch64", inv["layout_ir"], dump_dir, r5_over, bad_elf_r5,
+                                  extra_flags=("--allow-elf-analysis-mismatch",)))
+        c = load(r5_over) if (rc == 0 and os.path.exists(r5_over)) else None
+        got = set((c or {}).get("provenance", {}).get("overrides_applied") or [])
+        results.append(Result("R5: an override that DID suppress a refusal is recorded + graded 'overridden'",
+                              c is not None and got == expect | {"--allow-elf-analysis-mismatch"}
+                              and c["provenance"]["verification_grade"] == "overridden",
+                              "got=%s grade=%s rc=%d" % (sorted(got), (c or {}).get("provenance", {}).get("verification_grade"), rc)))
+
+        # (4) G4: gen_contract_header.py must refuse that contract by default,
+        # and accept it only with the explicit --allow-override-contract, which
+        # then reports CONTRACT_PROVENANCE_VERIFIED 0 rather than pretending.
+        if c is not None:
+            hdr = os.path.join(tmp, "r5_overridden.h")
+            rc2, o2, err2 = run([PY, GEN_HEADER, r5_over, hdr])
+            results.append(Result("R5/G4: header from an overridden contract refused by default",
+                                  rc2 != 0 and not os.path.exists(hdr),
+                                  "rc=%d wrote=%s stderr=%s" % (rc2, os.path.exists(hdr), err2.strip()[:160])))
+            rc3, o3, err3 = run([PY, GEN_HEADER, r5_over, hdr, "--allow-override-contract"])
+            txt = open(hdr).read() if os.path.exists(hdr) else ""
+            results.append(Result("R5/G4: --allow-override-contract writes it with PROVENANCE_VERIFIED 0",
+                                  rc3 == 0 and "#define CONTRACT_PROVENANCE_VERIFIED 0" in txt,
+                                  "rc=%d stderr=%s" % (rc3, err3.strip()[:160])))
+    return results
+
+
+# ----------------------------------------------------------------------------
+# R5 drift guard (E24b), source-level and stdlib-only.
+#
+# The behavioural cases above prove the recording works for the flags they
+# exercise. They cannot prove it for a flag added LATER, and that is the
+# failure mode independent verification actually flagged: a mechanical patch
+# (append a record next to each `hard_fail_errors.append`) silently misses the
+# two COMBINED-form gates, `if <condition> and not a.allow_...:`. A contract
+# that then reports overrides_applied=[] / verification_grade="verified" WHILE
+# an override was applied is strictly worse than recording nothing -- it is a
+# new fail-open that asserts verification. So assert the invariant that makes
+# the drift impossible instead of only its consequences: every --allow-* flag
+# make_contract.py declares is consumed through waive(), and no bare flag
+# access survives.
+# ----------------------------------------------------------------------------
+def r5_waive_wrapping_cases():
+    src = open(MAKE_CONTRACT).read()
+    declared = set(re.findall(r'ap\.add_argument\("(--allow-[a-z-]+)"', src))
+    waived = set(re.findall(r'waive\("(--[a-z-]+)"', src))
+    bare = [ln.strip() for ln in src.splitlines()
+            if re.search(r'\ba\.allow_[a-z_]+', ln) and "waive(" not in ln and "add_argument" not in ln]
+    results = [
+        Result("R5: every --allow-* flag make_contract.py declares is consumed through waive()",
+               bool(declared) and declared <= waived,
+               "declared=%d waived=%d missing=%s" % (len(declared), len(waived), sorted(declared - waived))),
+        Result("R5: no bare a.allow_* access bypasses waive() in make_contract.py",
+               not bare, "%d line(s): %s" % (len(bare), bare[:2])),
+        # --no-validate is consumed in main(), after build_contract() returns,
+        # so it is recorded unconditionally at build time instead; assert that
+        # single recording site exists rather than letting it drift away.
+        Result("R5: --no-validate is recorded as the eleventh override",
+               'waive("--no-validate"' in src, ""),
+    ]
     return results
 
 
@@ -1101,6 +1214,11 @@ IGNORE_PROVENANCE_KEYS = {
     # structural_walker fields they are new *recorded facts*, not changed values --
     # every number in the regeneration still has to match exactly.
     "layout_dispatch_names", "layout_dispatches_in_dump",
+    # R5 (E24b): which escape hatches were used, and the resulting grade. Also
+    # new recorded facts on pre-existing contracts (all 14 regenerate with
+    # overrides_applied=[] / verification_grade="verified"), and pinned as such
+    # by r5_override_recording_cases() below rather than by this diff.
+    "overrides_applied", "verification_grade",
 }
 # E19: provenance.structural_walker is a field the 14 stored (pre-E19) contracts
 # never had -- comparing it leaf-by-leaf against IGNORE_PROVENANCE_KEYS by bare
@@ -1643,6 +1761,7 @@ def main():
         all_results += documented_smoke_path_cases(tmp)
         all_results += subset_sum_tristate_cases()
         all_results += workflow_yaml_cases()
+        all_results += r5_waive_wrapping_cases()
         all_results += default_plugin_fixture_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

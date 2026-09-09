@@ -4,6 +4,7 @@ never copied by hand (reviewer v0.6 SS3).  Both the standalone native learner
 and the cFS app include the generated header.
 
 Usage: python3 harness/gen_contract_header.py contract.json contract_gen.h
+         [--allow-unknown-stack] [--allow-override-contract]
 
 Macro set (shared C interface of E14 Stage 1; keep names stable):
   CONTRACT_MODEL_NAME              string   model.name (fallback: artifact file stem)
@@ -11,6 +12,11 @@ Macro set (shared C interface of E14 Stage 1; keep names stable):
   CONTRACT_BOUND_METHOD            string   resources.bound_method
   CONTRACT_BOUND_KNOWN             0/1      0 when bound_method == "NONE", any size unresolved,
                                             or bounded_bytes is null -> gate must return UNKNOWN_BOUND
+  CONTRACT_PROVENANCE_VERIFIED     0/1      R5/E24b: 1 iff the contract carries a provenance block, states a
+                                            known bound, records NO applied --allow-*/--no-validate override,
+                                            and positively verified its single-invocation binding. A contract
+                                            whose provenance says otherwise is REFUSED here unless
+                                            --allow-override-contract is passed (then this macro is 0).
   CONTRACT_BOUNDED_BYTES           long     resources.bounded_bytes, -1L when unknown
   CONTRACT_PER_CALL_BYTES          long     resources.static_per_call_bytes, -1L when unknown
   CONTRACT_CONST_BYTES             long     resources.module_resident_constant_bytes, -1L when unknown
@@ -130,8 +136,10 @@ def main():
     argv = [x for x in sys.argv[1:] if not x.startswith("--allow-")]
     flags = {x for x in sys.argv[1:] if x.startswith("--allow-")}
     allow_unknown_stack = "--allow-unknown-stack" in flags
+    allow_override_contract = "--allow-override-contract" in flags
     if len(argv) != 2:
-        print("usage: gen_contract_header.py contract.json out.h [--allow-unknown-stack]", file=sys.stderr)
+        print("usage: gen_contract_header.py contract.json out.h "
+              "[--allow-unknown-stack] [--allow-override-contract]", file=sys.stderr)
         return 2
     c = json.load(open(argv[0]))
     out = argv[1]
@@ -180,6 +188,48 @@ def main():
                 "static_per_call_bytes %r + module_resident_constant_bytes %r (= %r). Refusing to emit a "
                 "header whose CONTRACT_BOUNDED_BYTES disagrees with the components stated beside it."
                 % (bounded, _pc, _cb, _pc + _cb))
+    # R5 (external review v0.19-reframe, E24b): make_contract.py now records
+    # which of its escape hatches actually suppressed a refusal
+    # (provenance.overrides_applied / .verification_grade). Recording alone is
+    # only half the fix: this generator is the single consumer that stands
+    # between a contract and a deployable header, and it read NONE of the
+    # provenance block -- a contract whose ABI, target triple, ELF binding and
+    # one-invocation cross-checks were all waived produced the same header as a
+    # fully verified one. Refuse by default; --allow-override-contract is the
+    # deliberate, logged opt-out (same pattern as every other gate here).
+    #
+    # Scope, measured rather than assumed:
+    #  * `bound_known` only -- a NONE-bound contract emits KNOWN=0 and is
+    #    refused by the C gate anyway; gating it here would refuse the two
+    #    `dynamic` contracts that are the INPUT of the A8 negative scenario.
+    #  * `isinstance(prov, dict)` only -- contracts/*.json and the OnAIR plugin
+    #    fixture carry no provenance block at all; refusing those would break
+    #    the smoke test CLAUDE.md documents (defect class (B), the D31 mistake
+    #    E23 shipped). They are reported as PROVENANCE_VERIFIED=0 instead.
+    #  * an ABSENT verification_grade is NOT read as untrusted -- all 14
+    #    archived contracts predate this field (measured: the strict reading
+    #    rejects 14/14). Only a grade that is present and not "verified" fails.
+    prov = c.get("provenance")
+    prov_bad = []
+    if bound_known and isinstance(prov, dict):
+        _ov = prov.get("overrides_applied")
+        _grade = prov.get("verification_grade")
+        _si = prov.get("single_invocation")
+        if isinstance(_ov, list) and _ov:
+            prov_bad.append("provenance.overrides_applied=%s" % (_ov,))
+        if _grade is not None and _grade != "verified":
+            prov_bad.append("provenance.verification_grade=%r" % (_grade,))
+        if _si is not True:
+            prov_bad.append("provenance.single_invocation=%r (not a positively verified "
+                            "single iree-compile invocation)" % (_si,))
+        if prov_bad and not allow_override_contract:
+            raise SystemExit(
+                "gen_contract_header: refusing to emit a deployable header from a contract whose own "
+                "provenance says it was not fully verified: %s. Rebuild the contract without the "
+                "--allow-* escape hatch(es), or pass --allow-override-contract to override."
+                % "; ".join(prov_bad))
+    provenance_verified = bool(bound_known and isinstance(prov, dict) and not prov_bad)
+
     if not bound_known:
         bounded = None
     # Use the per-invocation worst case (frame + return address + any stack
@@ -330,6 +380,15 @@ def main():
         "#define CONTRACT_TARGET_TRIPLE %s" % c_str(triple),
         "#define CONTRACT_BOUND_METHOD %s" % c_str(method),
         "#define CONTRACT_BOUND_KNOWN %d" % (1 if bound_known else 0),
+        # R5 (E24b): 1 iff this header came from a contract that carries a
+        # provenance block, states a known bound, records no applied override,
+        # and positively verified its single-invocation binding. No C code
+        # consumes it yet -- deliberately: the two C gates live in binaries this
+        # container cannot rebuild (cFS + IREE C runtime), and making the
+        # example fixture in contracts/ fail the build would be exactly the
+        # over-rejection E23 shipped as D31. Emitted now so the fact travels
+        # with the header instead of only with the JSON.
+        "#define CONTRACT_PROVENANCE_VERIFIED %d" % (1 if provenance_verified else 0),
         "#define CONTRACT_BOUNDED_BYTES %s" % long_or(bounded),
         "#define CONTRACT_PER_CALL_BYTES %s" % long_or(r.get("static_per_call_bytes") if bound_known else None),
         "#define CONTRACT_CONST_BYTES %s" % long_or(r.get("module_resident_constant_bytes")),
