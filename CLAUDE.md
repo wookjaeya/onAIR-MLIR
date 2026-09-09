@@ -192,9 +192,9 @@ vmfb를 짝지어도 계약이 나와 **D10 구멍이 None 경로로 재개방**
 출하한 과잉 거부**: D27 게이트가 저장소 기본 fixture를 거부. 생성기를 먼저 고쳐야 한다 —
 `sweep.py`가 그 디렉터리를 매 스텝 재작성하므로 데이터만 고치면 휘발성), D32(N6 — `jsonschema`
 부재 시 시험이 **15건의 거짓 FAIL**; CI가 그 조건을 한 번도 시험하지 않았고 부트스트랩 경로는
-그것을 설치하지 않아 도달 가능했음). `contract_negative_tests.py` 125/125 → **143/143**,
+그것을 설치하지 않아 도달 가능했음). `contract_negative_tests.py` 125/125 → **142/142+1 SKIP**(CI 실측),
 보관 14개 계약 diff 0·헤더 바이트 동일. CI에 `stdlib-only` 레그 신설(세 조건 실측:
-143/143 · 142/142+1 SKIP · 58/58+9 SKIP). `EVIDENCE_v0.14_E19.md` §9·`EVIDENCE_v0.18_E23.md`
+142/142+1 · 58/58+9 · 58/58+9, 전부 CI 실측). `EVIDENCE_v0.14_E19.md` §9·`EVIDENCE_v0.18_E23.md`
 §9 정오표 추가, README·CLAUDE.md의 "정규 MLIR pass" 표현 직접 정정(진짜 pass는 미착수 목표).
 **여전히 남은 것**: weights.npz 계약 결속(우선순위 8), 게스트 cFS 재실행(환경 부재),
 `subset_sum_match` tri-state 리팩터링(EVIDENCE_v0.19 §7).
@@ -439,10 +439,10 @@ harness/                    실험 스크립트
                                스택 신뢰 신호 '부재'도 UNKNOWN E24 D29, dtype을 스키마 필수
                                단수형에서도 읽어 공허참 차단 E24 D30)
   contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선·과잉거부·
-                               fail-open·손상방식·OnAIR 바인딩·불변식·워크플로우 YAML 회귀 시험, 143/143 PASS
+                               fail-open·손상방식·OnAIR 바인딩·불변식·워크플로우 YAML 회귀 시험, CI 실측 142/142+1 SKIP
                                (E15+E18+E19+E20+E21+E23+E24); 모듈만 부재 95/95+3 SKIP, 도구·모듈 모두
-                               부재(without-iree 레그) 48/48+6 SKIP(E23 시점 CI 실측); 아무것도 설치하지
-                               않은 진짜 무의존성은 58/58+9 SKIP, 크래시 없음(E22+E23 D24·D25, E24 N6·D33)
+                               부재(without-iree)와 아무것도 설치하지 않은 진짜 무의존성
+                               둘 다 58/58+9 SKIP(CI 실측), 크래시 없음(E22+E23 D24·D25, E24 N6·D33)
   corrupt_vmfb.py             ★ E23: A5a(flip)·A5b(flatbuffer_root_uoffset) 손상 방식 실제 구현 —
                                ZIP64/STORED 외과적 패치 + CRC 갱신, corruptsha 계약 생성, 미인식 method 거부(D26)
   mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치;

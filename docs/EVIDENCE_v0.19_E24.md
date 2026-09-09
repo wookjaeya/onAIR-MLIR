@@ -191,6 +191,24 @@ Python 문자열(`print('stdlib-only leg: no packages installed')`)을 넣었다
 `ScannerError`를 잡아내는 것을 확인했다.
 
 
+### 6.2 같은 실수의 세 번째 반복 — 저자 환경 수치를 인용한 것
+
+이 문서의 초판은 `full` 레그를 **143/143**으로 적었다. 그것은 이 컨테이너의 값이고, `fresh
+clone` + `pip install -r requirements.txt`의 값은 **142/142 + 1 SKIP**이다 — PyYAML이
+`requirements.txt`에 없기 때문이다. **CI가 다시 반증했다.**
+
+이건 이 저장소가 세 번째 겪는 같은 부류다: F9(E22 — "96/96, 환경 구축 불필요"가 저자 환경
+에서만 성립), D25(E23 — 로컬 import 차단이 콘솔 스크립트를 남겨 CI만 잡을 수 있던 조건),
+그리고 이번. 교훈은 매번 같다 — **"내 환경에서 돌려봤다"는 fresh checkout의 근거가 아니다.**
+E24가 `stdlib-only` 레그를 신설한 이유도 정확히 이것이었는데, 정작 그 레그가 잡아낸 첫 대상이
+E24 자신의 문서 수치였다.
+
+수정: 이 문서·README·CLAUDE.md·EXPERIMENT_LOG의 수치를 전부 **CI 실측값**으로 바꿨다. PyYAML을
+`requirements.txt`에 추가하지는 않았다 — §6.1의 시험은 본질적으로 **푸시 전 로컬 가드**이고
+(워크플로우 파일이 깨지면 CI는 애초에 실행되지 않으므로 CI에서는 잡을 수 없다), 이 검사
+하나 때문에 배포 의존성을 늘리는 것은 균형이 맞지 않는다.
+
+
 ## 7. 이번 실험이 다루지 않는 것 (범위 밖)
 
 - **`subset_sum_match`의 tri-state 리팩터링**: §3의 carve-out 3개는 이 함수가 `False`로
@@ -221,16 +239,24 @@ Python 문자열(`print('stdlib-only leg: no packages installed')`)을 넣었다
 보였다(§3.2, §4). 이 저장소의 결함 정의가 양방향(fail-open과 과잉 거부 모두 결함)이라는 점이
 이번에도 결정적이었다 — E20이 D16·D17로 겪었던 함정과 같은 종류다.
 
-시험 **125/125 → 143/143**(신규 18건). 수정 전 코드로 되돌려 신규 시험이 실제로 실패함을
+시험 **125/125 → 142/142 + 1 SKIP**(CI 실측, 신규 18건). 수정 전 코드로 되돌려 신규 시험이 실제로 실패함을
 확인(revert-and-confirm-fail): make_contract/gen_contract_header 12건, 기본 fixture 1건,
 워크플로우 YAML 1건(§6.1) = 14건. 나머지 4건은 내 수정이 정상 입력을 거부하지 않는지 지키는
 **과잉 거부 가드**(dtype을 `validity.*`에만 적은 계약이 여전히 통과하는지, 상수 0인 모델이
 여전히 빌드되는지 등)라 수정 전에도 통과하는 것이 옳다. 보관 14개 계약 diff 0, 14개 헤더
 바이트 동일, 레거시 예시 계약 3개 영향 0.
 
-세 환경 실측(모두 이 커밋 기준): `full` **143/143** · `jsonschema`만 부재 **142/142 + 1 SKIP** ·
-pip 없는 venv에 IREE 콘솔 스크립트도 PATH에 없는 진짜 무의존성 **58/58 + 9 SKIP**(PyYAML도 없어
-§6.1의 시험이 SKIP된다 — 이 저장소 의존성이 아니므로 의도된 동작이다).
+**CI 실측(커밋 `dc13ad9`, GitHub 러너)**: `full` **142/142 + 1 SKIP** · `without-iree`
+**58/58 + 9 SKIP** · `stdlib-only` **58/58 + 9 SKIP**. 이 저장소 컨테이너에서는 `full`이
+**143/143**인데, 그 차이는 PyYAML이 시스템 패키지로 깔려 있어 §6.1의 시험이 실제로 돌기
+때문이다 — `requirements.txt`에는 없으므로 **fresh clone의 값은 142/142 + 1 SKIP이 맞다**.
+처음 이 문서에 쓴 143/143은 저자 환경 수치였고, CI가 그것을 반증했다(§6.2).
+
+`without-iree`와 `stdlib-only`가 같은 값인 것도 실측이다: IREE 도구가 없으면 `jsonschema`를
+쓰는 경로(14개 계약 재생성)가 이미 전부 SKIP되므로, 이 커밋에서 두 레그는 같은 것을 측정한다.
+`without-iree` 레그는 **오늘은 `stdlib-only` 대비 추가 커버리지가 없다** — IREE와 무관하게
+`jsonschema`를 쓰는 경로가 생기면 그때 갈라진다. E23이 이 레그에 대해 기록한 48/48+6은 그
+시점의 값이며, E24가 IREE를 요구하지 않는 시험을 여럿 추가해 58/58+9로 올라갔다.
 
 **리뷰가 제시한 "안전하게 쓸 수 있는 문장"에 대해**: 리뷰 §6은 E24를 닫은 뒤에야 그 문장을
 논문 핵심 주장으로 쓸 수 있다고 했다. 이번 실험은 그 합격조건 9개 중 1·2·4·5·6·8을 닫았고,
@@ -252,8 +278,8 @@ python3 harness/make_contract.py --mlir results/e14_aarch64_qemu/models/conv2d/c
   --out /tmp/c.json --extra-args "--mlir-elide-elementsattrs-if-larger=16"   # exit 1, 파일 없음
 
 # 전체 시험 (세 환경)
-python3 harness/contract_negative_tests.py                     # 143/143
-PYTHONPATH=<jsonschema 스텁 디렉터리> python3 harness/contract_negative_tests.py   # 142/142 + 1 SKIP
+python3 harness/contract_negative_tests.py   # 142/142+1 SKIP (fresh clone) / 143/143 (PyYAML 있으면)
+PYTHONPATH=<jsonschema 스텁 디렉터리> python3 harness/contract_negative_tests.py   # 이 컨테이너 142/142+1
 env -i PATH=<pip 없는 venv>/bin:/usr/bin:/bin <venv>/bin/python3 \
-  harness/contract_negative_tests.py                           # 58/58 + 9 SKIP
+  harness/contract_negative_tests.py                           # 58/58 + 9 SKIP (CI와 동일)
 ```
