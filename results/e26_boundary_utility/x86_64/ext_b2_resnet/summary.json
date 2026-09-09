@@ -64,6 +64,19 @@
    "branch": "allocated",
    "peak_within_bounded": true,
    "tightness_bounded_over_peak": 1.0
+  },
+  {
+   "runner": "cfs_x86_64",
+   "budget": 618856,
+   "admitted": true,
+   "exit_reason": "ok",
+   "hal_device_bytes_peak": 618856,
+   "branch": "allocated",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 1.0,
+   "completed": "5/5",
+   "log": "results/e26_boundary_utility/x86_64/cfs/b2_resnet_B.log",
+   "added_by": "E28 (검토서 4.3이 P0로 지목한 cFS 셀 — 코드 수정 없이 실행됨)"
   }
  ],
  "q1_peak_within_bounded_all": true,

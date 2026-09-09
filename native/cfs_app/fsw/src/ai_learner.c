@@ -437,7 +437,18 @@ static void AI_LEARNER_NoteFail(const char* step, iree_status_t st) {
 }
 
 static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
-  const uint8* raw = (const uint8*)buf; float feat[CONTRACT_INPUT_ELEMS];
+  /* D52: these three buffers are sized by the CONTRACT and used to be automatic, i.e. on the
+   * task stack, while the stack gate at :203 counts only AI_LEARNER_STACK_BASE_BYTES +
+   * CONTRACT_KERNEL_STACK_BYTES. The gate therefore certified stack sufficiency for inputs it
+   * could not fit: an OPS-SAT-sized contract (CONTRACT_INPUT_ELEMS=150528) needs 602,112 B for
+   * feat[] alone against a 262,144 B base, and the app reported kernel_stack_accounted=true and
+   * then died in the first inference. Made static -- the same thing zeros[] at :322 already is
+   * -- so the gate's formula becomes true instead of the gate being taught a new number. This
+   * app runs one inference task at a time (zeros[] already depends on that), and changing the
+   * gate's arithmetic instead would DENY every model that runs today (measured: 4/4).
+   * These bytes leave the task-stack bucket and land in BSS; neither is HAL memory, so
+   * bounded_bytes is unaffected. The mem_init/last_mem records report the figure. */
+  const uint8* raw = (const uint8*)buf; static float feat[CONTRACT_INPUT_ELEMS];
   CFE_MSG_Size_t sz = 0;
   g.n_attempt++;
   /* features: payload bytes after the 16-byte header, wrapped to fill the contract input */
@@ -454,7 +465,7 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   if (!iree_status_is_ok(s)) { g.n_fail_input++; AI_LEARNER_NoteFail("inputs_push_back", s); iree_runtime_call_deinitialize(&call); return; }
   double t0 = now_us();
   iree_status_t st = iree_runtime_call_invoke(&call, 0);
-  iree_hal_buffer_view_t* ret = NULL; float out[CONTRACT_OUTPUT_ELEMS]; int ok = 0;
+  iree_hal_buffer_view_t* ret = NULL; static float out[CONTRACT_OUTPUT_ELEMS]; int ok = 0;  /* D52: was automatic */
   if (!iree_status_is_ok(st)) { g.n_fail_invoke++; AI_LEARNER_NoteFail("invoke", st); }
   else {
     s = iree_runtime_call_outputs_pop_front_buffer_view(&call, &ret);
@@ -470,7 +481,7 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   if (g.n_infer % AI_LEARNER_REPORT_EVERY == 0) {
     iree_hal_allocator_statistics_t stats; iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &stats);
     int within = (long)stats.device_bytes_peak <= (long)CONTRACT_BOUNDED_BYTES;
-    char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8]; AI_LEARNER_FormatOut(outs, sizeof outs);
+    static char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8]; AI_LEARNER_FormatOut(outs, sizeof outs);  /* D52: was automatic, 16 B per output element */
     CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_INFORMATION, "AI_LEARNER completed=%u/%u mean=%.1fus max=%.1fus hal_peak=%ld within_bounded=%d",
                       (unsigned)g.n_infer, (unsigned)g.n_attempt, g.lat_sum_us / g.n_infer, g.lat_max_us, (long)stats.device_bytes_peak, within);
     AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"%s\",\"target\":\"%s\",\"attempted\":%u,\"completed\":%u,\"fail_input\":%u,\"fail_invoke\":%u,\"fail_output\":%u,"

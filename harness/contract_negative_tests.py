@@ -2407,6 +2407,83 @@ EXT_B3_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utilit
 E27_SUMMARY = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "summary.json")
 
 
+E28_DIR = os.path.join(os.path.dirname(HERE), "results", "e28_stack_failopen")
+
+
+def e28_stack_failopen_cases():
+    """D52 (E28): the cFS task-stack gate certified stack sufficiency and the app then died.
+
+    `AI_LEARNER_Init` computes `stack_needed = AI_LEARNER_STACK_BASE_BYTES +
+    CONTRACT_KERNEL_STACK_BYTES` and refuses below it. But the inference path put three
+    CONTRACT-SIZED buffers on that same stack -- `feat[]` (4 B per input element), `out[]`
+    (4 B per output element) and `outs[]` (16 B per output element) -- and the gate counted
+    none of them. With an OPS-SAT-sized contract (150,528 input elements) `feat[]` alone
+    needs 602,112 B against a 262,144 B base: the gate reported
+    `kernel_stack_accounted: true`, admission ADMITted, binding MATCHed, and the cFS process
+    took SIGSEGV in the first inference. That is a fail-open in the admission gate itself,
+    which is this repository's central claim -- not a peripheral robustness issue.
+
+    The fix moves the three buffers to `static`, exactly what `zeros[]` in the same file
+    already is. Teaching the gate to add the I/O bytes instead would DENY every model that
+    runs today, because the granted stack is exactly `base + kernel` (measured: 4/4 honest
+    models refused). Moving them makes the gate's existing formula true.
+
+    Both runs are preserved raw: same contract, same stack, same artifact, opposite outcome."""
+    results = []
+    summ_path = os.path.join(E28_DIR, "summary.json")
+    src_path = os.path.join(os.path.dirname(HERE), "native", "cfs_app", "fsw", "src", "ai_learner.c")
+    if not os.path.exists(summ_path):
+        results.append(Result("e28-stack: reproduction preserved", False, "missing %s" % summ_path))
+        return results
+    d = load(summ_path)
+
+    # the source-level cause: all three buffers must be off the automatic storage path
+    src = open(src_path, encoding="utf-8", errors="replace").read()
+    for name, pat in (("feat[]", "static float feat[CONTRACT_INPUT_ELEMS]"),
+                      ("out[]", "static float out[CONTRACT_OUTPUT_ELEMS]"),
+                      ("outs[]", "static char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8]")):
+        results.append(Result("e28-stack: %s is not on the task stack" % name, pat in src,
+                              "expected `%s` in ai_learner.c" % pat))
+
+    # the gate's formula is only correct BECAUSE those buffers left the stack; if a future
+    # change puts them back, the formula silently starts over-promising again.
+    results.append(Result("e28-stack: gate formula still counts base + kernel only "
+                          "(correct once the buffers are static)",
+                          "long stack_needed = (long)AI_LEARNER_STACK_BASE_BYTES + "
+                          "(long)CONTRACT_KERNEL_STACK_BYTES;" in src,
+                          "gate formula changed -- if I/O bytes were added, check the granted "
+                          "stack formula in scripts/50 too or honest models get denied"))
+
+    a, b = d["runs"]["after_fix"], d["runs"]["before_fix"]
+    results.append(Result("e28-stack: before the fix the gate passed and the app never inferred",
+                          b["stack"]["kernel_stack_accounted"] is True
+                          and b["inference_report_count"] == 0
+                          and b["harness_exit"] == 139,
+                          "accounted=%s reports=%s exit=%s" % (b["stack"]["kernel_stack_accounted"],
+                                                               b["inference_report_count"],
+                                                               b["harness_exit"])))
+    results.append(Result("e28-stack: after the fix the same contract and stack complete 10/10",
+                          a["inference_report_count"] > 0
+                          and a["completed_reports"] == ["10", "10"]
+                          and a["clean_shutdown"] is True,
+                          "reports=%s completed=%s clean=%s" % (a["inference_report_count"],
+                                                                a["completed_reports"],
+                                                                a["clean_shutdown"])))
+    # the arithmetic that made it possible, pinned so the numbers cannot drift in the docs
+    sa = d["stack_arithmetic"]
+    uncounted = sum(sa["uncounted_stack_bytes"].values())
+    results.append(Result("e28-stack: the uncounted buffers exceeded the granted stack",
+                          uncounted > sa["es_stack_granted"],
+                          "uncounted=%d granted=%d" % (uncounted, sa["es_stack_granted"])))
+    results.append(Result("e28-stack: admission and binding both passed before the crash "
+                          "(the gate is what failed, not the contract)",
+                          b["admission"]["verdict"] == "ADMIT"
+                          and b["binding"]["verdict"] == "MATCH",
+                          "admission=%s binding=%s" % (b["admission"]["verdict"],
+                                                       b["binding"]["verdict"])))
+    return results
+
+
 def e27_information_level_cases():
     """E27: the four-information-level comparison, pinned.
 
@@ -2943,6 +3020,7 @@ def main():
         all_results += ext_b2_resnet_cases()
         all_results += ext_b3_deepae_cases()
         all_results += e27_information_level_cases()
+        all_results += e28_stack_failopen_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

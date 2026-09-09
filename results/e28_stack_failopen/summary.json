@@ -1,0 +1,143 @@
+{
+ "experiment": "E28",
+ "defect": "D52",
+ "title": "cFS 스택 게이트가 계약이 정한 I/O 버퍼를 소요에 넣지 않아, 통과시킨 뒤 죽는다",
+ "why_core": "이 저장소의 핵심 논증은 '실행 전 메모리 admission'이다. 게이트가 스택 충분성을 certify한 뒤 첫 추론에서 프로세스가 죽으면 그 논증이 직접 무너진다. 보안·공급망 축이 아니라 admission 그 자체의 fail-open이다.",
+ "contract": {
+  "CONTRACT_INPUT_ELEMS": 150528,
+  "CONTRACT_OUTPUT_ELEMS": 2,
+  "CONTRACT_KERNEL_STACK_BYTES": 16,
+  "CONTRACT_BOUNDED_BYTES": 602184
+ },
+ "stack_arithmetic": {
+  "gate_formula_before": "AI_LEARNER_STACK_BASE_BYTES + CONTRACT_KERNEL_STACK_BYTES",
+  "gate_needed": 262160,
+  "es_stack_granted": 262160,
+  "uncounted_stack_bytes": {
+   "feat[] 4B x INPUT_ELEMS": 602112,
+   "out[] 4B x OUTPUT_ELEMS": 8,
+   "outs[] 16B x OUTPUT_ELEMS + 8": 40
+  },
+  "note": "셋 다 CONTRACT_* 매크로로 크기가 정해지는데 게이트 공식에는 없었다"
+ },
+ "artifact": {
+  "vmfb": "results/e28_stack_failopen/opssat_probe.vmfb",
+  "sha256": "0af715cd290c5066ba49746ca88b127100eaa8059b47e23c94454aef27da44a3"
+ },
+ "runs": {
+  "before_fix": {
+   "stack": {
+    "app": "AI_LEARNER",
+    "stage": "stack",
+    "es_stack_size": 262160,
+    "stack_base_bytes": 262144,
+    "contract_kernel_stack_bytes": 16,
+    "kernel_stack_accounted": true
+   },
+   "admission": {
+    "app": "AI_LEARNER",
+    "stage": "admission",
+    "verdict": "ADMIT",
+    "model": "opssat_probe",
+    "target": "x86_64-unknown-linux-gnu",
+    "bounded": 602184,
+    "budget": 602184,
+    "per_call": 602184,
+    "constants": 0,
+    "kernel_stack_bytes": 16,
+    "bound_known": true,
+    "scope": "per_app_local_budget"
+   },
+   "binding": {
+    "app": "AI_LEARNER",
+    "stage": "binding",
+    "verdict": "MATCH",
+    "artifact_bytes": 10711,
+    "artifact_sha256": "0af715cd290c5066",
+    "contract_sha256": "0af715cd290c5066"
+   },
+   "mem_init": {
+    "app": "AI_LEARNER",
+    "stage": "mem_init",
+    "model": "opssat_probe",
+    "target": "x86_64-unknown-linux-gnu",
+    "hal_peak": 602112,
+    "hal_allocated": 602112,
+    "bounded": 602184,
+    "peak_within_bounded": true,
+    "inferences_so_far": 0,
+    "process_rss_kb": 7764,
+    "rss_kb_before_runtime": 5808,
+    "rss_kb_after_session": 6128,
+    "rss_kb_after_init": 7756
+   },
+   "completed_reports": null,
+   "inference_report_count": 0,
+   "clean_shutdown": false,
+   "segfault_in_harness": null,
+   "harness_exit": 139,
+   "harness_note": "SIGSEGV. timeout -s INT 45로 감쌌으나 45초 전에 죽었다"
+  },
+  "after_fix": {
+   "stack": {
+    "app": "AI_LEARNER",
+    "stage": "stack",
+    "es_stack_size": 262160,
+    "stack_base_bytes": 262144,
+    "contract_kernel_stack_bytes": 16,
+    "kernel_stack_accounted": true
+   },
+   "admission": {
+    "app": "AI_LEARNER",
+    "stage": "admission",
+    "verdict": "ADMIT",
+    "model": "opssat_probe",
+    "target": "x86_64-unknown-linux-gnu",
+    "bounded": 602184,
+    "budget": 602184,
+    "per_call": 602184,
+    "constants": 0,
+    "kernel_stack_bytes": 16,
+    "bound_known": true,
+    "scope": "per_app_local_budget"
+   },
+   "binding": {
+    "app": "AI_LEARNER",
+    "stage": "binding",
+    "verdict": "MATCH",
+    "artifact_bytes": 10711,
+    "artifact_sha256": "0af715cd290c5066",
+    "contract_sha256": "0af715cd290c5066"
+   },
+   "mem_init": {
+    "app": "AI_LEARNER",
+    "stage": "mem_init",
+    "model": "opssat_probe",
+    "target": "x86_64-unknown-linux-gnu",
+    "hal_peak": 602112,
+    "hal_allocated": 602112,
+    "bounded": 602184,
+    "peak_within_bounded": true,
+    "inferences_so_far": 0,
+    "process_rss_kb": 9020,
+    "rss_kb_before_runtime": 7064,
+    "rss_kb_after_session": 7364,
+    "rss_kb_after_init": 9020
+   },
+   "completed_reports": [
+    "10",
+    "10"
+   ],
+   "inference_report_count": 2,
+   "clean_shutdown": true,
+   "segfault_in_harness": null,
+   "harness_exit": 124,
+   "harness_note": "timeout이 정상적으로 SIGINT를 보냈다(다른 모든 cFS 시나리오와 같음)"
+  }
+ },
+ "fix": {
+  "what": "feat[] / out[] / outs[] 를 static으로 (ai_learner.c:322의 zeros[] 전례와 동일)",
+  "why_not_change_the_gate": "게이트 공식에 I/O 버퍼를 더하면서 부여 스택 공식(scripts/50 의 base+kernel)을 그대로 두면 오늘 도는 모델이 전부 거부된다 — 부여량이 정확히 base+kernel이라 무엇을 더하든 초과한다. static으로 옮기면 게이트 공식이 참이 되므로 어떤 정직한 입력도 새로 거부되지 않는다.",
+  "bucket_moved": "task stack -> BSS. 둘 다 HAL 계약(bounded_bytes) 밖이므로 계약 수치는 불변."
+ }
+}
