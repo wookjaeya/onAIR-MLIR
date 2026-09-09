@@ -820,6 +820,17 @@ harness/                    실험 스크립트
                                full 169/169+1 SKIP · without-iree 85/85+9 · stdlib-only 85/85+9,
                                크래시 없음(E22+E23 D24·D25, E24 N6·D33). 이 컨테이너는 PyYAML이
                                있어 170/170
+  e26_collect.py              ★ E26: 사전 고정 기준을 셀별로 적용하는 수집기 — Q1(peak<=bounded)·
+                               Q2(try_map 분기 가설)·Q3(예산 경계) 판정과 core/ext 층 분리
+  e27_baseline_source_tensors.py ★ E27 기준선 (a): 소스 `.mlir`만 보는 추정기. 재사용·정렬·할당
+                               스케줄을 모르므로 3.04x~7.29x 과대(과소는 구조상 불가).
+                               **기준선이므로 fail-closed 가드를 넣지 말 것**(docstring에 명시)
+  e27_baseline_vmfb_only.py   ★ E27 기준선 (b): 배포된 vmfb만 보는 추정기. 정상 조건 8/8에서 계약값과
+                               정확히 일치하지만, 컴파일러 버전 드리프트에서 `alloca_unresolved=[]`로
+                               **읽지 못한 것을 없다고 보고**(152x 과소). 같은 이유로 가드 금지
+  e27_collect.py              ★ E27: 네 정보 수준 x 네 조건 수집기. 셀을 value/explicit_refusal/
+                               silent_wrong으로 분류하고, **입력 부재를 거부로 세지 않도록**
+                               tool_error를 분리한다(D51) — `collection_clean`이 판정의 일부
   gen_model_multiout.py       ★ E26c/D49: 다중 출력 모델 생성기 — IREE가 결과 2개를 한 슬랩에
                                패킹하고 subview로 쪼개는 실물 근거. 비-splat 가중치(상수 실재)와
                                서로 다른 크기의 결과 2개(봉쇄 검사가 우연히 만족되지 않도록)가 의도적
@@ -847,6 +858,12 @@ native/                     Python 없는 C 경로: native_learner.c, cfs_app/ (
                              헤더만으로 모델 독립적(v0.9); cfs_app/toolchain-aarch64-linux-gnu.cmake
 e13/                        LLVM IR·ELF 덤프 (x86-64 host/generic 설정 비교)
 e14/                        교차 ISA 검증 (aarch64/ = Stage 0 산출물)
+results/e26_boundary_utility/  ★ E26 계열 전체: 사전 고정 기준(docs/plans/E26_boundary_utility.md),
+                             instrumentation_check/, x86_64|aarch64/{native,cfs,pip_runtime}/,
+                             mlperf_tiny_{resnet,vww}_fixture/, x86_64/ext_b{2,3}_*/ (실물 워크로드
+                             단일 호출 산출물 + 측정), aarch64/a5b_canonical/, comparison/, summary.json
+results/e27_baselines/      ★ E27: iree310_mlp16k/(버전 드리프트 실물 근거)와 summary.json
+                             (네 정보 수준 x 네 조건의 셀별 판정)
 results/e26c_multiout/      ★ E26c/D49: 한 번의 iree-compile 호출 산출물(128 KB) — bounded 704
                              = per_call 192 + constants 512, HAL 실측 피크 704(tightness 1.00x).
                              dump/는 축소본(.o/.bc/.s 없음 → .gitignore 트랩 회피)이며 보관 계약이
