@@ -1205,6 +1205,48 @@ module {
 # contract<->artifact binding gate (plugins/compiled_learner/artifact_binding.py)
 # refuses exactly what native_learner.c / the cFS app refuse.
 # ----------------------------------------------------------------------------
+def default_plugin_fixture_cases():
+    """N5 (external review v0.18-followup, E24): the SHIPPED OnAIR fixture must
+    pass the very gate E23 added for it.
+
+    Deliberately a standalone, stdlib-only function rather than a case inside
+    artifact_binding_and_corruption_cases(): that one imports corrupt_vmfb /
+    e14_cfs_scenarios and early-returns when the E14 vmfb fixtures are absent,
+    so a case placed there would be silently skipped in exactly the
+    dependency-free environment where this check is the only one covering the
+    plugin. E23's own unit tests used the E14 contracts, which is why they
+    passed while the shipped fixture -- whose contract predates artifact.bytes
+    -- was refused on the default path: defect class (B), over-rejection.
+    """
+    results = []
+    d = os.path.join(os.path.dirname(HERE), "plugins", "compiled_learner", "runtime")
+    cpath = os.path.join(d, "contract.json")
+    if not os.path.isfile(cpath):
+        return [Result("plugin-fixture: default contract present", False, "missing %s" % cpath)]
+    sys.path.insert(0, os.path.join(os.path.dirname(HERE), "plugins", "compiled_learner"))
+    import artifact_binding as ab
+    c = load(cpath)
+    vmfb = os.path.join(d, c["artifact"]["file"])
+    try:
+        v = ab.verify_artifact_binding(c, vmfb)
+        ok, detail = v["verdict"] == "MATCH", "verdict=%s sha=%s" % (v["verdict"], v["artifact_sha256"][:16])
+    except Exception as e:                                     # noqa: BLE001 - the regression IS an exception
+        ok, detail = False, "%s: %s" % (type(e).__name__, str(e)[:140])
+    results.append(Result("plugin-fixture: SHIPPED default contract+vmfb pass the binding gate (N5)", ok, detail))
+    # and the gate must still REFUSE when the field is genuinely missing, so the
+    # fix above is a data correction, not a weakening of D27.
+    c2 = copy.deepcopy(c)
+    c2["artifact"].pop("bytes", None)
+    try:
+        ab.verify_artifact_binding(c2, vmfb)
+        refused, detail = False, "accepted a contract with no artifact.bytes"
+    except Exception as e:                                     # noqa: BLE001
+        refused, detail = True, type(e).__name__
+    results.append(Result("plugin-fixture: gate still refuses a contract with artifact.bytes missing (D27 intact)",
+                          refused, detail))
+    return results
+
+
 def artifact_binding_and_corruption_cases(root, tmp):
     results = []
     sys.path.insert(0, HERE)
@@ -1348,6 +1390,7 @@ def main():
         all_results += structural_walker_checks(a.root)
         all_results += structural_hard_fail_cases(a.root)
         all_results += structural_bugfix_regression_cases(a.root, tmp)
+        all_results += default_plugin_fixture_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

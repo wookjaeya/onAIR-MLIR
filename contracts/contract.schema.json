@@ -229,8 +229,10 @@
     },
     "artifact": {
       "type": "object",
+      "_comment_n5": "bytes is required as of E24 (N5): both the C path (ai_learner.c blob size precheck before the hash, D15/E16) and the OnAIR path (plugins/compiled_learner/artifact_binding.py, D27/E23) refuse a contract without it, so leaving it optional here let a schema-valid contract be rejected by every consumer. All 17 contracts in this repo carry it.",
       "required": [
         "file",
+        "bytes",
         "sha256"
       ],
       "properties": {
