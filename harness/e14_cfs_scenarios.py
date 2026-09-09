@@ -90,6 +90,11 @@ def parse_log(text):
         "stack": last("stack"),
         "runtime_load_failed": stages.get("runtime_load_failed"),
         "last_run": last("run"), "last_mem": last("mem"),
+        # E26: the init-time allocator snapshot (before any inference) and the explicit
+        # statement of whether the E25 equivalence mode fired. A memory measurement must
+        # be able to PROVE the mode was off -- with it on, 64 inferences run during Init
+        # and the run loop's first `mem` record no longer separates init from steady.
+        "mem_init": last("mem_init"), "e25_mode": last("e25_mode"),
         "cleanup": stages.get("cleanup", []),
         "init_count": len(stages.get("admission", [])),
         "cfs_operational": "CFE_ES_Main entering OPERATIONAL state" in text,
@@ -133,6 +138,15 @@ def check_expect(res, exp):
             if s.get("kernel_stack_accounted") != v: fails.append(f"kernel_stack_accounted {s.get('kernel_stack_accounted')} != {v}")
         elif k == "runtime_load_failed" and bool(res.get("runtime_load_failed")) != v: fails.append(f"runtime_load_failed != {v}")
         elif k == "min_cleanup" and sum(1 for c in res["cleanup"]) < v: fails.append(f"cleanup lines {len(res['cleanup'])} < {v}")
+        elif k == "e25_mode_active":
+            # ABSENT is not "false" (D29's lesson): an app build without the E26 record
+            # cannot testify that the mode was off, so it fails this expectation rather
+            # than passing by silence.
+            m = res.get("e25_mode")
+            if m is None: fails.append("e25_mode record absent (app too old to testify); expected active=%r" % (v,))
+            elif m.get("active") != v: fails.append(f"e25_mode active {m.get('active')} != {v}")
+        elif k == "mem_init_present":
+            if v and res.get("mem_init") is None: fails.append("mem_init record absent")
     return fails
 
 

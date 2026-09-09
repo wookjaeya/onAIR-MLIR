@@ -2151,6 +2151,67 @@ def e25_compare_rule_cases(tmp):
     return results
 
 
+def e26_instrumentation_expect_cases():
+    """E26 prerequisite: the scenario harness must be able to PROVE that a memory run was
+    not contaminated by the E25 equivalence mode, and must treat a missing statement as
+    unproven rather than as "off".
+
+    With /cf/e25_inputs.bin present the cFS app runs one inference per input vector during
+    AI_LEARNER_Init -- 64 of them in E25 -- so by the time the run loop emits its first
+    `mem` record the allocator has long since passed its init-time state. The external
+    review (SS6, "measurement prerequisite") calls this out as a measurement-accuracy issue,
+    not a code-quality one: init / first-call / steady would blur into one number.
+
+    ai_learner.c therefore always emits {"stage":"e25_mode","active":<bool>} plus a
+    {"stage":"mem_init",...} snapshot taken after module load and input-buffer allocation
+    and BEFORE any inference. These cases pin the harness side: expect e25_mode_active=false
+    passes only on a log that actually says so, and an app old enough not to emit the record
+    FAILS instead of passing by silence (D29: absence of a signal is not the signal)."""
+    sys.path.insert(0, HERE)
+    try:
+        import e14_cfs_scenarios as sc                        # noqa: PLC0415 - local module
+    except Exception as e:                                    # noqa: BLE001
+        return [Result("e26-instr: e14_cfs_scenarios importable", False, "%s: %s" % (type(e).__name__, e))]
+
+    OFF = ('{"app":"AI_LEARNER","stage":"stack","es_stack_size":262160,"stack_base_bytes":262144,'
+           '"contract_kernel_stack_bytes":16,"kernel_stack_accounted":true}\n'
+           '{"app":"AI_LEARNER","stage":"admission","verdict":"ADMIT","bounded":786476,"budget":786477}\n'
+           '{"app":"AI_LEARNER","stage":"binding","verdict":"MATCH"}\n'
+           '{"app":"AI_LEARNER","stage":"mem_init","hal_peak":720932,"hal_allocated":720932,'
+           '"bounded":786476,"peak_within_bounded":true,"inferences_so_far":0,"process_rss_kb":9356,'
+           '"rss_kb_before_runtime":8188,"rss_kb_after_session":8492,"rss_kb_after_init":9356}\n'
+           '{"app":"AI_LEARNER","stage":"e25_mode","active":false,"inputs_path":"/cf/e25_inputs.bin"}\n'
+           '{"app":"AI_LEARNER","stage":"run","attempted":5,"completed":5,"fail_input":0,'
+           '"fail_invoke":0,"fail_output":0}\n'
+           '{"app":"AI_LEARNER","stage":"mem","completed":5,"hal_peak":786476,"peak_within_bounded":true}\n')
+    ON = OFF.replace('"stage":"e25_mode","active":false', '"stage":"e25_mode","active":true')
+    OLD = "\n".join(l for l in OFF.splitlines() if '"e25_mode"' not in l) + "\n"
+
+    off, on, old = sc.parse_log(OFF), sc.parse_log(ON), sc.parse_log(OLD)
+    cases = [
+        ("e26-instr: e25_mode_active=false passes on a log that says active=false",
+         sc.check_expect(off, {"e25_mode_active": False}) == []),
+        ("e26-instr: e25_mode_active=false FAILS when the app ran the equivalence mode",
+         len(sc.check_expect(on, {"e25_mode_active": False})) == 1),
+        ("e26-instr: e25_mode_active=false FAILS when the record is absent (absence != off)",
+         len(sc.check_expect(old, {"e25_mode_active": False})) == 1
+         and "absent" in sc.check_expect(old, {"e25_mode_active": False})[0]),
+        ("e26-instr: mem_init snapshot parsed with inferences_so_far=0",
+         (off.get("mem_init") or {}).get("inferences_so_far") == 0
+         and (off.get("mem_init") or {}).get("hal_peak") == 720932),
+        ("e26-instr: mem_init_present FAILS when the app emits no init snapshot",
+         sc.check_expect(off, {"mem_init_present": True}) == []
+         and len(sc.check_expect(sc.parse_log(
+             "\n".join(l for l in OFF.splitlines() if '"mem_init"' not in l) + "\n"),
+             {"mem_init_present": True})) == 1),
+        # the init snapshot must not be mistaken for the run-loop record or vice versa
+        ("e26-instr: mem_init and mem stay distinct records",
+         (off.get("mem_init") or {}).get("hal_peak") == 720932
+         and (off.get("last_mem") or {}).get("hal_peak") == 786476),
+    ]
+    return [Result(n, bool(ok)) for n, ok in cases]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -2173,6 +2234,7 @@ def main():
         all_results += r5_waive_wrapping_cases()
         all_results += default_plugin_fixture_cases()
         all_results += e25_compare_rule_cases(tmp)
+        all_results += e26_instrumentation_expect_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

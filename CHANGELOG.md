@@ -65,6 +65,33 @@ cross-ISA는 tolerance"로 정해 두었다. 즉 도구가 계획보다 강한 �
 따라서 §7의 "emergency mode 2회" 중 **두 번째는 보존 산출물로 검증되지 않는다**(철회가 아니라
 증거 등급의 명시 — 산출물로 확인되는 것은 시도 1의 emergency 1회와 시도 3의 정상 부팅 0회다).
 
+## [v0.22.2] — E26 준비: 계측 분리 (측정 아님)
+
+외부 검토 §6("E26 측정 전 필수 사항")이 요구한 계측 분리를 구현하고 **실제 실행으로 확인**했다.
+게이트·판정 로직은 건드리지 않았고, E26의 판정·수치는 사전 고정 기준을 커밋한 뒤에 만든다.
+
+문제: `/cf/e25_inputs.bin`이 있으면 cFS 앱이 **초기화 중 64회 추론**을 먼저 돌리므로 run 루프의
+첫 `mem` 레코드가 이미 오염된다. native 경로도 E25 블록이 통계 조회보다 앞에 있어 같다.
+게다가 지금까지 HAL 통계는 run 루프에서만 나와서 **"모듈 적재 + 입력 버퍼만으로 얼마가 드는가"가
+아예 관측되지 않았다.**
+
+- cFS `ai_learner.c`: `{"stage":"e25_mode","active":<bool>}`를 **항상** 기록(측정 실행이 동치 모드
+  꺼짐을 *증명*할 수 있어야 한다), 추론 0회 시점의 `{"stage":"mem_init",...}` 스냅샷,
+  세션 생성 직후 `rss_kb_after_session`(IREE 런타임 컨텍스트를 모듈 로드와 분리 귀속).
+- native `native_learner.c`: `phase_hal.{after_init,after_first_call,steady_baseline}`와
+  `e25_mode_active`.
+- `harness/e14_cfs_scenarios.py`: expect 키 `e25_mode_active`·`mem_init_present` 신설.
+  **레코드 부재는 `false`가 아니다** — 그 레코드를 내지 않는 옛 앱은 침묵으로 통과하지 못하고
+  실패한다(D29의 교훈을 그대로 적용).
+- 회귀 6건(`e26_instrumentation_expect_cases()`). 이 컨테이너 `--skip-regression` **166/166**.
+
+실측(x86-64, canonical_e25): 계약의 두 구성요소가 **실행 단계별로 분리 관측**됐다 —
+초기화 직후 peak **720,932**(= constants 720,896 + 입력 버퍼 36 B = 9 float × 4),
+최초 추론 직후 **786,476**(= `bounded_bytes`), 정상 실행도 786,476. native와 cFS가 같은 값이다.
+cFS RSS 분해는 런타임 컨텍스트 +304 KB, 모듈 로드 +864 KB(RSS는 결정론적이지 않으므로 E26에서
+반복 측정의 범위로만 다룬다 — 작업 규율 4). 실행 기록:
+`results/e26_boundary_utility/instrumentation_check/`.
+
 ## [v0.22] — E25: OnAIR↔cFS 동일 모델·의미 동치 (PASS)
 
 판정: 다섯 실행 경로가 같은 canonical 모델을 실행하고 네 IREE 경로의 출력이 **전부 비트

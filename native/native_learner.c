@@ -217,6 +217,15 @@ int main(int argc, char** argv) {
       iree_make_const_byte_span(xdata, sizeof xdata), &g.x);
   if (!iree_status_is_ok(st)) return runtime_load_failed("input_buffer_allocate", st);
 
+  /* E26: allocator state at the END of initialisation, BEFORE any inference and BEFORE
+   * the E25 block below. Without it the only observable HAL numbers were the post-run
+   * totals, so "module load + input buffer" could not be separated from "inference",
+   * and with E25 mode on the split was destroyed entirely (64 inferences run first).
+   * init / first-call / steady is the split E26 measures (review SS6, SS8.2). */
+  iree_hal_allocator_statistics_t st_init;
+  iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &st_init);
+  int e25_mode_active = (argc >= 6);
+
   /* ---- E25 equivalence mode (optional): argv[4] = inputs.bin, argv[5] = outputs.bin ----
    * Reads N raw float32 vectors of CONTRACT_INPUT_ELEMS each, runs one inference per
    * vector, writes N raw float32 vectors of CONTRACT_OUTPUT_ELEMS. Deliberately placed
@@ -276,6 +285,7 @@ int main(int argc, char** argv) {
 
   iree_hal_allocator_t* alloc = iree_runtime_session_device_allocator(g.session);
   iree_hal_allocator_statistics_t st_warm = {0};
+  iree_hal_allocator_statistics_t st_first = {0}; int st_first_valid = 0;   /* E26 */
 
   /* ---- inference loop: WARMUP_CALLS warmup calls, then `iters` measured calls ---- */
   double* lat = malloc(sizeof(double) * (size_t)iters);
@@ -288,6 +298,7 @@ int main(int argc, char** argv) {
     iree_status_free(s_); } while (0)
   for (int i = 0; i < iters + WARMUP_CALLS; ++i) {
     if (i == WARMUP_CALLS) iree_hal_allocator_query_statistics(alloc, &st_warm);  /* steady-state baseline */
+    if (i == 1) { iree_hal_allocator_query_statistics(alloc, &st_first); st_first_valid = 1; }  /* E26: after exactly one call */
     iree_runtime_call_t call; int ok = 0; iree_hal_buffer_view_t* ret = NULL; iree_status_t s;
     attempted++;
     s = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &call);
@@ -330,10 +341,23 @@ int main(int argc, char** argv) {
          "\"hal_bytes_per_call_amortized\":%.1f,\"hal_bytes_per_call_steady\":%.1f,\"steady_within_per_call\":%s,"
          "\"rss_kb\":{\"start\":%ld,\"after_runtime\":%ld,\"after_module\":%ld,\"after_run\":%ld},"
          "\"rss_delta_kb\":{\"runtime_bringup\":%ld,\"module_load\":%ld,\"inference\":%ld,\"total\":%ld},"
-         "\"vmfb_bytes\":%ld,\"kernel_stack_bytes\":%ld,\"first_fail_step\":\"%s\",\"first_fail_status\":\"%s\"}\n",
+         "\"vmfb_bytes\":%ld,\"kernel_stack_bytes\":%ld,"
+         /* E26: the contract-region peak at three points, so soundness/tightness can be
+            attributed to a phase instead of only to the whole run. e25_mode_active is
+            recorded so a memory run can PROVE the equivalence mode was off. */
+         "\"phase_hal\":{\"after_init\":{\"peak\":%ld,\"allocated\":%ld},"
+         "\"after_first_call\":{\"peak\":%ld,\"allocated\":%ld,\"observed\":%s},"
+         "\"steady_baseline\":{\"peak\":%ld,\"allocated\":%ld}},"
+         "\"e25_mode_active\":%s,"
+         "\"first_fail_step\":\"%s\",\"first_fail_status\":\"%s\"}\n",
          peak, peak_within_bounded ? "true" : "false",
          (double)(stats.device_bytes_allocated) / (iters + WARMUP_CALLS), steady_per_call, steady_within_per_call ? "true" : "false",
          rss0, rss1, rss2, rss3, rss1 - rss0, rss2 - rss1, rss3 - rss2, rss3 - rss0, n, (long)CONTRACT_KERNEL_STACK_BYTES,
+         (long)st_init.device_bytes_peak, (long)st_init.device_bytes_allocated,
+         (long)st_first.device_bytes_peak, (long)st_first.device_bytes_allocated,
+         st_first_valid ? "true" : "false",
+         (long)st_warm.device_bytes_peak, (long)st_warm.device_bytes_allocated,
+         e25_mode_active ? "true" : "false",
          first_fail_step, first_fail_status);
 
   fflush(stdout);

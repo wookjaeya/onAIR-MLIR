@@ -96,7 +96,7 @@ static struct {
   uint32 n_attempt, n_infer, n_fail_input, n_fail_invoke, n_fail_output, n_cleanup;
   bool first_fail_reported;
   double lat_sum_us, lat_max_us, lat_last_us; float out[CONTRACT_OUTPUT_ELEMS];
-  long rss_kb_init0, rss_kb_init1;
+  long rss_kb_init0, rss_kb_init1, rss_kb_after_session;
 } g;
 
 static long rss_kb(void) {
@@ -307,6 +307,11 @@ static int32 AI_LEARNER_Init(void) {
   iree_runtime_session_options_t so; iree_runtime_session_options_initialize(&so);
   st = iree_runtime_session_create_with_device(g.instance, &so, g.device, iree_runtime_instance_host_allocator(g.instance), &g.session);
   if (!iree_status_is_ok(st)) return AI_LEARNER_LoadFailed("session_create", st);
+  /* E26: the runtime context (instance+device+session) is OUTSIDE the memory contract --
+   * the contract covers per-call buffers + module-resident constants only. Probing here
+   * lets E26 attribute that bucket separately instead of folding it into one number
+   * (docs/plans/E25_closeout_E26_E27.md, review SS8.2 "separate accounting"). */
+  g.rss_kb_after_session = rss_kb();
 
   /* ---- module load: the SAME verified bytes (zero-copy; blob freed after session release) ---- */
   st = iree_runtime_session_append_bytecode_module_from_memory(g.session, iree_make_const_byte_span(g.blob, (size_t)g.blob_len), iree_allocator_null());
@@ -323,6 +328,26 @@ static int32 AI_LEARNER_Init(void) {
   if (!iree_status_is_ok(st)) return AI_LEARNER_LoadFailed("input_buffer_allocate", st);
   g.rss_kb_init1 = rss_kb();
 
+  /* E26: allocator state at the END of initialisation and BEFORE any inference has run.
+   * Until E26 the only HAL statistics the app emitted came from the run loop (every
+   * AI_LEARNER_REPORT_EVERY inferences), so "what did merely loading the module and
+   * allocating the input buffer cost" was not observable at all -- and with E25 mode
+   * enabled it was not even observable indirectly, because 64 inferences ran first.
+   * This record is the init/first-call/steady split E26 measures against. */
+  {
+    iree_hal_allocator_statistics_t st0;
+    iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &st0);
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"mem_init\",\"model\":\"%s\",\"target\":\"%s\","
+                    "\"hal_peak\":%ld,\"hal_allocated\":%ld,\"bounded\":%ld,\"peak_within_bounded\":%s,"
+                    "\"inferences_so_far\":0,\"process_rss_kb\":%ld,\"rss_kb_before_runtime\":%ld,"
+                    "\"rss_kb_after_session\":%ld,\"rss_kb_after_init\":%ld}\n",
+                    CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE,
+                    (long)st0.device_bytes_peak, (long)st0.device_bytes_allocated,
+                    (long)CONTRACT_BOUNDED_BYTES,
+                    ((long)st0.device_bytes_peak <= (long)CONTRACT_BOUNDED_BYTES) ? "true" : "false",
+                    rss_kb(), g.rss_kb_init0, g.rss_kb_after_session, g.rss_kb_init1);
+  }
+
   /* ---- E25 equivalence mode (optional) ------------------------------------
    * If /cf/e25_inputs.bin exists, run one inference per f32 vector in it and write
    * the outputs to /cf/e25_outputs.bin, then continue normal startup. Placed AFTER
@@ -330,11 +355,13 @@ static int32 AI_LEARNER_Init(void) {
    * numbers come from the same fully-gated deployment path the app normally uses.
    * Absent the file nothing changes. (E25, docs/plans/E25_same_model_equivalence.md) */
   {
+    bool e25_active = false;
     char e25_in[OS_MAX_LOCAL_PATH_LEN], e25_out[OS_MAX_LOCAL_PATH_LEN];
     if (OS_TranslatePath(AI_LEARNER_E25_INPUTS, e25_in) == OS_SUCCESS &&
         OS_TranslatePath(AI_LEARNER_E25_OUTPUTS, e25_out) == OS_SUCCESS) {
       FILE* fi = fopen(e25_in, "rb");
       if (fi) {
+        e25_active = true;
         fseek(fi, 0, SEEK_END); long ib = ftell(fi); fseek(fi, 0, SEEK_SET);
         long nvec = ib / (long)(CONTRACT_INPUT_ELEMS * sizeof(float));
         float* xin = (nvec > 0) ? (float*)malloc((size_t)ib) : NULL;
@@ -371,6 +398,13 @@ static int32 AI_LEARNER_Init(void) {
                           "AI_LEARNER: E25 equivalence %ld/%ld inferences written", done, nvec);
       }
     }
+    /* E26 hygiene, always emitted: a memory measurement run must be able to PROVE that
+     * the equivalence mode did not fire, not merely assume the file was absent. With it
+     * enabled the first `mem` record of the run loop already reflects 64 inferences, so
+     * init / first-call / steady would silently blur together (review SS6, "measurement
+     * prerequisite"). Harness expect key: "e25_mode_active": false. */
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"e25_mode\",\"active\":%s,\"inputs_path\":\"%s\"}\n",
+                    e25_active ? "true" : "false", AI_LEARNER_E25_INPUTS);
   }
 
   int32 sb = CFE_SB_CreatePipe(&g.pipe, AI_LEARNER_PIPE_DEPTH, "AI_LEARNER_PIPE");
