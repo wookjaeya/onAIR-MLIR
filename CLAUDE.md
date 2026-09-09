@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.20**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.21**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -229,6 +229,30 @@ PyYAML 유무이며, D34의 교훈에 따라 추정하지 않고 두 값을 조�
 보관 14개 헤더는 `CONTRACT_PROVENANCE_VERIFIED` 한 줄만 추가.
 **우선순위 재편**: 이 버전에서 "지금 바로 이어서 할 일"의 축을 fail-closed 방어에서 **연구 질문
 (R-1 OnAIR↔cFS 의미 동치 / R-2 계약 경계의 유용성·외적 타당성 / R-3 MLIR 고유 기여)**으로 바꿨다.
+
+
+**v0.21에서 완료된 것 (E24c, `docs/EVIDENCE_v0.21_E24c.md`)**: 다섯 번째 외부 검토
+(`docs/reviews/REVIEW_v0_20_E24b.md`, 기준 커밋 `c680424`, F1–F5)가 도착 — E24b를 인정하면서
+세 항목의 경계 조건을 지적하고, **§7·§8에서 "F1–F3는 별도 대형 실험으로 키우지 말고 짧은
+hardening으로 닫은 뒤 E25 → E26 → E27로 전환하라"**고 명시했다. 그 지침대로 짧게 닫았다.
+15개 에이전트(재현 5 + 각 권고의 과잉 거부 위험 10)로 검증해 **5건 전부 재현**, 4건 수정.
+**F1은 수정하지 않았다** — 리뷰 권고(provenance 필수화)를 적용하면 삭제 경로(VERIFIED=0)가
+손으로 쓴 `{"single_invocation": true}` 한 블록으로 통과하는 **위조 경로(VERIFIED=1)**로 바뀌어
+악화됨을 실측했고, 삭제 경로 헤더는 이미 문서화된 `--allow-override-contract` 헤더와 **바이트
+동일**이라 새 fail-open도 아니다(코드가 아니라 threat model 결정 문제 — 아래 우선순위 0번).
+수정: D41(F2 — D36의 합 항등식이 `is_int`를 건너뛰기 조건으로 써서 `null`이 검사를 무력화하고
+비음수 검사 부재로 `-1`이 항등식을 공허하게 만족. **리뷰 서술은 두 변종 중 하나만 설명**),
+D42(F3 — 예산 초과 `None`이 기본 거부 안 됨. **리뷰 처방은 정직한 >256 MiB 모델을 거부**해
+미채택하고 결정 절차를 예산 검사보다 앞에 둠, 무작위 3,000건 brute force 교차검증 0 불일치;
+`constants_confirmation_state` 5-상태 신설), D43(F4 — D38을 정당화한 사례의 실물 산출물 미보존.
+`harness/gen_model_manyconst.py` + `results/e24c_manyconst31/`(한 번의 컴파일 호출, 440 KB)로
+보존하고 **실물 입력으로 현재 True / 옛 절단 False를 실증**), D44(F5 — **이 저장소 문서의
+"unsigned 비교" 원인 서술이 틀렸다**: 양쪽 signed `long`이고 `info.StackSize`는 명시적 `(long)`
+캐스트다. 인과가 반대로 틀렸고 — 실제 unsigned였다면 오히려 거부됐다 — 그 서술에 "컴파일로
+확인" 표시가 붙어 있었다. 판정과 코드 수정은 유지, `es_stack = -1`에서도 참임이 추가 확인.
+7곳 정정). **방법론 교훈 하나 더**: F4 재현 에이전트가 "재현 안 됨"으로 보고했으나 상수 수가
+적은 기존 모델을 쓴 결과였고, 직접 확인하니 재현됐다 — **에이전트 결론을 액면 그대로 받았으면
+맞는 문서를 틀리게 정정할 뻔했다.** 170/170 → **191/191**(이 컨테이너 실측).
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -483,9 +507,13 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.20_E24b.md      ★ 최신. 외부 검토 v0.19-재정리본 R1-R5 — 음수 스택(claim
+  EVIDENCE_v0.21_E24c.md      ★ 최신. 외부 검토 v0.20/E24b F1-F5 — 확인된 4건 수정(D41-D44),
+                               F1은 리뷰 권고가 위조 경로로 악화시킴을 실측해 미채택.
+                               F4 실물 근거 보존(results/e24c_manyconst31/). 191/191
+  EVIDENCE_v0.20_E24b.md       외부 검토 v0.19-재정리본 R1-R5 — 음수 스택(claim
                                blocker로 상향)·자기모순 bounded·shape 충돌·subset-sum tri-state·
                                override trust(D35-D40). 리뷰 처방 1건은 실측 과잉거부로 미채택. 170/170
+                               (§12 정오표: "unsigned 비교" 원인 서술 철회, E24c가 정정)
   EVIDENCE_v0.19_E24.md        외부 검토 v0.18-후속 N1-N6·S5 — fail-closed 불변식 4건
                                (D28-D30), E23이 출하한 과잉거부 회귀(D31), 하네스 거짓경보(D32).
                                리뷰 제안 3건은 실측 과잉거부로 범위 축소. 142/142
@@ -532,6 +560,9 @@ harness/                    실험 스크립트
                                full 169/169+1 SKIP · without-iree 85/85+9 · stdlib-only 85/85+9,
                                크래시 없음(E22+E23 D24·D25, E24 N6·D33). 이 컨테이너는 PyYAML이
                                있어 170/170
+  gen_model_manyconst.py      ★ E24c/F4: 상수 다수 모델 생성기 — D38(24세그먼트 절단 제거)의
+                               실물 근거. 16x32 tail로 두 번째 dispatch를 강제(없으면 dump 파일명에
+                               mlir basename이 없어 one-invocation 검사가 정당하게 거부)
   corrupt_vmfb.py             ★ E23: A5a(flip)·A5b(flatbuffer_root_uoffset) 손상 방식 실제 구현 —
                                ZIP64/STORED 외과적 패치 + CRC 갱신, corruptsha 계약 생성, 미인식 method 거부(D26)
   mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치;
@@ -553,6 +584,10 @@ native/                     Python 없는 C 경로: native_learner.c, cfs_app/ (
                              헤더만으로 모델 독립적(v0.9); cfs_app/toolchain-aarch64-linux-gnu.cmake
 e13/                        LLVM IR·ELF 덤프 (x86-64 host/generic 설정 비교)
 e14/                        교차 ISA 검증 (aarch64/ = Stage 0 산출물)
+results/e24c_manyconst31/   ★ E24c/F4: 한 번의 iree-compile 호출 산출물(440 KB) — 33개 data
+                             세그먼트(embedded 1024 B 슬랩 32 + external 1), 상수 총량 33792 B.
+                             invocation.json에 argv·컴파일러 버전·sha256·관측 세그먼트 목록.
+                             dump/는 축소본(.o 없음 → .gitignore 트랩 회피, 계약 수치는 동일 재생성)
 results/e14_aarch64_qemu/   ★ E14 Stage 1 전체 산출물: environment/, models/, {aarch64,x86_64}/(계약·ELF·
                              헤더·objdump·llvm_ir·vmfb), native/(qemu-user 결과), cfs/(게스트 시나리오
                              결과), comparison/(교차 타깃 비교)
