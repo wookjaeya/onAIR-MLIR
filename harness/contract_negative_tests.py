@@ -21,6 +21,7 @@ Exit 0 iff every negative case was refused AND the regression check passed.
 """
 import argparse
 import copy
+import hashlib
 import json
 import os
 import re
@@ -1332,6 +1333,50 @@ module {
 # contract<->artifact binding gate (plugins/compiled_learner/artifact_binding.py)
 # refuses exactly what native_learner.c / the cFS app refuse.
 # ----------------------------------------------------------------------------
+def documented_smoke_path_cases(tmp):
+    """E24b: the two contract-building paths CLAUDE.md documents as smoke tests must
+    actually reach a header.
+
+    Found while verifying R5: `native/build.sh` (documented as `cd native &&
+    bash build.sh`) and `scripts/62_compile_and_check_aarch64.sh` both fed
+    gen_contract_header.py a contract it refused, so both were rc=1. Two of the
+    three causes predate E24 (no ELF stack analysis -> D13/D15; no bound_method ->
+    E15/D13), but the third was introduced BY E24: N3's "a bound-known contract
+    must state a dtype somewhere" gate. E24 measured its over-rejection risk across
+    contracts/*.json and the 14 archived contracts, and missed contracts that
+    scripts construct inline -- so a class-B regression shipped. These cases pin
+    both shapes so the next gate cannot silently break them again.
+
+    stdlib only: builds the same contract shapes the scripts build, without
+    running the scripts (which need toolchains this container may not have)."""
+    results = []
+    # (1) native/build.sh's default contract, with the flag build.sh now passes.
+    example = os.path.join(os.path.dirname(HERE), "contracts", "contract.filled.example.json")
+    if os.path.isfile(example):
+        hpath = os.path.join(tmp, "smoke_native_build.h")
+        rc, out, err = run([PY, GEN_HEADER, example, hpath, "--allow-unknown-stack"])
+        results.append(Result("smoke-path: native/build.sh default contract -> header (E24b)",
+                              rc == 0 and os.path.isfile(hpath), "rc=%d stderr=%s" % (rc, err.strip()[:150])))
+    # (2) scripts/62's inline budget contract, same shape the script writes.
+    vmfb = os.path.join(os.path.dirname(HERE), "results", "e14_aarch64_qemu", "aarch64", "vmfb", "mlp16k.vmfb")
+    if os.path.isfile(vmfb):
+        blob = open(vmfb, "rb").read()
+        c62 = {"resources": {"bounded_bytes": 786476, "static_per_call_bytes": 65580,
+                             "module_resident_constant_bytes": 720896,
+                             "bound_method": "static_from_stream_layout"},
+               "artifact": {"bytes": len(blob), "sha256": hashlib.sha256(blob).hexdigest()},
+               "validity": {"input": {"shape": [1, 9], "dtype": "f32"},
+                            "output": {"shape": [1, 2], "dtype": "f32"}, "driver": "local-sync"}}
+        cpath = os.path.join(tmp, "smoke_scripts62.json")
+        hpath = cpath[:-5] + ".h"
+        write_json(c62, cpath)
+        rc, out, err = run([PY, GEN_HEADER, cpath, hpath, "--allow-unknown-stack"])
+        ok = rc == 0 and os.path.isfile(hpath) and "CONTRACT_BOUND_KNOWN 1" in open(hpath).read()
+        results.append(Result("smoke-path: scripts/62 inline budget contract -> header (E24b)",
+                              ok, "rc=%d stderr=%s" % (rc, err.strip()[:150])))
+    return results
+
+
 def subset_sum_tristate_cases():
     """R4 (external review v0.19-reframe, E24b): subset_sum_match() used to return
     a plain False for three different states, and truncated enumeration at 24
@@ -1595,6 +1640,7 @@ def main():
         all_results += structural_walker_checks(a.root)
         all_results += structural_hard_fail_cases(a.root)
         all_results += structural_bugfix_regression_cases(a.root, tmp)
+        all_results += documented_smoke_path_cases(tmp)
         all_results += subset_sum_tristate_cases()
         all_results += workflow_yaml_cases()
         all_results += default_plugin_fixture_cases()
