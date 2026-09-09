@@ -1268,6 +1268,43 @@ module {
 # contract<->artifact binding gate (plugins/compiled_learner/artifact_binding.py)
 # refuses exactly what native_learner.c / the cFS app refuse.
 # ----------------------------------------------------------------------------
+def workflow_yaml_cases():
+    """E24: every .github/workflows/*.yml must actually parse.
+
+    A broken workflow file is the one defect CI structurally cannot report as a
+    test failure -- the run dies before any step, showing the file path instead
+    of the workflow name, so a reader scanning for "which test failed" finds
+    nothing. E24 shipped exactly that: a `run:` step whose plain scalar
+    contained ": " (a YAML mapping separator) inside a Python string, which
+    invalidated the whole file. Same class as D24/D25 -- the harness could not
+    see a condition it was supposed to cover.
+
+    SKIPs when PyYAML is absent (it is not in requirements.txt and this check is
+    not worth adding a dependency for; GitHub's own parser remains the authority).
+    """
+    root = os.path.join(os.path.dirname(HERE), ".github", "workflows")
+    if not os.path.isdir(root):
+        return []
+    try:
+        import yaml                                            # noqa: PLC0415 - optional probe
+    except ImportError:
+        return [Result("workflow-yaml: .github/workflows/*.yml parse", True,
+                       "PyYAML not installed (not a repo dependency)", skip=True)]
+    results = []
+    for fn in sorted(os.listdir(root)):
+        if not fn.endswith((".yml", ".yaml")):
+            continue
+        try:
+            d = yaml.safe_load(open(os.path.join(root, fn)))
+            ok = isinstance(d, dict) and bool(d.get("name")) and bool(d.get("jobs"))
+            detail = "name=%r jobs=%s" % (d.get("name") if isinstance(d, dict) else None,
+                                          sorted((d or {}).get("jobs", {})) if isinstance(d, dict) else None)
+        except Exception as e:                                 # noqa: BLE001 - any parse error is the defect
+            ok, detail = False, "%s: %s" % (type(e).__name__, str(e).replace("\n", " ")[:160])
+        results.append(Result("workflow-yaml: %s parses and declares name+jobs" % fn, ok, detail))
+    return results
+
+
 def default_plugin_fixture_cases():
     """N5 (external review v0.18-followup, E24): the SHIPPED OnAIR fixture must
     pass the very gate E23 added for it.
@@ -1453,6 +1490,7 @@ def main():
         all_results += structural_walker_checks(a.root)
         all_results += structural_hard_fail_cases(a.root)
         all_results += structural_bugfix_regression_cases(a.root, tmp)
+        all_results += workflow_yaml_cases()
         all_results += default_plugin_fixture_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

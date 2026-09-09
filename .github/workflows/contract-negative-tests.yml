@@ -50,7 +50,11 @@ jobs:
 
       - name: Install nothing (stdlib-only leg)
         if: matrix.deps == 'stdlib-only'
-        run: python3 -c "import sys; print('stdlib-only leg: no packages installed'); print(sys.version)"
+        # No ": " inside this plain scalar -- a colon+space there is a YAML mapping
+        # separator, which is exactly how the first version of this step broke the
+        # whole workflow file (E24; the run failed instantly with the file path as
+        # its name, the signature of a parse error rather than a test failure).
+        run: python3 --version
 
       - name: Run contract_negative_tests.py
         run: python3 harness/contract_negative_tests.py

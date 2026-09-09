@@ -175,6 +175,22 @@ E21의 F6(D22)은 세 불신뢰 신호를 검사하지만 `bool()`/`not in (None
   필요 없는 43건까지 버린다 — 거짓 경보를 피하려고 보는 것을 그만두는 것은 하네스에서
   fail-open과 같은 실패 형태다). CI에 `stdlib-only` 레그 신설.
 
+### 6.1 D33 — 이 실험 자신이 만든 결함 (CI가 다시 잡았다)
+
+위 N6 수정으로 CI에 `stdlib-only` 레그를 추가하면서, 그 단계의 `run:` 스칼라에 콜론+공백이 든
+Python 문자열(`print('stdlib-only leg: no packages installed')`)을 넣었다. YAML에서 따옴표 없는
+스칼라 안의 `": "`는 매핑 구분자이므로 **워크플로우 파일 전체가 파싱 불가**가 됐고, 푸시 즉시
+실행이 실패했다 — 실행 이름이 워크플로우 이름이 아니라 **파일 경로**로 표시되는 것이 그 신호다
+(단계가 하나도 시작되지 않았다).
+
+이것은 **CI가 구조적으로 "어떤 시험이 실패했다"로 보고할 수 없는 유일한 결함 부류**다. D24(모듈
+부재 크래시)·D25(콘솔 스크립트 부재 크래시)와 같은 계열 — 하네스가 자신이 덮어야 할 조건을 볼 수
+없는 상태다. 그래서 수정과 함께 `workflow_yaml_cases()`를 신설해 `.github/workflows/*.yml`이
+파싱되고 `name`·`jobs`를 선언하는지 검사하도록 했다(PyYAML 부재 시 SKIP — 이 저장소 의존성이
+아니고, GitHub 자신의 파서가 최종 권위다). 깨진 YAML로 되돌려 그 시험이 실제로 같은
+`ScannerError`를 잡아내는 것을 확인했다.
+
+
 ## 7. 이번 실험이 다루지 않는 것 (범위 밖)
 
 - **`subset_sum_match`의 tri-state 리팩터링**: §3의 carve-out 3개는 이 함수가 `False`로
@@ -205,10 +221,16 @@ E21의 F6(D22)은 세 불신뢰 신호를 검사하지만 `bool()`/`not in (None
 보였다(§3.2, §4). 이 저장소의 결함 정의가 양방향(fail-open과 과잉 거부 모두 결함)이라는 점이
 이번에도 결정적이었다 — E20이 D16·D17로 겪었던 함정과 같은 종류다.
 
-시험 **125/125 → 142/142**(신규 17건). 수정 전 코드로 되돌려 신규 시험이 실제로 실패함을
-확인(revert-and-confirm-fail): make_contract/gen_contract_header 12건, fixture 1건. 나머지
-4건은 내 수정이 정상 입력을 거부하지 않는지 지키는 **과잉 거부 가드**라 수정 전에도 통과하는
-것이 옳다. 보관 14개 계약 diff 0, 14개 헤더 바이트 동일, 레거시 예시 계약 3개 영향 0.
+시험 **125/125 → 143/143**(신규 18건). 수정 전 코드로 되돌려 신규 시험이 실제로 실패함을
+확인(revert-and-confirm-fail): make_contract/gen_contract_header 12건, 기본 fixture 1건,
+워크플로우 YAML 1건(§6.1) = 14건. 나머지 4건은 내 수정이 정상 입력을 거부하지 않는지 지키는
+**과잉 거부 가드**(dtype을 `validity.*`에만 적은 계약이 여전히 통과하는지, 상수 0인 모델이
+여전히 빌드되는지 등)라 수정 전에도 통과하는 것이 옳다. 보관 14개 계약 diff 0, 14개 헤더
+바이트 동일, 레거시 예시 계약 3개 영향 0.
+
+세 환경 실측(모두 이 커밋 기준): `full` **143/143** · `jsonschema`만 부재 **142/142 + 1 SKIP** ·
+pip 없는 venv에 IREE 콘솔 스크립트도 PATH에 없는 진짜 무의존성 **58/58 + 9 SKIP**(PyYAML도 없어
+§6.1의 시험이 SKIP된다 — 이 저장소 의존성이 아니므로 의도된 동작이다).
 
 **리뷰가 제시한 "안전하게 쓸 수 있는 문장"에 대해**: 리뷰 §6은 E24를 닫은 뒤에야 그 문장을
 논문 핵심 주장으로 쓸 수 있다고 했다. 이번 실험은 그 합격조건 9개 중 1·2·4·5·6·8을 닫았고,
@@ -230,8 +252,8 @@ python3 harness/make_contract.py --mlir results/e14_aarch64_qemu/models/conv2d/c
   --out /tmp/c.json --extra-args "--mlir-elide-elementsattrs-if-larger=16"   # exit 1, 파일 없음
 
 # 전체 시험 (세 환경)
-python3 harness/contract_negative_tests.py                     # 142/142
-PYTHONPATH=<jsonschema 스텁 디렉터리> python3 harness/contract_negative_tests.py   # 141/141 + 1 SKIP
+python3 harness/contract_negative_tests.py                     # 143/143
+PYTHONPATH=<jsonschema 스텁 디렉터리> python3 harness/contract_negative_tests.py   # 142/142 + 1 SKIP
 env -i PATH=<pip 없는 venv>/bin:/usr/bin:/bin <venv>/bin/python3 \
-  harness/contract_negative_tests.py                           # 58/58 + 8 SKIP
+  harness/contract_negative_tests.py                           # 58/58 + 9 SKIP
 ```

@@ -9,17 +9,17 @@ NASA cFS/OnAIR AI 플러그인을 MLIR/IREE로 컴파일하고, 컴파일러의 
 
 ```bash
 pip install -r requirements.txt    # iree-base-compiler/runtime, jsonschema (버전 고정)
-python3 harness/contract_negative_tests.py  # 계약 도구 fail-closed 회귀·음성·구조적 추출기 일치·크로스체크 배선·과잉거부·fail-open·불변식 회귀 시험 (142/142)
+python3 harness/contract_negative_tests.py  # 계약 도구 fail-closed 회귀·음성·구조적 추출기 일치·크로스체크 배선·과잉거부·fail-open·불변식 회귀 시험 (143/143)
 bash scripts/99_bootstrap_all.sh   # 전체 환경 구축(cFS·IREE C 런타임 등, 위 시험엔 불필요)
 python3 harness/platform_check.py  # 이 머신의 타이밍 증거 등급 확인
 ```
 
 **fresh clone 재현성(외부 검토 F9 — E22/E23에서 실제 확인·해결, N6 — E24에서 명칭 정정)**:
 `git clone`으로 새로 받은 이 저장소에서 위 `pip install -r requirements.txt` 후
-`contract_negative_tests.py`를 실행하면 **142/142**. 의존성을 줄인 두 조건도 크래시나 오탐 FAIL
+`contract_negative_tests.py`를 실행하면 **143/143**. 의존성을 줄인 두 조건도 크래시나 오탐 FAIL
 없이 정상 종료한다 — `jsonschema`만 설치(iree-base-compiler 미설치: 모듈도 콘솔 스크립트도
 `iree.runtime`도 없음) **48/48 + 6 SKIP**(GitHub Actions 러너 실측, E23 시점 수치), 그리고
-**아무것도 설치하지 않은** 진짜 무의존성 조건 **58/58 + 8 SKIP**(이 저장소에서 pip 없는 venv로
+**아무것도 설치하지 않은** 진짜 무의존성 조건 **58/58 + 9 SKIP**(이 저장소에서 pip 없는 venv로
 실측). E24 전에는 후자를 어떤 CI 레그도 시험하지 않았고(당시 "without-deps" 레그가 실제로는
 `jsonschema`를 설치했다 — 그래서 "진짜 무의존성"이라는 이 문서의 표현이 부정확했다),
 `jsonschema`만 없는 조건에서는 시험이 **15건의 거짓 FAIL**을 냈다(E24에서 수정).
