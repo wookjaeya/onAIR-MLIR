@@ -4,6 +4,7 @@
 - 날짜: 2026-09-09
 - **사전 고정 기준**: `docs/plans/E26_boundary_utility.md` — 어떤 수치도 보기 전에 커밋됨
   (커밋 `c8e8980`). §2는 측정 시작 후 수정되지 않았다.
+- 회귀 시험: **CI 실측**(커밋 `3afdf80`, 워크플로 run 56): `full` **228/228 + 1 SKIP**(PyYAML 미설치) · `without-iree` **126/126 + 13 SKIP** · `stdlib-only` **126/126 + 13 SKIP**. 이 컨테이너와 `full`의 차이 1건은 PyYAML 유무이며, 두 수치를 조건과 함께 병기한다(D34).
 - 플랫폼 등급: **결정론적**(HAL allocator 통계, 계약 수치, admission 판정).
   **지연값은 인용하지 않는다**(작업 규율 4). RSS는 버킷 보고용이며 판정에 쓰지 않는다.
 - 산출물: `results/e26_boundary_utility/`

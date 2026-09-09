@@ -53,7 +53,7 @@ cross-ISA는 tolerance"로 정해 두었다. 즉 도구가 계획보다 강한 �
 - 회귀 **12건** 신설(`e25_compare_rule_cases()`): same_vmfb 1 ulp는 **여전히 FAIL**(핵심 주장 유지),
   cross_vmfb 1 ulp는 통과, tolerance 초과·argmax 불일치는 FAIL, `--vmfb` 누락·형식 불량 4종은 거부,
   결정성. 이 컨테이너 실측 `--skip-regression` **160/160**, 전체 **203/203**(191→199→203).
-  CI 수치는 CI 실측 후 기록(D34).
+  (CI 실측은 E26a·E26b가 시험을 더한 뒤의 최종 상태로 [v0.25]에 기록했다.)
 - README·`results/e25_equivalence/README.md`를 E25 완료 현황과 동기화하고,
   `aarch64_env/BOOT_LOG.md`에 부팅 시도 2·3과 디스크 수정을 보완 기록했다.
 
@@ -106,6 +106,7 @@ AArch64에서 매핑됨). **어느 배포 요소가 `try_map` 성공을 가르�
   `budget`). 한쪽만 읽으면 절반의 셀에서 Q3가 **평가 불가인데 "ok"로 보였다** — 평가 불가는
   이제 `UNGRADED`로 드러난다.
 - 지연값은 인용하지 않았다(작업 규율 4). RSS는 버킷 보고용이며 판정에 쓰지 않는다.
+- 회귀 시험 **CI 실측**(커밋 `3afdf80`): `full` **228/228 + 1 SKIP**(PyYAML 미설치) · `without-iree` **126/126 + 13 SKIP** · `stdlib-only` **126/126 + 13 SKIP**. 이 컨테이너와 `full`의 차이 1건은 PyYAML 유무다(D34 — 추정하지 않고 두 수치를 조건과 함께 병기).
 
 **범위**: E26-core(B0 3모델)의 판정이다. B2·B3(MLPerf Tiny)의 실행 측정과 AArch64 게스트
 cFS 셀은 E26-ext로 남아 있다.
@@ -129,7 +130,7 @@ E26a(D47)와 원인·위치가 다르고, 둘 다 "실제 워크로드를 넣자
 - 시험 8건 신설. revert 시 깨끗이 1건 FAIL — 첫 작성본은 `AttributeError`로 **스위트 전체를
   죽였고**(D24/D32가 두 번 고친 바로 그 부류), 시험 자신이 `getattr`로 전제를 확인하도록 고쳤다.
   **결함을 재현하려고 되돌리는 순간이 정확히 그 조건이 발생하는 때다.**
-- 이 컨테이너 실측 **229/229**(221→229), 보관 14개 계약 diff 0. CI 수치는 CI 실측 후 기록.
+- 이 컨테이너 실측 **229/229**(221→229), 보관 14개 계약 diff 0. (CI 실측은 [v0.25]에 기록.)
 - 실물 근거: `results/e26_boundary_utility/empty_label_rodata_fixture/`(vmfb + 원본 덤프).
 
 ## [v0.23] — E26a: 계약 도구가 실제 공개 CNN을 수용하도록 (D47)
@@ -159,7 +160,7 @@ bucket (3)/(4)였고 `gen_contract_header.py`(E21/D22)가 그것을 "신뢰 불�
 - 결과: 그 모델이 **오버라이드 0개**로 계약(`bounded=618856` `per_call=309416`
   `constants=309440`)과 헤더(`KERNEL_STACK_BYTES_KNOWN 1`, `439L`)까지 완주한다.
 - 시험 12건 신설, revert 시 11건 실패 확인. 이 컨테이너 실측 **221/221**(209→221),
-  **14/14 계약 diff 0**. CI 수치는 CI 실측 후 기록(D34).
+  **14/14 계약 diff 0**. (CI 실측은 [v0.25]에 최종 상태로 기록했다.)
 - 실물 근거 보존: `results/e26_boundary_utility/mlperf_tiny_resnet_fixture/`
   (D43이 확립한 관례 — "실제 모델이 X한다"는 주장은 그 모델이 트리에 있어야 한다).
 

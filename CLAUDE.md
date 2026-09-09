@@ -357,6 +357,7 @@ native / 같은 런타임의 cFS 앱 / qemu-user AArch64)에서 **같은 vmfb의
 **E14의 `both_sound: null` 공백을 실제 실행으로 닫았다**(3모델 전부 true — v0.22.1에서 D45로
 철회했던 바로 그 항목). 측정 위생: 모든 cFS 셀이 `e25_mode active=false`를 **증언**했고, HAL
 통계가 프로세스 전역이라 모델당 별도 프로세스로 측정했다(오염 실측 재현).
+회귀 시험 **CI 실측**(커밋 `3afdf80`): `full` **228/228 + 1 SKIP**(PyYAML 미설치) · `without-iree` **126/126 + 13 SKIP** · `stdlib-only` **126/126 + 13 SKIP**. 이 컨테이너와 `full`의 차이 1건은 PyYAML 유무다(D34 — 추정하지 않고 두 수치를 조건과 함께 병기).
 **범위**: E26-core(B0 3모델)의 판정이다. B2·B3 실행 측정과 AArch64 게스트 cFS는 E26-ext로 남음.
 
 ## 작업 규율 (반드시 지킬 것)
