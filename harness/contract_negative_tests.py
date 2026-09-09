@@ -78,6 +78,24 @@ def iree_tools_available():
     return _iree_tools_cache
 
 
+_schema_validator_cache = None
+
+
+def schema_validator_available():
+    """Whether `jsonschema` is importable in the interpreter that runs
+    make_contract.py. A THIRD independent question from structural_available()
+    (the iree.compiler.ir module) and iree_tools_available() (the console
+    scripts) -- N6 (external review v0.18-followup, E24) showed CI never
+    exercises its absence, because the "without-deps" leg installs jsonschema.
+    make_contract.py refuses to write ANY contract without it (E15/D13), so in
+    an environment that genuinely lacks it every regeneration case failed for a
+    reason unrelated to what it asserts: measured 15 FAILs, 98/113."""
+    global _schema_validator_cache
+    if _schema_validator_cache is None:
+        _schema_validator_cache = (run([PY, "-c", "import jsonschema"])[0] == 0)
+    return _schema_validator_cache
+
+
 def with_structural_override(extra_flags=()):
     """extra_flags, plus whichever --allow-* flags this ENVIRONMENT (not the
     case under test) makes necessary:
@@ -86,14 +104,26 @@ def with_structural_override(extra_flags=()):
       --allow-unverified-invocation       when iree-dump-module is absent, so
                                           the .rodata constant confirmation
                                           cannot be evaluated (D25/E23)
+      --no-validate                       when jsonschema is absent (N6/E24)
 
     Each test is then decided by the condition it actually probes -- gated by
-    its own --allow-* flag -- and not by an unrelated missing dependency."""
+    its own --allow-* flag -- and not by an unrelated missing dependency.
+
+    N6 note: degrading here rather than SKIPping the whole regeneration block
+    is deliberate. A block-level skip would discard 43 checks that do not need
+    jsonschema at all (14 make_contract + 14 structural cross-check + 14 header
+    + summary) -- a test suite protecting itself from a false alarm by ceasing
+    to look, which is the same failure shape in a harness that a fail-open is
+    in a gate. --no-validate provably cannot change contract CONTENT (it gates
+    only the validate() call), and the diff-0 result on all 14 archived
+    artifacts confirms it."""
     extra_flags = list(extra_flags)
     if not structural_available() and "--allow-missing-structural-checker" not in extra_flags:
         extra_flags.append("--allow-missing-structural-checker")
     if not iree_tools_available() and "--allow-unverified-invocation" not in extra_flags:
         extra_flags.append("--allow-unverified-invocation")
+    if not schema_validator_available() and "--no-validate" not in extra_flags:
+        extra_flags.append("--no-validate")
     return extra_flags
 
 TARGET_INFO = {
@@ -600,6 +630,34 @@ def make_contract_negative_cases(root, tmp):
                               rc == 0 and zero_const, "rc=%d const=%s stderr=%s"
                               % (rc, c and c["resources"]["module_resident_constant_bytes"], err.strip()[:160])))
 
+    # N6 (external review v0.18-followup, E24): E15/D13 made make_contract.py
+    # refuse to write anything when jsonschema is missing, but NOTHING tested
+    # that branch -- both existing make_contract negative cases pass
+    # --no-validate, and CI's "without-deps" leg installs jsonschema, so the
+    # condition was never exercised anywhere. Block the import with a stub
+    # MODULE on PYTHONPATH (not a sitecustomize.py, which would shadow whatever
+    # sitecustomize the host python installs).
+    if not (iree_tools_available() and structural_available() and schema_validator_available()):
+        results.append(Result("make_contract-neg: jsonschema absent -> refuses to write (N6, E15/D13 branch)",
+                              True, "needs the full toolchain to isolate this one condition", skip=True))
+    else:
+        nojs = os.path.join(tmp, "n6_nojsonschema")
+        os.makedirs(nojs, exist_ok=True)
+        with open(os.path.join(nojs, "jsonschema.py"), "w") as fh:
+            fh.write("raise ImportError('jsonschema blocked (E24/N6 regression test)')\n")
+        env = dict(os.environ, PYTHONPATH=nojs + os.pathsep + os.environ.get("PYTHONPATH", ""))
+        out = os.path.join(tmp, "n6_nojs.json")
+        ti = TARGET_INFO["aarch64"]
+        cmd = [PY, MAKE_CONTRACT, "--mlir", inv["mlir"], "--vmfb", inv["vmfb"],
+               "--layout-ir", inv["layout_ir"], "--dump-dir", os.path.join(root, "aarch64", "dump", "conv2d"),
+               "--triple", ti["triple"], "--cpu", ti["cpu"], "--model-name", "conv2d",
+               "--elf-analysis", elf_json, "--out", out,
+               "--extra-args", "--mlir-elide-elementsattrs-if-larger=16"]
+        rc, o, err = run(cmd, env=env)
+        results.append(Result("make_contract-neg: jsonschema absent -> refuses to write (N6, E15/D13 branch)",
+                              rc != 0 and not os.path.exists(out) and "schema validation" in err.lower(),
+                              "rc=%d wrote=%s stderr=%s" % (rc, os.path.exists(out), err.strip()[-140:])))
+
     # F2 (external review, 2026-09): iree.abi.declaration being ENTIRELY
     # ABSENT from the layout IR used to only add a note, unlike a declaration
     # that disagrees with the source (handled above, hard fail by default) --
@@ -1036,7 +1094,12 @@ def regression_check(root, tmp):
                   "--extra-args", "--mlir-elide-elementsattrs-if-larger=16"]
             rc, o, err = run(cmd)
             if rc != 0:
-                results.append(Result("regression: %s/%s make_contract succeeds (incl. schema validation)" % (tgt, model), False,
+                # N6/E24: the label must not claim schema validation ran when this
+                # environment has no jsonschema (with_structural_override then
+                # degrades to --no-validate rather than letting all 14 fail).
+                results.append(Result("regression: %s/%s make_contract succeeds%s"
+                                      % (tgt, model, " (incl. schema validation)" if schema_validator_available()
+                                         else " (schema validation unavailable here)"), False,
                                       "rc=%d stderr=%s" % (rc, err.strip()[:200])))
                 continue
             old = dict(flatten(load(contract_path)))

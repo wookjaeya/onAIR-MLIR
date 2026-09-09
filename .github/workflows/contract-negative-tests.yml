@@ -20,11 +20,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Both legs are meaningful: with-deps exercises the full suite
-        # (structural cross-check included); without-deps confirms the
-        # graceful-degradation path (SKIP, not FAIL, not a crash) that a
-        # genuinely dependency-less fresh clone hits.
-        deps: ["with-deps", "without-deps"]
+        # Three legs, named for what they actually install (N6, external review
+        # v0.18-followup / E24 -- the middle leg used to be called "without-deps"
+        # while installing jsonschema, and the repo's prose called its numbers a
+        # "genuinely dependency-free checkout", which was wrong):
+        #   full         requirements.txt (IREE compiler+runtime, jsonschema)
+        #   without-iree jsonschema only -- iree.compiler.ir AND the console
+        #                scripts absent (the D24/D25 degradation path)
+        #   stdlib-only  nothing at all -- this is the leg that is genuinely
+        #                dependency-free, and the one that covers a jsonschema
+        #                regression. Before E24 no leg exercised its absence, and
+        #                a checkout bootstrapped by scripts/99 hit exactly that
+        #                condition: 15 FAILs for a reason unrelated to any test.
+        deps: ["full", "without-iree", "stdlib-only"]
     steps:
       - uses: actions/checkout@v4
 
@@ -32,13 +40,17 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        if: matrix.deps == 'with-deps'
+      - name: Install dependencies (full leg)
+        if: matrix.deps == 'full'
         run: pip install -r requirements.txt
 
-      - name: Install jsonschema only (without-deps leg keeps iree.compiler.ir absent)
-        if: matrix.deps == 'without-deps'
+      - name: Install jsonschema only (without-iree leg keeps iree.compiler.ir absent)
+        if: matrix.deps == 'without-iree'
         run: pip install jsonschema==4.26.0
+
+      - name: Install nothing (stdlib-only leg)
+        if: matrix.deps == 'stdlib-only'
+        run: python3 -c "import sys; print('stdlib-only leg: no packages installed'); print(sys.version)"
 
       - name: Run contract_negative_tests.py
         run: python3 harness/contract_negative_tests.py
