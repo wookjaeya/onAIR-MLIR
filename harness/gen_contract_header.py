@@ -179,10 +179,43 @@ def main():
     # legitimate ADMIT into NOT_ADMITTED -- defect class (B).
     # Scoped to bound_known: the two `dynamic` contracts carry None/None/0 and an
     # unscoped comparison would reject them (the D16/D17 and N1/N3 trap again).
+    #
+    # F2 (external review v0.20, E24c): the guard above was `is_int(_pc) and
+    # is_int(_cb) and bounded != _pc + _cb`, i.e. it ran ONLY when both components
+    # happened to be integers -- so "the identity could not be evaluated" was
+    # silently treated as "the identity holds". Two doctored contracts reproduced
+    # it, and they are NOT the same mechanism:
+    #   * static_per_call_bytes = null, bounded = 3528  -> the check never runs;
+    #   * static_per_call_bytes = 3529, module_resident_constant_bytes = -1,
+    #     bounded = 3528                                -> the check DOES run and
+    #     passes vacuously, because 3529 + (-1) == 3528. The review attributed
+    #     both to "only when both are ints"; that explains the first only. The
+    #     second needs a NON-NEGATIVITY check, which nothing had.
+    # This is the repo's own recurring root cause in a gate (D25/D28/D29): a state
+    # that means "could not observe" collapsed into "observed and consistent".
+    # Not normal-path reachable (make_contract.py builds all three in one dict
+    # literal under one all_static guard, from unsigned regex captures), so it is
+    # hardening, not a claim blocker -- but it defeats the gate D36 shipped one
+    # version ago with the two cheapest possible edits.
+    #
+    # Three properties, each measured rather than assumed:
+    #   * keep the `bound_known` scoping -- unscoped it refuses both `dynamic`
+    #     contracts (pc=None, cb=0, bounded=None, method=NONE), the input of the
+    #     A8 negative scenario, which already emit BOUND_KNOWN=0;
+    #   * `>= 0`, never `> 0` -- cb == 0 is legitimate and occurs on a bound_known
+    #     path (a model with no module-resident constants). Same lesson as D35;
+    #   * require is_int, do not merely use it as a precondition to skip.
     if bound_known:
         _pc = r.get("static_per_call_bytes")
         _cb = r.get("module_resident_constant_bytes")
-        if is_int(_pc) and is_int(_cb) and bounded != _pc + _cb:
+        if not (is_int(_pc) and _pc >= 0 and is_int(_cb) and _cb >= 0):
+            raise SystemExit(
+                "gen_contract_header: bound_method=%s but resources.static_per_call_bytes %r and "
+                "module_resident_constant_bytes %r are not both non-negative integers, so "
+                "bounded_bytes %r cannot be cross-checked against the components stated beside it. "
+                "'Could not evaluate the identity' is not 'the identity holds'."
+                % (method, _pc, _cb, bounded))
+        if bounded != _pc + _cb:
             raise SystemExit(
                 "gen_contract_header: contract contradicts itself -- resources.bounded_bytes %r != "
                 "static_per_call_bytes %r + module_resident_constant_bytes %r (= %r). Refusing to emit a "

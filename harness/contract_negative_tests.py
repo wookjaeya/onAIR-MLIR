@@ -337,6 +337,38 @@ def header_negative_cases(root, tmp):
         c["interface"]["input"]["dtype"] = "f16"
     try_mutation("singular interface.input dtype=f16 contradicts plural f32 (N3)", _singular_contradicts)
 
+    # F2 (external review v0.20, E24c): the D36/R2 sum identity used to run only
+    # when both components happened to be ints, so a null component DISABLED it
+    # and a negative component SATISFIED it vacuously. Two distinct mechanisms;
+    # the review's "only when both are ints" describes the first only.
+    try_mutation("static_per_call_bytes=null disables the D36 sum identity (F2)",
+                 lambda c: c["resources"].__setitem__("static_per_call_bytes", None))
+    try_mutation("module_resident_constant_bytes=null disables the D36 sum identity (F2)",
+                 lambda c: c["resources"].__setitem__("module_resident_constant_bytes", None))
+
+    def _neg_component(c):
+        r = c["resources"]
+        # keep the identity arithmetically TRUE (pc + cb == bounded) so this can
+        # only be caught by the non-negativity requirement, not by the sum check
+        r["static_per_call_bytes"] = r["bounded_bytes"] + 1
+        r["module_resident_constant_bytes"] = -1
+    try_mutation("negative component satisfies the D36 identity vacuously (F2)", _neg_component)
+
+    # the (B) direction: a bound_known contract whose constants are legitimately
+    # 0 must still be ACCEPTED -- `>= 0`, never `> 0` (the D35 lesson again).
+    def _zero_constants(c):
+        r = c["resources"]
+        r["module_resident_constant_bytes"] = 0
+        r["bounded_bytes"] = r["static_per_call_bytes"]
+    czero = copy.deepcopy(base)
+    _zero_constants(czero)
+    czpath = os.path.join(tmp, "hdr_zero_constants.json")
+    write_json(czero, czpath)
+    rc, _o, err = run([PY, GEN_HEADER, czpath, czpath[:-5] + ".h"])
+    results.append(Result("header-neg: constants==0 on a bound_known contract is ACCEPTED (F2 over-rejection guard)",
+                          rc == 0 and os.path.exists(czpath[:-5] + ".h"),
+                          "rc=%d stderr=%s" % (rc, err.strip()[:160])))
+
     # R1 (external review v0.19-reframe, E24b) — the only finding of that review
     # reachable through the NORMAL pipeline, and the only one rated a claim
     # blocker. A negative stack figure made ai_learner.c's

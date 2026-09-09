@@ -93,7 +93,8 @@
           "type": [
             "integer",
             "null"
-          ]
+          ],
+          "minimum": 0
         },
         "static_transient_bytes": {
           "type": [
@@ -108,14 +109,16 @@
           ]
         },
         "module_resident_constant_bytes": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 0
         },
         "bounded_bytes": {
           "type": [
             "integer",
             "null"
           ],
-          "description": "static_per_call_bytes + module_resident_constant_bytes; the figure compared against a budget"
+          "description": "static_per_call_bytes + module_resident_constant_bytes; the figure compared against a budget",
+          "minimum": 0
         },
         "bound_method": {
           "enum": [
@@ -148,7 +151,8 @@
             "integer",
             "null"
           ],
-          "description": "max stack-frame bytes over the executable's dispatch functions (ELF analysis). Task-stack budget bucket (proposal SS9.2 bucket 2), NOT part of bounded_bytes. null = not analysed"
+          "description": "max stack-frame bytes over the executable's dispatch functions (ELF analysis). Task-stack budget bucket (proposal SS9.2 bucket 2), NOT part of bounded_bytes. null = not analysed",
+          "minimum": 0
         },
         "kernel_external_call_insns": {
           "type": [
@@ -180,6 +184,14 @@
             "type": "string"
           },
           "description": "IR size symbols that were not compile-time constants (non-empty iff bound_method == NONE)"
+        },
+        "kernel_task_stack_invocation_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "F2/E24c: per-invocation worst-case task-stack bytes from the ELF analysis. minimum 0 -- D35/R1 showed a negative figure turns the cFS stack gate into a tautology."
         }
       }
     },
