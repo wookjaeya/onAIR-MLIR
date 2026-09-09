@@ -474,7 +474,7 @@ Q1·Q2·Q3 전부 성립, `bounded` 1,069,632 = `per_call` 6,208 + `constants` 1
 | H1 (AOT가 Python/NumPy보다 빠르고 예측 가능) | **성능 우위 미관측**. 최적 compiled가 NumPy/BLAS 대비 2.2–4.1× 느림 (베이킹 가중치, h=16384 기준) |
 | H2 (계약 기반 lowering 선택이 고정 설정보다 유리) | **선택의 이점 미입증**. 초기엔 강한 근거(ρ=+0.18 순위 붕괴)로 보였으나 **가중치 per-call 복사 결함(D1)의 인공물**로 판명, 철회 |
 | **H3 (실행 전 memory admission 판정)** | **메모리 축, 시험 조건 내 성립.** 정적 상한이 HAL 런타임 피크와 60/60(+구조 사례 4/4, +cFS 통합 등) 일치. 이 연구의 유일하게 살아남은 핵심 결과 |
-| MLIR 필연성 (TFLite Micro 등 대안 대비) | **미검증.** 다음 순서 항목 |
+| MLIR 필연성 (TFLite Micro 등 대안 대비) | **질문이 재정의됐다(v0.29/E27 + TFLite 위치 분석).** TFLM은 이 논문의 대상(AArch64 CPU + cFS)의 필수 baseline이 아니다 — MCU 정적 arena 런타임이라 실행환경이 다르다. MLIR 기여는 **같은 IREE 실행 위에서 정보 수준만 바꾼 baseline 사다리**로 논증한다(파일 크기 / artifact-only / runtime profile / MLIR universal / MLIR conditional) |
 
 가장 중요한 교훈: **이 프로젝트는 두 번의 외부 검토에서 각각 실제 계산 결함을 지적받았다**
 (D2: 상수 오귀속, D3: 정렬 패딩으로 인한 slice-sum 과소추정, D5–D7: 계측 경계 오류).
@@ -506,7 +506,10 @@ Q1·Q2·Q3 전부 성립, `bounded` 1,069,632 = `per_call` 6,208 + `constants` 1
 cFS 전체 인증. 손상 아티팩트 시험과 결함 원장 51건은 **부록의 보조 증거**이며 본문 기여가
 아니다. 새 fail-closed 음성 시험을 늘리는 것도 본문 기여가 아니다.
 계약의 정확한 이름은 **partial per-app model-execution memory contract**다.
-상세는 `docs/ASSUMPTIONS_AND_SCOPE.md` 하단 "논문 범위 결정".
+상세는 `docs/ASSUMPTIONS_AND_SCOPE.md` 하단 "논문 범위 결정"과 "TFLite의 위치".
+**TFLite는 경쟁 대상이 아니라 원본 기준선**이다(의미 보존 확인용). MLIR 기여는 **같은 IREE 실행** 위에서
+정보 수준만 바꾼 baseline 사다리로 논증한다: 파일 크기 → artifact-only → runtime profile →
+MLIR universal → MLIR conditional. **TFLM은 필수 baseline이 아니다**(MCU 정적 arena, 실행환경 다름).
 
 ### 연구 가정 — `docs/ASSUMPTIONS_AND_SCOPE.md` (확정)
 
@@ -558,9 +561,12 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
    bucket으로 다룰 수 있는지, (4) 실제 임무형 경량 모델 1~2개 추가, (5) **다른 IREE 버전**에서
    계약 생성 성공·명시적 거부·수치 변화 측정(E19가 하드 실패 강제 지점은 만들었으나 발동은
    시뮬레이션으로만 확인했다), (6) x86-64/AArch64에서 ISA 독립 영역과 종속 영역 구분.
-   여기에 **동일 경계의 대안 비교(구 우선순위 4, TFLite Micro)**를 합친다 — 별도 축이 아니라
-   "왜 MLIR/IREE 경로여야 하는가"에 답하는 같은 질문이다. TFLM 전제 확인과 빌드 시도 이력은
-   아래 "참고 — TFLM 착수 이력"에 그대로 보존한다.
+   **정정(v0.29, `docs/reviews/TFLITE_COMPARISON_ROLE_20260909.md`)**: 여기에 "동일 경계의 대안
+   비교(구 우선순위 4, TFLite Micro)"를 합친다고 적었던 것을 철회한다. TFLM은 MCU용 정적 arena
+   런타임이라 이 논문의 대상(AArch64 CPU + cFS)과 **실행환경이 다르며**, 벤치마크 지침 §9도
+   경계 불일치를 이유로 수치 baseline에서 명시 제외했다. "왜 MLIR/IREE 경로여야 하는가"는
+   **같은 IREE 실행 위에서 정보 수준만 바꾼 baseline 사다리**로 답한다(R-3/E27이 그 축이다).
+   TFLM 착수 이력은 아래에 **이력으로만** 보존하며 재개 대상이 아니다.
 
 **R-3. MLIR 접근의 고유 기여 (검토 C3 / E27)** — **완결(v0.29/E27)**. 답은
    *"MLIR이라야 이 수치를 얻는다"*가 아니라 **"MLIR 수준은 독립적인 두 번째 정보원을 준다"**이다.
@@ -674,7 +680,12 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
 (이 파일 맨 위에 인용됨) — 재편은 **다음에 무엇을 할지**의 순서를 바꾼 것이지 기존 판정을
 바꾼 것이 아니다.
 
-### 참고 — TFLM 착수 이력 (R-2에 흡수, 실험 아님)
+### 참고 — TFLM 착수 이력 (**종결됨. 재개 대상 아님**, 실험 아님)
+
+> **이 절은 이력이다.** v0.29에서 TFLM은 이 논문의 필수 baseline에서 빠졌다(위 R-2 정정 참조).
+> 아래의 Bazel 의존성 우회 인수인계 경로(`grpc` 오버라이드를 계속하는 것)는 **더 이상 다음
+> 작업이 아니다.** 노동집약적 우회를 재개하지 말 것 — 그것은 핵심 논증(MLIR 기반 AI 실행
+> 메모리 admission)을 바꾸지 않는다.
 
 **전제 확인(1차 문서 대조, TFLM 빌드/측정 없음)**:
 [`micro_interpreter.h`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_interpreter.h)의

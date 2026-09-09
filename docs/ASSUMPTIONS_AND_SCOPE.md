@@ -96,3 +96,58 @@
 
 **하지 않을 것**: 위 표에서 "낮음"인 항목을 실험으로 키우는 것, 새 fail-closed 음성 시험을
 늘리는 것, 손상 아티팩트 축을 다시 여는 것. 이것들은 이미 부록으로 강등됐다.
+
+### TFLite의 위치 (2026-09-09, `docs/reviews/TFLITE_COMPARISON_ROLE_20260909.md`)
+
+**TFLite는 경쟁 대상이 아니라 원본 기준선이다.**
+
+> TFLite 비교는 제안 방식의 경쟁 우위를 직접 증명하는 실험이 아니라, 실제 레퍼런스 모델이
+> MLIR/IREE 및 cFS 배치 경로에서도 원래의 의미를 유지한다는 것을 확인하는 검증층이다.
+> MLIR의 고유 기여는 **같은 IREE 실행**을 대상으로 한 정적·조건부 메모리 계약과 admission
+> baseline 비교에서 논증한다.
+
+세 가지를 구분한다.
+
+| 대상 | 이 연구에서의 역할 |
+|---|---|
+| `.tflite` 모델 파일 | 실제 레퍼런스 모델의 원본 |
+| TensorFlow Lite **runtime** | 원본 출력의 기준선(의미 보존 확인용) |
+| TensorFlow Lite **Micro** | **필수 baseline이 아니다** — MCU용 정적 arena 런타임이라 이 논문의 대상(AArch64 CPU + cFS)과 실행환경이 다르다. 포함하더라도 별도 보조 실험 |
+
+**MLIR 기여의 주 baseline은 TFLite가 아니다.** 같은 원본 모델·같은 VMFB·같은 ISA·같은 IREE
+버전·같은 로딩 방식·같은 memory scope·같은 fail-closed 정책·같은 입력에서 **정보 수준만**
+바꾼 사다리로 논증한다: 파일 크기 → artifact-only → runtime profile → MLIR universal →
+MLIR conditional.
+
+#### 메모리 비교의 범위 규율
+
+서로 다른 것을 비교하지 않는다. 특히 **MLIR partial contract를 TFLite process RSS와 비교하지
+않는다.** 범위를 넷으로 나눠 같은 범위끼리만 정량 비교한다.
+
+| 범위 | 포함 | 비교 |
+|---|---|---|
+| S1 모델 buffer | activation, transient, per-call 할당 | 직접 비교 가능 |
+| S2 모델 상수 | weights/constants의 map 또는 copy | 정책을 맞춘 뒤 비교 |
+| S3 runtime/session | interpreter·HAL·driver 상태 | 별도 보고 |
+| S4 process total | 코드·shared library·cFS/OSAL·스택·allocator overhead | **계약값과 직접 비교 금지** |
+
+분리 계측이 불가능하면 TFLite peak는 설명적 참고값으로만 제시하고 계약 soundness 판단에
+쓰지 않는다.
+
+#### 의미 보존 주장의 단계적 축소 (이 환경의 제약)
+
+공식 평가 데이터셋 호스트가 이 환경에서 차단돼 있음을 직접 확인했다(CIFAR-10·ToyADMOS).
+따라서 주장을 다음 순서로 **가능한 가장 강한 단계까지만** 한다.
+
+1. 공식 평가셋 전체로 accuracy/AUC 재현 → **이 환경에서 불가**
+2. 고정 golden/sample 입력에 대한 **출력 동치**(abs/rel 오차 + argmax 일치) → 경량 런타임을
+   설치할 수 있으면 수행
+3. 둘 다 불가하면 **의미 보존을 주장하지 않는다** — "공개 모델의 그래프와 가중치를 반입해
+   메모리 계약 성질을 측정했다"로 범위를 좁힌다
+
+*"정확도가 보존됐다"*는 1단계 없이는 쓰지 않는다.
+
+#### 이 위치 정리가 닫는 것
+
+TFLM Bazel 빌드 우회(`grpc` 의존성 오버라이드 연쇄)는 **재개 대상이 아니다.** 노동집약적이고
+핵심 논증을 바꾸지 않는다. `CLAUDE.md`의 TFLM 착수 이력은 이력으로만 남긴다.
