@@ -237,3 +237,35 @@ env -i HOME=$HOME PATH=/usr/bin:/bin PYTHONPATH=<module-block> \
 
 `<module-block>`은 `sitecustomize.py`에서 `sys.meta_path`에 `iree.compiler` import를 막는
 finder를 넣은 디렉터리다(패키지를 실제로 지우지 않는 가역적 방법).
+
+## 9. 정오표 (E24, 외부 검토 v0.18-후속 N5·N6 — 본문 수정 없음, 범위·표현 정정)
+
+### 9.1 §2(F10/D27)가 말하지 않은 두 가지
+
+**(a) 이 게이트가 저장소의 기본 fixture를 거부했다.** §2는 `artifact_binding.py`가
+`artifact.bytes` 부재를 올바르게 거부한다고 쓴다. 맞지만, **저장소에 커밋된 기본 fixture**
+(`plugins/compiled_learner/runtime/contract.json`)가 바로 그 필드를 갖고 있지 않았다 — 즉 E23은
+정상 경로를 거부하는 **과잉 거부(결함 유형 B)를 함께 출하했다.** E23의 단위 시험이 E14 계약을
+써서 이 통합 경로를 건드리지 않았기 때문에 125/125가 통과했다. E24가 수정했다(생성기
+`harness/gen_model.py`를 먼저 고치고 — `harness/sweep.py`가 그 디렉터리를 매 스텝 재작성하므로
+데이터만 고치면 휘발성이다 — fixture와 스키마를 맞춘 뒤, stdlib 전용 통합 시험을 등록).
+
+**(b) 이 게이트가 서명하는 것은 배포 바이트의 일부다.** 기본 OnAIR fixture에서
+`contract.artifact.file`이 가리키는 것은 `model.vmfb` **10,642 B**뿐이고, 같은 디렉터리의
+`weights.npz` **2,884,078 B**(sha256 `1aaa219c…653d6`)는 계약에 해시·크기·메모리 귀속 어느
+것으로도 나타나지 않는다. 따라서 **가중치를 교체하는 형태의 A3(모델 교체)는 이 게이트를
+통과한다.** §2의 "C 경로와 같은 순서·같은 거부 조건"은 vmfb에 한해 참이다. 구조적 해결
+(baked-weight 단일 아티팩트로 이관, 또는 계약을 artifact bundle manifest로 확장)은 "정상 입력"의
+정의 자체를 바꾸므로 E24 범위 밖이며 CLAUDE.md 우선순위 8에 남는다.
+
+### 9.2 §5의 "진짜 무의존성 체크아웃"은 부정확했다
+
+§5 표와 판정이 CI `without-deps` 레그의 48/48+6을 "진짜 무의존성 체크아웃" 수치로 부른다.
+그 레그는 실제로는 `jsonschema==4.26.0`을 설치한다 — 정확히는 **"without IREE"**다. 그리고 이건
+표현 문제만이 아니었다: `jsonschema`만 없는 조건에서 시험은 **98/113, FAIL 15건**을 냈고(전부
+거짓 경보 — `make_contract.py`가 E15/D13에 따라 rc=3으로 하드 실패하는데 그 15건은 다른 것을
+검사한다), `scripts/99_bootstrap_all.sh` 경로가 `jsonschema`를 설치하지 않아 도달 가능한
+조건이었다. E24가 수정하고 CI에 `stdlib-only` 레그를 신설했다.
+
+**48/48+6이라는 수치 자체는 유효하다** — 그 레그가 측정한 조건(IREE 없음, jsonschema 있음)에
+대해서는 정확하다. 바뀌는 것은 그 조건을 부르는 이름뿐이다.

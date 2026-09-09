@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.18**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.19**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -74,7 +74,8 @@ mlp16k 3/3) 확인. A7을 재시작 2회+DELETE로 확장해 x86-64·AArch64 양
 ES 명령 기반 정상 종료 경로로 v0.9 §11.2의 "정상 종료 자원회수 미검증"도 해소). E16의 신규 게이트를
 AArch64에서도 교차 확인.
 
-**v0.13에서 완료된 것 (E18, `docs/EVIDENCE_v0.13_E18.md`)**: 우선순위 3번(정규 MLIR pass)의 1단계 —
+**v0.13에서 완료된 것 (E18, `docs/EVIDENCE_v0.13_E18.md`)**: 우선순위 3번(그 항목명이 가리키는
+진짜 pass는 여전히 미착수 — 여기서 만든 것은 MLIR API 기반 구조적 post-processing verifier다)의 1단계 —
 `harness/mlir_alloc_walk.py`가 `static_mem_bound.py::parse_alloc_ir`의 크기 추출을 정규식이 아니라
 실제 `iree.compiler.ir` API로 재구현. `--mlir-print-ir-after`의 함수별 조각남 문제(v0.12 조사가
 찾음)를 `util.global.load`/`store` 선언 합성 전처리로 해결하고, 그 이후는 전부
@@ -166,10 +167,37 @@ sha256·크기 검사 없이 로드하고 있었다(C 경로는 크기 선검사
 `artifact_rodata_segments`는 `([],[])`가 아니라 `(None,None)`을 반환해 "관측 못 함"과 "관측했고
 없음"을 구분한다(상수 독립 확인 불가는 `null` + 기본 거부). `contract_negative_tests.py`
 107/107 → **125/125**(CI `with-deps` 포함), 모듈만 부재 95/95+3 SKIP, **진짜 의존성 없는
-체크아웃은 CI `without-deps` 실측 48/48+6 SKIP(크래시 없음)** — 로컬 시뮬레이션(50/50+5)과
+체크아웃은 CI `without-deps` 실측 48/48+6 SKIP(크래시 없음)**(정정: 그 레그는 실제로는
+`jsonschema`를 설치하므로 "진짜 의존성 없는"이 아니라 "without IREE"다 — 외부 검토 N6,
+E24에서 확인·수정, `docs/EVIDENCE_v0.18_E23.md` §9.2) — 로컬 시뮬레이션(50/50+5)과
 다른 이유마저 같은 계열(이 컨테이너엔 `iree.runtime`이 있어 A5b 런타임 거부 시험이 실제로
 돈다)이라, 두 수치를 조건과 함께 병기한다.
 `EVIDENCE_v0.13_E18.md` §7·`EVIDENCE_v0.17_E22.md` §6에 정오표 추가.
+
+
+**v0.19에서 완료된 것 (E24, `docs/EVIDENCE_v0.19_E24.md`)**: 세 번째 외부 검토
+(`docs/reviews/REVIEW_v0_18_FOLLOWUP.md`, 기준 커밋 `52bff0d`, N1–N6+§5)가 도착 — E21–E23을
+"실제 품질 향상"으로 인정하면서도 **검증 불가 또는 모순 상태에서 여전히 배치 가능한 헤더가
+나오는 경로**를 지적했다. 21개 에이전트로 독립 재현 검증(7건 재현 + finding당 반박 2인):
+**7건 전부 confirmed, 반박 0건.** 그러나 심각도는 리뷰와 달랐고(N1 P0→P1, N3 P0→P1, N4 P1→P2),
+무엇보다 **리뷰가 제안한 수정 3건은 실측 결과 과잉 거부를 유발**했다 — N1의 문자 그대로의
+수정(`consts_confirmed is not True` 거부)은 `dynamic` 계약 2개(A8 음성 시나리오의 입력)를,
+N3의 strict 변종(복수형 interface 부재 시 거부)은 이 저장소 스키마가 선언하는 정본 형태를
+거부한다. 양방향 결함 정의(fail-open과 과잉 거부 모두 결함)가 이번에도 결정적이었다.
+수정 5건: D28(N1·N2 — 비어 있지 않은 dump-dir에서 신호가 `None`이면 그대로 통과, 다른 모델의
+vmfb를 짝지어도 계약이 나와 **D10 구멍이 None 경로로 재개방**; 상수량 관측이 IR과 모순돼도
+거부 안 함 — E23/D25가 더 약한 "관측 불가"는 거부하는데 더 강한 "관측했더니 모순"은 통과시키던
+비대칭), D29(N4 — 스택 신뢰 신호의 **부재**가 "신뢰함"과 구분되지 않음), D30(N3 — 빈 dtype
+집합이 `{"f32"}`와 구분되지 않아 f16 계약이 `ALL_F32=1`, 공허참), D31(N5 — **E23이 함께
+출하한 과잉 거부**: D27 게이트가 저장소 기본 fixture를 거부. 생성기를 먼저 고쳐야 한다 —
+`sweep.py`가 그 디렉터리를 매 스텝 재작성하므로 데이터만 고치면 휘발성), D32(N6 — `jsonschema`
+부재 시 시험이 **15건의 거짓 FAIL**; CI가 그 조건을 한 번도 시험하지 않았고 부트스트랩 경로는
+그것을 설치하지 않아 도달 가능했음). `contract_negative_tests.py` 125/125 → **142/142**,
+보관 14개 계약 diff 0·헤더 바이트 동일. CI에 `stdlib-only` 레그 신설(세 조건 실측:
+142/142 · 141/141+1 SKIP · 58/58+8 SKIP). `EVIDENCE_v0.14_E19.md` §9·`EVIDENCE_v0.18_E23.md`
+§9 정오표 추가, README·CLAUDE.md의 "정규 MLIR pass" 표현 직접 정정(진짜 pass는 미착수 목표).
+**여전히 남은 것**: weights.npz 계약 결속(우선순위 8), 게스트 cFS 재실행(환경 부재),
+`subset_sum_match` tri-state 리팩터링(EVIDENCE_v0.19 §7).
 
 
 ## 작업 규율 (반드시 지킬 것)
@@ -220,11 +248,16 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    전부 실행), mlp16k·multibranch A2 경계값, 재시작 2회+DELETE(정상 종료 cleanup도 함께 확인),
    스택 실거부·blob 크기 선검사의 AArch64 교차 확인까지 전부 완료. 남은 잔여: multibranch cFS 레벨
    A2, dynamic 모델의 게스트 재현(우선순위 낮음, EVIDENCE_v0.12 §6).
-3. **정규 MLIR/IREE pass** — 텍스트 정규식 파서(E15로 fail-closed는 됐으나 여전히 정규식 기반)를
+3. **정규 MLIR/IREE pass (미착수 목표)** — 이 항목명은 **아직 만들지 않은 것**을 가리킨다:
+   PassManager에 등록되어 완전한 in-memory module 위에서 실행되며 계약을 컴파일러 산출물로 직접
+   emit하는 pass. E18~E20이 만든 것은 그것이 아니라 `--mlir-print-ir-after` 덤프를 다시 읽는
+   **"MLIR API 기반 구조적 post-processing verifier"**다(외부 검토 F4·N6/S5,
+   `docs/EVIDENCE_v0.13_E18.md` §7, `docs/EVIDENCE_v0.18_E23.md` §3). 아래 "N단계 완료"는
+   그 verifier의 단계 완료이지 pass 자체의 완료가 아니다. — 텍스트 정규식 파서(E15로 fail-closed는 됐으나 여전히 정규식 기반)를
    compiler 내부 Operation·Type·SSA 정보로 대체. 평가지표: 알려진 allocation 누락 없음, 미지원
    표현 무시 안 함, compiler 버전 변경 시 명시적 실패, 기존 파서와 정상 모델에서 동일 값, 적대적
    변형에서 과소 추정 방지(EVIDENCE_v0.10 §5가 남긴 한계).
-   **1단계 완료(v0.13/E18, `docs/EVIDENCE_v0.13_E18.md`)**: `harness/mlir_alloc_walk.py`가
+   **1단계(verifier) 완료(v0.13/E18, `docs/EVIDENCE_v0.13_E18.md`)**: `harness/mlir_alloc_walk.py`가
    `parse_alloc_ir`의 크기 추출을 실제 `iree.compiler.ir` API로 재구현 — 유일한 텍스트 처리는
    `util.global.load`/`store` 줄에서 선언을 합성하는 좁은 전처리뿐이고(아래 착수 전 조사가 찾아낸
    조각남 문제의 해법), 그 이후는 전부 `op.name`·define-use 체인 추적이다. 14개 보관 아티팩트
@@ -232,7 +265,7 @@ v0.12(E17, AArch64 게스트)로 완료됐다.
    `contract_negative_tests.py` 66/66. **남은 것(당시)**: `make_contract.py` 파이프라인 통합(이번엔
    독립 검증 도구로만 존재), `stream.resource.pack` 실사용 시험(현재 모델 중 아무것도 안 씀),
    다른 IREE 버전에서의 재확인.
-   **2단계 완료(v0.14/E19, `docs/EVIDENCE_v0.14_E19.md`)**: `make_contract.py`에 구조적 추출기를
+   **2단계(verifier 결선) 완료(v0.14/E19, `docs/EVIDENCE_v0.14_E19.md`)**: `make_contract.py`에 구조적 추출기를
    **필수 크로스체크**로 결선(대체 아님) — 정규식 파서와 불일치하거나 구조적 추출기가 파싱 실패하면
    계약을 거부. 14개 보관 계약을 실제 `make_contract.py` 서브프로세스 재실행으로 재생성해 diff 0 +
    신규 크로스체크 필드 14/14 일치 확인, 하드 실패 배선은 monkeypatch로 실제 발동 확인.
@@ -357,8 +390,9 @@ docs/
   EVIDENCE_v0.10_E15.md        계약 도구 fail-closed 전환 + 음성 시험(51/51 PASS), D12-D14 수정
   EVIDENCE_v0.11_E16.md        C 게이트 보강(스택 실거부·blob 크기 선검사), x86-64 native_std 실기동 검증, D15 수정
   EVIDENCE_v0.12_E17.md        AArch64 게스트 재현: A5b 최초 실행(3레벨), A2 경계값, 재시작 2회+DELETE, D11 실제 해소
-  EVIDENCE_v0.13_E18.md        정규 MLIR pass 1단계: 구조적(비정규식) 할당 추출기, iree.compiler.ir API
-  EVIDENCE_v0.14_E19.md        정규 MLIR pass 2단계: 구조적 추출기를 make_contract.py에 필수
+  EVIDENCE_v0.13_E18.md        구조적(비정규식) 할당 추출기 = MLIR API 기반 post-processing
+                               verifier 1단계, iree.compiler.ir API (§7 정오표: 명칭·_walk() 서술 정정)
+  EVIDENCE_v0.14_E19.md        같은 verifier의 2단계: 구조적 추출기를 make_contract.py에 필수
                                크로스체크로 결선(대체 아님), 14/14 프로덕션 경로 재검증, 85/85
                                (§8 정오표: E20이 발견한 과잉 거부 결함 2건 정정)
   EVIDENCE_v0.15_E20.md        E19 크로스체크 적대적 리뷰 + 과잉 거부 결함 2건(D16·D17)
@@ -368,7 +402,10 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.18_E23.md       ★ 최신. 외부 검토 잔여 4건(F4/F8/F10/F11) + CI가 잡은 신규
+  EVIDENCE_v0.19_E24.md       ★ 최신. 외부 검토 v0.18-후속 N1-N6·S5 — fail-closed 불변식 4건
+                               (D28-D30), E23이 출하한 과잉거부 회귀(D31), 하네스 거짓경보(D32).
+                               리뷰 제안 3건은 실측 과잉거부로 범위 축소. 142/142
+  EVIDENCE_v0.18_E23.md        외부 검토 잔여 4건(F4/F8/F10/F11) + CI가 잡은 신규
                                크래시 D25. A5a·A5b 손상 방식 코드화(D26), OnAIR 바인딩
                                게이트(D27), 125/125
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
@@ -398,11 +435,14 @@ harness/                    실험 스크립트
                                구조적 검증기 미설치도 기본 hard fail E21, D18·D19·D20)
   elf_stack_frame.py          ★ IREE embedded-ELF 정적 분석 (x86-64/AArch64 공통 정의, EVIDENCE_v0.9 §5 근거)
   gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h; fail-closed 검증 E15; 스택 불신뢰
-                               분류 거부 E21 D22, CONTRACT_DTYPES_ALL_F32 신설 E21 D23)
+                               분류 거부 E21 D22, CONTRACT_DTYPES_ALL_F32 신설 E21 D23;
+                               스택 신뢰 신호 '부재'도 UNKNOWN E24 D29, dtype을 스키마 필수
+                               단수형에서도 읽어 공허참 차단 E24 D30)
   contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선·과잉거부·
-                               fail-open·손상방식·OnAIR 바인딩 회귀 시험, 125/125 PASS
-                               (E15+E18+E19+E20+E21+E23); 모듈만 부재 95/95+3 SKIP, 도구·모듈 모두
-                               부재(진짜 무의존성 체크아웃) CI 실측 48/48+6 SKIP, 크래시 없음(E22+E23 D24·D25)
+                               fail-open·손상방식·OnAIR 바인딩·불변식 회귀 시험, 142/142 PASS
+                               (E15+E18+E19+E20+E21+E23+E24); 모듈만 부재 95/95+3 SKIP, 도구·모듈 모두
+                               부재(without-iree 레그) CI 실측 48/48+6 SKIP; 아무것도 설치하지
+                               않은 진짜 무의존성은 58/58+8 SKIP, 크래시 없음(E22+E23 D24·D25, E24 N6)
   corrupt_vmfb.py             ★ E23: A5a(flip)·A5b(flatbuffer_root_uoffset) 손상 방식 실제 구현 —
                                ZIP64/STORED 외과적 패치 + CRC 갱신, corruptsha 계약 생성, 미인식 method 거부(D26)
   mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치;
