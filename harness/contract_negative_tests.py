@@ -1353,10 +1353,15 @@ def subset_sum_tristate_cases():
         ("nothing to confirm (total == 0)", (0, [7440]), None),
         ("no observation (empty segs)", (2176, []), None),
         ("no observation (segs is None)", (2176, None), None),
-        # the reachable case: >24 segments must be ENUMERATED, not truncated
-        ("31 segments, subset matches (was truncated to False)",
-         (2176, [2176] + [100003 + i for i in range(30)]), True),
-        ("31 segments, genuinely contradicted", (2176, [2177] + [100003 + i for i in range(30)]), False),
+        # The reachable case. The matching segment must sit PAST the old
+        # 24-segment cap, or the test is vacuous: the old code kept the first 24,
+        # so a matching segment at index 0 was found even while truncating (a
+        # trap this test fell into on the first attempt, caught by running the
+        # pre-fix function directly).
+        ("31 segments, the only matching one past the old 24-cap (was False)",
+         (2176, [100003 + i for i in range(30)] + [2176]), True),
+        ("31 segments, genuinely contradicted",
+         (2176, [100003 + i for i in range(30)] + [2177]), False),
         ("over the enumeration budget -> unevaluable, never contradicted",
          (mc.SUBSET_SUM_MAX_TOTAL + 1, [1, 2]), None),
     ]
