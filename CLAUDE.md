@@ -492,12 +492,13 @@ EXPERIMENT_LOG.md           ★ 실험 레지스트리 + 가설 판정 이력 + 
 CHANGELOG.md                 버전별 변경 (판정:/정정: 접두어)
 docs/
   ASSUMPTIONS_AND_SCOPE.md    ★ 연구 가정과 유효성 범위(확정) — 보안이 아니라 실험 유효성·재현성
-  reviews/                    ★ 원본 연구노트 + 외부 검토 5건 (전부 인용됨, 원문 보존)
+  reviews/                    ★ 원본 연구노트 + 외부 검토 전부 (인용됨, 원문 보존)
     research_note_v0.1.md       최초 연구노트 (엄격 검토 대상이 됐던 원본)
     direction_v0.3_judgment.md  실험 결과 기반 방향 판단
     PROGRESS_v0_3_REVIEW.md      v0.3 외부 검토 (D2 발견)
     REPORT_v0_4_REVIEW.md         v0.4 외부 검토 (D3 발견, E13 제안)
     REVIEW_v0_6_E13_RESEARCH_DIRECTION.md  v0.6 외부 검토 (D5-D7 발견, 계약 결합 요구)
+    REVIEW_v0_22_E25.md            v0.22/E25 외부 검토 (주장 범위 4곳·판정 도구 1곳 지적 — 계획 docs/plans/E25_closeout_E26_E27.md)
   STATUS.md, MVP_RESULT.md   초기 환경 구축, 첫 go/no-go
   EVIDENCE_v0.1.md            E0-E4: OnAIR 통합, 모델 크기 스윕, lowering 설정 효과
   EVIDENCE_v0.2_E5.md         E5: lowering 특성화 (일부 v0.3에서 철회됨 — D1 결함)
@@ -540,6 +541,8 @@ docs/
                                크래시 D25. A5a·A5b 손상 방식 코드화(D26), OnAIR 바인딩
                                게이트(D27), 125/125
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
+  plans/E25_same_model_equivalence.md  E25 계획·사전 고정 기준 (완료됨, v0.22 참조)
+  plans/E25_closeout_E26_E27.md  ★ 다음 작업 계획: E25 정정(v0.22.1)·E25b·E26 사전 고정 기준·E27 개요 (수행 전)
 scripts/
   00_env.sh                   의존성 설치 + POSIX mqueue 한계 상향 (컨테이너 필수)
   10_build_cfs.sh              cFS 클론·빌드 (native_std)
