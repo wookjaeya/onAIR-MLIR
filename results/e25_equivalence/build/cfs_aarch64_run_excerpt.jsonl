@@ -1,0 +1,4 @@
+{"app":"AI_LEARNER","stage":"stack","es_stack_size":262160,"stack_base_bytes":262144,"contract_kernel_stack_bytes":16,"kernel_stack_accounted":true}
+{"app":"AI_LEARNER","stage":"admission","verdict":"ADMIT","model":"canonical_e25","target":"aarch64-unknown-linux-gnu","bounded":786476,"budget":1048576,"per_call":65580,"constants":720896,"kernel_stack_bytes":16,"bound_known":true,"scope":"per_app_local_budget"}
+{"app":"AI_LEARNER","stage":"binding","verdict":"MATCH","artifact_bytes":732760,"artifact_sha256":"4e5b2972c0bd9704","contract_sha256":"4e5b2972c0bd9704"}
+{"app":"AI_LEARNER","stage":"e25_equivalence","inputs":64,"completed":64,"model":"canonical_e25","target":"aarch64-unknown-linux-gnu","artifact_sha256":"4e5b2972c0bd9704..."}
