@@ -1,0 +1,2 @@
+{"stage":"admission","verdict":"NOT_ADMITTED","model":"vww96_mlperf_tiny","target":"x86_64-unknown-linux-gnu","bounded_bytes":1298952,"budget_bytes":1298951,"per_call":457224,"constants":841728,"kernel_stack_bytes":503,"bound_known":true}
+{"stage":"exit","reason":"not admitted","cleanup_calls":0}

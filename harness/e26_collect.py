@@ -34,10 +34,26 @@ CONTRACTS = {
     ("x86_64", m): "results/e14_aarch64_qemu/x86_64/contracts/contract.%s.x86_64.json" % m
     for m in ("conv2d", "mlp16k", "multibranch")
 }
+# E25's canonical model is a SEPARATE artifact from E14's mlp16k even though the two
+# contracts carry identical numbers (it was generated with hidden=16384 on purpose):
+# different vmfb, different sha256. The plan names canonical in E26-core, so it is
+# measured as its own cell rather than assumed equal to mlp16k.
+CONTRACTS[("x86_64", "canonical")] = "results/e25_equivalence/build/model_canonical.contract.json"
+CONTRACTS[("aarch64", "canonical")] = ("results/e25_equivalence/aarch64/"
+                                       "model_canonical.aarch64.contract.json")
+# E26-ext: public workloads. They REPORT coverage/external validity; the Q1/Q3 verdict is
+# produced by E26-core (the B0 set) and must not be diluted by them (plan section 0.1),
+# so every cell carries `layer` and the summary grades the two separately.
+CONTRACTS[("x86_64", "vww")] = ("results/e26_boundary_utility/mlperf_tiny_vww_fixture/"
+                                "vww.contract.json")
+CORE_MODELS = {"canonical", "mlp16k", "conv2d", "multibranch"}
 CONTRACTS.update({
     ("aarch64", m): "results/e14_aarch64_qemu/aarch64/contracts/contract.%s.aarch64.json" % m
     for m in ("conv2d", "mlp16k", "multibranch")
 })
+# aarch64 cells for the E25 canonical model live with the E25 artifacts, not under e14
+CONTRACTS[("aarch64", "canonical")] = ("results/e25_equivalence/aarch64/"
+                                       "model_canonical.aarch64.contract.json")
 
 
 def branch_of(peak, per_call, constants):
@@ -99,7 +115,7 @@ def main(argv=None):
 
     cells, notes = [], []
     for target in ("x86_64", "aarch64"):
-        for runner in ("native", "cfs", "pip_runtime"):
+        for runner in ("native", "cfs", "pip_runtime", "native_ext"):
             d = os.path.join(a.root, target, runner)
             if not os.path.isdir(d):
                 continue
@@ -132,9 +148,11 @@ def main(argv=None):
                         q3_unsafe_admit=False, q3_gradeable=True,
                         q3_overconservative_band=(None if (peak is None or bounded is None)
                                                   else bounded - peak),
-                        e25_mode_proven_off=True, rss=None))
+                        e25_mode_proven_off=True, rss=None,
+                        layer=("core" if model in CORE_MODELS else "ext")))
                     continue
-                by = read_native(os.path.join(d, fn)) if runner == "native" else read_cfs(os.path.join(d, fn))
+                by = (read_native(os.path.join(d, fn)) if runner in ("native", "native_ext")
+                      else read_cfs(os.path.join(d, fn)))
                 adm = (by.get("admission") or [{}])[-1]
                 verdict = adm.get("verdict")
                 # the two runners name the same field differently: native_learner.c writes
@@ -142,7 +160,7 @@ def main(argv=None):
                 # left budget=None on half the matrix, which would have made Q3-i
                 # ungradeable there -- and an ungradeable cell must never read as "ok".
                 budget = adm.get("budget_bytes", adm.get("budget"))
-                if runner == "native":
+                if runner in ("native", "native_ext"):
                     run = (by.get("run") or [None])[-1]
                     peak = run["hal_device_bytes_peak"] if run else None
                     ph = (run or {}).get("phase_hal") or {}
@@ -175,13 +193,20 @@ def main(argv=None):
                     q3_unsafe_admit=unsafe, q3_gradeable=q3_gradeable,
                     q3_overconservative_band=(None if (peak is None or bounded is None)
                                               else bounded - peak),
-                    e25_mode_proven_off=e25_off, rss=rss))
+                    e25_mode_proven_off=e25_off, rss=rss,
+                    layer=("core" if model in CORE_MODELS else "ext")))
 
     graded = [c for c in cells if c["hal_peak"] is not None]
+    core = [c for c in graded if c["layer"] == "core"]
+    ext = [c for c in graded if c["layer"] == "ext"]
     summary = dict(
         tool="harness/e26_collect.py",
         criteria_source="docs/plans/E26_boundary_utility.md section 2 (fixed before measurement)",
         cells=len(cells), cells_with_a_run=len(graded),
+        core_cells=len(core), ext_cells=len(ext),
+        # the VERDICT is core's; ext is reported alongside and never dilutes it
+        q1_pass_core=(all(c["q1_sound"] for c in core) if core else None),
+        q1_pass_ext=(all(c["q1_sound"] for c in ext) if ext else None),
         q1_violations=[c["file"] for c in graded if c["q1_sound"] is False],
         q1_pass=all(c["q1_sound"] for c in graded) if graded else None,
         q3_unsafe_admits=[c["file"] for c in cells if c["q3_unsafe_admit"]],

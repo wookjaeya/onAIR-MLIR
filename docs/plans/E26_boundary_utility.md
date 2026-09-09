@@ -28,7 +28,7 @@
 
 | 층 | 모델 | 역할 |
 |---|---|---|
-| **E26-core** | B0 3종 (canonical · conv2d · multibranch) | **E26의 판정을 산출한다.** Q1/Q3의 PASS/FAIL은 여기서 결정된다 |
+| **E26-core** | B0 (canonical · **mlp16k** · conv2d · multibranch) | **E26의 판정을 산출한다.** Q1/Q3의 PASS/FAIL은 여기서 결정된다 |
 | **E26-ext** | B2 · B3 · (조건부) B1 | **coverage와 외적 타당성을 보고한다.** 이 층의 결과는 E26 판정을 **차단하지 않는다** |
 
 E26-ext에서 어떤 모델이 막히면 그것은 **coverage 결과로 공개**하고(지침 §8.1·§12), 판정을
@@ -56,7 +56,11 @@ E26-ext에서 어떤 모델이 막히면 그것은 **coverage 결과로 공개**
 
 | 등급 | 모델 | 상태 | 근거 |
 |---|---|---|---|
-| **B0** | canonical MLP(E25) · conv2d · multibranch | 그대로 유지, **명칭만 "내부 회귀시험군"으로** | 지침 §3.1. 대표성 주장 금지 |
+| **B0** | canonical MLP(E25) · **mlp16k**(E14) · conv2d · multibranch | 그대로 유지, **명칭만 "내부 회귀시험군"으로** | 지침 §3.1. 대표성 주장 금지 |
+
+**canonical과 mlp16k는 서로 다른 아티팩트다.** 계약 수치는 설계상 같지만(canonical을 hidden=16384로
+만들었다) vmfb sha256이 다르다(`0e250c2f…` vs `4d6f3807…`). 둘 다 측정하며, 같은 값이 나오는 것은
+**가정이 아니라 관측**으로 둔다.
 | **B2** | **MLPerf Tiny ResNet** (CIFAR-10) | **계약·헤더 완주 확인** (오버라이드 0개) | `results/e26_boundary_utility/mlperf_tiny_resnet_fixture/` |
 | **B3** | **MLPerf Tiny Deep AutoEncoder** (ToyADMOS 계열) | 계약·헤더·vmfb 실행 확인 | 조사에서 `bounded=1,069,632` `per_call=6,208` `constants=1,063,424` |
 
@@ -206,7 +210,7 @@ layout IR을 직접 읽어 확인했다(`results/e14_aarch64_qemu/x86_64/layout_
 
 | 축 | 값 |
 |---|---|
-| 모델 | **B0**: canonical(E25) · conv2d · multibranch — **B2**: MLPerf Tiny ResNet — **B3**: MLPerf Tiny DeepAE |
+| 모델 | **B0**: canonical(E25) · mlp16k(E14) · conv2d · multibranch — **B2**: MLPerf Tiny ResNet — **B3**: MLPerf Tiny DeepAE |
 | ISA | x86-64, AArch64 |
 | 실행 | standalone IREE(native C), cFS+IREE |
 | 구간 | `after_init`(추론 0회) / `after_first_call` / `steady` |
@@ -217,6 +221,23 @@ layout IR을 직접 읽어 확인했다(`results/e14_aarch64_qemu/x86_64/layout_
   `.mlir`을 **고정 산출물로 보존**하고 그 하나로만 컴파일한다.
 - HAL 통계는 결정론적이므로 1회 + 결정성 확인 1회. RSS는 x86-64에서 3회.
 - E14/E17이 이미 채운 셀(conv2d native, mlp16k cFS 경계값)은 재실행하지 않고 인용한다.
+
+### 4.0 AArch64 게스트 `B−1` 셀은 빌드되지 않는다 (실측, 정상 동작)
+
+`scripts/51_build_cfs_aarch64.sh`를 `AI_LEARNER_BUDGET_BYTES = bounded − 1`로 돌리면 실패한다:
+
+```
+51_build_cfs_aarch64: ERROR: contract sha256 4e5b2972... not found in ai_learner.so
+                      (wrong header compiled in?)
+```
+
+**앱의 결함이 아니다.** 예산이 bound보다 작으면 컴파일러가 admission 실패를 **정적으로 판정**해
+그 뒤의 artifact-binding 코드를 통째로 죽은 코드로 제거하고(`-O2`), 빌드 검증이 사라진 sha256
+문자열을 정직하게 보고한 것이다. CLAUDE.md의 함정 표에 있는 `CONTRACT_BOUND_KNOWN=0` 사례와
+**같은 기전, 다른 방아쇠**다.
+
+따라서 게스트의 `B−1` 셀은 이 스크립트로 만들 수 없다. **DENY 동작은 x86-64 cFS의 `B−1` 셀이
+이미 실행으로 보였으므로**(NOT_ADMITTED), 게스트에서는 `B`·`B+1`만 측정하고 이 사실을 기록한다.
 
 ### 4.1 측정 위생 (v0.22.2에서 이미 구현)
 
@@ -248,9 +269,15 @@ layout IR을 직접 읽어 확인했다(`results/e14_aarch64_qemu/x86_64/layout_
 |---|---|---|
 | C-1 | **다출력 모델 계약 불가** — 출력 2개 이상이면 단일 external alloca의 `stream.resource.subview`로 잡히는데 이 op이 양쪽 파서 화이트리스트에 없어 `UNKNOWN_BOUND`. 할당이 아니라 뷰이므로 성격상 과잉 거부 | 다출력 모델 전부 |
 | C-2 | **헤더 인터페이스 제약** — `gen_contract_header.py`가 단일 f32 in/out만 통과시켜 f16 모델과 2입력 모델은 계약이 유효한데도 헤더 거부 | 실전 CNN(다입력·f16) |
+| C-3 | **cFS 앱의 feature 버퍼가 스택 배열이다** — `native/cfs_app/fsw/src/ai_learner.c:440`이 추론마다 `float feat[CONTRACT_INPUT_ELEMS]`를 **스택에** 잡는다. 입력 원소 수가 계약에서 오므로 9~256짜리 모델에서는 문제가 없지만, **영상 모델에서는 태스크 스택을 넘는다** | **B1을 SQUEEZE보다 먼저 막는다** |
 
-C-1·C-2 모두 **B2/B3에는 영향이 없다**(단일 f32 in/out). B1(MobileNetV2)과 임무형 다입력
-모델을 넣을 때 비로소 걸린다.
+**C-3은 산술로 확정된다**: OPS-SAT의 `[1,224,224,3]`은 150,528 원소 × 4 B = **602,112 B**이고,
+태스크 스택은 `base 262,144 + kernel`이다 — **2.3배 초과**. 즉 B1의 착수 조건은 §1.2가 말한
+SQUEEZE 반입 문제 **이전에** 이 앱 구조를 고치는 것이다(HAL 입력 버퍼를 직접 쓰거나 정적 버퍼로
+옮기는 것이 후보이며, 같은 함수의 `zeros`는 이미 `static`이다 — `:322`).
+
+C-1·C-2·C-3 모두 **B2/B3에는 영향이 없다**(단일 f32 in/out, 입력 12,328 B / 2,560 B).
+B1(MobileNetV2 224×224×3)과 임무형 다입력 모델을 넣을 때 비로소 걸린다.
 
 ---
 
