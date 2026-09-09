@@ -6,8 +6,9 @@
 
 판정: 검토 §5.2의 반례 5건(R1–R5)을 전부 실제로 재현하고 수정했다(D35–D39). 부수로 발견한
 D40(문서화된 스모크 경로 2개 파손, 그중 1건은 E24의 N3 게이트가 만든 유형 (B) 회귀)도 수정.
-`contract_negative_tests.py` 143/143 → **170/170**(이 컨테이너 실측 — CI 세 레그 값은
-D34의 교훈에 따라 추정하지 않고 `docs/EVIDENCE_v0.20_E24b.md` §9.1에 실측으로 기록).
+`contract_negative_tests.py` 143/143 → **170/170**(이 컨테이너 실측). **CI 실측**(커밋 `5debfd5`):
+`full` 169/169+1 SKIP · `without-iree` 85/85+9 SKIP · `stdlib-only` 85/85+9 SKIP — 차이 1건은
+PyYAML 유무이며 D34의 교훈에 따라 두 값을 조건과 함께 병기한다(`docs/EVIDENCE_v0.20_E24b.md` §9.1).
 보관 14개 헤더는 `CONTRACT_PROVENANCE_VERIFIED` 한 줄만 추가되고 다른 바이트 변화 0.
 
 정정: **심각도 재분류가 두 번 있었고 방향이 서로 반대다.** R1(음수 스택)은 검토가 "매우 낮음:

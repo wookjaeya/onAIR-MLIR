@@ -9,18 +9,19 @@ NASA cFS/OnAIR AI 플러그인을 MLIR/IREE로 컴파일하고, 컴파일러의 
 
 ```bash
 pip install -r requirements.txt    # iree-base-compiler/runtime, jsonschema (버전 고정)
-python3 harness/contract_negative_tests.py  # 계약 도구 fail-closed 회귀·음성·구조적 추출기 일치·크로스체크 배선·과잉거부·fail-open·불변식·override 기록 회귀 시험 (전 의존성 설치 시 170/170)
+python3 harness/contract_negative_tests.py  # 계약 도구 fail-closed 회귀·음성·구조적 추출기 일치·크로스체크 배선·과잉거부·fail-open·불변식·override 기록 회귀 시험 (CI 실측 169/169+1 SKIP)
 bash scripts/99_bootstrap_all.sh   # 전체 환경 구축(cFS·IREE C 런타임 등, 위 시험엔 불필요)
 python3 harness/platform_check.py  # 이 머신의 타이밍 증거 등급 확인
 ```
 
 **fresh clone 재현성(외부 검토 F9 — E22/E23에서 실제 확인·해결, N6 — E24에서 명칭 정정)**:
 `git clone`으로 새로 받은 이 저장소에서 위 `pip install -r requirements.txt` 후
-`contract_negative_tests.py`를 실행하면 크래시나 오탐 FAIL 없이 정상 종료한다. 아래 수치는
-**v0.19 시점의 CI 실측**이며, v0.20/E24b가 시험 28건을 추가했다(이 개발 컨테이너 실측 170/170 —
-CI 세 레그의 v0.20 실측치는 [`docs/EVIDENCE_v0.20_E24b.md`](./docs/EVIDENCE_v0.20_E24b.md) §9.1에
-기록한다. **CI가 측정하기 전의 값을 추정해 적지 않는 것이 이 저장소의 규칙이다** — 그렇게 적었다가
-D34로 정정한 이력이 있다). v0.19 기준: **142/142 + 1 SKIP**(CI 실측. 이 저장소 개발 컨테이너처럼
+`contract_negative_tests.py`를 실행하면 크래시나 오탐 FAIL 없이 정상 종료한다. **v0.20(E24b)
+CI 실측**(커밋 `5debfd5`): `full` **169/169 + 1 SKIP**, `without-iree` **85/85 + 9 SKIP**,
+`stdlib-only` **85/85 + 9 SKIP**(세 레그 전부 success). 이 개발 컨테이너는 PyYAML이 시스템
+패키지로 있어 170/170이다 — **CI가 측정하기 전의 값을 추정해 적지 않는 것이 이 저장소의
+규칙이다**(그렇게 적었다가 D34로 정정한 이력이 있다). 아래는 v0.19 시점의 CI 실측 기록이며
+레그별 조건 설명은 그대로 유효하다: **142/142 + 1 SKIP**(CI 실측. 이 저장소 개발 컨테이너처럼
 PyYAML이 별도로 깔려 있으면 143/143 — PyYAML은 `requirements.txt`에 없고, 그 1건은 워크플로우
 YAML 파싱 검사다). 의존성을 줄인 두 조건도 크래시나 오탐 FAIL
 없이 정상 종료한다 — `jsonschema`만 설치(iree-base-compiler 미설치: 모듈도 콘솔 스크립트도

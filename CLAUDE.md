@@ -221,8 +221,10 @@ D35(R1), D36(`bounded_bytes`가 자기 구성요소 합과 미대조 — `>=`가
 FAIL**함을 실측), D40(`CLAUDE.md`가 문서화한 스모크 경로 2개가 rc=1로 깨져 있었고 그중 1건은
 **E24의 N3 게이트가 만든 유형 (B) 회귀** — "과잉 거부 위험을 측정했다"는 주장이 어떤 입력
 집합에서 측정했는지에 전적으로 의존함을 세 번째로 확인). `contract_negative_tests.py`
-143/143 → **170/170**(이 컨테이너 실측; CI 세 레그 값은 D34의 교훈에 따라 추정하지 않고
-EVIDENCE §9.1에 실측 기록), 보관 14개 헤더는 `CONTRACT_PROVENANCE_VERIFIED` 한 줄만 추가.
+143/143 → **170/170**(이 컨테이너 실측). **CI 실측**(커밋 `5debfd5`): `full` 169/169+1 SKIP ·
+`without-iree` 85/85+9 SKIP · `stdlib-only` 85/85+9 SKIP — 컨테이너와 `full`의 차이 1건은
+PyYAML 유무이며, D34의 교훈에 따라 추정하지 않고 두 값을 조건과 함께 병기한다.
+보관 14개 헤더는 `CONTRACT_PROVENANCE_VERIFIED` 한 줄만 추가.
 **우선순위 재편**: 이 버전에서 "지금 바로 이어서 할 일"의 축을 fail-closed 방어에서 **연구 질문
 (R-1 OnAIR↔cFS 의미 동치 / R-2 계약 경계의 유용성·외적 타당성 / R-3 MLIR 고유 기여)**으로 바꿨다.
 
@@ -524,10 +526,10 @@ harness/                    실험 스크립트
                                override 계약 기본 거부 + CONTRACT_PROVENANCE_VERIFIED E24b D39)
   contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선·과잉거부·
                                fail-open·손상방식·OnAIR 바인딩·불변식·워크플로우 YAML·override 기록
-                               회귀 시험, 이 컨테이너 실측 170/170(E15+E18+E19+E20+E21+E23+E24+E24b);
-                               v0.19 기준 CI 실측 142/142+1 SKIP; 모듈만 부재 95/95+3 SKIP, 도구·모듈 모두
-                               부재(without-iree)와 아무것도 설치하지 않은 진짜 무의존성
-                               둘 다 58/58+9 SKIP(CI 실측), 크래시 없음(E22+E23 D24·D25, E24 N6·D33)
+                               회귀 시험(E15+E18+E19+E20+E21+E23+E24+E24b). v0.20 CI 실측:
+                               full 169/169+1 SKIP · without-iree 85/85+9 · stdlib-only 85/85+9,
+                               크래시 없음(E22+E23 D24·D25, E24 N6·D33). 이 컨테이너는 PyYAML이
+                               있어 170/170
   corrupt_vmfb.py             ★ E23: A5a(flip)·A5b(flatbuffer_root_uoffset) 손상 방식 실제 구현 —
                                ZIP64/STORED 외과적 패치 + CRC 갱신, corruptsha 계약 생성, 미인식 method 거부(D26)
   mlir_alloc_walk.py          ★ E18: 구조적(비정규식) 할당 추출기 — iree.compiler.ir API, 14/14 정규식 파서와 일치;

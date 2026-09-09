@@ -232,11 +232,25 @@ R5 검증 중 별개 결함으로 발견했다. `CLAUDE.md`가 스모크 테스�
 
 이 컨테이너에는 `iree-base-compiler`·`iree-base-runtime`·`jsonschema`·PyYAML이 모두
 있으므로 위 값은 **`full` 레그에 대응하는 상한**이다. **D34의 교훈에 따라 CI 세 레그의
-값은 추정하지 않는다** — 푸시 후 CI가 실측한 값을 §9.1에 기록한다.
+값은 추정하지 않았다** — 푸시 후 CI가 실측한 값을 §9.1에 기록했다.
 
-### 9.1 CI 실측 (푸시 후 기록)
+### 9.1 CI 실측 (커밋 `5debfd5`, run 34308570379 — 세 레그 전부 success)
 
-(측정 후 채움)
+| 레그 | 설치물 | CI 실측 |
+|---|---|---|
+| `full` | `requirements.txt`(iree-base-compiler/runtime, jsonschema) | **169/169 + 1 SKIP** |
+| `without-iree` | `jsonschema`만 | **85/85 + 9 SKIP** |
+| `stdlib-only` | 아무것도 설치 안 함 | **85/85 + 9 SKIP** |
+
+- `full`의 SKIP 1건은 워크플로우 YAML 파싱 검사이며 PyYAML이 `requirements.txt`에 없어서다.
+  이 개발 컨테이너는 PyYAML이 시스템 패키지로 있어 170/170이다 — **두 값의 차이는 D34가 지적한
+  바로 그 조건이고, 이번에는 추정하지 않고 양쪽을 조건과 함께 병기한다.**
+- 뒤 두 레그가 v0.19의 58/58+9에서 85/85+9로 오른 것은 E24b가 추가한 시험 상당수가
+  **IREE 도구도 `jsonschema`도 요구하지 않기** 때문이다(+27건, SKIP 수는 그대로 9).
+  두 레그가 여전히 서로 같은 값인 이유는 v0.19와 같다 — IREE 도구가 없으면 `jsonschema`를
+  쓰는 경로가 이미 전부 SKIP된다.
+- `full` 레그에서 보관 14개 계약 **diff 0**, 14개 헤더 **바이트 동일**(재생성한 헤더 기준)이
+  CI에서 재확인됐다.
 
 ## 10. 이번 범위 밖 (명시)
 
