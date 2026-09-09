@@ -1,0 +1,110 @@
+{
+ "cells": [
+  {
+   "bl1_bounded": 786476,
+   "contract_bounded": 786476,
+   "exact": true,
+   "honest_artifact": true,
+   "model": "mlp16k",
+   "refusal_code": null,
+   "status": "value",
+   "vmfb": "results/e14_aarch64_qemu/x86_64/vmfb/mlp16k.vmfb"
+  },
+  {
+   "bl1_bounded": 3528,
+   "contract_bounded": 3528,
+   "exact": true,
+   "honest_artifact": true,
+   "model": "conv2d",
+   "refusal_code": null,
+   "status": "value",
+   "vmfb": "results/e14_aarch64_qemu/x86_64/vmfb/conv2d.vmfb"
+  },
+  {
+   "bl1_bounded": 38216,
+   "contract_bounded": 38216,
+   "exact": true,
+   "honest_artifact": true,
+   "model": "multibranch",
+   "refusal_code": null,
+   "status": "value",
+   "vmfb": "results/e14_aarch64_qemu/x86_64/vmfb/multibranch.vmfb"
+  },
+  {
+   "bl1_bounded": 786476,
+   "contract_bounded": 786476,
+   "exact": true,
+   "honest_artifact": true,
+   "model": "canonical",
+   "refusal_code": null,
+   "status": "value",
+   "vmfb": "results/e25_equivalence/build/model_canonical.vmfb"
+  },
+  {
+   "bl1_bounded": 34112,
+   "contract_bounded": 34112,
+   "exact": true,
+   "honest_artifact": true,
+   "model": "manyconst31",
+   "refusal_code": null,
+   "status": "value",
+   "vmfb": "results/e24c_manyconst31/manyconst31.vmfb"
+  },
+  {
+   "bl1_bounded": 618856,
+   "contract_bounded": 618856,
+   "exact": true,
+   "honest_artifact": true,
+   "model": "b2_resnet",
+   "refusal_code": null,
+   "status": "value",
+   "vmfb": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.vmfb"
+  },
+  {
+   "bl1_bounded": 1069632,
+   "contract_bounded": 1069632,
+   "exact": true,
+   "honest_artifact": true,
+   "model": "b3_deepae",
+   "refusal_code": null,
+   "status": "value",
+   "vmfb": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.vmfb"
+  },
+  {
+   "bl1_bounded": null,
+   "contract_bounded": 786476,
+   "exact": false,
+   "honest_artifact": false,
+   "model": "iree310_drift_mlp16k",
+   "refusal_code": "C4_DISASM",
+   "status": "refuse",
+   "vmfb": "results/e27_baselines/iree310_mlp16k/mlp16k.vmfb"
+  }
+ ],
+ "summary": {
+  "drift_artifacts": 1,
+  "drift_refusal_codes": [
+   "C4_DISASM"
+  ],
+  "drift_refused": 1,
+  "honest_artifacts": 7,
+  "honest_exact": 7,
+  "honest_over_rejected": 0,
+  "not_measured_here": [
+   "how often a hardened (b') must refuse across a wider version matrix -- the availability cost is only observed here at n=1 (this one drift input)",
+   "whether the try_map two-arm structure survives into host LLVM IR (a separate baseline question; not re-verified in this session)"
+  ],
+  "tool": "harness/e27_baseline_vmfb_only_hardened.py",
+  "weak_baseline_on_drift": {
+   "arithmetic": "5172 = 36 (input bytes) + 5136 (the embedded executable ELF, mis-attributed as the constant pool)",
+   "contract_bounded": 786476,
+   "factor_under": 152,
+   "reported_bounded": 5172,
+   "two_independent_failures": [
+    "disassembly unavailable across the bytecode version boundary -> alloca_sizes=[] with alloca_unresolved=[] (drops the 65,536+8 transient slabs; this is the mechanism EVIDENCE_v0.29 SS3.1 named)",
+    "segment-order assumption in analyze(): `unlabeled[:-1]` treats every unlabeled .rodata segment but the last as constants. IREE 3.10 orders the vmfb entries [module.fb, .so, _const.bin] and 3.11 orders them [module.fb, _const.bin, .so], so the roles invert: 5,136 B of executable counted as constants and 720,896 B of constants counted as executable. EVIDENCE_v0.29 SS3.1 did not name this one, and it is the dominant term."
+   ]
+  },
+  "why": "E27 SS7 errata (v0.31): the artifact-only level's silent under-report was a property of the shipped implementation, not of the information level. This is the fail-closed steelman at the SAME level (deployed vmfb + iree-dump-module only)."
+ }
+}

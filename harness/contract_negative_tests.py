@@ -2407,6 +2407,64 @@ EXT_B3_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utilit
 E27_SUMMARY = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "summary.json")
 
 
+E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
+
+
+def e27_hardened_baseline_cases():
+    """EVIDENCE_v0.29_E27 SS7 (v0.31 errata): E27's silent-under-report was the
+    SHIPPED implementation's property, not the information level's.
+
+    E27 concluded from `harness/e27_baseline_vmfb_only.py` that an artifact-only
+    analyser "reports what it could not read as absent".  The fail-closed
+    steelman at the same level -- deployed vmfb + `iree-dump-module` only --
+    refuses the drift artifact explicitly and over-rejects none of the honest
+    ones.  Both halves matter and both are pinned here: a future change that
+    makes the hardened baseline start refusing honest artifacts would turn the
+    errata's "0 over-rejection" into a false statement, and one that makes it
+    stop refusing the drift artifact would restore the silent path.
+
+    Also pinned: the arithmetic of the 152x under-report, because SS3.1 named
+    only one of its two independent causes.  5,172 = 36 input bytes + 5,136
+    bytes of executable ELF mis-attributed as the constant pool, which happens
+    because IREE 3.10 and 3.11 order the vmfb entries differently."""
+    results = []
+    p = os.path.join(E27_HARDENED_DIR, "summary.json")
+    if not os.path.exists(p):
+        results.append(Result("e27-hardened: fixture preserved", False, "missing %s" % p))
+        return results
+    d = load(p)
+    su = d["summary"]
+    results.append(Result("e27-hardened: 7 honest artifacts reproduce the contract bound exactly",
+                          su["honest_artifacts"] == 7 and su["honest_exact"] == 7,
+                          "honest=%s exact=%s" % (su["honest_artifacts"], su["honest_exact"])))
+    results.append(Result("e27-hardened: over-rejection is 0 (the errata's claim is two-sided)",
+                          su["honest_over_rejected"] == 0,
+                          "over_rejected=%s" % su["honest_over_rejected"]))
+    results.append(Result("e27-hardened: the drift artifact is REFUSED, not under-reported",
+                          su["drift_refused"] == su["drift_artifacts"] == 1
+                          and su["drift_refusal_codes"] == ["C4_DISASM"],
+                          "refused=%s codes=%s" % (su["drift_refused"], su["drift_refusal_codes"])))
+    w = su["weak_baseline_on_drift"]
+    results.append(Result("e27-hardened: the 152x under-report is 36 + 5,136, and its dominant "
+                          "term is the segment-order assumption SS3.1 did not name",
+                          w["reported_bounded"] == 5172 and w["contract_bounded"] == 786476
+                          and len(w["two_independent_failures"]) == 2,
+                          "weak=%s" % w))
+    # the shipped weak baseline must stay un-hardened: it is the measured object.
+    weak = open(os.path.join(os.path.dirname(HERE), "harness", "e27_baseline_vmfb_only.py"),
+                encoding="utf-8").read()
+    results.append(Result("e27-hardened: the weak baseline stays un-hardened "
+                          "(it is what E27 measured; hardening it would erase the observation)",
+                          "unlabeled[:-1]" in weak,
+                          "e27_baseline_vmfb_only.py no longer contains the measured assumption"))
+    hard = open(os.path.join(os.path.dirname(HERE), "harness",
+                             "e27_baseline_vmfb_only_hardened.py"), encoding="utf-8").read()
+    results.append(Result("e27-hardened: the steelman is in tree and reads only the artifact",
+                          "C4_DISASM" in hard and "layout_ir" not in hard,
+                          "hardened baseline missing or reads more than the artifact"))
+    return results
+
+
 E29_DIR = os.path.join(os.path.dirname(HERE), "results", "e29_conditional_contract")
 
 
@@ -3147,6 +3205,7 @@ def main():
         all_results += e27_information_level_cases()
         all_results += e28_stack_failopen_cases()
         all_results += e29_conditional_contract_cases()
+        all_results += e27_hardened_baseline_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
