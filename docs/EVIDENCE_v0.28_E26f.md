@@ -18,6 +18,8 @@ B3를 넣은 이유는 **상수:per-call 비가 극단**이라는 것이었고(B
 | Q2 분기 가설 | **반증 0** |
 | Q3 `B−1`→DENY, `B`·`B+1`→ADMIT | **PASS** |
 
+- **CI 실측**(커밋 `f7be746`, 워크플로 run 73): `full` **266/266 + 1 SKIP**(PyYAML 미설치) · `without-iree` **159/159 + 15 SKIP** · `stdlib-only` **159/159 + 15 SKIP**. 이 컨테이너(267/267)와 `full`의 차이 1건은 PyYAML 유무이며, D34의 교훈에 따라 추정하지 않고 두 수치를 조건과 함께 병기한다.
+
 ## 1. 반입과 계약
 
 MLPerf Tiny Deep AutoEncoder(ToyADMOS 계열 이상 탐지). `mlcommons/tiny` @ `4addd0fa`의

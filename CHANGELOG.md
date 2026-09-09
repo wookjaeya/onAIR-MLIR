@@ -28,6 +28,8 @@ tightness **172.30×**), 소스 빌드 C 런타임에서 **1,069,632**(`allocate
 
 이 컨테이너 실측 **260/260 → 267/267**, 보관 14개 계약 diff 0.
 
+**CI 실측**(커밋 `f7be746`, run 73): `full` **266/266 + 1 SKIP**(PyYAML 미설치) · `without-iree` **159/159 + 15 SKIP** · `stdlib-only` **159/159 + 15 SKIP**. 컨테이너와 `full`의 차이 1건은 PyYAML 유무다(D34).
+
 ## [v0.27] — E26e: E26-ext, 실물 MLPerf Tiny CNN에서의 계약 경계
 
 **E26-core의 결론이 합성 모델 밖에서 재현된다.** MLPerf Tiny ResNet(CIFAR-10, 원본
