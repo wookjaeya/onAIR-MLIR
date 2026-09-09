@@ -22,6 +22,8 @@
 
 `collection_clean: true` — 아래 §4의 이유로 이 한 줄이 판정의 일부다.
 
+**CI 실측**(커밋 `7fb1d4d`, 워크플로 run 76): `full` **275/275 + 1 SKIP**(PyYAML 미설치) · `without-iree` **168/168 + 15 SKIP** · `stdlib-only` **168/168 + 15 SKIP**. 이 컨테이너(276/276)와 `full`의 차이 1건은 PyYAML 유무이며, D34의 교훈에 따라 추정하지 않고 두 수치를 조건과 함께 병기한다. SKIP 목록에 신규 메시지 *"structural extractor unusable here"*가 실제로 나타났다 — §4의 가드가 크루드 시뮬레이션뿐 아니라 **진짜 축소 환경에서도** 동작함을 CI가 확인한 것이다.
+
 ## 1. 비교 대상 (계획 §3 그대로)
 
 | 기호 | 분석기 | 보는 것 |

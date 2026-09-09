@@ -46,6 +46,8 @@
 
 이 컨테이너 실측 **267/267 → 276/276**, 보관 14개 계약 diff 0.
 
+**CI 실측**(커밋 `7fb1d4d`, run 76): `full` **275/275 + 1 SKIP** · `without-iree` **168/168 + 15 SKIP** · `stdlib-only` **168/168 + 15 SKIP** — 차이 1건은 PyYAML 유무(D34). 축소 환경 SKIP 목록에 신규 가드 메시지가 실제로 나타나, 그 가드가 시뮬레이션이 아닌 실환경에서도 동작함을 CI가 확인했다.
+
 ## [v0.28] — E26f: E26-ext 완결, 상수 지배형 실물 모델
 
 계획서가 채택한 마지막 ext 모델(**MLPerf Tiny Deep AutoEncoder**, ToyADMOS 계열)을 실행했다.
