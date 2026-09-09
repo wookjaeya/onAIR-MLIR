@@ -2,6 +2,43 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.31] — E29: 조건부 계약 — try_map 분기 결정 요인은 64바이트 정렬이다
+
+**판정:** E26이 미확정으로 남긴 `stream.resource.try_map` 분기 결정 요인을 규명했다 —
+**모듈 이미지 포인터의 64바이트 정렬**이다. `iree_hal_heap_buffer_wrap()`
+(`runtime/src/iree/hal/buffer_heap.c`)이 `IREE_HAL_HEAP_BUFFER_ALIGNMENT`(=64,
+`runtime/src/iree/base/config.h:244`) 미정렬 span의 import를 `OUT_OF_RANGE`로 거부하고,
+map 분기가 정확히 그 import다. 사전 고정 기준(D1 이분성·D2 결정 요인)으로 **8모델 × 8 정렬
+클래스 = 64셀**을 측정해 **map 32 · copy 32 · 제3의 값 0**, 두 기준 모두 **위반 0**.
+
+**제어 가능하다.** 두 C 경로가 모듈 blob을 `malloc`하고 있었고 glibc가 이 크기대에 16 또는
+32 mod 64를 돌려주기 때문에 **E26·E26e·E26f의 native·cFS 셀이 전부 copy 분기**였다.
+`posix_memalign(…, 64, …)` 한 줄로 7모델 전부 map 분기로 넘어갔고, **map 피크 = `per_call`
+정확히 / copy 피크 = `bounded` 정확히**가 7/7 양방향에서 성립했다. 즉 E26·E26e·E26f가
+"배포 의존성"으로 보고한 **1.00×~172.30× 폭 전체가 이 한 포인터의 정렬**이었다(E26f의
+172.30×는 b3_deepae의 `bounded/per_call`과 같은 수다).
+
+**E26 Q1(soundness)은 건드려지지 않는다** — `bounded`는 두 분기의 최댓값이고, copy 분기가
+그 값에 정확히 닿는다는 것을 7/7에서 다시 확인했다. 바뀐 것은 tightness의 *원인*이며,
+E26이 배제한 네 후보(무작위·런타임 빌드 구성·모델 내재·embedded/external)는 여전히 배제된 채다.
+
+**조건부 admission (opt-in, 계약 스키마 변경 0).** `B_map = CONTRACT_PER_CALL_BYTES`,
+`B_copy = CONTRACT_BOUNDED_BYTES`가 이미 헤더에 있다. 기본값은 **off**라 기존 배포의 판정은
+바이트 단위로 동일하다. 켜면 전제조건을 **구성으로 강제**하고(정렬 할당) append 직후
+**측정으로 검증**해 copy 분기면 추론 한 건 전에 거부한다(`MAP_PRECONDITION_FAILED`).
+`bounded ≤ budget`이 이미 참이면 진입조차 하지 않으므로 **유형 (B) 과잉 거부 위험 0**.
+cFS 실측: 예산 6,208 B에서 `NOT_ADMITTED`이던 b3_deepae가 opt-in 시 같은 예산에서 5/5 완주,
+**실측 피크 정확히 6,208** — 배치에 필요한 예산이 172배 줄었다.
+
+**D53(설계 단계에서 차단)**: 검증 블록만 제거하면 6,208 B 예산으로 승인된 앱이
+**1,069,632 B(172배 초과)**로 완주하는데, `peak_within_bounded`는 `true`다 — 그 필드는 피크를
+`CONTRACT_BOUNDED_BYTES`와 비교하지 **승인 근거가 된 예산**과 비교하지 않기 때문이다.
+D52가 *"계약이 준 숫자를 게이트가 실제로 쓰는지 확인하라"*였다면 이것은
+***"어느 숫자로 승인했는지와 어느 숫자로 검증하는지가 같은지 확인하라"***다.
+
+회귀 시험 **284/284 → 304/304**(이 컨테이너 실측), 보관 14개 계약 diff 0·헤더 무변경.
+**미실행(명시)**: AArch64 게스트 cFS 셀. 상세는 `docs/EVIDENCE_v0.31_E29.md`.
+
 ## [v0.30] — E28: admission 게이트 자신의 fail-open (D52)
 
 여섯 번째 외부 검토(SCI 심사) §4.3·§10을 검증하다 **이 저장소 핵심 논증 안의 fail-open**을

@@ -51,6 +51,7 @@
 #include "sha256.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -86,13 +87,14 @@
 enum {
   EID_NOT_ADMITTED = 1, EID_NO_FILE = 2, EID_INIT_OK = 3, EID_REPORT = 4, EID_MISMATCH = 5,
   EID_UNKNOWN_BOUND = 6, EID_LOAD_FAILED = 7, EID_STACK = 8, EID_INIT_FAIL = 9, EID_INFER_FAIL = 10,
-  EID_STACK_REJECT = 11, EID_INTERFACE_MISMATCH = 12
+  EID_STACK_REJECT = 11, EID_INTERFACE_MISMATCH = 12, EID_MAP_PRECONDITION = 13
 };
 
 static struct {
   CFE_SB_PipeId_t pipe; bool pipe_created;
   iree_runtime_instance_t* instance; iree_hal_device_t* device; iree_runtime_session_t* session;
   void* blob; long blob_len; iree_hal_buffer_view_t* x;
+  int module_ptr_mod64; long hal_peak_after_append; int conditional_map;
   uint32 n_attempt, n_infer, n_fail_input, n_fail_invoke, n_fail_output, n_cleanup;
   bool first_fail_reported;
   double lat_sum_us, lat_max_us, lat_last_us; float out[CONTRACT_OUTPUT_ELEMS];
@@ -186,6 +188,49 @@ static void AI_LEARNER_AdmissionJson(const char* verdict) {
                   GATE_BOUND_KNOWN ? "true" : "false");
 }
 
+/* ---- E29 (docs/EVIDENCE_v0.31_E29.md): module image alignment ----------------
+ * IREE emits module-resident constants as `stream.resource.try_map` + an
+ * `scf.if(%did_map)`: the map arm allocates nothing on the HAL device, the copy
+ * arm allocates the whole constant block.  `CONTRACT_BOUNDED_BYTES` is the max
+ * over both arms, so admission on it stays sound whichever arm runs -- E26
+ * measured up to 172.30x between them for the SAME vmfb and left the
+ * determinant undetermined.
+ *
+ * E29 identified it: iree_hal_heap_buffer_wrap() (runtime/src/iree/hal/
+ * buffer_heap.c) returns OUT_OF_RANGE unless the imported span is aligned to
+ * IREE_HAL_HEAP_BUFFER_ALIGNMENT (64, runtime/src/iree/base/config.h), and the
+ * map arm is exactly that import.  harness/e29_collect.py measured 64/64 cells
+ * (8 models x 8 alignment classes): map <=> 64-byte aligned, and the peak was
+ * always either 0 or exactly the contract's constant block -- never a third
+ * value.  plain malloc() gave this app a 16 mod 64 pointer, which is why every
+ * cFS cell in E26/E26e/E26f landed on the copy arm.
+ *
+ * Allocating the image aligned therefore lowers the observed peak to the
+ * contract's per-call term without touching admission: the bound does not
+ * change, only which arm the deployment lands on.  A failed posix_memalign
+ * falls back to malloc -- correct, merely less tight -- and the arm actually
+ * taken is measured after append rather than assumed. */
+static void* AI_LEARNER_AllocModuleImage(size_t n, int* out_mod64) {
+  void* p = NULL;
+  if (posix_memalign(&p, 64, n) != 0) p = NULL;
+  if (!p) p = malloc(n);                    /* correct, only less tight */
+  *out_mod64 = p ? (int)(((uintptr_t)p) % 64) : -1;
+  return p;
+}
+
+/* Opt-in conditional admission (E29).  Default 0: every existing deployment
+ * keeps the unconditional decision on CONTRACT_BOUNDED_BYTES byte for byte.
+ * Set to 1 only for an integrator that accepts the map precondition; the app
+ * then admits a budget that covers CONTRACT_PER_CALL_BYTES but not
+ * CONTRACT_BOUNDED_BYTES, enforces the precondition by construction (aligned
+ * image above) and VERIFIES it right after append, refusing before a single
+ * inference if the copy arm ran instead.  The transient that a failed
+ * verification has already paid is bounded by CONTRACT_BOUNDED_BYTES, which is
+ * why the conditional tier is never allowed to skip that check. */
+#ifndef AI_LEARNER_ALLOW_CONDITIONAL_MAP
+#define AI_LEARNER_ALLOW_CONDITIONAL_MAP 0
+#endif
+
 static int32 AI_LEARNER_Init(void) {
   CFE_EVS_Register(NULL, 0, CFE_EVS_EventFilter_BINARY);
 
@@ -223,14 +268,23 @@ static int32 AI_LEARNER_Init(void) {
     return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
   if ((long)CONTRACT_BOUNDED_BYTES > (long)AI_LEARNER_BUDGET_BYTES) {
-    CFE_EVS_SendEvent(EID_NOT_ADMITTED, CFE_EVS_EventType_CRITICAL,
-      "AI_LEARNER NOT_ADMITTED: contract bounded=%ld > budget=%ld; app will not start",
-      (long)CONTRACT_BOUNDED_BYTES, (long)AI_LEARNER_BUDGET_BYTES);
-    AI_LEARNER_AdmissionJson("NOT_ADMITTED");
-    AI_LEARNER_Cleanup();
-    return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+    /* E29: the conditional tier, when the integrator opted in, admits on the
+     * map arm's bound (per-call only).  It is not a weaker check -- it is the
+     * same contract read under a precondition this app enforces and then
+     * verifies after append (below), refusing before any inference if the arm
+     * it got was the copy arm. */
+    if (AI_LEARNER_ALLOW_CONDITIONAL_MAP && (long)CONTRACT_PER_CALL_BYTES <= (long)AI_LEARNER_BUDGET_BYTES) {
+      g.conditional_map = 1;
+    } else {
+      CFE_EVS_SendEvent(EID_NOT_ADMITTED, CFE_EVS_EventType_CRITICAL,
+        "AI_LEARNER NOT_ADMITTED: contract bounded=%ld > budget=%ld; app will not start",
+        (long)CONTRACT_BOUNDED_BYTES, (long)AI_LEARNER_BUDGET_BYTES);
+      AI_LEARNER_AdmissionJson("NOT_ADMITTED");
+      AI_LEARNER_Cleanup();
+      return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+    }
   }
-  AI_LEARNER_AdmissionJson("ADMIT");
+  AI_LEARNER_AdmissionJson(g.conditional_map ? "ADMIT_CONDITIONAL_MAP" : "ADMIT");
   /* EVIDENCE_v0.10 Phase 3 (R3 defense-in-depth): this app pushes exactly one
    * f32 input and pops exactly one f32 output (AI_LEARNER_Infer below).
    * gen_contract_header.py already refuses to emit a bound-known header whose
@@ -278,7 +332,7 @@ static int32 AI_LEARNER_Init(void) {
                     g.blob_len, (long)CONTRACT_ARTIFACT_BYTES);
     AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
-  g.blob = malloc((size_t)g.blob_len);
+  g.blob = AI_LEARNER_AllocModuleImage((size_t)g.blob_len, &g.module_ptr_mod64);
   if (!g.blob || fread(g.blob, 1, (size_t)g.blob_len, f) != (size_t)g.blob_len) {
     fclose(f);
     CFE_EVS_SendEvent(EID_NO_FILE, CFE_EVS_EventType_ERROR, "AI_LEARNER: cannot read %s (%ld B)", AI_LEARNER_MODEL_FILE, g.blob_len);
@@ -316,6 +370,36 @@ static int32 AI_LEARNER_Init(void) {
   /* ---- module load: the SAME verified bytes (zero-copy; blob freed after session release) ---- */
   st = iree_runtime_session_append_bytecode_module_from_memory(g.session, iree_make_const_byte_span(g.blob, (size_t)g.blob_len), iree_allocator_null());
   if (!iree_status_is_ok(st)) return AI_LEARNER_LoadFailed("append_bytecode_module", st);
+  /* E29: the try_map arm is decided here and nowhere else -- constants are
+   * either wrapped in place or copied during append, before any input buffer or
+   * inference exists, so this peak is the constant block alone.  Reported for
+   * every run (not only the conditional tier) so the arm a deployment landed on
+   * is in the record instead of inferred from the end-of-run peak. */
+  {
+    iree_hal_allocator_statistics_t s0;
+    iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &s0);
+    g.hal_peak_after_append = (long)s0.device_bytes_peak;
+  }
+  {
+    const char* arm = (g.hal_peak_after_append == 0) ? "map"
+                    : ((g.hal_peak_after_append == (long)CONTRACT_CONST_BYTES) ? "copy" : "other");
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"map_branch\",\"model\":\"%s\",\"module_ptr_mod64\":%d,"
+                    "\"hal_peak_after_append\":%ld,\"contract_const_bytes\":%ld,\"contract_per_call_bytes\":%ld,"
+                    "\"arm\":\"%s\",\"admission_mode\":\"%s\"}\n",
+                    CONTRACT_MODEL_NAME, g.module_ptr_mod64, g.hal_peak_after_append,
+                    (long)CONTRACT_CONST_BYTES, (long)CONTRACT_PER_CALL_BYTES, arm,
+                    g.conditional_map ? "conditional_map" : "unconditional");
+    if (g.conditional_map && g.hal_peak_after_append > (long)CONTRACT_PER_CALL_BYTES) {
+      CFE_EVS_SendEvent(EID_MAP_PRECONDITION, CFE_EVS_EventType_CRITICAL,
+        "AI_LEARNER MAP_PRECONDITION_FAILED: admitted on per_call=%ld but append peak=%ld (arm=%s, ptr%%64=%d); "
+        "app will not start", (long)CONTRACT_PER_CALL_BYTES, g.hal_peak_after_append, arm, g.module_ptr_mod64);
+      AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_FAILED\","
+                      "\"hal_peak_after_append\":%ld,\"contract_per_call_bytes\":%ld}\n",
+                      g.hal_peak_after_append, (long)CONTRACT_PER_CALL_BYTES);
+      AI_LEARNER_Cleanup();
+      return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+    }
+  }
 
   /* ---- input buffer (contract shape, f32), allocated once and rewritten per packet ---- */
   static const iree_hal_dim_t in_shape[CONTRACT_INPUT_RANK] = CONTRACT_INPUT_SHAPE;

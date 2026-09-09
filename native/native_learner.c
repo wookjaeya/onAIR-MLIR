@@ -29,6 +29,7 @@
  *   contract, so this should be unreachable for any header it produced; it only
  *   fires on a stale or hand-edited contract_gen.h).
  */
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,6 +63,7 @@ static struct {
   iree_runtime_session_t* session;
   iree_hal_buffer_view_t* x;
   void* blob; long blob_len;
+  int module_ptr_mod64; long hal_peak_after_append; int conditional_map;
   int cleanup_calls;
 } g;
 
@@ -104,6 +106,31 @@ static void status_to_json(iree_status_t st, char* out, size_t cap) {
   if (buf) iree_allocator_free(a, buf);
 }
 
+/* ---- E29 (docs/EVIDENCE_v0.31_E29.md): module image alignment ----------------
+ * IREE emits module-resident constants as `stream.resource.try_map` + an
+ * `scf.if(%did_map)`: the map arm allocates nothing on the HAL device, the copy
+ * arm allocates the whole constant block.  CONTRACT_BOUNDED_BYTES is the max
+ * over both, so admission on it stays sound whichever arm runs; E26 measured up
+ * to 172.30x between them for the SAME vmfb and left the determinant open.
+ *
+ * E29 identified it: iree_hal_heap_buffer_wrap() (runtime/src/iree/hal/
+ * buffer_heap.c) refuses an imported span that is not aligned to
+ * IREE_HAL_HEAP_BUFFER_ALIGNMENT (64), and the map arm is exactly that import.
+ * harness/e29_collect.py measured 64/64 cells (8 models x 8 alignment classes):
+ * map <=> 64-byte aligned, peak always 0 or exactly the constant block, never a
+ * third value.  plain malloc() handed this runtime a 16 mod 64 pointer, which is
+ * why every native/cFS cell in E26/E26e/E26f took the copy arm.
+ *
+ * A failed posix_memalign falls back to malloc -- correct, only less tight --
+ * and the arm actually taken is measured after append, never assumed. */
+static void* alloc_module_image(size_t n, int* out_mod64) {
+  void* p = NULL;
+  if (posix_memalign(&p, 64, n) != 0) p = NULL;
+  if (!p) p = malloc(n);
+  *out_mod64 = p ? (int)(((uintptr_t)p) % 64) : -1;
+  return p;
+}
+
 /* A5 path: IREE refused the artifact AFTER admission and binding passed (the
  * contract hash matched a corrupted artifact, or device/session creation
  * failed). Report, release every resource, exit 7. No abort. */
@@ -120,13 +147,28 @@ static int runtime_load_failed(const char* step, iree_status_t st) {
 }
 
 int main(int argc, char** argv) {
-  if (argc < 4) { fprintf(stderr, "usage: %s model.vmfb budget_bytes iters [inputs.bin outputs.bin]\n", argv[0]); return 2; }
+  if (argc < 4) { fprintf(stderr, "usage: %s model.vmfb budget_bytes iters [inputs.bin outputs.bin]\n"
+                          "  env ONAIR_CONDITIONAL_MAP=1 admits on the map arm's bound (per-call only) when the\n"
+                          "  budget does not cover bounded_bytes; the precondition is enforced and then verified\n"
+                          "  after module append, refusing before any inference if the copy arm ran (E29).\n", argv[0]); return 2; }
   const char* vmfb_path = argv[1]; long budget = atol(argv[2]); int iters = atoi(argv[3]);
+  { const char* cm = getenv("ONAIR_CONDITIONAL_MAP"); g.conditional_map = (cm && *cm == '1'); }
   if (iters < 1) iters = 1;
 
   /* ---- admission (before touching the runtime or even the artifact) ---- */
   long bounded = (long)CONTRACT_BOUNDED_BYTES;
-  const char* verdict = !GATE_BOUND_KNOWN ? "UNKNOWN_BOUND" : (bounded <= budget ? "ADMIT" : "NOT_ADMITTED");
+  /* E29 conditional tier: opt-in, and only when the budget does not already
+   * cover the unconditional bound. It is the same contract read under a
+   * precondition this runtime enforces (aligned module image) and then verifies
+   * after append -- not a weaker check. */
+  if (g.conditional_map && !(bounded <= budget) && (long)CONTRACT_PER_CALL_BYTES <= budget) {
+    /* stays conditional */
+  } else {
+    g.conditional_map = 0;
+  }
+  const char* verdict = !GATE_BOUND_KNOWN ? "UNKNOWN_BOUND"
+                      : (bounded <= budget ? "ADMIT"
+                      : (g.conditional_map ? "ADMIT_CONDITIONAL_MAP" : "NOT_ADMITTED"));
   printf("{\"stage\":\"admission\",\"verdict\":\"%s\",\"model\":\"%s\",\"target\":\"%s\","
          "\"bounded_bytes\":%ld,\"budget_bytes\":%ld,\"per_call\":%ld,\"constants\":%ld,"
          "\"kernel_stack_bytes\":%ld,\"bound_known\":%s}\n",
@@ -137,7 +179,7 @@ int main(int argc, char** argv) {
     printf("{\"stage\":\"exit\",\"reason\":\"bound unknown: contract has no static bound; refused before artifact access\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
     return 6;
   }
-  if (bounded > budget) { printf("{\"stage\":\"exit\",\"reason\":\"not admitted\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 3; }
+  if (bounded > budget && !g.conditional_map) { printf("{\"stage\":\"exit\",\"reason\":\"not admitted\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 3; }
   /* EVIDENCE_v0.10 Phase 3 (R3 defense-in-depth): this runtime pushes exactly
    * one f32 input and pops exactly one f32 output (below). gen_contract_header.py
    * already refuses to emit a bound-known header whose interface is not that
@@ -172,7 +214,7 @@ int main(int argc, char** argv) {
     printf("{\"stage\":\"exit\",\"reason\":\"contract does not describe this artifact; runtime not created\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
     return 5;
   }
-  g.blob = malloc((size_t)n); g.blob_len = n;
+  g.blob = alloc_module_image((size_t)n, &g.module_ptr_mod64); g.blob_len = n;
   if (!g.blob || fread(g.blob, 1, (size_t)n, f) != (size_t)n) {
     fclose(f); cleanup();
     printf("{\"stage\":\"exit\",\"reason\":\"cannot read artifact\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 4;
@@ -205,6 +247,27 @@ int main(int argc, char** argv) {
   /* ---- module load: the SAME verified bytes (zero-copy; blob freed after session release) ---- */
   st = iree_runtime_session_append_bytecode_module_from_memory(g.session, iree_make_const_byte_span(g.blob, (size_t)n), iree_allocator_null());
   if (!iree_status_is_ok(st)) return runtime_load_failed("append_bytecode_module", st);
+  /* E29: the try_map arm is decided during append and nowhere else -- before any
+   * input buffer or inference exists, so this peak is the constant block alone. */
+  {
+    iree_hal_allocator_statistics_t s0;
+    iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &s0);
+    g.hal_peak_after_append = (long)s0.device_bytes_peak;
+    const char* arm = (g.hal_peak_after_append == 0) ? "map"
+                    : ((g.hal_peak_after_append == (long)CONTRACT_CONST_BYTES) ? "copy" : "other");
+    printf("{\"stage\":\"map_branch\",\"model\":\"%s\",\"module_ptr_mod64\":%d,\"hal_peak_after_append\":%ld,"
+           "\"contract_const_bytes\":%ld,\"contract_per_call_bytes\":%ld,\"arm\":\"%s\",\"admission_mode\":\"%s\"}\n",
+           CONTRACT_MODEL_NAME, g.module_ptr_mod64, g.hal_peak_after_append,
+           (long)CONTRACT_CONST_BYTES, (long)CONTRACT_PER_CALL_BYTES, arm,
+           g.conditional_map ? "conditional_map" : "unconditional");
+    if (g.conditional_map && g.hal_peak_after_append > (long)CONTRACT_PER_CALL_BYTES) {
+      printf("{\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_FAILED\",\"hal_peak_after_append\":%ld,"
+             "\"contract_per_call_bytes\":%ld}\n", g.hal_peak_after_append, (long)CONTRACT_PER_CALL_BYTES);
+      cleanup();
+      printf("{\"stage\":\"exit\",\"reason\":\"map precondition failed; refused before any inference\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
+      return 10;
+    }
+  }
   long rss2 = rss_kb();
 
   /* ---- input buffer (contract shape, f32), allocated once and reused ---- */

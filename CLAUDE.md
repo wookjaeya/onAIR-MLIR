@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.30**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.31**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -463,6 +463,31 @@ revert-and-confirm-fail 양방향 실측(되돌리면 EXIT=139·0건, 고치면 
 실제로 쓰는지 확인하라"***다.
 
 
+
+**v0.31에서 완료된 것 (E29, `docs/EVIDENCE_v0.31_E29.md`)**: **E26이 미확정으로 남긴
+`stream.resource.try_map` 분기 결정 요인을 규명하고 제어했다** — 착수 순위표의 최우선 세 축 중
+"조건부 계약"이다. 결정 요인은 **모듈 이미지 포인터의 64바이트 정렬**이다:
+`iree_hal_heap_buffer_wrap()`(`runtime/src/iree/hal/buffer_heap.c`)이
+`IREE_HAL_HEAP_BUFFER_ALIGNMENT`(=64, `base/config.h:244`) 미정렬 span의 import를
+`OUT_OF_RANGE`로 거부하고 map 분기가 정확히 그 import다. 사전 고정 기준(D1 이분성·D2 결정
+요인)으로 **8모델 × 8 정렬 클래스 = 64셀** 측정 → **map 32 · copy 32 · 제3의 값 0**, 위반 0.
+두 C 경로가 blob을 `malloc`했고 glibc가 16/32 mod 64를 주었기 때문에 **E26·E26e·E26f의
+native·cFS 셀이 전부 copy 분기**였다. `posix_memalign(…,64,…)` 한 줄로 7모델 전부 map으로
+넘어갔고 **map 피크 = `per_call` 정확히 / copy 피크 = `bounded` 정확히**(7/7 양방향) —
+**E26이 배포 의존성으로 보고한 1.00×~172.30× 폭 전체가 이 한 포인터의 정렬**이었다.
+**E26 Q1(soundness)은 그대로**(bounded는 두 분기의 최댓값, copy가 그 값에 정확히 닿음);
+바뀐 것은 tightness의 *원인*이다. **조건부 admission은 계약 스키마 변경 0** —
+`B_map = CONTRACT_PER_CALL_BYTES`, `B_copy = CONTRACT_BOUNDED_BYTES`가 이미 헤더에 있다.
+opt-in 기본 off(기존 배포 판정 무변경), 전제조건을 **구성으로 강제**하고 append 직후
+**측정으로 검증**해 copy 분기면 추론 0건에서 거부. `bounded ≤ budget`이면 진입조차 않으므로
+**유형 (B) 위험 0**. cFS 실측: 예산 6,208 B에서 `NOT_ADMITTED`이던 b3_deepae가 opt-in 시 같은
+예산에서 5/5 완주, 피크 정확히 6,208(배치 예산 172배 감소). **D53**: 검증 블록만 빼면 6,208
+예산으로 **1,069,632(172배 초과)** 완주인데 `peak_within_bounded`는 `true` — 그 필드는
+`bounded`와 비교하지 **승인 근거 예산**과 비교하지 않는다. **교훈**: D52가 *"계약이 준 숫자를
+게이트가 실제로 쓰는지 확인하라"*였다면 이것은 ***"어느 숫자로 승인했는지와 어느 숫자로
+검증하는지가 같은지 확인하라"***다. 이 컨테이너 **304/304**, 보관 14개 계약 diff 0.
+**미실행(명시)**: AArch64 게스트 cFS 셀.
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -672,6 +697,11 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
   배포 독립성**이다. 같은 vmfb의 HAL 관측 피크가 배포에 따라 최대 **172.3×** 달라지는 반면
   정적 계약은 변하지 않는다. soundness는 관측 범위에서 위반 0(합성 4모델 + 실물 MLPerf Tiny 2),
   경계 판정은 `bounded−1`→DENY / `bounded`·`+1`→ADMIT.
+- **(v0.31/E29)** 그 **배포 의존성의 원인이 규명됐다** — `try_map` 분기는 모듈 이미지 포인터의
+  64바이트 정렬이 정한다(64/64셀, 위반 0). 따라서 **보수성은 내재적이지 않다**: 배포가 전제조건을
+  제어하면 조건부 값(`per_call`)이 7/7에서 **정확히** 관측 피크와 같다(1.00×). 계약은 두 값을
+  이미 싣고 있으므로 스키마 변경 없이 조건부로 읽을 수 있고, 그 전제조건은 **가정이 아니라 측정으로
+  검증**된다.
 - **(R-3, v0.29/E27)** MLIR 수준 정보의 기여는 **더 정확한 수치가 아니라 독립적인 두 번째
   정보원**이다. 정상 조건 8/8에서 아티팩트만 보는 분석기가 같은 값을 냈고, 차이는 컴파일러
   버전 드리프트에서만 났다 — 거기서 그 분석기는 **읽지 못한 것을 없다고 보고**한다(152× 과소,
@@ -688,8 +718,12 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
   동치는 하지 않았다(v0.22.1 정정)
 - **실제 비행 하드웨어**에서 검증됐다 → QEMU 게스트다
 - *"이 수치는 MLIR이라야 얻는다"* → **E27이 8/8에서 반증했다**
-- 계약이 **tight하다** → 배포에 따라 1.00×~172.3× 보수적이다. 주장할 것은 tightness가 아니라
-  배포 독립성이다
+- 계약이 **무조건 tight하다** → 무조건 계약(`bounded`)은 배포에 따라 1.00×~172.3× 보수적이다.
+  E29 이후 정확히 말하면: **조건부 값(`per_call`)은 전제조건이 성립할 때 tight하고(7/7 1.00×),
+  무조건 값(`bounded`)은 두 분기의 최댓값이라 항상 sound하되 map 분기에서 느슨하다.**
+  전제조건을 검증 없이 가정하면 그것이 곧 fail-open이다(D53)
+- **모든** 배포에서 map 분기를 보장한다 → 이 앱이 자기 blob의 정렬을 보장할 뿐이고, 다른 IREE
+  버전·드라이버에서 copy 분기의 원인이 정렬뿐이라고는 주장하지 않는다. 그래서 앱이 분기를 측정한다
 - 관측한 모델·배포·컴파일러 버전 **밖으로의 일반화** → E26의 분기 결정 요인은 미확정이고,
   E27의 (b) 실패는 n=1이다
 
@@ -786,7 +820,10 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.30_E28.md       ★ 최신. D52 — admission 게이트 자신의 fail-open(게이트가 통과시킨 뒤
+  EVIDENCE_v0.31_E29.md       ★ 최신. 조건부 계약 — try_map 분기 결정 요인 = 모듈 이미지의 64바이트
+                               정렬(64/64셀 위반 0). 제어 시 map 피크 = per_call 정확히, cFS 예산 172배 감소.
+                               D53(승인 근거 예산과 검증 기준이 달라 생기는 fail-open)을 출하 전 차단
+  EVIDENCE_v0.30_E28.md        D52 — admission 게이트 자신의 fail-open(게이트가 통과시킨 뒤
                                SIGSEGV). 부수로 B2·B3 cFS 셀 완주
   EVIDENCE_v0.29_E27.md         R-3 답 — 정상 8/8은 (b)=(c), 차이는 교란에서만.
                                MLIR의 기여는 정확도가 아니라 독립적인 두 번째 정보원(D51 포함)
@@ -859,6 +896,13 @@ harness/                    실험 스크립트
                                full 169/169+1 SKIP · without-iree 85/85+9 · stdlib-only 85/85+9,
                                크래시 없음(E22+E23 D24·D25, E24 N6·D33). 이 컨테이너는 PyYAML이
                                있어 170/170
+  e29_align_probe.c           ★ E29: 같은 파일 바이트를 정렬 클래스별 주소에 적재하고 append 직후 HAL
+                               피크만 읽는 계측기 — 그 시점엔 입력 버퍼도 추론도 없어 상수 블록 단독이다.
+                               **기준 계측기이므로 fail-closed 가드를 넣지 말 것**(E27 기준선과 같은 이유)
+  e29_collect.py              ★ E29: 위 프로브를 8모델 × 8 정렬 클래스로 돌려 D1(이분성)·D2(결정 요인)를
+                               판정. 제3의 피크 값이 나오면 두 분기 모델 자체가 반증된다
+  e29_no_posix_memalign.c     ★ E29 시험 shim: posix_memalign을 실패시켜 E29 이전 동작(copy 분기)을
+                               재현하고, 조건부 계층의 거부 경로(앱이 스스로 정렬하므로 달리 도달 불가)를 연다
   e26_collect.py              ★ E26: 사전 고정 기준을 셀별로 적용하는 수집기 — Q1(peak<=bounded)·
                                Q2(try_map 분기 가설)·Q3(예산 경계) 판정과 core/ext 층 분리
   e27_baseline_source_tensors.py ★ E27 기준선 (a): 소스 `.mlir`만 보는 추정기. 재사용·정렬·할당
@@ -901,6 +945,8 @@ results/e26_boundary_utility/  ★ E26 계열 전체: 사전 고정 기준(docs/
                              instrumentation_check/, x86_64|aarch64/{native,cfs,pip_runtime}/,
                              mlperf_tiny_{resnet,vww}_fixture/, x86_64/ext_b{2,3}_*/ (실물 워크로드
                              단일 호출 산출물 + 측정), aarch64/a5b_canonical/, comparison/, summary.json
+results/e29_conditional_contract/  ★ E29: 64셀 정렬 스윕(align_sweep.json), 7모델 before/after
+                             (native_sweep.jsonl), cFS 4셀 raw log(cfs/), revert 기록, summary.json
 results/e27_baselines/      ★ E27: iree310_mlp16k/(버전 드리프트 실물 근거)와 summary.json
                              (네 정보 수준 x 네 조건의 셀별 판정)
 results/e26c_multiout/      ★ E26c/D49: 한 번의 iree-compile 호출 산출물(128 KB) — bounded 704

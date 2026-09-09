@@ -2407,6 +2407,131 @@ EXT_B3_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utilit
 E27_SUMMARY = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "summary.json")
 
 
+E29_DIR = os.path.join(os.path.dirname(HERE), "results", "e29_conditional_contract")
+
+
+def e29_conditional_contract_cases():
+    """E29: the `stream.resource.try_map` arm is decided by ONE deployment property.
+
+    E26 measured the same vmfb peaking anywhere from `per_call` to
+    `per_call + constants` depending on the deployment (up to 172.30x, E26f) and
+    recorded the determinant as UNDETERMINED after ruling out four candidates.
+    E29 identified it in IREE's own source -- `iree_hal_heap_buffer_wrap()`
+    refuses an imported span that is not 64-byte aligned, and the map arm is
+    exactly that import -- and measured it: 64 cells (8 models x 8 alignment
+    classes) split 32 map / 32 copy with the arm agreeing with the alignment in
+    every cell and no third peak value anywhere.
+
+    Two things follow, and both are pinned here.
+
+    (1) `bounded_bytes` was never unsound: it is the max over the arms, and the
+        copy arm hits it exactly while the map arm hits `per_call` exactly.  E26
+        Q1 is untouched.  What changes is tightness, and it is not intrinsic --
+        it is a property of one pointer the deploying app allocates itself.
+    (2) Both C paths therefore allocate the module image aligned, and the
+        conditional admission tier (opt-in) admits on the map arm's bound while
+        VERIFYING the arm after append and refusing before any inference if the
+        copy arm ran.  A revert of either half must fail here: without the
+        aligned allocation the map cells stop reproducing, and without the
+        post-append verification the conditional tier becomes a fail-open."""
+    results = []
+    sweep_p = os.path.join(E29_DIR, "align_sweep.json")
+    summ_p = os.path.join(E29_DIR, "summary.json")
+    if not (os.path.exists(sweep_p) and os.path.exists(summ_p)):
+        results.append(Result("e29: fixture preserved", False, "missing %s / %s" % (sweep_p, summ_p)))
+        return results
+    sweep = load(sweep_p)
+    summ = load(summ_p)
+
+    # --- the determinant, cell by cell -------------------------------------
+    cells = sweep["cells"]
+    graded = [c for c in cells if c["arm"] != "append_failed"]
+    results.append(Result("e29: alignment sweep is 64 graded cells (8 models x 8 classes)",
+                          len(graded) == 64, "graded=%d of %d" % (len(graded), len(cells))))
+    results.append(Result("e29: no cell produced a third peak value (two-arm model exact)",
+                          all(c["arm"] in ("map", "copy") for c in graded),
+                          "arms=%s" % sorted({c["arm"] for c in graded})))
+    results.append(Result("e29: map arm <=> 64-byte aligned module image, in every cell",
+                          all((c["arm"] == "map") == (c["blob_ptr_mod64"] == 0) for c in graded),
+                          "mismatched cells=%s" % [(c["model"], c["delta"], c["arm"])
+                                                   for c in graded
+                                                   if (c["arm"] == "map") != (c["blob_ptr_mod64"] == 0)][:4]))
+    results.append(Result("e29: map cells allocate nothing for constants, copy cells allocate exactly them",
+                          all((c["init_peak"] == 0) if c["arm"] == "map"
+                              else (c["init_peak"] == c["contract_constants"]) for c in graded),
+                          "off cells=%s" % [(c["model"], c["arm"], c["init_peak"], c["contract_constants"])
+                                            for c in graded
+                                            if (c["init_peak"] != 0 if c["arm"] == "map"
+                                                else c["init_peak"] != c["contract_constants"])][:4]))
+
+    # --- the two arms land on the two contract terms, exactly ---------------
+    tbl = summ["native_x86_64"]
+    results.append(Result("e29: 7 models measured both ways on x86-64 native",
+                          len(tbl) == 7, "models=%d" % len(tbl)))
+    results.append(Result("e29: map arm peak == contract per_call, every model "
+                          "(the conditional bound is tight, not merely sound)",
+                          all(r["aligned_arm"] == "map" and r["aligned_end_peak"] == r["per_call"] for r in tbl),
+                          "off=%s" % [(r["model"], r["aligned_arm"], r["aligned_end_peak"], r["per_call"])
+                                      for r in tbl if r["aligned_end_peak"] != r["per_call"]][:4]))
+    results.append(Result("e29: copy arm peak == contract bounded, every model "
+                          "(bounded is the max over the arms -- E26 Q1 untouched)",
+                          all(r["malloc_arm"] == "copy" and r["malloc_end_peak"] == r["bounded"] for r in tbl),
+                          "off=%s" % [(r["model"], r["malloc_arm"], r["malloc_end_peak"], r["bounded"])
+                                      for r in tbl if r["malloc_end_peak"] != r["bounded"]][:4]))
+    # E26f reported 172.30x as the widest deployment gap it saw; E29 says that
+    # number is bounded/per_call for that model -- i.e. the gap WAS the arm.
+    b3 = [r for r in tbl if r["model"] == "b3_deepae"]
+    results.append(Result("e29: E26f's 172.30x deployment gap equals b3_deepae bounded/per_call",
+                          bool(b3) and round(b3[0]["bounded"] / b3[0]["per_call"], 2) == 172.30,
+                          "b3=%s" % (b3[0] if b3 else None)))
+
+    # --- the deployment change, at source level (revert must fail here) -----
+    root = os.path.dirname(HERE)
+    for label, path, fn in (
+            ("native_learner.c", os.path.join(root, "native", "native_learner.c"), "alloc_module_image"),
+            ("ai_learner.c", os.path.join(root, "native", "cfs_app", "fsw", "src", "ai_learner.c"),
+             "AI_LEARNER_AllocModuleImage")):
+        src = open(path, encoding="utf-8", errors="replace").read()
+        results.append(Result("e29: %s allocates the module image 64-byte aligned" % label,
+                              "posix_memalign(&p, 64, n)" in src and (fn + "((size_t)") in src,
+                              "expected posix_memalign(...,64,...) via %s() in %s" % (fn, label)))
+        results.append(Result("e29: %s measures the arm actually taken after append" % label,
+                              "hal_peak_after_append" in src and "iree_hal_allocator_query_statistics" in src,
+                              "no post-append allocator query in %s" % label))
+        results.append(Result("e29: %s conditional tier verifies the precondition instead of assuming it" % label,
+                              "MAP_PRECONDITION_FAILED" in src
+                              and "hal_peak_after_append > (long)CONTRACT_PER_CALL_BYTES" in src,
+                              "conditional tier in %s does not refuse on a copy arm" % label))
+
+    cm = open(os.path.join(root, "native", "cfs_app", "CMakeLists.txt"), encoding="utf-8").read()
+    results.append(Result("e29: conditional admission is opt-in (default 0), so existing "
+                          "deployments keep the unconditional decision",
+                          "set(AI_LEARNER_ALLOW_CONDITIONAL_MAP 0 CACHE STRING" in cm,
+                          "default for AI_LEARNER_ALLOW_CONDITIONAL_MAP is not 0"))
+
+    # --- the four cFS cells, as recorded -----------------------------------
+    cfs = summ["cfs_x86_64"]
+    want = [
+        ("unconditional_B", "ADMIT", False, 6208, True),
+        ("percall_budget_no_optin", "NOT_ADMITTED", False, None, False),
+        ("conditional_map_admit", "ADMIT_CONDITIONAL_MAP", False, 6208, True),
+        ("conditional_map_precondition_failed", "ADMIT_CONDITIONAL_MAP", True, None, False),
+    ]
+    for tag, verdict, refused, peak, ran in want:
+        c = cfs.get(tag, {})
+        ok = (c.get("admission_verdict") == verdict and bool(c.get("refused")) == refused
+              and c.get("end_hal_peak") == peak and (c.get("inferences", 0) > 0) == ran)
+        results.append(Result("e29 cFS: %s -> %s%s" % (tag, verdict, " then refused" if refused else ""),
+                              ok, "recorded=%s" % c))
+    results.append(Result("e29 cFS: a model denied at a 6,208 B budget runs at that budget "
+                          "under the verified precondition, at peak 6,208",
+                          cfs.get("percall_budget_no_optin", {}).get("admission_verdict") == "NOT_ADMITTED"
+                          and cfs.get("conditional_map_admit", {}).get("end_hal_peak") == 6208,
+                          "deny=%s cond=%s" % (cfs.get("percall_budget_no_optin"),
+                                               cfs.get("conditional_map_admit"))))
+    return results
+
+
 E28_DIR = os.path.join(os.path.dirname(HERE), "results", "e28_stack_failopen")
 
 
@@ -3021,6 +3146,7 @@ def main():
         all_results += ext_b3_deepae_cases()
         all_results += e27_information_level_cases()
         all_results += e28_stack_failopen_cases()
+        all_results += e29_conditional_contract_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
