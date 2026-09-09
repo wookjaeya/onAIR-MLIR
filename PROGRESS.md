@@ -1,6 +1,12 @@
 # PROGRESS — Contract-Guided MLIR Lowering for AI Deployment in NASA OnAIR/cFS
 
-**기준 버전**: v0.3.1 (git tag `v0.3.1`) — v0.4 이후의 총괄은 `REPORT_v0.4.md` 참조
+**기준 버전**: v0.3.1 — 이 문서는 그 시점의 한 장 요약이며, **현재 상태의 정본이 아니다.**
+> **현재 버전은 v0.25다.** 최신 상태는 `CLAUDE.md`(프로젝트 컨텍스트·우선순위) →
+> `EXPERIMENT_LOG.md`(실험 레지스트리·결함 원장) → `CHANGELOG.md` 순으로 읽는다.
+> v0.4 총괄은 `REPORT_v0.4.md`, 최신 판정은 `docs/EVIDENCE_v0.25_E26.md`(계약 경계의 유용성:
+> Q1·Q3 PASS, tightness 1.00×~45.50×)이고 다음 계획은 `docs/plans/E26_boundary_utility.md`·
+> `docs/plans/E27_mlir_contribution.md`다.
+> 아래 본문은 v0.3.1 시점 그대로 보존한다(작업 규율 5: 고쳐쓰지 않는다).
 **문서 역할**: 현재까지의 진행 상황을 한 장으로 요약하는 정본. 세부 수치·판정 근거는 `docs/EVIDENCE_v0.*.md`, 실험 등록은 `EXPERIMENT_LOG.md`, 변경 이력은 `CHANGELOG.md`가 정본이다.
 
 ---

@@ -1243,12 +1243,66 @@
       "runner": "native",
       "tag": "Bp1",
       "target": "aarch64"
+    },
+    {
+      "admission": "ADMIT",
+      "bounded": 786476,
+      "budget": 786476,
+      "constants": 720896,
+      "e25_mode_proven_off": true,
+      "file": "results/e26_boundary_utility/aarch64/cfs/canonical_B.log",
+      "hal_peak": 786476,
+      "hal_peak_after_first_call": null,
+      "hal_peak_after_init": 720932,
+      "layer": "core",
+      "model": "canonical",
+      "per_call": 65580,
+      "q1_sound": true,
+      "q2_branch": "allocated",
+      "q3_gradeable": true,
+      "q3_overconservative_band": 0,
+      "q3_unsafe_admit": false,
+      "rss": {
+        "after_session_kb": 7324,
+        "before_runtime_kb": 6980,
+        "init_kb": 8488
+      },
+      "runner": "cfs",
+      "tag": "B",
+      "target": "aarch64"
+    },
+    {
+      "admission": "ADMIT",
+      "bounded": 786476,
+      "budget": 786477,
+      "constants": 720896,
+      "e25_mode_proven_off": true,
+      "file": "results/e26_boundary_utility/aarch64/cfs/canonical_Bp1.log",
+      "hal_peak": 786476,
+      "hal_peak_after_first_call": null,
+      "hal_peak_after_init": 720932,
+      "layer": "core",
+      "model": "canonical",
+      "per_call": 65580,
+      "q1_sound": true,
+      "q2_branch": "allocated",
+      "q3_gradeable": true,
+      "q3_overconservative_band": 0,
+      "q3_unsafe_admit": false,
+      "rss": {
+        "after_session_kb": 7376,
+        "before_runtime_kb": 7036,
+        "init_kb": 8488
+      },
+      "runner": "cfs",
+      "tag": "Bp1",
+      "target": "aarch64"
     }
   ],
   "summary": {
-    "cells": 47,
-    "cells_with_a_run": 35,
-    "core_cells": 33,
+    "cells": 49,
+    "cells_with_a_run": 37,
+    "core_cells": 35,
     "criteria_source": "docs/plans/E26_boundary_utility.md section 2 (fixed before measurement)",
     "e25_mode_unproven": [],
     "ext_cells": 2,
@@ -1258,7 +1312,7 @@
     "q1_pass_ext": true,
     "q1_violations": [],
     "q2_branches": {
-      "allocated": 25,
+      "allocated": 27,
       "mapped": 10
     },
     "q2_hypothesis_refuted": [],

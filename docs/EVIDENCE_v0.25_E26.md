@@ -20,12 +20,15 @@
 `results/e26_boundary_utility/summary.json`(사전 고정 기준을 그대로 적용한 `e26_collect.py` 출력):
 
 ```
-cells 27, cells_with_a_run 21
-q1_pass True    q1_violations []
-q3_pass True    q3_unsafe_admits []    q3_ungradeable []
-q2_branches {'allocated': 16, 'mapped': 5}    q2_hypothesis_refuted []
+cells 49, cells_with_a_run 37   (core 35 / ext 2)
+q1_pass True    q1_pass_core True    q1_pass_ext True    q1_violations []
+q3_pass True    q3_unsafe_admits []  q3_ungradeable []
+q2_branches {'allocated': 27, 'mapped': 10}    q2_hypothesis_refuted []
 e25_mode_unproven []
 ```
+
+**§3의 분기 가설은 37개 실행 셀 전부에서 유지됐다**(`q2_hypothesis_refuted: []`) — 모든 peak가
+`per_call` 또는 `per_call + constants` 둘 중 하나와 **정확히** 같았고, 그 사이의 값은 하나도 없다.
 
 그리고 이 실험은 **E14가 남기고 E25가 채우지 못한 `both_sound: null` 공백을 실제로 닫았다**
 (v0.22.1의 D45 정정이 지적한 바로 그 항목) — 3모델 전부 `both_sound: true`.
@@ -88,6 +91,14 @@ tightness만 어느 분기가 실행됐는지의 함수다.
 | 소스 빌드 C 런타임, x86-64 `native_learner` | 3,528 할당 | 786,476 할당 | 38,216 할당 |
 | 같은 런타임을 링크한 **cFS 앱**, x86-64 | 3,528 할당 | 786,476 할당 | 38,216 할당 |
 | 소스 빌드 C 런타임, AArch64 qemu-user | **1,352** 매핑 | 786,476 할당 | **840** 매핑 |
+| 같은 런타임을 링크한 **cFS 앱, AArch64 게스트** (canonical) | — | 786,476 할당 | — |
+
+AArch64 게스트 cFS 셀(canonical, `B`·`B+1`)은 실제 QEMU 게스트에서 `core-cpu1`을 기동해 얻었고
+`e25_mode active=false`로 측정 위생을 증언했다. `mem_init` peak 720,932(추론 0회) → 정상 실행
+786,476으로 x86-64 cFS와 같은 분기다. **게스트 `B−1` 셀은 빌드되지 않는다** — 예산이 bound보다
+작으면 컴파일러가 admission 실패를 정적으로 판정해 artifact-binding 코드를 죽은 코드로 제거하고
+빌드 검증이 사라진 sha256 문자열을 보고한다(앱 결함이 아니며, DENY 동작은 x86-64 cFS의 `B−1`
+셀이 이미 보였다. 계획 §4.0).
 
 `bounded_bytes`: conv2d 3,528 · mlp16k 786,476 · multibranch 38,216 (두 ISA 동일).
 
