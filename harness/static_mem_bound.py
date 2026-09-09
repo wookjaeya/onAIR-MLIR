@@ -226,9 +226,39 @@ def artifact_rodata_segments(vmfb):
         if kind == "external":
             external.append(n)
             data.append(n)
-        elif "`" not in rest:
+        elif not _is_string_label(rest, n):
             data.append(n)
     return external, data
+
+
+_RODATA_LABEL = re.compile(r"`([^`]*)`")
+
+
+def _is_string_label(rest, nbytes):
+    """Is this embedded .rodata segment a metadata STRING (a name IREE stores,
+    e.g. `hal.device.id`) rather than constant DATA?
+
+    D48 (E26b): the test used to be `"`" in rest` -- any backticks at all meant
+    "not data". iree-dump-module renders an embedded segment's content between
+    backticks when it looks printable, so a genuine 2,816-byte f32 constant block
+    whose first byte is NUL prints as an EMPTY pair of backticks and was dropped
+    from the observed constant total. The contract's own constants figure then
+    contradicted the observation, and N1/D28's constants gate (correctly, given
+    what it was told) refused the model unless --allow-unconfirmed-constants was
+    passed -- which marks the contract `overridden` and makes the header
+    generator refuse it in turn (E24b/D39). An honest f32 model could not produce
+    a deployable header.
+
+    The discriminator is the label's own length: IREE prints the whole string, so
+    for a real string segment len(label) == nbytes. Checked against every
+    backticked .rodata line in this repository's stored artifacts plus the probe
+    models -- 137 lines, 136 satisfy it, and the single exception is exactly the
+    mis-classified data segment. A segment with no backticks at all is data, as
+    before. Anything ambiguous stays DATA, which is the conservative direction
+    here: over-counting observed constants makes the cross-check refuse (visible),
+    under-counting makes it silently accept a wrong figure."""
+    m = _RODATA_LABEL.search(rest)
+    return bool(m) and len(m.group(1)) == nbytes
 
 
 def source_baked_f32_constant_bytes(mlir_path):

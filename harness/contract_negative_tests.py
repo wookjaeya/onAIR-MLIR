@@ -2387,6 +2387,70 @@ def call_resolution_cases(tmp):
     return results
 
 
+def rodata_label_cases():
+    """D48 (E26b): an embedded .rodata segment must be classified as constant DATA or
+    as a metadata STRING by the label's length, not by the mere presence of backticks.
+
+    iree-dump-module renders an embedded segment's bytes between backticks whenever they
+    look printable, so a genuine constant block whose first byte is NUL prints as an EMPTY
+    backtick pair. The old test (`"`" in rest`) dropped it from the observed constant
+    total; the contract's own figure then contradicted the observation and N1/D28's gate
+    refused the model unless --allow-unconfirmed-constants was passed -- which marks the
+    contract `overridden`, which E24b/D39's header gate refuses in turn. Net effect: an
+    honest f32 model could not produce a deployable header. Type (B), over-rejection.
+
+    The fixture is a real vmfb exhibiting it (D43's rule: a fix justified by "a real model
+    does X" needs that model in the tree)."""
+    import static_mem_bound as smb                            # noqa: PLC0415 - local module
+    results = []
+    # D24/D32's lesson applied to this file itself: a missing prerequisite must FAIL
+    # cleanly, never take the whole suite down with an AttributeError. Reverting the fix
+    # to reproduce the defect is exactly when that happens.
+    is_string_label = getattr(smb, "_is_string_label", None)
+    if is_string_label is None:
+        return [Result("rodata-label: static_mem_bound exposes the label discriminator", False,
+                       "static_mem_bound._is_string_label is missing (pre-D48 code?)")]
+
+    # unit: the discriminator itself, no external tool needed
+    units = [
+        ("real string label (len == size)", "` `hal.device.id`".replace("` ", " "), 13, True),
+        ("empty label on a 2816 B data segment", " ``", 2816, False),
+        ("no label at all", " ", 704, False),
+        ("label shorter than the segment", " `ab`", 64, False),
+        ("label longer than the segment", " `abcdef`", 3, False),
+    ]
+    for name, rest, n, expect in units:
+        got = is_string_label(rest, n)
+        results.append(Result("rodata-label: %s -> %s" % (name, "string" if expect else "data"),
+                              got is expect, "got %r" % got))
+
+    fx = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utility",
+                      "empty_label_rodata_fixture", "empty_label_rodata.vmfb")
+    if not os.path.exists(fx):
+        results.append(Result("rodata-label: empty-label fixture present", False, "missing %s" % fx))
+        return results
+    if not iree_tools_available():
+        results.append(Result("rodata-label: real vmfb with an empty-label data segment is counted",
+                              True, "iree-dump-module not installed", skip=True))
+        return results
+    ext, data = smb.artifact_rodata_segments(fx)
+    results.append(Result("rodata-label: real vmfb -- the 2816 B empty-label segment counts as data",
+                          bool(data is not None and 2816 in data and sum(data) == 7856),
+                          "external=%s data=%s" % (ext, data)))
+    # and the metadata strings in the SAME dump must still be excluded
+    results.append(Result("rodata-label: metadata strings in the same dump stay excluded",
+                          bool(data is not None and 13 not in data and 6 not in data and 21 not in data),
+                          "data=%s" % (data,)))
+    # stored models must be unaffected (they had no empty-label segments)
+    canon = os.path.join(os.path.dirname(HERE), "results", "e25_equivalence", "build",
+                         "model_canonical.vmfb")
+    if os.path.exists(canon):
+        e2, d2 = smb.artifact_rodata_segments(canon)
+        results.append(Result("rodata-label: E25 canonical unchanged (720896 + 5128, no extras)",
+                              bool(d2 == [720896, 5128]), "data=%s" % (d2,)))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -2411,6 +2475,7 @@ def main():
         all_results += e25_compare_rule_cases(tmp)
         all_results += e26_instrumentation_expect_cases()
         all_results += call_resolution_cases(tmp)
+        all_results += rodata_label_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
