@@ -1495,12 +1495,93 @@ def documented_smoke_path_cases(tmp):
     return results
 
 
+def preserved_manyconst31_cases():
+    """E24c / F4 (external review v0.20): the >24-segment case that motivated D38
+    was pinned only by a SYNTHESISED 31-integer array. The review correctly noted
+    that no real IREE artifact exhibiting it was preserved, so the claim
+    "a single honest compile produces more segments than the old cap" was not
+    reproducible from repository contents -- and this repo's own discipline
+    (작업 규율 4, evidence grading) says a claim used to justify a decision must be
+    backed by preserved evidence.
+
+    results/e24c_manyconst31/ now holds ONE iree-compile invocation's outputs
+    (generator: harness/gen_model_manyconst.py). These checks read the recorded
+    segment list from invocation.json, so they are stdlib-only and run in every CI
+    leg; the two that need the real tools re-observe the vmfb and are SKIPped
+    without them."""
+    results = []
+    root = os.path.join(HERE, "..", "results", "e24c_manyconst31")
+    inv_path = os.path.join(root, "invocation.json")
+    contract_path = os.path.join(root, "manyconst31.contract.json")
+    if not (os.path.isfile(inv_path) and os.path.isfile(contract_path)):
+        return [Result("manyconst31: preserved bundle present", False,
+                       "missing %s" % os.path.relpath(inv_path))]
+    inv = load(inv_path)
+    contract = load(contract_path)
+    segs = inv.get("observed_data_segments") or []
+    total = contract["resources"]["module_resident_constant_bytes"]
+
+    results.append(Result("manyconst31: preserved bundle records MORE segments than the old 24 cap",
+                          len(segs) > 24 and len(segs) == inv.get("observed_data_segment_count"),
+                          "%d segments, recorded count %s" % (len(segs), inv.get("observed_data_segment_count"))))
+    results.append(Result("manyconst31: the contract's constant total is the recorded one",
+                          isinstance(total, int) and total == inv.get("module_resident_constant_bytes"),
+                          "contract=%r invocation.json=%r" % (total, inv.get("module_resident_constant_bytes"))))
+
+    # the point of the bundle: current code says True, the pre-E24b truncation says False.
+    try:
+        import make_contract as mc
+        cur = mc.subset_sum_match(total, list(segs))
+    except Exception as e:                                    # pragma: no cover - import guard
+        cur = "ERROR: %s" % e
+    results.append(Result("manyconst31: current tri-state subset_sum_match confirms the total (True)",
+                          cur is True, "got %r" % (cur,)))
+
+    def pre_e24b_subset_sum_match(tot, ss, max_segments=24):
+        """The implementation as it stood before D38: positional truncation."""
+        if not ss or tot is None or tot <= 0:
+            return False
+        ss = ss[:max_segments]
+        reach = {0}
+        for v in ss:
+            reach |= {r + v for r in reach if r + v <= tot}
+            if tot in reach:
+                return True
+        return tot in reach
+
+    old = pre_e24b_subset_sum_match(total, list(segs))
+    results.append(Result("manyconst31: the PRE-E24b truncation contradicts the same honest total (False)",
+                          old is False,
+                          "got %r; first 24 segments sum to %d < %d"
+                          % (old, sum(list(segs)[:24]), total)))
+    results.append(Result("manyconst31: the shipped contract records the constants as independently confirmed",
+                          contract["resources"].get("constants_independently_confirmed_in_artifact") is True,
+                          "%r" % contract["resources"].get("constants_independently_confirmed_in_artifact")))
+
+    # re-observe the artifact itself when the real tools are here
+    vmfb = os.path.join(root, "manyconst31.vmfb")
+    if not iree_tools_available():
+        results.append(Result("manyconst31: re-observed segments match the recorded ones",
+                              True, "iree-dump-module not on PATH", skip=True))
+    else:
+        ext2, data2 = smb.artifact_rodata_segments(vmfb)
+        results.append(Result("manyconst31: re-observed segments match the recorded ones",
+                              data2 == list(segs) and ext2 == (inv.get("observed_external_segments") or []),
+                              "re-observed %d segments (recorded %d)"
+                              % (len(data2 or []), len(segs))))
+    return results
+
+
 def subset_sum_tristate_cases():
     """R4 (external review v0.19-reframe, E24b): subset_sum_match() used to return
     a plain False for three different states, and truncated enumeration at 24
     segments. The reachable half was not the skipped gate but the FALSE FIELD: a
     single honest iree-compile with the stock flag
-    --iree-stream-resource-max-allocation-size=1024 yields 31 data segments, and
+    --iree-stream-resource-max-allocation-size=1024 yields more data segments than
+    the old 24-segment cap (measured on the preserved bundle in
+    results/e24c_manyconst31/: 33 by this repo's own artifact_rodata_segments --
+    32 embedded 1024 B constant slabs plus one external segment -- for a model of
+    31 constants; see preserved_manyconst31_cases() below), and
     the old code then wrote `constants_independently_confirmed_in_artifact: false`
     plus a note stating "NOT matched" about a total that DOES match -- a false
     assertion in a shipped contract, copied onward by cross_target_compare.py.
@@ -1759,6 +1840,7 @@ def main():
         all_results += structural_hard_fail_cases(a.root)
         all_results += structural_bugfix_regression_cases(a.root, tmp)
         all_results += documented_smoke_path_cases(tmp)
+        all_results += preserved_manyconst31_cases()
         all_results += subset_sum_tristate_cases()
         all_results += workflow_yaml_cases()
         all_results += r5_waive_wrapping_cases()

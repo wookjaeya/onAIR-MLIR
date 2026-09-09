@@ -217,11 +217,21 @@ def packed_constant_buffers(ir):
 # R4 (external review v0.19-reframe, E24b): the enumeration budget is now on the
 # TOTAL, not on the number of segments. The old `max_segments=24` truncation was
 # the reachable half of R4: a single honest `iree-compile` with the stock flag
-# --iree-stream-resource-max-allocation-size=1024 yields 31 data segments, and the
-# old code then silently dropped segments 25.. and reported "NOT matched" about a
-# total that DOES match -- a factually false assertion in a shipped contract,
-# copied onward by cross_target_compare.py. Measured cost of the bitset form:
-# 0.1 ms at that real 31-segment case. The cap below only bounds the bitset width.
+# --iree-stream-resource-max-allocation-size=1024 yields more data segments than
+# that cap, and the old code then silently dropped segments 25.. and reported
+# "NOT matched" about a total that DOES match -- a factually false assertion in a
+# shipped contract, copied onward by cross_target_compare.py.
+#
+# E24c/F4 (external review v0.20) pointed out that this claim was pinned only by a
+# synthesised integer array, with no real artifact preserved. It now is:
+# results/e24c_manyconst31/ is ONE invocation of that exact flag on a 31-constant
+# model (harness/gen_model_manyconst.py), and this repo's own
+# artifact_rodata_segments() counts 33 data segments there (32 embedded 1024 B
+# constant slabs + 1 external) against a constant total of 33792 B. Measured on
+# that bundle: this implementation returns True in ~0.1 ms; the pre-E24b
+# truncation returns False, because the first 24 segments sum to 24576 B < 33792 B.
+# Both verdicts are pinned by preserved_manyconst31_cases() in
+# harness/contract_negative_tests.py. The cap below only bounds the bitset width.
 SUBSET_SUM_MAX_TOTAL = 1 << 28   # 256 MiB of module-resident constants
 
 
