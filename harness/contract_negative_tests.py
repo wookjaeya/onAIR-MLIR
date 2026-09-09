@@ -1255,6 +1255,14 @@ IGNORE_PROVENANCE_KEYS = {
     # overrides_applied=[] / verification_grade="verified"), and pinned as such
     # by r5_override_recording_cases() below rather than by this diff.
     "overrides_applied", "verification_grade",
+    # F3 (E24c): the machine-readable twin of the pre-existing
+    # resources.constants_check_note prose. Another new recorded fact -- the 14
+    # stored contracts predate it and every number in the regeneration still has
+    # to match exactly. Pinned separately by subset_sum_tristate_cases() and by
+    # the header/contract negative cases, not by this diff.
+    # (Despite the constant's name this set is matched against the LAST path
+    # component, so it covers resources.* as well as provenance.*.)
+    "constants_confirmation_state",
 }
 # E19: provenance.structural_walker is a field the 14 stored (pre-E19) contracts
 # never had -- comparing it leaf-by-leaf against IGNORE_PROVENANCE_KEYS by bare
@@ -1531,6 +1539,99 @@ def documented_smoke_path_cases(tmp):
     return results
 
 
+def constants_budget_gate_cases(root):
+    """F3 (external review v0.20, E24c): a constants confirmation that could not be
+    evaluated because the total exceeded the enumeration budget used to leave a
+    bound-known contract with the independent artifact-side check silently NOT
+    MADE -- while the strictly weaker "iree-dump-module is missing" was refused
+    (D25) and the strictly stronger "observed and contradicted" was refused (N1).
+
+    No artifact in this repo can reach it (the largest constant total here is
+    720,896 B, 372x below the budget) and manufacturing one would mean compiling a
+    >256 MiB constant pool, so the wiring is exercised the way E19 exercised its
+    hard-fail path: in-process, by monkeypatching the observation."""
+    results = []
+    inv_path = os.path.join(root, "aarch64", "vmfb", "conv2d.invocation.json")
+    if not os.path.isfile(inv_path):
+        return [Result("F3 budget gate: fixture present", False, "missing %s" % inv_path)]
+    try:
+        import make_contract as mc
+    except Exception as e:                                  # pragma: no cover
+        return [Result("F3 budget gate: make_contract importable", False, str(e))]
+
+    # the state machine itself, stdlib-only
+    st = mc.constants_confirmation_state
+    checks = [
+        ("not_observed wins over everything", st(1024, None, "tool missing"), "not_observed"),
+        ("zero constants -> nothing_to_confirm", st(0, None, None), "nothing_to_confirm"),
+        ("True -> confirmed", st(1024, True, None), "confirmed"),
+        ("False -> contradicted", st(1024, False, None), "contradicted"),
+        ("None with real constants -> unevaluable_budget_exceeded", st(1024, None, None),
+         "unevaluable_budget_exceeded"),
+    ]
+    for name, got, want in checks:
+        results.append(Result("F3 state: %s" % name, got == want, "got %r want %r" % (got, want)))
+    results.append(Result("F3 state: every state is declared in CONSTANTS_CONFIRMATION_STATES",
+                          all(w in mc.CONSTANTS_CONFIRMATION_STATES for _n, _g, w in checks),
+                          str(mc.CONSTANTS_CONFIRMATION_STATES)))
+
+    # the GATE: force the unevaluable state and confirm build_contract refuses,
+    # and that the documented override still writes the contract.
+    inv = load(inv_path)
+    ti = TARGET_INFO["aarch64"]
+    dump_dir = os.path.join(root, "aarch64", "dump", "conv2d")
+    elf_json = os.path.join(root, "aarch64", "elf", "conv2d.elf_analysis.json")
+    if not (os.path.isdir(dump_dir) and os.path.isfile(elf_json) and iree_tools_available()
+            and structural_available() and schema_validator_available()):
+        results.append(Result("F3 gate: budget-exceeded confirmation is refused by default",
+                              True, "needs the full toolchain to isolate this one condition", skip=True))
+        return results
+
+    def run_build(extra):
+        argv = ["--mlir", inv["mlir"], "--vmfb", inv["vmfb"], "--layout-ir", inv["layout_ir"],
+                "--dump-dir", dump_dir, "--triple", ti["triple"], "--cpu", ti["cpu"],
+                "--model-name", "conv2d", "--elf-analysis", elf_json,
+                "--out", os.path.join(tempfile.gettempdir(), "f3_gate_unused.json")] + list(extra)
+        return mc.build_contract(mc.parse_args(argv), [])
+
+    # The gate fires on the STATE, so force exactly that state: a real
+    # observation (so it is not "not_observed"), a real constant total (so it is
+    # not "nothing_to_confirm"), and an enumeration that cannot decide. The
+    # cheap procedures added in E24c make the real over-budget case hard to
+    # manufacture from an archived artifact, so patch the enumerator itself --
+    # the same in-process technique E19 used to exercise its hard-fail wiring.
+    real_match = mc.subset_sum_match
+    mc.subset_sum_match = lambda total, segs, **kw: None
+    try:
+        refused = False
+        detail = ""
+        try:
+            run_build([])
+        except SystemExit as e:
+            detail = str(e)
+            refused = "could not be confirmed against the artifact" in detail
+        results.append(Result("F3 gate: budget-exceeded confirmation is refused by default",
+                              refused, detail.strip().replace("\n", " ")[:150]))
+        # the documented override must still let it through, and must be recorded
+        wrote = False
+        note = False
+        grade = None
+        try:
+            c = run_build(["--allow-unverified-invocation"])
+            wrote = True
+            note = any("could not be confirmed against the artifact" in n
+                       for n in c["provenance"]["notes"])
+            grade = c["provenance"].get("verification_grade")
+        except SystemExit as e:
+            detail = str(e)
+        results.append(Result("F3 gate: --allow-unverified-invocation overrides it AND records why",
+                              wrote and note and grade == "overridden",
+                              "wrote=%s noted=%s grade=%r %s" % (wrote, note, grade, detail[:90])))
+    finally:
+        mc.subset_sum_match = real_match
+    return results
+
+
 def preserved_manyconst31_cases():
     """E24c / F4 (external review v0.20): the >24-segment case that motivated D38
     was pinned only by a SYNTHESISED 31-integer array. The review correctly noted
@@ -1642,8 +1743,19 @@ def subset_sum_tristate_cases():
          (2176, [100003 + i for i in range(30)] + [2176]), True),
         ("31 segments, genuinely contradicted",
          (2176, [100003 + i for i in range(30)] + [2177]), False),
-        ("over the enumeration budget -> unevaluable, never contradicted",
-         (mc.SUBSET_SUM_MAX_TOTAL + 1, [1, 2]), None),
+        # F3 (E24c): over the TOTAL budget the bitset DP is unaffordable, but the
+        # answer is often still decidable cheaply. Refusing on the budget alone
+        # would be a type-(B) over-rejection of an honest large model, so the
+        # cheap procedures run FIRST and only their failure yields None.
+        ("over budget but one segment IS the total -> True, not None",
+         (mc.SUBSET_SUM_MAX_TOTAL + 1, [mc.SUBSET_SUM_MAX_TOTAL + 1, 7]), True),
+        ("over budget, few segments, a subset sums -> True",
+         (mc.SUBSET_SUM_MAX_TOTAL + 3, [mc.SUBSET_SUM_MAX_TOTAL, 1, 2]), True),
+        ("over budget, few segments, exhaustively contradicted -> False",
+         (mc.SUBSET_SUM_MAX_TOTAL + 1, [1, 2]), False),
+        ("over budget AND too many segments -> unevaluable, never contradicted",
+         (mc.SUBSET_SUM_MAX_TOTAL + 1,
+          [3] * (mc.SUBSET_SUM_MAX_COMBINATION_SEGMENTS + 1)), None),
     ]
     results = []
     for name, args, expect in cases:
@@ -1877,6 +1989,7 @@ def main():
         all_results += structural_bugfix_regression_cases(a.root, tmp)
         all_results += documented_smoke_path_cases(tmp)
         all_results += preserved_manyconst31_cases()
+        all_results += constants_budget_gate_cases(a.root)
         all_results += subset_sum_tristate_cases()
         all_results += workflow_yaml_cases()
         all_results += r5_waive_wrapping_cases()

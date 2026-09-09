@@ -63,6 +63,7 @@ Exit codes: 0 ok; 2 input problem; 3 contract written but schema validation fail
 """
 import argparse
 import hashlib
+import itertools
 import json
 import os
 import re
@@ -233,6 +234,10 @@ def packed_constant_buffers(ir):
 # Both verdicts are pinned by preserved_manyconst31_cases() in
 # harness/contract_negative_tests.py. The cap below only bounds the bitset width.
 SUBSET_SUM_MAX_TOTAL = 1 << 28   # 256 MiB of module-resident constants
+# F3/E24c: above the total budget, fall back to combination enumeration when the
+# segment count is small. 20 segments is 1,048,575 subsets worst case (~0.2 s
+# measured); beyond that the answer is genuinely unevaluable and stays None.
+SUBSET_SUM_MAX_COMBINATION_SEGMENTS = 20
 
 
 def subset_sum_match(total, segs, max_total=SUBSET_SUM_MAX_TOTAL):
@@ -256,8 +261,31 @@ def subset_sum_match(total, segs, max_total=SUBSET_SUM_MAX_TOTAL):
         return None
     if total is None or total <= 0:
         return None
+    # F3 (external review v0.20, E24c): the budget bail-out below returns None,
+    # and the N1 call site refuses only rodata_unavailable and an outright False,
+    # so a budget-exceeded None used to leave a bound-known contract with the
+    # independent constant confirmation silently NOT MADE -- the same shape as
+    # D25 (an artifact-side check not performed, with a deployable header
+    # indistinguishable from the confirmed case).
+    #
+    # Refusing on the budget alone would be a type-(B) over-rejection: an honest
+    # >256 MiB model whose total IS exactly one segment would lose its contract
+    # for no reason. So decide cheaply FIRST, and only fall through to None when
+    # the cheap procedures are inconclusive. Both are O(n) or bounded and cost
+    # nothing on the in-budget path, where the DP below decides anyway.
+    cand = [x for x in segs if isinstance(x, int) and not isinstance(x, bool) and 0 < x <= total]
+    if total in cand:
+        return True                      # a single segment IS the total
     if total > max_total:
-        return None                      # budget exceeded -> unevaluable, never "contradicted"
+        if len(cand) <= SUBSET_SUM_MAX_COMBINATION_SEGMENTS:
+            # cost depends on the segment COUNT, not on `total`, so this stays
+            # affordable exactly where the bitset DP would not be.
+            for k in range(2, len(cand) + 1):
+                for combo in itertools.combinations(cand, k):
+                    if sum(combo) == total:
+                        return True
+            return False                 # enumerated exhaustively -> contradicted
+        return None                      # genuinely unevaluable, never "contradicted"
     mask = (1 << (total + 1)) - 1
     reach = 1                            # bit 0: the empty subset
     for s in segs:
@@ -310,6 +338,33 @@ def tensor_json(t):
 
 def sig_equal(a, b):
     return [tensor_json(t) for t in a] == [tensor_json(t) for t in b]
+
+
+# F3 (external review v0.20, E24c): `constants_independently_confirmed_in_artifact`
+# is True/False/None, and the four distinct reasons behind `None` lived only in
+# the free-text `constants_check_note`. A machine-readable discriminator is what
+# the review actually asked for -- prose cannot be consumed by a gate, by
+# cross_target_compare.py, or by a reader of a stored contract. The states are
+# exactly the ones the note names, so the two can never disagree.
+CONSTANTS_CONFIRMATION_STATES = (
+    "confirmed",                      # a subset of the observed .rodata segments sums to the IR total
+    "contradicted",                   # enumerated exhaustively; nothing sums to it
+    "nothing_to_confirm",             # the model has no module-resident constants
+    "not_observed",                   # iree-dump-module could not run at all (D25)
+    "unevaluable_budget_exceeded",    # total over budget AND too many segments to enumerate
+)
+
+
+def constants_confirmation_state(const_b, consts_confirmed, rodata_unavailable):
+    if rodata_unavailable:
+        return "not_observed"
+    if not (isinstance(const_b, int) and not isinstance(const_b, bool) and const_b > 0):
+        return "nothing_to_confirm"
+    if consts_confirmed is True:
+        return "confirmed"
+    if consts_confirmed is False:
+        return "contradicted"
+    return "unevaluable_budget_exceeded"
 
 
 # ----------------------------------------------------------------------------
@@ -671,6 +726,23 @@ def build_contract(a, extra_args):
         notes.append(msg)
         if not waive("--allow-unconfirmed-constants", a.allow_unconfirmed_constants):
             invocation_errors.append(msg + " (pass --allow-unconfirmed-constants to override)")
+    # F3 (external review v0.20, E24c): a budget-exceeded confirmation is
+    # "could not evaluate", which D25 already refuses when the cause is a missing
+    # iree-dump-module. The same evidential state must get the same treatment
+    # whatever caused it -- otherwise a contract can ship bound-known with the
+    # independent constant check silently not made. Reachable only when the total
+    # exceeds SUBSET_SUM_MAX_TOTAL *and* the cheap decision procedures above were
+    # inconclusive (>20 candidate segments), so no artifact in this repo is
+    # affected: the largest constant total here is 720,896 B, 372x below budget.
+    if (constants_confirmation_state(const_b, consts_confirmed, rodata_unavailable)
+            == "unevaluable_budget_exceeded"):
+        msg = ("module_resident_constant_bytes %d B could not be confirmed against the artifact: the total "
+               "exceeds the subset-sum enumeration budget (%d B) and there are too many .rodata segments "
+               "(%d) to enumerate exhaustively. 'Could not evaluate' is not 'confirmed'"
+               % (const_b, SUBSET_SUM_MAX_TOTAL, len(data_segs or [])))
+        notes.append(msg)
+        if not waive("--allow-unverified-invocation", a.allow_unverified_invocation):
+            invocation_errors.append(msg + " (pass --allow-unverified-invocation to override)")
     if not dump_files:
         msg = ("--dump-dir '%s' contains no files: none of the one-invocation cross-checks "
               "(embedded-ELF match, mlir-basename match, layout-ir dispatch match) could be "
@@ -860,6 +932,9 @@ def build_contract(a, extra_args):
         "artifact_rodata_data_segments": data_segs,
         "constants_independently_confirmed_in_artifact": consts_confirmed,
         "constants_dense_sum_confirmed_in_artifact": consts_confirmed_dense,
+        # F3/E24c: the machine-readable twin of constants_check_note below.
+        "constants_confirmation_state": constants_confirmation_state(
+            const_b, consts_confirmed, rodata_unavailable),
         "constants_check_note": (
             # D25 (E23): three states, not two -- "not evaluated" must never be
             # printed as "NOT matched" (checked and contradicted).

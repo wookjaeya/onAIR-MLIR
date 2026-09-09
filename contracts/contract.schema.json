@@ -192,6 +192,17 @@
           ],
           "minimum": 0,
           "description": "F2/E24c: per-invocation worst-case task-stack bytes from the ELF analysis. minimum 0 -- D35/R1 showed a negative figure turns the cFS stack gate into a tautology."
+        },
+        "constants_confirmation_state": {
+          "enum": [
+            "confirmed",
+            "contradicted",
+            "nothing_to_confirm",
+            "not_observed",
+            "unevaluable_budget_exceeded",
+            null
+          ],
+          "description": "F3/E24c: machine-readable twin of constants_check_note. OPTIONAL -- contracts written before E24c have no such field, and absence must not be read as any particular state."
         }
       }
     },
