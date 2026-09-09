@@ -2404,6 +2404,93 @@ EXT_B3_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utilit
                           "x86_64", "ext_b3_deepae")
 
 
+E27_SUMMARY = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "summary.json")
+
+
+def e27_information_level_cases():
+    """E27: the four-information-level comparison, pinned.
+
+    Two of these checks exist to stop a convenient story from drifting into the docs.
+
+    The first is that (b), the artifact-only baseline, MATCHES the repository pipeline
+    exactly in the normal condition. That result undercuts the original R-3 framing
+    ("these numbers need MLIR"), and the pre-fixed plan required reporting it anyway.
+    If someone later hardens (b) -- which its docstring forbids -- this check is what
+    notices, because a hardened (b) stops being the baseline that was compared.
+
+    The second is `collection_clean`. The collector's first run counted a mistyped
+    model filename as an `explicit_refusal`, i.e. as the analyzer honestly declining,
+    in the very experiment that measures the difference between not-looking and
+    looking-and-finding-nothing (D51). A run with any tool_error is not a result."""
+    results = []
+    if not os.path.exists(E27_SUMMARY):
+        results.append(Result("e27: summary present", False, "missing %s" % E27_SUMMARY))
+        return results
+    d = load(E27_SUMMARY)
+
+    results.append(Result("e27: collection is clean (no tool_error counted as a refusal)",
+                          d.get("collection_clean") is True,
+                          "tool_errors=%s" % [(c["model"], c["level"]) for c in d.get("tool_errors", [])]))
+
+    normal = [c for c in d["cells"] if c["condition"] == "normal"]
+    by = {}
+    for c in normal:
+        by.setdefault(c["model"], {})[c["level"]] = c
+    agree = [m for m, lv in by.items()
+             if lv.get("b", {}).get("bounded") is not None
+             and lv["b"]["bounded"] == lv.get("c", {}).get("bounded")]
+    results.append(Result("e27: (b) artifact-only equals (c) on every normal cell "
+                          "(the result that refutes the original R-3 framing)",
+                          len(agree) == len(by) and len(by) >= 8,
+                          "%d/%d models agree" % (len(agree), len(by))))
+    # the normal set must keep including real workloads and both ISAs, or the claim narrows
+    results.append(Result("e27: normal set spans both ISAs and the two real MLPerf Tiny models",
+                          any("@aarch64" in m for m in by)
+                          and "b2_resnet" in by and "b3_deepae" in by,
+                          "models=%s" % sorted(by)))
+    over = [lv["a"]["over_reference"] for lv in by.values()
+            if lv.get("a", {}).get("over_reference")]
+    results.append(Result("e27: (a) source-level never under-estimates (all cells > 1.0x)",
+                          bool(over) and min(over) > 1.0,
+                          "range=%.2fx..%.2fx" % (min(over), max(over)) if over else "no cells"))
+
+    drift = {c["level"]: c for c in d["cells"] if c["condition"] == "version_drift"}
+    results.append(Result("e27: at compiler-version drift (b) under-estimates SILENTLY",
+                          drift.get("b", {}).get("verdict") == "silent_wrong",
+                          "b=%s bounded=%s" % (drift.get("b", {}).get("verdict"),
+                                               drift.get("b", {}).get("bounded"))))
+    results.append(Result("e27: ...while (c) still states a bound and records the failure",
+                          drift.get("c", {}).get("verdict") == "value"
+                          and drift.get("c", {}).get("bounded") == 786476,
+                          "c=%s bounded=%s" % (drift.get("c", {}).get("verdict"),
+                                               drift.get("c", {}).get("bounded"))))
+    dyn = {c["level"]: c for c in d["cells"] if c["condition"] == "dynamic_shape"}
+    results.append(Result("e27: every level refuses the dynamic-shape model "
+                          "(not every perturbation breaks (b))",
+                          all(dyn.get(l, {}).get("verdict") == "explicit_refusal"
+                              for l in ("a", "b", "c")),
+                          "verdicts=%s" % {l: dyn.get(l, {}).get("verdict") for l in ("a", "b", "c")}))
+    results.append(Result("e27: silent under-estimates counted a=0 b=1 c=0",
+                          d["headline_silent_wrong"].get("a") == 0
+                          and d["headline_silent_wrong"].get("b") == 1
+                          and d["headline_silent_wrong"].get("c") == 0,
+                          "%s" % d["headline_silent_wrong"]))
+    # (d) is recorded, never scored -- and it must show the spread that justifies that
+    dcells = [c for c in d["cells"] if c["level"] == "d"]
+    spreads = []
+    for c in dcells:
+        pk = [o["peak"] for o in c.get("observed_peaks", [])]
+        if len(pk) > 1:
+            spreads.append(max(pk) / min(pk))
+    results.append(Result("e27: (d) is recorded per deployment and spans >100x somewhere "
+                          "(why it cannot be the reference)",
+                          bool(spreads) and max(spreads) > 100
+                          and all(c["verdict"] == "not_scored" for c in dcells),
+                          "max spread=%.1fx over %d multi-deployment models"
+                          % (max(spreads), len(spreads)) if spreads else "no spreads"))
+    return results
+
+
 def ext_b3_deepae_cases():
     """E26f: the constant-dominated end of the E26-ext portfolio, pinned.
 
@@ -2666,25 +2753,41 @@ def multiout_subview_cases(tmp):
 
     # -- the structural twin must reach the same verdicts, or the mandatory
     #    cross-check in make_contract.py would hard-fail on an honest model -----------
-    if not structural_available():
-        results.append(Result("multiout-subview: structural extractor agrees", True,
-                              "iree.compiler.ir not importable", skip=True))
-    else:
+    # structural_available() answers with a SUBPROCESS probe, so it can say "yes" while
+    # the in-process import fails (an import blocker, a partially installed package).
+    # D24/D32's rule applies to this file too: a missing prerequisite SKIPs cleanly, it
+    # never takes the suite down -- and reverting a fix to reproduce a defect is exactly
+    # when odd environment shapes show up.
+    # The guard has to wrap the CALL, not the import: mlir_alloc_walk imports fine with
+    # the bindings absent (it sets `ir = None`) and raises from _require_bindings() when
+    # actually used. And structural_available() answers with a SUBPROCESS probe, so it
+    # can report "yes" for an interpreter whose own import is blocked.
+    structural = []
+    try:
+        if not structural_available():
+            raise RuntimeError("iree.compiler.ir not importable")
         import mlir_alloc_walk as maw                         # noqa: PLC0415 - optional dep
-        results.append(Result("multiout-subview: structural extractor whitelists the op",
-                              "stream.resource.subview" in getattr(maw, "KNOWN_ENTRY_OPS", set()),
-                              "KNOWN_ENTRY_OPS = %s" % sorted(getattr(maw, "KNOWN_ENTRY_OPS", []))))
+        structural.append(Result("multiout-subview: structural extractor whitelists the op",
+                                 "stream.resource.subview" in getattr(maw, "KNOWN_ENTRY_OPS", set()),
+                                 "KNOWN_ENTRY_OPS = %s" % sorted(getattr(maw, "KNOWN_ENTRY_OPS", []))))
         st = maw.parse_alloc_ir_structural(base)
-        results.append(Result("multiout-subview: structural extractor states a bound",
-                              st["unresolved"] == [] and st["outputs"] == [128]
-                              and st["inputs"] == [64],
-                              "outputs=%s inputs=%s unresolved=%s"
-                              % (st["outputs"], st["inputs"], st["unresolved"])))
+        structural.append(Result("multiout-subview: structural extractor states a bound",
+                                 st["unresolved"] == [] and st["outputs"] == [128]
+                                 and st["inputs"] == [64],
+                                 "outputs=%s inputs=%s unresolved=%s"
+                                 % (st["outputs"], st["inputs"], st["unresolved"])))
         for name, text, tag in variants:
             sr = maw.parse_alloc_ir_structural(text)
             hit = any(str(u).startswith(tag) for u in sr["unresolved"])
-            results.append(Result("multiout-subview: structural extractor refuses -- %s" % name,
-                                  hit, "unresolved=%s" % sr["unresolved"]))
+            structural.append(Result("multiout-subview: structural extractor refuses -- %s" % name,
+                                     hit, "unresolved=%s" % sr["unresolved"]))
+    except Exception as e:                                    # noqa: BLE001 - D24/D32 rule
+        # A missing prerequisite SKIPs cleanly; it never takes the suite down. Reverting
+        # a fix to reproduce a defect is exactly when odd environment shapes show up.
+        structural = [Result("multiout-subview: structural extractor agrees", True,
+                             "structural extractor unusable here (%s)" % str(e)[:90],
+                             skip=True)]
+    results += structural
 
     # -- the stored contract must regenerate byte-for-byte from the stored inputs -----
     stored = load(contract_path)
@@ -2839,6 +2942,7 @@ def main():
         all_results += a5b_canonical_guest_cases(tmp)
         all_results += ext_b2_resnet_cases()
         all_results += ext_b3_deepae_cases()
+        all_results += e27_information_level_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

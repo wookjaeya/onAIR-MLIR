@@ -1,0 +1,536 @@
+{
+ "levels": {
+  "a": "source tensor-sum",
+  "b": "artifact only",
+  "c": "this repository (MLIR layout IR + artifact binding)",
+  "d": "runtime HAL observation -- deployment-dependent, never a reference"
+ },
+ "conditions": [
+  "normal",
+  "version_drift",
+  "dump_missing",
+  "dynamic_shape"
+ ],
+ "cells": [
+  {
+   "condition": "normal",
+   "model": "mlp16k",
+   "level": "a",
+   "reference_bounded": 786476,
+   "bounded": 3932332,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule",
+   "over_reference": 4.9999
+  },
+  {
+   "condition": "normal",
+   "model": "mlp16k",
+   "level": "b",
+   "reference_bounded": 786476,
+   "bounded": 786476,
+   "status": "value",
+   "verdict": "value",
+   "why": "alloca_unresolved=[]",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "mlp16k",
+   "level": "c",
+   "reference_bounded": 786476,
+   "bounded": 786476,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "mlp16k",
+   "level": "d",
+   "reference_bounded": 786476,
+   "bounded": null,
+   "status": "observed",
+   "verdict": "not_scored",
+   "observed_peaks": [
+    {
+     "deployment": "native_c",
+     "peak": 786476
+    },
+    {
+     "deployment": "pip_runtime",
+     "peak": 65580
+    }
+   ],
+   "why": "deployment-dependent; E26 measured up to 172.3x spread"
+  },
+  {
+   "condition": "normal",
+   "model": "conv2d",
+   "level": "a",
+   "reference_bounded": 3528,
+   "bounded": 18184,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule",
+   "over_reference": 5.1542
+  },
+  {
+   "condition": "normal",
+   "model": "conv2d",
+   "level": "b",
+   "reference_bounded": 3528,
+   "bounded": 3528,
+   "status": "value",
+   "verdict": "value",
+   "why": "alloca_unresolved=[]",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "conv2d",
+   "level": "c",
+   "reference_bounded": 3528,
+   "bounded": 3528,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "conv2d",
+   "level": "d",
+   "reference_bounded": 3528,
+   "bounded": null,
+   "status": "observed",
+   "verdict": "not_scored",
+   "observed_peaks": [
+    {
+     "deployment": "native_c",
+     "peak": 3528
+    },
+    {
+     "deployment": "pip_runtime",
+     "peak": 1352
+    }
+   ],
+   "why": "deployment-dependent; E26 measured up to 172.3x spread"
+  },
+  {
+   "condition": "normal",
+   "model": "multibranch",
+   "level": "a",
+   "reference_bounded": 38216,
+   "bounded": 116328,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule",
+   "over_reference": 3.044
+  },
+  {
+   "condition": "normal",
+   "model": "multibranch",
+   "level": "b",
+   "reference_bounded": 38216,
+   "bounded": 38216,
+   "status": "value",
+   "verdict": "value",
+   "why": "alloca_unresolved=[]",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "multibranch",
+   "level": "c",
+   "reference_bounded": 38216,
+   "bounded": 38216,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "multibranch",
+   "level": "d",
+   "reference_bounded": 38216,
+   "bounded": null,
+   "status": "observed",
+   "verdict": "not_scored",
+   "observed_peaks": [
+    {
+     "deployment": "native_c",
+     "peak": 38216
+    },
+    {
+     "deployment": "pip_runtime",
+     "peak": 840
+    }
+   ],
+   "why": "deployment-dependent; E26 measured up to 172.3x spread"
+  },
+  {
+   "condition": "normal",
+   "model": "mlp16k@aarch64",
+   "level": "a",
+   "reference_bounded": 786476,
+   "bounded": 3932332,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule",
+   "over_reference": 4.9999
+  },
+  {
+   "condition": "normal",
+   "model": "mlp16k@aarch64",
+   "level": "b",
+   "reference_bounded": 786476,
+   "bounded": 786476,
+   "status": "value",
+   "verdict": "value",
+   "why": "alloca_unresolved=[]",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "mlp16k@aarch64",
+   "level": "c",
+   "reference_bounded": 786476,
+   "bounded": 786476,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "mlp16k@aarch64",
+   "level": "d",
+   "reference_bounded": 786476,
+   "bounded": null,
+   "status": "observed",
+   "verdict": "not_scored",
+   "observed_peaks": [
+    {
+     "deployment": "qemu_user_aarch64",
+     "peak": 786476
+    }
+   ],
+   "why": "deployment-dependent; E26 measured up to 172.3x spread"
+  },
+  {
+   "condition": "normal",
+   "model": "conv2d@aarch64",
+   "level": "a",
+   "reference_bounded": 3528,
+   "bounded": 18184,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule",
+   "over_reference": 5.1542
+  },
+  {
+   "condition": "normal",
+   "model": "conv2d@aarch64",
+   "level": "b",
+   "reference_bounded": 3528,
+   "bounded": 3528,
+   "status": "value",
+   "verdict": "value",
+   "why": "alloca_unresolved=[]",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "conv2d@aarch64",
+   "level": "c",
+   "reference_bounded": 3528,
+   "bounded": 3528,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "conv2d@aarch64",
+   "level": "d",
+   "reference_bounded": 3528,
+   "bounded": null,
+   "status": "observed",
+   "verdict": "not_scored",
+   "observed_peaks": [
+    {
+     "deployment": "qemu_user_aarch64",
+     "peak": 1352
+    }
+   ],
+   "why": "deployment-dependent; E26 measured up to 172.3x spread"
+  },
+  {
+   "condition": "normal",
+   "model": "multibranch@aarch64",
+   "level": "a",
+   "reference_bounded": 38216,
+   "bounded": 116328,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule",
+   "over_reference": 3.044
+  },
+  {
+   "condition": "normal",
+   "model": "multibranch@aarch64",
+   "level": "b",
+   "reference_bounded": 38216,
+   "bounded": 38216,
+   "status": "value",
+   "verdict": "value",
+   "why": "alloca_unresolved=[]",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "multibranch@aarch64",
+   "level": "c",
+   "reference_bounded": 38216,
+   "bounded": 38216,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "multibranch@aarch64",
+   "level": "d",
+   "reference_bounded": 38216,
+   "bounded": null,
+   "status": "observed",
+   "verdict": "not_scored",
+   "observed_peaks": [
+    {
+     "deployment": "qemu_user_aarch64",
+     "peak": 840
+    }
+   ],
+   "why": "deployment-dependent; E26 measured up to 172.3x spread"
+  },
+  {
+   "condition": "normal",
+   "model": "b2_resnet",
+   "level": "a",
+   "reference_bounded": 618856,
+   "bounded": 4512216,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule",
+   "over_reference": 7.2912
+  },
+  {
+   "condition": "normal",
+   "model": "b2_resnet",
+   "level": "b",
+   "reference_bounded": 618856,
+   "bounded": 618856,
+   "status": "value",
+   "verdict": "value",
+   "why": "alloca_unresolved=[]",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "b2_resnet",
+   "level": "c",
+   "reference_bounded": 618856,
+   "bounded": 618856,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "b2_resnet",
+   "level": "d",
+   "reference_bounded": 618856,
+   "bounded": null,
+   "status": "observed",
+   "verdict": "not_scored",
+   "observed_peaks": [
+    {
+     "deployment": "pip_runtime",
+     "peak": 309416
+    },
+    {
+     "deployment": "native_c",
+     "peak": 618856
+    }
+   ],
+   "why": "deployment-dependent; E26 measured up to 172.3x spread"
+  },
+  {
+   "condition": "normal",
+   "model": "b3_deepae",
+   "level": "a",
+   "reference_bounded": 1069632,
+   "bounded": 6097376,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule",
+   "over_reference": 5.7004
+  },
+  {
+   "condition": "normal",
+   "model": "b3_deepae",
+   "level": "b",
+   "reference_bounded": 1069632,
+   "bounded": 1069632,
+   "status": "value",
+   "verdict": "value",
+   "why": "alloca_unresolved=[]",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "b3_deepae",
+   "level": "c",
+   "reference_bounded": 1069632,
+   "bounded": 1069632,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout",
+   "over_reference": 1.0
+  },
+  {
+   "condition": "normal",
+   "model": "b3_deepae",
+   "level": "d",
+   "reference_bounded": 1069632,
+   "bounded": null,
+   "status": "observed",
+   "verdict": "not_scored",
+   "observed_peaks": [
+    {
+     "deployment": "pip_runtime",
+     "peak": 6208
+    },
+    {
+     "deployment": "native_c",
+     "peak": 1069632
+    }
+   ],
+   "why": "deployment-dependent; E26 measured up to 172.3x spread"
+  },
+  {
+   "condition": "version_drift",
+   "model": "mlp16k",
+   "level": "b",
+   "reference_bounded": 786476,
+   "bounded": 5172,
+   "status": "value",
+   "verdict": "silent_wrong",
+   "why": "alloca_unresolved=[]"
+  },
+  {
+   "condition": "version_drift",
+   "model": "mlp16k",
+   "level": "c",
+   "reference_bounded": 786476,
+   "bounded": 786476,
+   "status": "value",
+   "verdict": "value",
+   "why": "bound_method=static_from_stream_layout notes=1"
+  },
+  {
+   "condition": "version_drift",
+   "model": "mlp16k",
+   "level": "a",
+   "reference_bounded": 786476,
+   "bounded": 3932332,
+   "status": "value",
+   "verdict": "value",
+   "why": "sum of every tensor type in the entry body plus every dense constant; no buffer reuse, no alignment, no allocation schedule"
+  },
+  {
+   "condition": "dump_missing",
+   "model": "mlp16k",
+   "level": "c",
+   "reference_bounded": 786476,
+   "bounded": null,
+   "status": "explicit_refusal",
+   "verdict": "explicit_refusal",
+   "why": "  - one-invocation cross-check(s) could not be evaluated: dump_elf_sha256_in_vmfb=None (linked executable found under --dump-dir: none): the vmfb<->dump-dir binding could not be established -- pass --"
+  },
+  {
+   "condition": "dynamic_shape",
+   "model": "dynamic",
+   "level": "a",
+   "reference_bounded": null,
+   "bounded": null,
+   "status": "explicit_refusal",
+   "verdict": "explicit_refusal",
+   "why": "cannot size: dynamic dimension present"
+  },
+  {
+   "condition": "dynamic_shape",
+   "model": "dynamic",
+   "level": "b",
+   "reference_bounded": null,
+   "bounded": null,
+   "status": "explicit_refusal",
+   "verdict": "explicit_refusal",
+   "why": "unresolved=[] input_bytes=None"
+  },
+  {
+   "condition": "dynamic_shape",
+   "model": "dynamic",
+   "level": "c",
+   "reference_bounded": null,
+   "bounded": null,
+   "status": "explicit_refusal",
+   "verdict": "explicit_refusal",
+   "why": "bound_method=NONE unresolved=['%1', '%6', '%5']"
+  }
+ ],
+ "per_level": {
+  "a": {
+   "cells": 10,
+   "value": 9,
+   "explicit_refusal": 1,
+   "silent_wrong": 0,
+   "tool_error": 0
+  },
+  "b": {
+   "cells": 10,
+   "value": 8,
+   "explicit_refusal": 1,
+   "silent_wrong": 1,
+   "tool_error": 0
+  },
+  "c": {
+   "cells": 11,
+   "value": 9,
+   "explicit_refusal": 2,
+   "silent_wrong": 0,
+   "tool_error": 0
+  },
+  "d": {
+   "cells": 8,
+   "value": 0,
+   "explicit_refusal": 0,
+   "silent_wrong": 0,
+   "tool_error": 0
+  }
+ },
+ "headline_silent_wrong": {
+  "a": 0,
+  "b": 1,
+  "c": 0,
+  "d": 0
+ },
+ "tool_errors": [],
+ "collection_clean": true
+}
