@@ -1973,6 +1973,184 @@ def artifact_binding_and_corruption_cases(root, tmp):
     return results
 
 
+def e25_compare_rule_cases(tmp):
+    """E25b: harness/e25_compare.py must judge each IREE path pair by the rule the
+    plan fixed BEFORE the experiment ran, and must refuse to guess which rule applies.
+
+    docs/plans/E25_same_model_equivalence.md SS3.2/SS3.3-5 put "cFS AArch64 <-> x86-64"
+    under the tolerance row (they are different compilation outputs) and kept
+    bit-identity for paths sharing a vmfb, where it IS the core claim. The first
+    implementation demanded bit-identity of every pair. The stored E25 outputs happen
+    to satisfy even that, so E25's PASS was never in doubt -- but it is a type (B)
+    defect (over-rejection): a model whose cross-ISA outputs agree within tolerance
+    and differ in the last bit would have been reported FAIL. Case 2 below is exactly
+    that input.
+
+    Note on the revert-and-confirm-fail witness: reverting e25_compare.py and re-running
+    THIS function is a weak witness -- every case dies at rc=2 because argparse does not
+    know --vmfb, which is the new interface rather than the defect. The real witness is
+    the direct run recorded in docs/EVIDENCE_v0.22_E25.md SS12: the pre-E25b comparator,
+    on its own interface, given two paths whose outputs differ by one ulp (every element
+    passing BOTH tolerances on its own -- 16/16 abs-only and 16/16 rel-only), reports
+    VERDICT: FAIL rc=1. The same data through the E25b comparator, declared as two
+    different vmfbs, reports PASS with bit_identical recorded as False.
+
+    Every case runs the real script as a subprocess on synthesised .npy inputs, so
+    nothing here depends on the stored E25 outputs staying byte-identical -- except
+    case 1, which is the point of case 1.
+    Skips as a group when numpy is absent (stdlib-only CI leg)."""
+    try:
+        import numpy as np                                     # noqa: PLC0415 - optional probe
+    except ImportError:
+        return [Result("e25-compare: pair rules (same_vmfb bit-identical / cross_vmfb tolerance)",
+                       True, "numpy not installed", skip=True)]
+
+    script = os.path.join(HERE, "e25_compare.py")
+    if not os.path.exists(script):
+        return [Result("e25-compare: harness/e25_compare.py present", False, "missing")]
+
+    root = os.path.join(os.path.dirname(HERE), "results", "e25_equivalence")
+    store = os.path.join(root, "build")
+    model_dir = os.path.join(root, "model")
+    SHA_X = "0e250c2f16e704dbfd9a272073abb72935d5165c584c3c8d73fcd2790d2baebd"
+    SHA_A = "4e5b2972c0bd970479eb5b8cb855d6ee83ff3dd2d9b86f4bf7773e780cadfba1"
+    results = []
+
+    def call(work, paths, vmfbs, ref=None, model=None):
+        """paths: {name: absolute file}, vmfbs: {name: sha or None to omit}."""
+        out = os.path.join(work, "cmp.json")
+        cmd = [PY, script, "--model-dir", model or model_dir,
+               "--reference", ref or os.path.join(store, "ref_numpy.npy"), "--out", out]
+        for n, f in sorted(paths.items()):
+            cmd += ["--path", "%s=%s" % (n, f)]
+        for n, s in sorted(vmfbs.items()):
+            if s is not None:
+                cmd += ["--vmfb", "%s=%s" % (n, s)]
+        rc, so, se = run(cmd)
+        rep = load(out) if os.path.exists(out) else None
+        return rc, so + se, rep, out
+
+    # --- 1. the stored E25 outputs still adjudicate to PASS, with the rules split 3/3
+    if all(os.path.exists(os.path.join(store, f)) for f in
+           ("ref_numpy.npy", "out_ireepy.npy", "out_nativec.bin", "out_cfs.bin", "out_cfs_aarch64.bin")):
+        work = os.path.join(tmp, "e25rule_stored"); os.makedirs(work, exist_ok=True)
+        rc, log, rep, _ = call(work,
+                               {"ireepy": os.path.join(store, "out_ireepy.npy"),
+                                "nativec": os.path.join(store, "out_nativec.bin"),
+                                "cfs_x86": os.path.join(store, "out_cfs.bin"),
+                                "cfs_aarch64": os.path.join(store, "out_cfs_aarch64.bin")},
+                               {"ireepy": SHA_X, "nativec": SHA_X, "cfs_x86": SHA_X, "cfs_aarch64": SHA_A})
+        pairs = (rep or {}).get("iree_vs_iree", {})
+        same = sorted(k for k, v in pairs.items() if v.get("rule") == "same_vmfb")
+        cross = sorted(k for k, v in pairs.items() if v.get("rule") == "cross_vmfb")
+        ok = (rc == 0 and rep and rep.get("pass") is True
+              and len(same) == 3 and len(cross) == 3
+              and all(v.get("passed") for v in pairs.values())
+              and all(v.get("bit_identical") for v in pairs.values()))
+        results.append(Result("e25-compare: stored E25 outputs PASS, rules split 3 same_vmfb / 3 cross_vmfb",
+                              bool(ok), "rc=%d pass=%s same=%d cross=%d"
+                              % (rc, (rep or {}).get("pass"), len(same), len(cross))))
+        # the stored adjudication must not have drifted from the committed one either
+        prev = os.path.join(store, "comparison_all.json")
+        if os.path.exists(prev) and rep:
+            old = load(prev)
+            results.append(Result("e25-compare: vs_reference/argmax unchanged vs committed comparison_all.json",
+                                  old.get("vs_reference") == rep.get("vs_reference")
+                                  and old.get("argmax") == rep.get("argmax"),
+                                  "pass %s -> %s" % (old.get("pass"), rep.get("pass"))))
+
+    # --- synthesised inputs for the behavioural cases (independent of stored data)
+    work = os.path.join(tmp, "e25rule_synth"); os.makedirs(work, exist_ok=True)
+    rng = np.random.default_rng(20260909)
+    ref = np.abs(rng.standard_normal((8, 2)).astype(np.float32)) + 1.0
+    # a manifest the script can read: 2 outputs, 8 inputs, one regime
+    write_json({"params": {"n_out": 2, "n_inputs": 8}, "sha256": {"synthetic": "n/a"},
+                "input_regimes": ["synthetic"] * 8}, os.path.join(work, "manifest.json"))
+    np.save(os.path.join(work, "ref.npy"), ref)
+    np.save(os.path.join(work, "a.npy"), ref.copy())
+    one_ulp = ref.copy(); one_ulp[3, 1] = np.nextafter(one_ulp[3, 1], np.float32(np.inf))
+    np.save(os.path.join(work, "b_1ulp.npy"), one_ulp)
+    coarse = ref.copy(); coarse[3, 1] = coarse[3, 1] * np.float32(1.001)
+    np.save(os.path.join(work, "b_coarse.npy"), coarse)
+    swapped = ref.copy(); swapped[[2]] = swapped[[2]][:, ::-1]          # flips that row's argmax
+    np.save(os.path.join(work, "b_argmax.npy"), swapped)
+
+    def synth(paths, vmfbs, tag):
+        w = os.path.join(work, tag); os.makedirs(w, exist_ok=True)
+        return call(w, {n: os.path.join(work, f) for n, f in paths.items()}, vmfbs,
+                    ref=os.path.join(work, "ref.npy"), model=work)
+
+    # 2. cross_vmfb + 1 ulp apart -> PASS (this is the over-rejection that was fixed)
+    rc, log, rep, _ = synth({"x": "a.npy", "y": "b_1ulp.npy"}, {"x": SHA_X, "y": SHA_A}, "cross_1ulp")
+    pair = list((rep or {}).get("iree_vs_iree", {}).values())
+    ok = (rc == 0 and rep and rep.get("pass") is True and len(pair) == 1
+          and pair[0].get("rule") == "cross_vmfb" and pair[0].get("bit_identical") is False)
+    results.append(Result("e25-compare: cross_vmfb 1-ulp difference passes (bit_identical recorded False)",
+                          bool(ok), "rc=%d pass=%s rule=%s bit=%s" % (
+                              rc, (rep or {}).get("pass"),
+                              pair[0].get("rule") if pair else None,
+                              pair[0].get("bit_identical") if pair else None)))
+
+    # 3. the SAME 1 ulp difference declared as one vmfb -> must FAIL (core claim kept)
+    rc, log, rep, _ = synth({"x": "a.npy", "y": "b_1ulp.npy"}, {"x": SHA_X, "y": SHA_X}, "same_1ulp")
+    pair = list((rep or {}).get("iree_vs_iree", {}).values())
+    ok = (rc != 0 and rep and rep.get("pass") is False and pair
+          and pair[0].get("rule") == "same_vmfb" and pair[0].get("passed") is False)
+    results.append(Result("e25-compare: same_vmfb 1-ulp difference still FAILS (bit-identity kept)",
+                          bool(ok), "rc=%d pass=%s rule=%s" % (
+                              rc, (rep or {}).get("pass"), pair[0].get("rule") if pair else None)))
+
+    # 4. cross_vmfb but beyond tolerance -> FAIL
+    rc, log, rep, _ = synth({"x": "a.npy", "y": "b_coarse.npy"}, {"x": SHA_X, "y": SHA_A}, "cross_coarse")
+    ok = rc != 0 and rep and rep.get("pass") is False
+    results.append(Result("e25-compare: cross_vmfb beyond tolerance FAILS", bool(ok),
+                          "rc=%d pass=%s" % (rc, (rep or {}).get("pass"))))
+
+    # 5. cross_vmfb within tolerance on values but argmax flipped -> FAIL
+    #    (tolerance alone must not be able to admit a different classification)
+    rc, log, rep, _ = synth({"x": "a.npy", "y": "b_argmax.npy"}, {"x": SHA_X, "y": SHA_A}, "cross_argmax")
+    ok = rc != 0 and rep and rep.get("pass") is False
+    results.append(Result("e25-compare: cross_vmfb argmax disagreement FAILS", bool(ok),
+                          "rc=%d pass=%s" % (rc, (rep or {}).get("pass"))))
+
+    # 6. a --path without a --vmfb is refused, and nothing is written
+    rc, log, rep, out = synth({"x": "a.npy", "y": "b_1ulp.npy"}, {"x": SHA_X, "y": None}, "no_vmfb")
+    ok = rc != 0 and rep is None and not os.path.exists(out) and "--vmfb" in log
+    results.append(Result("e25-compare: --path without --vmfb refused, no output written", bool(ok),
+                          "rc=%d wrote=%s" % (rc, os.path.exists(out))))
+
+    # 7b. a malformed --vmfb (truncated/empty) is refused rather than string-compared:
+    #     two paths that share an artifact but whose shas were mistyped would otherwise
+    #     compare unequal and get the WEAKER cross_vmfb rule (D28/D29/D30 shape).
+    for tag, bad in (("trunc", "0e250c2f"), ("empty", ""), ("nonhex", "z" * 64)):
+        rc, log, rep, out = synth({"x": "a.npy", "y": "b_1ulp.npy"},
+                                  {"x": bad, "y": SHA_A}, "badsha_" + tag)
+        ok = rc != 0 and rep is None and not os.path.exists(out) and "64-hex" in log
+        results.append(Result("e25-compare: malformed --vmfb (%s) refused, no output written" % tag,
+                              bool(ok), "rc=%d wrote=%s" % (rc, os.path.exists(out))))
+
+    # 7c. equal-but-malformed shas must NOT be accepted as "same vmfb" either -- the
+    #     refusal has to come before any pair rule is chosen.
+    rc, log, rep, out = synth({"x": "a.npy", "y": "b_1ulp.npy"},
+                              {"x": "0e250c2f", "y": "0e250c2f"}, "badsha_equal")
+    results.append(Result("e25-compare: equal-but-malformed --vmfb pair still refused",
+                          bool(rc != 0 and rep is None and not os.path.exists(out)),
+                          "rc=%d wrote=%s" % (rc, os.path.exists(out))))
+
+    # 8. deterministic output (no timestamps): same inputs twice -> identical bytes
+    w1 = os.path.join(work, "det1"); w2 = os.path.join(work, "det2")
+    os.makedirs(w1, exist_ok=True); os.makedirs(w2, exist_ok=True)
+    a1 = call(w1, {"x": os.path.join(work, "a.npy"), "y": os.path.join(work, "b_1ulp.npy")},
+              {"x": SHA_X, "y": SHA_A}, ref=os.path.join(work, "ref.npy"), model=work)
+    a2 = call(w2, {"x": os.path.join(work, "a.npy"), "y": os.path.join(work, "b_1ulp.npy")},
+              {"x": SHA_X, "y": SHA_A}, ref=os.path.join(work, "ref.npy"), model=work)
+    same_bytes = (os.path.exists(a1[3]) and os.path.exists(a2[3])
+                  and open(a1[3], "rb").read() == open(a2[3], "rb").read())
+    results.append(Result("e25-compare: report is deterministic across runs", bool(same_bytes),
+                          "identical=%s" % same_bytes))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -1994,6 +2172,7 @@ def main():
         all_results += workflow_yaml_cases()
         all_results += r5_waive_wrapping_cases()
         all_results += default_plugin_fixture_cases()
+        all_results += e25_compare_rule_cases(tmp)
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

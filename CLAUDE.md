@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.22**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.22.1**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -264,14 +264,36 @@ SKIP이 9→11로 는 것은 신규 시험 2건이 `iree-dump-module`을 요구�
 한 seed에서 baked MLIR과 npz를 함께 생성해 배포 경로 셋이 **같은 vmfb**를 공유하게 하고,
 npz는 NumPy reference 계산에만 쓰이게 했다(그래서 "weights가 계약 밖"이라는 문제가 배포
 경로에서 사라진다). hidden은 E14와 같은 16384라 **계약 값이 `mlp16k`와 정확히 일치**한다.
-**판정 PASS**: 다섯 경로(reference / OnAIR-IREE / native C / cFS x86-64 / cFS AArch64 게스트)
-중 네 IREE 경로의 출력이 **6쌍 전부 비트 동일**, reference 대비 256/256 원소·argmax 64/64,
+**판정 PASS**: 다섯 경로(reference / IREE Python 바인딩 / native C / cFS x86-64 / cFS AArch64
+게스트) 중 네 IREE 경로의 출력이 **6쌍 전부 비트 동일**, reference 대비 512/512 원소(경로당
+128 = 입력 64 × 출력 2)·argmax 경로당 64/64,
 AArch64 반복 실행도 비트 동일(결정적). **AArch64가 다른 vmfb인데도 비트 동일한 것은 계획이
 예상하지 않은 결과이며 일반화하지 않는다** — 활성화 없는 matmul 2회 모델·이 컴파일러 버전에서
 관측된 것이다. **사전 고정 기준의 가치 실증**: telemetry regime은 abs 단독이면 1/64,
 normalized는 rel 단독이면 59/64 — 어느 한 기준만 요구했어도 정직한 결과가 FAIL이었다.
-E14가 남긴 cross-target `both_sound: null` 갭도 해소. 환경 실패 2건(게스트 emergency mode →
-fstab `nofail` + cloud-init 비활성화)은 의미 동치와 **분리해** 기록했다(EVIDENCE §7).
+E14 cross-target 지표의 `out0_agreement` 자리를 **canonical 모델에 한해** 실제 출력 대조로
+채웠다(`both_sound`는 메모리 관측 종합값이므로 **E25 범위 밖 · E26 대상** — v0.22.1 정정).
+환경 실패 2건(게스트 emergency mode → fstab `nofail` + cloud-init 비활성화)은 의미 동치와
+**분리해** 기록했다(EVIDENCE §7).
+
+**v0.22.1에서 정정된 것 (일곱 번째 외부 검토 + E25b, `docs/EVIDENCE_v0.22_E25.md` §11·§12)**:
+검토(`docs/reviews/REVIEW_v0_22_E25.md`, 기준 커밋 `44c27ac`)가 E25를 "실질적 연구 진전"으로
+인정하면서 지적한 **주장 범위 4곳·판정 도구 1곳**을 저장소 대조로 **전부 사실**로 확인하고 정정했다.
+(a) "256/256 원소"는 집계 오기 — 경로당 128, 네 경로 **512**(argmax 집계와 섞였다). (b) "두 ISA가
+같은 누산 순서를 만들었다"는 **관측을 넘어선 서술이라 철회** — 관측한 것은 출력 바이트 동일뿐이고
+누산 순서는 측정한 적이 없다(확인하려면 두 ELF dispatch 대조 필요, E27 후보). (c) **`both_sound`
+갭 해소 주장 철회**(D45) — `cross_target_compare.py:201`의 `both_sound`는 각 타깃 실행의
+`peak_within_bounded`를 종합한 **메모리** 지표인데 E25는 메모리를 계측하지 않았다(E25 cFS 로그의
+stage는 stack/admission/binding/e25_equivalence 넷뿐, `mem` 없음). E25가 채운 것은 같은 지표의
+**다른 칸**(`out0_agreement`)이고 그것도 canonical 1개 한정. (d) "OnAIR-IREE"는 **`iree.runtime`
+Python 바인딩 직접 호출**이며 OnAIR 플러그인(여전히 `weights.npz` 경로)도, cFS SB 수신·feature
+변환도 통과하지 않았다 — 명칭 정정. (e) 계약값 ISA 동일성은 이 구성의 관측이지 일반 증명이 아님.
+**E25b**: `harness/e25_compare.py`가 계획 §3.2보다 **강한** 조건(모든 쌍 비트 동일)을 걸고 있어
+정직한 cross-ISA 결과를 FAIL로 만드는 **과잉 거부(유형 B)** 경로였다 — 한 원소만 1 ulp 다른
+입력(모든 원소가 abs·rel 각각 16/16 만족)으로 **직접 재현**하고, 쌍별 규칙(같은 vmfb=비트 동일,
+다른 vmfb=사전 tolerance+argmax, `--vmfb` 미지정은 거부)으로 수정했다. 보관 출력 재판정 결과
+**판정·`vs_reference`·`argmax` 전부 불변**(새 파일 `comparison_all.pairrule.json`, 원본 미수정).
+회귀 8건 신설.
 **다음**: R-2(E26 계약 경계의 유용성) → R-3(E27 MLIR 고유 기여).
 
 ## 작업 규율 (반드시 지킬 것)
@@ -339,7 +361,11 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
 
 ### 최우선 — 연구·논문 핵심 (검토 §5.1, §7)
 
-**R-1. OnAIR↔cFS 동일 모델·동일 의미 검증 (검토 C2 / E25)** — 다음 실험으로 가장 우선.
+**R-1. OnAIR↔cFS 동일 모델·동일 의미 검증 (검토 C2 / E25)** — **완결(v0.22/E25, PASS)**.
+   아래는 착수 당시의 서술이며 이력으로 남긴다. **잔여(범위 밖으로 명시)**: (i) OnAIR
+   `CompiledLearner` 플러그인의 baked-vmfb 전환과 SB 흐름 end-to-end 동치 — 일곱 번째 검토 §4.1이
+   "현재 목표를 위해 확대 불필요"로 판단, (ii) `harness/corrupt_vmfb.py`로 AArch64 게스트 A5b raw
+   log 재생성(아래 (5)) — 미수행, E26 게스트 세션에서 함께 처리.
    E23이 F10의 즉시 고칠 수 있는 부분(OnAIR 플러그인의 계약-아티팩트 바인딩 게이트 부재, D27)은
    닫았지만 **구조적 단절은 그대로 남아 있다**: OnAIR 플러그인은 `weights.npz`를 별도 인수로 받고
    native/cFS는 baked-weight vmfb를 쓰며, cFS 앱은 플러그인의 이식이 아니라 별도 C 앱이고

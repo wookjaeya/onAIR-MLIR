@@ -7,6 +7,8 @@ native/native_learner
 *.log
 !native/results/*.log
 !results/e14_aarch64_qemu/**/*.log
+!results/e25_equivalence/**/*.log
+!results/e26_boundary_utility/**/*.log
 # F9 (external review v0.15, EVIDENCE_v0.16_E22): these dumps used to be excluded here
 # ("intermediate executable dumps ... copied next to them" -- true of the ELF/codegen.ll,
 # not true of dump/ itself) -- but harness/contract_negative_tests.py's regression and

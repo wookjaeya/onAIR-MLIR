@@ -2,6 +2,69 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.22.1] — 정정: E25 주장 범위 (외부 검토 v0.22) + E25b 판정 도구
+
+일곱 번째 외부 검토(`docs/reviews/REVIEW_v0_22_E25.md`, 기준 커밋 `44c27ac`)는 E25를 "실질적
+연구 진전"으로 인정하면서 **주장 범위 4곳과 판정 도구 1곳**을 지적했다. 저장소를 직접 대조한
+결과 **전부 사실**이었다. **E25의 PASS 판정과 수치는 바뀌지 않는다** — 바뀌는 것은 그 수치가
+무엇을 말하는지의 범위다. 아래 [v0.22] 항목의 원문은 이력이므로 그대로 두고 여기서 정정한다.
+
+정정: **"256/256 원소"는 집계 오기**다. 경로당 128(입력 64 × 출력 2), 네 경로 합계 **512/512**.
+argmax는 경로당 64/64(합계 256/256)이며 그 수와 섞였다.
+
+정정: **"두 ISA의 코드생성이 같은 누산 순서를 만들었다"는 철회한다.** 이 실험이 관측한 것은
+출력 바이트의 동일성뿐이고, 누산 순서는 어디에서도 측정하지 않았다(두 타깃의 dispatch ELF를
+대조한 적이 없다). 정정된 서술은 *"서로 다른 vmfb인데도 출력이 비트 동일했다. 그 원인은
+확인하지 않았다"*이다. 원인 확인은 E27 후보다.
+
+정정: **E25가 E14의 `both_sound: null`을 해소했다는 서술을 철회한다(D45).**
+`harness/cross_target_compare.py:201`의 `both_sound`는 각 타깃 실행 요약의 `peak_within_bounded`,
+즉 **메모리 관측**을 종합한 값인데 E25는 메모리를 전혀 계측하지 않았다(cFS E25 로그의 stage는
+`stack`/`admission`/`binding`/`e25_equivalence` 넷뿐, `mem` 레코드 없음). E25가 채운 것은 같은
+지표의 **다른 칸**인 `out0_agreement`이며 그것도 **canonical 모델 한 개 한정**이다. E14 4모델의
+메모리 soundness 공백은 **그대로 남아 있고 E26의 대상**이다.
+
+정정: **"OnAIR-IREE"는 OnAIR 실행이 아니다.** `iree.runtime` Python 바인딩 직접 호출이며,
+OnAIR 플러그인은 여전히 외부 `weights.npz`를 읽는 경로이고(`compiled_learner_plugin.py:118-138`),
+cFS E25 모드는 Software Bus 수신과 feature 변환을 거치지 않는다(`ai_learner.c:326-372`).
+E25의 입증 범위는 **"canonical 모델의 계산 결과 동치 + cFS 앱 내부 추론 경로 통합"**이다.
+
+정정: 계약값이 두 ISA에서 같다는 것은 **이 구성(4~5개 모델·1개 컴파일러 버전)의 관측**이며
+일반적 ISA 독립성의 증명이 아니다.
+
+**E25b — 판정 도구를 사전 고정 기준에 맞춤(과잉 거부 1건 실제 재현·수정)**:
+`harness/e25_compare.py`는 **모든** IREE 경로 쌍에 비트 동일을 요구하고 있었다. 그러나 계획
+`docs/plans/E25_same_model_equivalence.md` §3.2·§3.3-5는 실행 **전에** "같은 vmfb는 비트 동일,
+cross-ISA는 tolerance"로 정해 두었다. 즉 도구가 계획보다 강한 조건을 걸어, 정직한 cross-ISA
+결과를 FAIL로 만드는 **유형 (B) 결함(과잉 거부)** 경로였다. 한 원소만 1 ulp 다른 입력
+(`abs_max=1.192e-07`, `rel_max=6.255e-08` — 모든 원소가 abs·rel 기준을 **각각 단독으로** 16/16
+만족)으로 직접 재현했고, 옛 도구는 `VERDICT: FAIL rc=1`이었다.
+수정: 쌍 규칙을 아티팩트 sha256으로 선택하고(`--vmfb NAME=SHA256`을 모든 `--path`에 필수화,
+누락 시 거부·미기록), cross-vmfb 쌍은 tolerance + argmax 일치로 판정하되 `bit_identical`은
+관측값으로 계속 기록한다. **기준 완화가 아니라 이미 정한 비교 조건의 구현**이다.
+
+- 보관 E25 출력 재판정: 판정 `pass: true` 불변, `vs_reference`·`argmax` 원본과 **완전 동일**,
+  규칙 배정 `same_vmfb` 3 / `cross_vmfb` 3, 6쌍 모두 `bit_identical: true`(cross 3쌍은 요구되지
+  않았으나 관측됨). 결과는 **새 파일** `comparison_all.pairrule.json`에 쓰고 원본은 보존했다.
+- 커밋 전 자체 검토에서 fail-open 하나를 더 닫았다: `--vmfb` 값을 형식 검증 없이 문자열 비교만
+  하면, 같은 아티팩트를 쓰는 두 경로의 sha를 잘못 적었을 때(빈 값·잘린 값) 두 값이 달라
+  **더 약한 cross_vmfb 규칙이 조용히 적용**된다(D28·D29·D30과 같은 모양). 64자리 16진수가
+  아니면 거부하도록 했다.
+- 회귀 **12건** 신설(`e25_compare_rule_cases()`): same_vmfb 1 ulp는 **여전히 FAIL**(핵심 주장 유지),
+  cross_vmfb 1 ulp는 통과, tolerance 초과·argmax 불일치는 FAIL, `--vmfb` 누락·형식 불량 4종은 거부,
+  결정성. 이 컨테이너 실측 `--skip-regression` **160/160**, 전체 **203/203**(191→199→203).
+  CI 수치는 CI 실측 후 기록(D34).
+- README·`results/e25_equivalence/README.md`를 E25 완료 현황과 동기화하고,
+  `aarch64_env/BOOT_LOG.md`에 부팅 시도 2·3과 디스크 수정을 보완 기록했다.
+
+정정: **D46 — EVIDENCE §7이 가리키는 원시 게스트 로그가 저장소에 없었다.** `.gitignore:7`의
+포괄 규칙 `*.log`에 대한 예외가 `results/e14_aarch64_qemu/**/*.log`에만 있어 E25의 시리얼·드라이버
+로그가 전부 제외되고 있었다(E22의 F9와 같은 계열). `!results/e25_equivalence/**/*.log`를 추가하고
+로그 5개를 커밋했다. 함께 확인된 것: **시도 2의 시리얼 로그는 복구 불가**다 —
+`scripts/71_boot_guest_aarch64.sh:24`의 `: > serial.log`가 매 부팅마다 잘라내 시도 3이 덮어썼다.
+따라서 §7의 "emergency mode 2회" 중 **두 번째는 보존 산출물로 검증되지 않는다**(철회가 아니라
+증거 등급의 명시 — 산출물로 확인되는 것은 시도 1의 emergency 1회와 시도 3의 정상 부팅 0회다).
+
 ## [v0.22] — E25: OnAIR↔cFS 동일 모델·의미 동치 (PASS)
 
 판정: 다섯 실행 경로가 같은 canonical 모델을 실행하고 네 IREE 경로의 출력이 **전부 비트
