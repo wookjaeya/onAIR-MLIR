@@ -63,6 +63,54 @@ def long_or(v, default=-1):
     return "%dL" % (v if is_int(v) else default)
 
 
+def _shape_statements(c, kind):
+    """Every shape this contract actually STATES for `kind`, as (where, shape)
+    pairs -- validity.<kind>, interface.<kind>, interface.<kind>s[0]. Only
+    present, non-empty list shapes are returned; absence is not a statement."""
+    v = c.get("validity") or {}
+    i = c.get("interface") or {}
+    out = []
+    for where, src in (("validity.%s" % kind, v.get(kind)),
+                       ("interface.%s" % kind, i.get(kind)),
+                       ("interface.%ss[0]" % kind, (i.get("%ss" % kind) or [None])[0])):
+        if isinstance(src, dict) and isinstance(src.get("shape"), list) and src["shape"]:
+            out.append((where, list(src["shape"])))
+    return out
+
+
+def check_shape_agreement(c):
+    """R3 (external review v0.19-reframe, E24b): shape_from() below is a FALLBACK
+    chain (validity first, then interface) -- it returns on the first hit and never
+    compares the two. A contract stating [1,8,8,1] in interface.input and [1,4,4,1]
+    in validity.input silently emitted the validity one with BOUND_KNOWN=1, and an
+    INFLATED shape sizes the HAL input buffer from the header while the gate only
+    compares CONTRACT_BOUNDED_BYTES.
+
+    NOT reachable from the production path -- make_contract.py fills both blocks
+    from the same Python object (first_in/first_out), so only a hand-edited stored
+    contract reaches this state. Defense-in-depth, not an observed failure.
+
+    Absence is NOT disagreement: contracts/contract.e14_aarch64.json has no
+    interface block at all and is an honest contract in the shape this repo's own
+    schema declares. Requiring both blocks was measured as an over-rejection
+    (defect class B), so only contradictions among the statements PRESENT are
+    refused. The dtype half of the review's claim is refuted -- E24/N3 already
+    takes the union of dtypes across both blocks, so any dtype conflict contains a
+    non-f32 member and is already rejected."""
+    for kind in ("input", "output"):
+        stmts = _shape_statements(c, kind)
+        if len(stmts) < 2:
+            continue
+        first_where, first_shape = stmts[0]
+        for where, shape in stmts[1:]:
+            if shape != first_shape:
+                raise SystemExit(
+                    "gen_contract_header: contract contradicts itself -- %s says %s but %s says %s. "
+                    "Refusing to pick one silently (the header would size the HAL buffer from the winner "
+                    "while the admission gate compares only CONTRACT_BOUNDED_BYTES)."
+                    % (first_where, first_shape, where, shape))
+
+
 def shape_from(c, kind, fallback):
     v = c.get("validity") or {}
     i = c.get("interface") or {}
@@ -111,6 +159,27 @@ def main():
         raise SystemExit("gen_contract_header: refusing negative/non-integer resources.bounded_bytes %r" % (bounded,))
 
     bound_known = (method != "NONE") and is_int(bounded) and bounded >= 0 and not unresolved
+    # R2 (external review v0.19-reframe, E24b): D13/E15 type- and sign-checked
+    # bounded_bytes but never compared it with the components the SAME contract
+    # states. A contract saying bounded_bytes=1 next to static_per_call_bytes=1352
+    # and module_resident_constant_bytes=2176 emitted BOUND_KNOWN=1, and the C gate
+    # reads only the first of those three macros -- ADMIT where the honest value
+    # would refuse. make_contract.py computes all three in one dict literal under
+    # the same all_static guard, so `==` is an exact identity there (measured on
+    # every integer-valued contract in the repo); `>=` would refuse the same set
+    # while letting an INFLATED self-contradictory bound through, which turns a
+    # legitimate ADMIT into NOT_ADMITTED -- defect class (B).
+    # Scoped to bound_known: the two `dynamic` contracts carry None/None/0 and an
+    # unscoped comparison would reject them (the D16/D17 and N1/N3 trap again).
+    if bound_known:
+        _pc = r.get("static_per_call_bytes")
+        _cb = r.get("module_resident_constant_bytes")
+        if is_int(_pc) and is_int(_cb) and bounded != _pc + _cb:
+            raise SystemExit(
+                "gen_contract_header: contract contradicts itself -- resources.bounded_bytes %r != "
+                "static_per_call_bytes %r + module_resident_constant_bytes %r (= %r). Refusing to emit a "
+                "header whose CONTRACT_BOUNDED_BYTES disagrees with the components stated beside it."
+                % (bounded, _pc, _cb, _pc + _cb))
     if not bound_known:
         bounded = None
     # Use the per-invocation worst case (frame + return address + any stack
@@ -121,6 +190,27 @@ def main():
     if stack is None:
         stack = r.get("kernel_task_stack_bytes")
     stack_known = is_int(stack)
+    # R1 (external review v0.19-reframe, E24b) -- the one finding of that review
+    # that is reachable through the NORMAL pipeline, and the only one rated a
+    # claim blocker. D13/E15 refuses a negative bounded_bytes but nothing checked
+    # the stack figure, and make_contract.py copies it straight out of the
+    # --elf-analysis JSON. A negative value then flows into ai_learner.c:201
+    #     stack_needed = AI_LEARNER_STACK_BASE_BYTES + CONTRACT_KERNEL_STACK_BYTES
+    # so 262144 + (-300000) = -37856, and because CFE_ES_AppInfo_t.StackSize is
+    # UNSIGNED the very next line's `es_stack >= stack_needed` is true for every
+    # possible stack size including 0 -- i.e. the D15/E16 stack-refusal branch
+    # silently stops enforcing while telemetry still reports accounted=true.
+    # (Verified by compiling that exact expression against the generated header.)
+    # No --allow-* escape hatch: unlike "unknown stack", no honest analysis
+    # reports a negative byte count. Deliberately `< 0`, never `<= 0` -- stack==0
+    # is legitimate (elf_stack_frame.py's `max(..., default=0)` for an ELF with no
+    # dispatch functions), and `<= 0` would also reject the two `dynamic`
+    # contracts' constants=0. Both were measured as over-rejections.
+    if is_int(stack) and stack < 0:
+        raise SystemExit("gen_contract_header: refusing negative kernel task stack figure %r "
+                         "(resources.kernel_task_stack_invocation_bytes/kernel_task_stack_bytes) -- "
+                         "it would make ai_learner.c's stack_needed negative and its stack gate a tautology"
+                         % (stack,))
     # F6 (external review, 2026-09): a numeric stack figure is not by itself a
     # trustworthy bound -- elf_stack_frame.py's own classify() says so in its
     # own classification_note ("no static task-stack bound -- revise contract
@@ -179,6 +269,7 @@ def main():
                          "kernel_task_stack_bytes in resources -- refusing to emit a header with an implicit "
                          "0 B kernel stack (pass --allow-unknown-stack to override)" % method)
     entry = v.get("entry") or m.get("entry") or "infer"
+    check_shape_agreement(c)          # R3: refuse a self-contradictory contract before picking a side
     in_shape, in_src = shape_from(c, "input", [1, 9])
     out_shape, out_src = shape_from(c, "output", [1, 2])
     n_in = len(i.get("inputs") or []) or 1

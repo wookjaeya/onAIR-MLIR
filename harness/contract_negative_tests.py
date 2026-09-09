@@ -336,6 +336,55 @@ def header_negative_cases(root, tmp):
         c["interface"]["input"]["dtype"] = "f16"
     try_mutation("singular interface.input dtype=f16 contradicts plural f32 (N3)", _singular_contradicts)
 
+    # R1 (external review v0.19-reframe, E24b) — the only finding of that review
+    # reachable through the NORMAL pipeline, and the only one rated a claim
+    # blocker. A negative stack figure made ai_learner.c's
+    # `stack_needed = BASE + KERNEL` negative, and since CFE_ES_AppInfo_t.StackSize
+    # is unsigned, `es_stack >= stack_needed` became true for EVERY stack size
+    # including 0 — the D15/E16 refusal branch stopped enforcing while telemetry
+    # still said accounted=true.
+    try_mutation("negative kernel_task_stack_invocation_bytes (R1)",
+                lambda c: c["resources"].__setitem__("kernel_task_stack_invocation_bytes", -300000))
+
+    def _neg_stack_bytes(c):
+        c["resources"]["kernel_task_stack_invocation_bytes"] = None
+        c["resources"]["kernel_task_stack_bytes"] = -5
+    try_mutation("negative kernel_task_stack_bytes (R1)", _neg_stack_bytes)
+
+    # R2 (E24b): bounded_bytes was sign/type-checked (D13) but never compared with
+    # the components the same contract states. Both directions matter — too small
+    # is a fail-open (ADMIT where the honest value refuses), inflated is a class-B
+    # over-rejection of a legitimate model.
+    try_mutation("bounded_bytes smaller than its own components (R2)",
+                lambda c: c["resources"].__setitem__("bounded_bytes", 1))
+    try_mutation("bounded_bytes inflated beyond its own components (R2)",
+                lambda c: c["resources"].__setitem__("bounded_bytes", 999999999))
+
+    # R3 (E24b): shape_from() is a fallback chain, never a comparison, so a
+    # contract stating two different shapes silently emitted the validity one.
+    # Not reachable from the production path (make_contract.py fills both blocks
+    # from the same object) — defense in depth.
+    try_mutation("interface.input shape contradicts validity.input (R3)",
+                lambda c: c["interface"]["input"].__setitem__("shape", [1, 4, 4, 1]))
+    try_mutation("validity.input shape contradicts interface.input (R3)",
+                lambda c: c["validity"]["input"].__setitem__("shape", [1, 4, 4, 1]))
+
+    # R1 over-rejection guard (load-bearing): stack == 0 is LEGITIMATE —
+    # elf_stack_frame.py's `max(..., default=0)` produces it for an ELF with no
+    # dispatch functions. This pins the gate at `< 0` and stops a future
+    # "<= 0" over-correction, which was measured to also reject the two `dynamic`
+    # contracts (constants == 0), the A8 scenario inputs.
+    c = copy.deepcopy(base)
+    c["resources"]["kernel_task_stack_invocation_bytes"] = 0
+    c["resources"]["kernel_task_stack_bytes"] = 0
+    c["resources"]["kernel_stack_classification"] = "none"
+    cpath = os.path.join(tmp, "hdr_stack_zero_ok.json")
+    hpath = cpath[:-5] + ".h"
+    write_json(c, cpath)
+    rc, out, err = run([PY, GEN_HEADER, cpath, hpath])
+    results.append(Result("header: stack == 0 with classification 'none' -> accepted (R1 over-rejection guard)",
+                          rc == 0 and os.path.isfile(hpath), "rc=%d stderr=%s" % (rc, err.strip()[:160])))
+
     # N3, the other direction: a contract that states its dtype in validity.*
     # rather than interface.* must still be ACCEPTED (contracts/contract.e14_aarch64.json
     # is exactly this shape). Refusing it would be over-rejection, defect class (B).
@@ -629,6 +678,21 @@ def make_contract_negative_cases(root, tmp):
         results.append(Result("make_contract: zero-constant model still builds (N1 over-rejection guard, A8 input)",
                               rc == 0 and zero_const, "rc=%d const=%s stderr=%s"
                               % (rc, c and c["resources"]["module_resident_constant_bytes"], err.strip()[:160])))
+
+    # R1 producer side (external review v0.19-reframe, E24b): the negative stack
+    # figure enters as a TOOL OUTPUT, not as a hand-edited contract —
+    # make_contract.py hashed the --elf-analysis file and matched its elf_sha256
+    # against the vmfb, but never questioned its numbers. A stale, hand-written or
+    # third-party analysis JSON therefore produced a schema-valid contract whose
+    # header disabled the cFS stack gate. This is what makes R1 reachable through
+    # the normal pipeline rather than by tampering with a stored contract.
+    if os.path.isfile(elf_json):
+        bad_elf = os.path.join(tmp, "r1_elf_neg.json")
+        ej = load(elf_json)
+        ej["max_dispatch_invocation_stack_bytes"] = -300000
+        write_json(ej, bad_elf)
+        try_case("--elf-analysis reports a negative task stack figure (R1)",
+                 "conv2d", "aarch64", inv["layout_ir"], os.path.join(root, "aarch64", "dump", "conv2d"), bad_elf)
 
     # N6 (external review v0.18-followup, E24): E15/D13 made make_contract.py
     # refuse to write anything when jsonschema is missing, but NOTHING tested

@@ -705,14 +705,32 @@ def build_contract(a, extra_args):
                                  "inputs):\n  - %s (pass --allow-elf-analysis-mismatch to override)" % msg)
     if elf is not None:
         stack_b = elf.get("max_dispatch_frame_bytes")
+        stack_inv = elf.get("max_dispatch_invocation_stack_bytes")
         calls = elf.get("total_call_insns")
         alloca = (elf.get("llvm_ir") or {}).get("alloca_count")
         dyn = bool(elf.get("any_dynamic_stack_alloc"))
+        # R1 (external review v0.19-reframe, E24b): these two numbers were copied
+        # out of the --elf-analysis JSON with no sanity check, so a stale,
+        # hand-written or third-party analysis file could put a NEGATIVE task
+        # stack into a schema-valid contract -- and from there into a header
+        # whose C gate becomes a tautology (see gen_contract_header.py's R1
+        # comment). make_contract.py hashes the analysis file and matches its
+        # elf_sha256 against the vmfb, but never questioned its numbers. Refuse
+        # here so the bad value cannot enter a contract at all; the header-side
+        # guard is the second layer.
+        for _name, _v in (("max_dispatch_frame_bytes", stack_b),
+                          ("max_dispatch_invocation_stack_bytes", stack_inv)):
+            if isinstance(_v, int) and not isinstance(_v, bool) and _v < 0:
+                raise SystemExit("--elf-analysis reports a negative %s (%r): a task stack figure cannot be "
+                                 "negative; refusing to write it into a contract" % (_name, _v))
         if dyn:
             cls = "bucket_4_unaccounted_dynamic_stack"
         elif calls:
             cls = "bucket_3_or_4_unresolved_calls"
-        elif stack_b:
+        elif stack_b is not None and stack_b > 0:
+            # R1: was `elif stack_b:` -- truthiness promoted ANY non-zero figure,
+            # negative included, into the "trusted" bucket_2 that the header
+            # generator's stack-trust gate (E21/D22, E24/D29) accepts.
             cls = "bucket_2_task_stack_budget"
         else:
             cls = "none"
