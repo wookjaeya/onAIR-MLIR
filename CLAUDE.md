@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.22.1**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.23**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -295,6 +295,36 @@ Python 바인딩 직접 호출**이며 OnAIR 플러그인(여전히 `weights.npz
 **판정·`vs_reference`·`argmax` 전부 불변**(새 파일 `comparison_all.pairrule.json`, 원본 미수정).
 회귀 8건 신설.
 **다음**: R-2(E26 계약 경계의 유용성) → R-3(E27 MLIR 고유 기여).
+
+
+**v0.22.2 (E26 준비)**: 외부 검토 §6이 "E26 측정 전 필수"로 지목한 계측 분리를 구현·실행 확인.
+cFS 앱이 `{"stage":"e25_mode","active":<bool>}`를 **항상** 기록하고(측정이 동치 모드 꺼짐을
+*증명*할 수 있어야 한다), 추론 0회 시점의 `mem_init` 스냅샷과 세션 직후 RSS를 남긴다. native는
+`phase_hal.{after_init,after_first_call,steady_baseline}`. 하네스 expect 키
+`e25_mode_active`/`mem_init_present` 신설 — **레코드 부재는 `false`가 아니라 실패**(D29의 교훈).
+실측(x86-64, canonical): 초기화 직후 peak **720,932**(= constants 720,896 + 입력 버퍼 36 B),
+최초 추론 직후 **786,476**(= bounded), 정상 실행도 동일. native·cFS 일치.
+기록: `results/e26_boundary_utility/instrumentation_check/`.
+
+**v0.23에서 완료된 것 (E26a, `docs/EVIDENCE_v0.23_E26a.md`)**: 벤치마크 구성 지침
+(`docs/reviews/BENCHMARK_PLAN_REFERENCE_BASED.md`)이 요구한 **"합성 모델 대신 출처가 추적되는
+실제 워크로드"**를 따르자마자 **첫 실물 모델에서 도구가 막혔다** — 그것이 D47이다.
+`elf_stack_frame.py`의 분류 문구는 처음부터 *"resolve targets before classifying"*이라고 적혀
+있었지만 **그 해석 단계가 구현된 적이 없어**, 호출 명령이 하나라도 있으면 bucket (3)/(4)로
+분류됐고 헤더 생성이 거부됐다. MLPerf Tiny ResNet(CIFAR-10)의 softmax dispatch가 컴파일러 생성
+헬퍼를 80회 호출하는데, **그 타깃은 2개뿐이고 둘 다 같은 ELF의 `.text` 안이며 `.plt`도 미정의
+심볼도 없고 두 헬퍼는 프레임 0 B의 leaf**다(objdump/readelf로 직접 확인). 실제 추가 스택은
+반환 주소 8 B. **이 결함은 합성 모델셋으로는 원리적으로 재현 불가능했다** — E14 14개와 E25
+canonical이 전부 `total_call_insns = 0`이다. 수정은 **한 방향으로만** 작동한다(미해석→해석만
+가능): 간접 호출·범위 밖 타깃·꼬리 호출·콜리의 동적 alloca·콜리 안 간접 분기·재귀·해석 결과
+부재는 전부 거부 유지. 콜리 범위는 CFG를 실제 순회해 발견한다(첫 구현의 "첫 `ret`까지 자르기"는
+바로 이 ResNet 헬퍼에서 **거짓 거부**를 냈다). 부수 정정: `kernel_external_call_insns`가 이름과
+달리 내부 호출까지 포함한 총 호출 수였다 → 미해석 호출 수로, 옛 분석 파일은 총 수로 폴백.
+결과: 그 모델이 **오버라이드 0개**로 계약(`bounded=618856`)과 헤더(`KERNEL_STACK_BYTES=439L`)까지
+완주. 시험 12건, revert 시 11건 실패. **221/221**(209→221), 보관 14개 계약 **diff 0**.
+실물 근거: `results/e26_boundary_utility/mlperf_tiny_resnet_fixture/`.
+**주장하지 않음**: 이 모델의 정확도(CIFAR-10 평가셋 호스트가 이 환경에서 차단 — 직접 확인),
+모든 CNN의 통과, HAL 관측 peak와의 관계(E26 대상), 양자화 모델(범위 밖).
 
 ## 작업 규율 (반드시 지킬 것)
 

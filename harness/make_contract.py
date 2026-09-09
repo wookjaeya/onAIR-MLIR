@@ -827,7 +827,27 @@ def build_contract(a, extra_args):
     if elf is not None:
         stack_b = elf.get("max_dispatch_frame_bytes")
         stack_inv = elf.get("max_dispatch_invocation_stack_bytes")
-        calls = elf.get("total_call_insns")
+        total_calls = elf.get("total_call_insns")
+        # E26a: the field below has always been NAMED kernel_external_call_insns but was
+        # filled with the count of ALL call instructions, internal ones included -- and the
+        # header generator's stack-trust gate (E21/D22) reads it as "calls whose callee stack
+        # we cannot see". For every model this repo had measured that distinction was empty
+        # (total_call_insns == 0 in all 14 stored analyses and in E25's canonical model), so
+        # the two readings never diverged. A real CNN diverges immediately: MLPerf Tiny's
+        # ResNet softmax dispatch calls a compiler-generated float helper inside the same
+        # ELF 80 times, which is not an external call and does have a visible, static frame.
+        # Use the resolver's verdict, and fall back to the total when the analysis file is
+        # older than the resolver -- absent evidence keeps the conservative reading.
+        # Only the VERDICT goes into the contract (this count, the classification and the
+        # note that explains it); the per-callee detail stays in the ELF analysis JSON,
+        # which is where the analysis lives. That also keeps the 14 stored contracts
+        # byte-identical: they all have total_call_insns == 0, so both readings give 0.
+        unresolved_calls = elf.get("unresolved_call_insns")
+        calls = total_calls if unresolved_calls is None else unresolved_calls
+        # the task-stack figure must include the resolved chain, not just the dispatch frame
+        stack_inv_chain = elf.get("max_dispatch_invocation_stack_bytes_with_calls")
+        if not (isinstance(stack_inv_chain, int) and not isinstance(stack_inv_chain, bool)):
+            stack_inv_chain = stack_inv
         alloca = (elf.get("llvm_ir") or {}).get("alloca_count")
         dyn = bool(elf.get("any_dynamic_stack_alloc"))
         # R1 (external review v0.19-reframe, E24b): these two numbers were copied
@@ -840,7 +860,8 @@ def build_contract(a, extra_args):
         # here so the bad value cannot enter a contract at all; the header-side
         # guard is the second layer.
         for _name, _v in (("max_dispatch_frame_bytes", stack_b),
-                          ("max_dispatch_invocation_stack_bytes", stack_inv)):
+                          ("max_dispatch_invocation_stack_bytes", stack_inv),
+                          ("max_dispatch_invocation_stack_bytes_with_calls", stack_inv_chain)):
             if isinstance(_v, int) and not isinstance(_v, bool) and _v < 0:
                 raise SystemExit("--elf-analysis reports a negative %s (%r): a task stack figure cannot be "
                                  "negative; refusing to write it into a contract" % (_name, _v))
@@ -857,7 +878,7 @@ def build_contract(a, extra_args):
             cls = "none"
         kernel = {
             "kernel_task_stack_bytes": stack_b,
-            "kernel_task_stack_invocation_bytes": elf.get("max_dispatch_invocation_stack_bytes"),
+            "kernel_task_stack_invocation_bytes": stack_inv_chain,
             "kernel_task_stack_bytes_source": "elf_stack_frame.py max_dispatch_frame_bytes (max over dispatch functions; callee-saved + locals)",
             "kernel_external_call_insns": calls,
             "llvm_alloca_count": alloca,

@@ -2212,6 +2212,181 @@ def e26_instrumentation_expect_cases():
     return [Result(n, bool(ok)) for n, ok in cases]
 
 
+def _synthetic_objdump(tmp, tag, body_lines, fmt="elf64-x86-64"):
+    """Write minimal `objdump -d` text the elf_stack_frame parser accepts and
+    return its path (analyze() takes a path, not the text)."""
+    text = ("\nsynthetic:     file format %s\n\n\nDisassembly of section .text:\n\n"
+            "0000000000001000 <synthetic_start>:\n" % fmt) + "\n".join(body_lines) + "\n"
+    path = os.path.join(tmp, "objdump_%s.txt" % re.sub(r"[^a-z0-9]+", "_", tag.lower()))
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
+    return path
+
+
+def call_resolution_cases(tmp):
+    """E26a: resolving internal call targets must only ever turn 'unresolved' into
+    'resolved', and must refuse on the first thing it cannot prove.
+
+    elf_stack_frame.py's classify() has always told the reader to "resolve targets
+    (imports/runtime) before classifying" and then never resolved them, so ANY call
+    instruction put a model in bucket (3)/(4) and gen_contract_header.py (E21/D22)
+    refused a deployable header. Every model this repository had measured has
+    total_call_insns == 0 -- hand-written linalg lowers to self-contained dispatch
+    functions -- so the gap was structurally invisible to the existing model set.
+    A real public CNN exposes it immediately (MLPerf Tiny ResNet's softmax dispatch
+    calls a compiler-generated float helper inside the same ELF 80 times).
+
+    These cases pin the REFUSALS, because the fix widens what is accepted and the
+    danger is now under-reporting stack (fail-open), not over-rejecting."""
+    import elf_stack_frame as esf                              # noqa: PLC0415 - local module
+    results = []
+
+    counter = [0]
+
+    def analyze_text(lines):
+        counter[0] += 1
+        return esf.analyze(objdump_txt=_synthetic_objdump(tmp, "c%d" % counter[0], lines))
+
+    # A leaf dispatch that calls a local helper: both frames visible -> RESOLVED.
+    ok_lines = [
+        "    1000:\tpush   %rbp",
+        "    1001:\tsub    $0x40,%rsp",
+        "    1005:\tcall   1100 <synthetic_start+0x100>",
+        "    100a:\tadd    $0x40,%rsp",
+        "    100e:\tpop    %rbp",
+        "    100f:\tret",
+        "",
+        "0000000000001100 <helper>:",
+        "    1100:\tpush   %rbx",
+        "    1101:\tmulss  %xmm1,%xmm0",
+        "    1105:\tpop    %rbx",
+        "    1106:\tret",
+    ]
+    a = analyze_text(ok_lines)
+    cr = a.get("call_resolution") or {}
+    results.append(Result("call-res: local direct call resolves (frames of caller and callee both counted)",
+                          bool(a.get("unresolved_call_insns") == 0 and cr.get("resolved") is True
+                              and a.get("max_dispatch_invocation_stack_bytes_with_calls")
+                              == a["max_dispatch_invocation_stack_bytes"] + 8 + 8),
+                          "unresolved=%s with_calls=%s alone=%s"
+                          % (a.get("unresolved_call_insns"),
+                             a.get("max_dispatch_invocation_stack_bytes_with_calls"),
+                             a.get("max_dispatch_invocation_stack_bytes"))))
+
+    # Every one of these must stay unresolved: the resolver may not guess.
+    refusals = [
+        ("indirect call (register target)", [
+            "    1000:\tpush   %rbp", "    1001:\tcall   *%rax",
+            "    1003:\tpop    %rbp", "    1004:\tret"]),
+        ("call outside the disassembled range", [
+            "    1000:\tpush   %rbp", "    1001:\tcall   9000 <elsewhere>",
+            "    1006:\tpop    %rbp", "    1007:\tret"]),
+        ("callee tail-jumps into another known function", [
+            "    1000:\tpush   %rbp", "    1001:\tcall   1100 <helper>",
+            "    1006:\tpop    %rbp", "    1007:\tret",
+            "", "0000000000001100 <helper>:",
+            "    1100:\tjmp    1200 <other>",
+            "", "0000000000001200 <other>:",
+            "    1200:\tret"]),
+        ("callee grows the stack dynamically", [
+            "    1000:\tpush   %rbp", "    1001:\tcall   1100 <helper>",
+            "    1006:\tpop    %rbp", "    1007:\tret",
+            "", "0000000000001100 <helper>:",
+            "    1100:\tsub    %rax,%rsp", "    1103:\tret"]),
+        ("callee has an indirect branch", [
+            "    1000:\tpush   %rbp", "    1001:\tcall   1100 <helper>",
+            "    1006:\tpop    %rbp", "    1007:\tret",
+            "", "0000000000001100 <helper>:",
+            "    1100:\tjmp    *%rdx", "    1102:\tret"]),
+        ("callee calls back into its caller (recursion)", [
+            "    1000:\tpush   %rbp", "    1001:\tcall   1100 <helper>",
+            "    1006:\tpop    %rbp", "    1007:\tret",
+            "", "0000000000001100 <helper>:",
+            "    1100:\tcall   1100 <helper>", "    1105:\tret"]),
+    ]
+    for name, lines in refusals:
+        a = analyze_text(lines)
+        cr = a.get("call_resolution") or {}
+        refused = (a.get("unresolved_call_insns") == a.get("total_call_insns") != 0
+                   and cr.get("resolved") is False
+                   and a.get("max_dispatch_invocation_stack_bytes_with_calls") is None
+                   # bucket (3)/(4) normally; bucket (4) when the callee's own dynamic
+                   # alloca makes the whole executable unaccounted -- both are refusals,
+                   # and neither may be the resolved bucket (2) wording.
+                   and "TASK-STACK with resolved calls" not in (a.get("classification_note") or ""))
+        results.append(Result("call-res: %s stays unresolved" % name, bool(refused),
+                              "unresolved=%s/%s reason=%s"
+                              % (a.get("unresolved_call_insns"), a.get("total_call_insns"),
+                                 str(cr.get("reason"))[:70])))
+
+    # The real artifact this was found on, preserved so the claim is reproducible from
+    # the repository alone (D43's lesson: a fix justified by "a real model does X" needs
+    # that model in the tree). MLPerf Tiny ResNet, CIFAR-10, converted through
+    # tflite2onnx -> iree-import-onnx -> iree-opt -> ONE iree-compile. Its softmax
+    # dispatch calls two compiler-generated float helpers 80 times; both live inside
+    # this ELF's .text, both are leaves with a zero-byte frame, and one of them branches
+    # forward past its own first `ret` -- which is why slicing a callee at its first ret
+    # (the first implementation here) produced a FALSE refusal on it.
+    fx = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utility",
+                      "mlperf_tiny_resnet_fixture")
+    objd = os.path.join(fx, "embedded_elf.objdump.txt")
+    so = os.path.join(fx, "embedded_elf.so")
+    if not os.path.exists(objd) or not os.path.exists(so):
+        results.append(Result("call-res: MLPerf Tiny ResNet fixture present", False,
+                              "missing %s / %s" % (objd, so)))
+    elif shutil.which("objdump") is None:
+        results.append(Result("call-res: MLPerf Tiny ResNet resolves (needs the ELF's own "
+                              "symbol/export table)", True, "objdump not installed", skip=True))
+    else:
+        # Degradation check first: given ONLY a disassembly, the function-boundary
+        # heuristic (ret+padding) over-splits this ELF into 23 functions instead of 17,
+        # so a forward branch inside the 0x5440 helper looks like a tail call into a
+        # neighbour and the resolver REFUSES. That is the behaviour we want from worse
+        # information -- a conservative refusal, never a smaller number.
+        a_txt = esf.analyze(objdump_txt=objd)
+        results.append(Result("call-res: disassembly without the ELF degrades to a refusal, not a "
+                              "wrong figure", bool(a_txt.get("unresolved_call_insns") == 80
+                                                   and a_txt.get("max_dispatch_invocation_stack_bytes_with_calls") is None),
+                              "unresolved=%s" % a_txt.get("unresolved_call_insns")))
+        a = esf.analyze(elf_path=so)
+        cr = a.get("call_resolution") or {}
+        results.append(Result("call-res: real MLPerf Tiny ResNet -- 80 calls, 2 internal targets, resolved",
+                              bool(a.get("total_call_insns") == 80 and a.get("unresolved_call_insns") == 0
+                                   and cr.get("resolved") is True
+                                   and cr.get("distinct_targets") == ["0x53c0", "0x5440"]
+                                   and all(c["frame_bytes"] == 0 for c in cr.get("callees", []))
+                                   and a.get("max_dispatch_invocation_stack_bytes_with_calls") == 439),
+                              "targets=%s with_calls=%s" % (cr.get("distinct_targets"),
+                                                            a.get("max_dispatch_invocation_stack_bytes_with_calls"))))
+        # the softmax dispatch itself must carry the +8 return address of its callee
+        chains = cr.get("per_function_chain_stack_bytes") or {}
+        sm = [(n, v) for n, v in chains.items() if "softmax" in n]
+        inv = {f["name"]: f["invocation_stack_bytes"] for f in a["functions"]}
+        results.append(Result("call-res: the calling dispatch's chain = its own frame + the callee's",
+                              bool(len(sm) == 1 and sm[0][1] == inv[sm[0][0]] + 8),
+                              "%s: inv=%s chain=%s" % (sm[0][0][:40] if sm else "?",
+                                                       inv.get(sm[0][0]) if sm else None,
+                                                       sm[0][1] if sm else None)))
+        # and it must reach a deployable header, with no override
+        rc, so, se = run([PY, GEN_HEADER, os.path.join(fx, "resnet.contract.json"),
+                          os.path.join(tmp, "resnet_check.h")])
+        hdr = open(os.path.join(tmp, "resnet_check.h")).read() if rc == 0 else ""
+        results.append(Result("call-res: ResNet contract yields a deployable header with no override",
+                              bool(rc == 0 and "#define CONTRACT_KERNEL_STACK_BYTES_KNOWN 1" in hdr
+                                   and "#define CONTRACT_KERNEL_STACK_BYTES 439L" in hdr
+                                   and "#define CONTRACT_BOUND_KNOWN 1" in hdr),
+                              "rc=%d" % rc))
+
+    # make_contract.py must fall back to the TOTAL count when the analysis file predates
+    # the resolver -- an old JSON must not be read as "nothing unresolved".
+    src = open(os.path.join(HERE, "make_contract.py"), encoding="utf-8").read()
+    results.append(Result("call-res: make_contract falls back to total_call_insns when the "
+                          "analysis has no resolver verdict",
+                          "calls = total_calls if unresolved_calls is None else unresolved_calls" in src,
+                          "source-level guard"))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -2235,6 +2410,7 @@ def main():
         all_results += default_plugin_fixture_cases()
         all_results += e25_compare_rule_cases(tmp)
         all_results += e26_instrumentation_expect_cases()
+        all_results += call_resolution_cases(tmp)
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
