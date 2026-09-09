@@ -281,3 +281,69 @@ PY
 python3 harness/contract_negative_tests.py --skip-regression | grep " R5"   # 행위 5건 PASS, 가드 1건 FAIL
 git checkout harness/make_contract.py
 ```
+
+## 12. 정오표 (E24c, v0.21에서 추가 — 원인 서술 철회, 판정은 유지)
+
+다섯 번째 외부 검토(`docs/reviews/REVIEW_v0_20_E24b.md` F5)가 이 문서의 **인과 서술이
+틀렸다**고 지적했고, 확인 결과 **맞다.**
+
+### 12.1 §2·§8(D35)의 "`CFE_ES_AppInfo_t.StackSize`가 unsigned이므로" — **철회**
+
+`native/cfs_app/fsw/src/ai_learner.c`의 실제 코드는 다음과 같다(198·200·201·202행):
+
+```c
+long es_stack = -1;
+if (CFE_ES_GetAppID(...) == CFE_SUCCESS && CFE_ES_GetAppInfo(...) == CFE_SUCCESS)
+    es_stack = (long)info.StackSize;                       /* 명시적 (long) 캐스트 */
+long stack_needed = (long)AI_LEARNER_STACK_BASE_BYTES + (long)CONTRACT_KERNEL_STACK_BYTES;
+int stack_accounted = es_stack >= stack_needed;            /* signed long 끼리의 비교 */
+```
+
+양쪽 피연산자가 **signed `long`**이므로 unsigned 비교가 아니다. `info.StackSize`가 unsigned
+타입이더라도 `(long)` 캐스트가 그 앞에 있어 무관하다.
+
+**올바른 인과**: `stack_needed = 262144 + (-300000) = -37856`(음수)이 되므로, 비음수인 어떤
+`es_stack`도 `>=`를 만족한다.
+
+**인과가 반대로 틀렸다는 점이 중요하다** — 실제로 unsigned 비교였다면
+`(unsigned long)(-37856) = 18446744073709513760`이 되어 현실적인 모든 스택 크기에서 오히려
+**거부**됐을 것이다. 즉 이 문서가 "확인했다"고 쓴 컴파일 실험은 산술과 항등식은 확인했지만
+unsigned 귀속은 확인할 수 없었다(그 귀속을 컴파일하면 반대 결과가 나온다). 작업 규율 4가
+경계하는 바로 그 형태 — **실행으로 확인했다는 표시가 실행이 반증하는 주장에 찍혀 있었다.**
+
+### 12.2 판정과 수정은 유지되며, 오히려 하나가 추가된다
+
+결론(스택 게이트가 **모든 스택 크기에서 참인 항등식**이 되어 D15/E16의 거부 분기가 조용히
+멈춘다)은 올바른 signed 해석 아래에서도 그대로 성립한다. 실측(재컴파일):
+
+| `es_stack` | `>= stack_needed(-37856)` |
+|---:|---|
+| 0 | 참 |
+| **-1** (`CFE_ES_GetAppInfo` 실패 시 초기값) | 참 |
+| 262335 (정상값) | 참 |
+
+`es_stack = -1` 행은 이 문서도, 검토도 짚지 않았던 것이다 — 음수 계약 스택은 "cFE에서 정보를
+얻지 못하면 거부한다"는 방어까지 함께 무력화한다. D35의 심각도 판정(claim blocker)과
+E24b의 코드 수정(생성기·`make_contract.py` 양쪽에서 음수 거부, `< 0`이지 `<= 0`이 아님)은
+전부 그대로 유효하며, R1 거부 시험 3건과 `stack == 0` 과잉거부 가드는 여전히 통과한다.
+
+### 12.3 정정 범위
+
+살아있는 문서(`CLAUDE.md`, `CHANGELOG.md`, `EXPERIMENT_LOG.md`)는 직접 정정했고, 이 문서와
+`EXPERIMENT_LOG.md`의 D35 행에는 정정 사유를 덧붙였다(규율 3·5). 코드 주석 2곳도 고쳤다 —
+`harness/gen_contract_header.py`의 음수 스택 가드 바로 위 주석과
+`harness/contract_negative_tests.py`의 R1 시험 주석. **전자는 대소문자 무시 grep으로만 잡히는
+7번째 지점이었고, 살아있는 fail-closed 가드의 존재 이유를 설명하는 자리라 가장 위험했다** —
+유지보수자가 그 가드가 아직 필요한지 판단하는 근거가 틀린 서술이었다. 그 주석에는
+"`(long)` 캐스트를 unsigned 해석을 근거로 제거하지 말 것"이라는 경고도 함께 넣었다(캐스트를
+제거하면 정상값 262335를 포함해 **모든** 스택이 거부됨을 실측).
+
+### 12.4 §5의 "31개 data 세그먼트" — 수치 정정 + 실물 근거 보존(F4)
+
+같은 검토의 F4는 이 주장을 뒷받침하는 실물 IREE 산출물이 저장소에 없어 저장소 내용만으로는
+재현할 수 없다고 지적했다. 타당하며, `results/e24c_manyconst31/`에 한 번의 컴파일 호출
+산출물 전체를 보존해 닫았다(생성기 `harness/gen_model_manyconst.py`).
+
+수치도 정정한다: 이 저장소 자신의 `artifact_rodata_segments()` 기준으로는 **33개**다
+(embedded 1024 B 상수 슬랩 32 + external 1). "31"은 모델의 상수 개수다. 결론(옛 24개 상한을
+넘는다, 앞 24개 합 24576 B < 상수 총량 33792 B)은 동일하다.

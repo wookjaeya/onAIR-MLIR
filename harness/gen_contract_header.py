@@ -246,11 +246,20 @@ def main():
     # the stack figure, and make_contract.py copies it straight out of the
     # --elf-analysis JSON. A negative value then flows into ai_learner.c:201
     #     stack_needed = AI_LEARNER_STACK_BASE_BYTES + CONTRACT_KERNEL_STACK_BYTES
-    # so 262144 + (-300000) = -37856, and because CFE_ES_AppInfo_t.StackSize is
-    # UNSIGNED the very next line's `es_stack >= stack_needed` is true for every
-    # possible stack size including 0 -- i.e. the D15/E16 stack-refusal branch
-    # silently stops enforcing while telemetry still reports accounted=true.
-    # (Verified by compiling that exact expression against the generated header.)
+    # so 262144 + (-300000) = -37856. Both operands of the very next line's
+    # `es_stack >= stack_needed` are signed `long` (ai_learner.c:198/201, with
+    # info.StackSize explicitly cast at :200), so this is a SIGNED comparison and
+    # it is true for every possible stack size -- including 0, and including the
+    # es_stack = -1 that ai_learner.c leaves in place when CFE_ES_GetAppInfo
+    # fails. The D15/E16 stack-refusal branch silently stops enforcing while
+    # telemetry still reports accounted=true.
+    # (Verified by compiling that exact expression: stack_needed = -37856 and the
+    # comparison holds at es_stack in {-1, 0, 1, 16384, 262144, 262335}.)
+    # DO NOT remove the (long) cast at ai_learner.c:200 on the strength of an
+    # "unsigned" reading -- E24c measured that removing it rejects EVERY stack
+    # size, including the correct 262335. Earlier revisions of this comment
+    # blamed unsigned promotion; that was wrong (정정 E24c/F5) and is exactly
+    # backwards: an unsigned comparison would wrap -37856 to 1.8e19 and REFUSE.
     # No --allow-* escape hatch: unlike "unknown stack", no honest analysis
     # reports a negative byte count. Deliberately `< 0`, never `<= 0` -- stack==0
     # is legitimate (elf_stack_frame.py's `max(..., default=0)` for an ELF with no

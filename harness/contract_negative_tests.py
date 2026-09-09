@@ -340,10 +340,14 @@ def header_negative_cases(root, tmp):
     # R1 (external review v0.19-reframe, E24b) — the only finding of that review
     # reachable through the NORMAL pipeline, and the only one rated a claim
     # blocker. A negative stack figure made ai_learner.c's
-    # `stack_needed = BASE + KERNEL` negative, and since CFE_ES_AppInfo_t.StackSize
-    # is unsigned, `es_stack >= stack_needed` became true for EVERY stack size
-    # including 0 — the D15/E16 refusal branch stopped enforcing while telemetry
-    # still said accounted=true.
+    # `stack_needed = BASE + KERNEL` negative (262144 + (-300000) = -37856), and
+    # since BOTH operands of `es_stack >= stack_needed` are signed `long`, the
+    # comparison became true for EVERY stack size -- including 0, and including
+    # the es_stack = -1 left in place when CFE_ES_GetAppInfo fails. The D15/E16
+    # refusal branch stopped enforcing while telemetry still said accounted=true.
+    # (정정 E24c/F5: earlier revisions attributed this to CFE_ES_AppInfo_t.StackSize
+    # being unsigned. That was wrong and backwards -- an unsigned comparison would
+    # wrap -37856 to 1.8e19 and REFUSE at every realistic stack size.)
     try_mutation("negative kernel_task_stack_invocation_bytes (R1)",
                 lambda c: c["resources"].__setitem__("kernel_task_stack_invocation_bytes", -300000))
 
