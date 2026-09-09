@@ -499,6 +499,15 @@ Q1·Q2·Q3 전부 성립, `bounded` 1,069,632 = `per_call` 6,208 + `constants` 1
 **옛 번호 → 새 번호**(위 v0.10~v0.19 서술과 `EXPERIMENT_LOG.md`·`CHANGELOG.md`가 쓰는 번호):
 1→H-1, 2→H-2, 3→H-3(verifier 부분)·R-3(진짜 pass 부분), 4→R-2에 흡수, 5→R-4, 6→R-5, 7→R-6, 8→R-1.
 
+### 논문 범위 (2026-09-09 확정 — 여섯 번째 외부 검토 + 연구 책임자 지시)
+
+**논문은 "MLIR 기반 AI 실행 메모리 admission"에 집중한다.** 다음 넷은 **핵심 논증에서 제외**한다:
+보안(악의적 변조·해시 위조), 공급망·서명·키 관리, QEMU 성능(latency·jitter·WCET·전력),
+cFS 전체 인증. 손상 아티팩트 시험과 결함 원장 51건은 **부록의 보조 증거**이며 본문 기여가
+아니다. 새 fail-closed 음성 시험을 늘리는 것도 본문 기여가 아니다.
+계약의 정확한 이름은 **partial per-app model-execution memory contract**다.
+상세는 `docs/ASSUMPTIONS_AND_SCOPE.md` 하단 "논문 범위 결정".
+
 ### 연구 가정 — `docs/ASSUMPTIONS_AND_SCOPE.md` (확정)
 
 계약은 저장소 생성 파이프라인의 산출물이며 생성 후 수동 변경하지 않는다고 가정한다.
