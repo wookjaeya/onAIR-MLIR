@@ -5,7 +5,8 @@
 ## [v0.21] — E24c: 다섯 번째 외부 검토(F1–F5) — 확인된 4건 수정, 1건은 근거 있는 미채택
 
 판정: 5건 전부 재현하고 4건을 수정했다(D41–D44). `contract_negative_tests.py` 170/170 →
-**191/191**(이 컨테이너 실측; CI 세 레그는 `docs/EVIDENCE_v0.21_E24c.md` §8.1에 실측 기록).
+**191/191**(이 컨테이너 실측). **CI 실측**(커밋 `50f16d0`): `full` 190/190+1 SKIP ·
+`without-iree` 103/103+11 SKIP · `stdlib-only` 103/103+11 SKIP.
 
 정정: **F5 — 이 저장소가 D35의 원인을 "unsigned 비교"라고 쓴 것은 틀렸다.**
 `ai_learner.c`의 `es_stack`과 `stack_needed`는 둘 다 signed `long`이고 `info.StackSize`는

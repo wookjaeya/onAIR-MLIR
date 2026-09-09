@@ -17,11 +17,11 @@ python3 harness/platform_check.py  # 이 머신의 타이밍 증거 등급 확�
 **fresh clone 재현성(외부 검토 F9 — E22/E23에서 실제 확인·해결, N6 — E24에서 명칭 정정)**:
 `git clone`으로 새로 받은 이 저장소에서 위 `pip install -r requirements.txt` 후
 `contract_negative_tests.py`를 실행하면 크래시나 오탐 FAIL 없이 정상 종료한다. v0.21(E24c)의
-이 컨테이너 실측은 **191/191**이며, CI 세 레그 실측은
-[`docs/EVIDENCE_v0.21_E24c.md`](./docs/EVIDENCE_v0.21_E24c.md) §8.1에 기록한다. 아래는 v0.20(E24b)
-CI 실측(커밋 `5debfd5`)이며 레그별 조건 설명은 그대로 유효하다: `full` **169/169 + 1 SKIP**,
-`without-iree` **85/85 + 9 SKIP**, `stdlib-only` **85/85 + 9 SKIP**(세 레그 전부 success).
-이 개발 컨테이너는 PyYAML이 시스템 패키지로 있어 그때 170/170이었다 — **CI가 측정하기 전의 값을 추정해 적지 않는 것이 이 저장소의
+이 컨테이너 실측은 **191/191**이고, **CI 실측**(커밋 `50f16d0`, 세 레그 전부 success)은
+`full` **190/190 + 1 SKIP**, `without-iree` **103/103 + 11 SKIP**, `stdlib-only`
+**103/103 + 11 SKIP**이다. 차이 1건은 PyYAML 유무이며(그 SKIP은 워크플로우 YAML 파싱 검사),
+**CI가 측정하기 전의 값을 추정해 적지 않는 것이 이 저장소의 규칙이다**(그렇게 적었다가 D34로
+정정한 이력이 있다). 레그별 조건 설명은 아래 v0.20 기록이 그대로 유효하다 — **CI가 측정하기 전의 값을 추정해 적지 않는 것이 이 저장소의
 규칙이다**(그렇게 적었다가 D34로 정정한 이력이 있다). 아래는 v0.19 시점의 CI 실측 기록이며
 레그별 조건 설명은 그대로 유효하다: **142/142 + 1 SKIP**(CI 실측. 이 저장소 개발 컨테이너처럼
 PyYAML이 별도로 깔려 있으면 143/143 — PyYAML은 `requirements.txt`에 없고, 그 1건은 워크플로우
