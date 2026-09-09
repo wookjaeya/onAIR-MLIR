@@ -1,0 +1,22 @@
+{
+  "arg_shapes": [
+    [
+      1,
+      9
+    ]
+  ],
+  "bytes_per_call": 65580.0,
+  "device_bytes_allocated": 655800,
+  "device_bytes_freed": 655800,
+  "device_bytes_peak": 65580,
+  "host_bytes_allocated": 0,
+  "host_bytes_freed": 0,
+  "host_bytes_peak": 0,
+  "iree_runtime_version": "unknown",
+  "iters": 10,
+  "mlir_source": "results/e14_aarch64_qemu/models/mlp16k/m16k_baked.mlir",
+  "model": "mlp16k",
+  "runner": "pip iree.runtime (python bindings), one model per process",
+  "supported": true,
+  "vmfb": "results/e14_aarch64_qemu/x86_64/vmfb/mlp16k.vmfb"
+}

@@ -1,0 +1,57 @@
+{
+  "attempted": 250,
+  "completed": 250,
+  "e25_mode_active": false,
+  "fail_input": 0,
+  "fail_invoke": 0,
+  "fail_output": 0,
+  "first_fail_status": "",
+  "first_fail_step": "",
+  "hal_bytes_per_call_amortized": 68427.7,
+  "hal_bytes_per_call_steady": 65544.0,
+  "hal_device_bytes_peak": 786476,
+  "iters": 50,
+  "kernel_stack_bytes": 16,
+  "max_us": 111.81,
+  "median_us": 45.73,
+  "model": "mlp16k",
+  "out": [
+    4.432073,
+    -0.81836
+  ],
+  "out0": 4.432073,
+  "p99_us": 111.81,
+  "peak_within_bounded": true,
+  "phase_hal": {
+    "after_first_call": {
+      "allocated": 786476,
+      "observed": true,
+      "peak": 786476
+    },
+    "after_init": {
+      "allocated": 720932,
+      "peak": 720932
+    },
+    "steady_baseline": {
+      "allocated": 13829732,
+      "peak": 786476
+    }
+  },
+  "rss_delta_kb": {
+    "inference": 196,
+    "module_load": 860,
+    "runtime_bringup": 360,
+    "total": 1416
+  },
+  "rss_kb": {
+    "after_module": 4108,
+    "after_run": 4304,
+    "after_runtime": 3248,
+    "start": 2888
+  },
+  "stage": "run",
+  "steady_within_per_call": true,
+  "target": "x86_64-unknown-linux-gnu",
+  "vmfb_bytes": 733979,
+  "warmup": 200
+}

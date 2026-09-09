@@ -1,0 +1,2 @@
+{"stage":"admission","verdict":"NOT_ADMITTED","model":"conv2d","target":"x86_64-unknown-linux-gnu","bounded_bytes":3528,"budget_bytes":3527,"per_call":1352,"constants":2176,"kernel_stack_bytes":239,"bound_known":true}
+{"stage":"exit","reason":"not admitted","cleanup_calls":0}

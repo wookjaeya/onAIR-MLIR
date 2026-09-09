@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.24**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.25**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -339,6 +339,25 @@ D39 헤더 게이트가 다시 거부. **정직한 f32 모델의 배치 경로�
 `results/e26_boundary_utility/empty_label_rodata_fixture/`.
 **부수 교훈**: 이 시험의 첫 작성본은 revert 시 `AttributeError`로 스위트를 죽였다 —
 **결함을 재현하려고 되돌리는 순간이 정확히 그 조건이 발생하는 때**다(D24/D32와 같은 부류).
+
+**v0.25에서 완료된 것 (E26, `docs/EVIDENCE_v0.25_E26.md`)**: R-2의 핵심 질문에 답했다.
+사전 고정 기준(`docs/plans/E26_boundary_utility.md`, **측정 전에** 커밋)으로 측정한 결과
+**Q1 PASS**(21개 실행 셀 전부 `peak ≤ bounded`, 위반 0), **Q3 PASS**(unsafe admit 0,
+`B−1`→DENY·`B`/`B+1`→ADMIT), **Q2 정량화**(tightness **1.00×~45.50×**).
+**기전이 규명됐다** — IREE는 상수를 `stream.resource.try_map` + `scf.if(%did_map)`로 감싸고
+성공 분기는 HAL 할당이 0, 실패 분기는 상수만큼 할당한다(보관 12개 layout IR 전부 같은 구조).
+따라서 `bounded = per_call + constants`는 **두 분기의 최댓값**이며 soundness는 **구조적으로**
+성립하고 tightness만 분기의 함수다. 네 가지 런타임 배포(pip `iree.runtime` / 소스 빌드 C 런타임
+native / 같은 런타임의 cFS 앱 / qemu-user AArch64)에서 **같은 vmfb의 HAL peak가 최대 45.5배**
+달라졌다 — 즉 **런타임 계측으로 얻은 상한은 그 배포에만 유효하고 정적 계약은 배포에 독립**이다.
+이것이 "부분 계약이 배치 판단에 유용한가"에 대한 답이며, 유용성의 근거는 tightness가 아니라
+**배포 독립성**이고 그 대가가 최대 45.5배의 보수성이다. 분기 결정 요인은 네 가지를 실측으로
+배제했고(무작위 아님 5/5 결정적 · 런타임 빌드 구성 동일 · 모델 내재적 아님(E14는 같은 vmfb로
+다른 값) · embedded/external만으로 설명 안 됨) **최종 요인은 미확정으로 남겼다**.
+**E14의 `both_sound: null` 공백을 실제 실행으로 닫았다**(3모델 전부 true — v0.22.1에서 D45로
+철회했던 바로 그 항목). 측정 위생: 모든 cFS 셀이 `e25_mode active=false`를 **증언**했고, HAL
+통계가 프로세스 전역이라 모델당 별도 프로세스로 측정했다(오염 실측 재현).
+**범위**: E26-core(B0 3모델)의 판정이다. B2·B3 실행 측정과 AArch64 게스트 cFS는 E26-ext로 남음.
 
 ## 작업 규율 (반드시 지킬 것)
 
