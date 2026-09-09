@@ -264,6 +264,64 @@ def header_negative_cases(root, tmp):
     try_mutation("stack figure present but kernel_stack_classification=bucket_4_unaccounted_dynamic_stack (F6)",
                 lambda c: c["resources"].__setitem__("kernel_stack_classification",
                                                       "bucket_4_unaccounted_dynamic_stack"))
+    # N4 (external review v0.18-followup, E24): F6 above checked the three
+    # signals only when they were PRESENT and said something bad. A missing
+    # signal was read as "trusted" -- all four of these were silently accepted
+    # with KERNEL_STACK_BYTES_KNOWN=1 before E24 (revert-and-confirm-fail).
+    try_mutation("stack figure present but kernel_stack_classification key ABSENT (N4)",
+                lambda c: c["resources"].pop("kernel_stack_classification", None))
+    try_mutation("stack figure present but kernel_stack_classification=null (N4)",
+                lambda c: c["resources"].__setitem__("kernel_stack_classification", None))
+    try_mutation("stack figure present but all three trust signals ABSENT (N4)",
+                lambda c: [c["resources"].pop(k, None) for k in
+                           ("kernel_stack_classification", "kernel_dynamic_stack_alloc", "kernel_external_call_insns")])
+    try_mutation("stack figure present but kernel_external_call_insns ABSENT (N4)",
+                lambda c: c["resources"].pop("kernel_external_call_insns", None))
+
+    # N3 (external review v0.18-followup, E24): dtype was read ONLY from the
+    # optional plural interface.inputs/outputs arrays, so an empty dtype set was
+    # indistinguishable from exactly {"f32"} and CONTRACT_DTYPES_ALL_F32 came out
+    # 1 for an f16 contract. The pre-existing "non-f32 dtype" case at L234 only
+    # mutates the plural array, which is why it never caught any of these three.
+    def _strip_plural_f16(c):
+        c["interface"].pop("inputs", None)
+        c["interface"].pop("outputs", None)
+        c["interface"]["input"]["dtype"] = "f16"
+        c["interface"]["output"]["dtype"] = "f16"
+        (c.get("validity") or {}).get("input", {}).pop("dtype", None)
+        (c.get("validity") or {}).get("output", {}).pop("dtype", None)
+    try_mutation("interface.inputs/outputs ABSENT and singular dtype=f16 (N3)", _strip_plural_f16)
+
+    def _empty_plural_f16(c):
+        c["interface"]["inputs"] = []
+        c["interface"]["outputs"] = []
+        c["interface"]["input"]["dtype"] = "f16"
+        c["interface"]["output"]["dtype"] = "f16"
+        (c.get("validity") or {}).get("input", {}).pop("dtype", None)
+        (c.get("validity") or {}).get("output", {}).pop("dtype", None)
+    try_mutation("interface.inputs/outputs EMPTY and singular dtype=f16 (N3)", _empty_plural_f16)
+
+    def _singular_contradicts(c):
+        # plural still says f32; the schema-REQUIRED singular field says f16
+        c["interface"]["input"]["dtype"] = "f16"
+    try_mutation("singular interface.input dtype=f16 contradicts plural f32 (N3)", _singular_contradicts)
+
+    # N3, the other direction: a contract that states its dtype in validity.*
+    # rather than interface.* must still be ACCEPTED (contracts/contract.e14_aarch64.json
+    # is exactly this shape). Refusing it would be over-rejection, defect class (B).
+    c = copy.deepcopy(base)
+    c["interface"].pop("inputs", None)
+    c["interface"].pop("outputs", None)
+    c["interface"].pop("input", None)
+    c["interface"].pop("output", None)
+    cpath = os.path.join(tmp, "hdr_dtype_from_validity.json")
+    hpath = cpath[:-5] + ".h"
+    write_json(c, cpath)
+    rc, out, err = run([PY, GEN_HEADER, cpath, hpath])
+    ok = rc == 0 and os.path.isfile(hpath) and "CONTRACT_DTYPES_ALL_F32 1" in open(hpath).read()
+    results.append(Result("header: dtype stated only in validity.* (not interface.*) -> accepted (N3, over-rejection guard)",
+                          ok, "rc=%d stderr=%s" % (rc, err.strip()[:160])))
+
     # --allow-unknown-stack must still let the untrusted-classification case
     # through too (same override, now covering both "absent" and "untrusted").
     c = copy.deepcopy(base)
@@ -445,6 +503,102 @@ def make_contract_negative_cases(root, tmp):
         results.append(Result("make_contract-neg: --allow-unverified-invocation overrides the empty --dump-dir (F1)",
                               rc == 0 and c is not None and c["provenance"]["single_invocation"] is False,
                               "rc=%d stderr=%s" % (rc, err.strip()[:200])))
+
+    # N2 (external review v0.18-followup, E24): F1 above closed only the EMPTY
+    # --dump-dir. A non-empty dump dir merely missing the linked executable
+    # leaves dump_elf_in_vmfb None, which no branch caught -- exit 0, empty
+    # notes, single_invocation=false, and a byte-identical deployable header.
+    # Reachable without hand-editing: compiling with the component
+    # --iree-hal-dump-executable-{sources,intermediates}-to flags instead of the
+    # meta flag --iree-hal-dump-executable-files-to produces exactly this shape.
+    if not iree_tools_available():
+        results.append(Result("make_contract-neg: dump-dir without linked ELF refused (N2)",
+                              True, "needs iree-dump-module to isolate from the D25 condition", skip=True))
+    else:
+        noso_dump = os.path.join(tmp, "n2_dump_no_elf")
+        if os.path.isdir(noso_dump):
+            shutil.rmtree(noso_dump)
+        shutil.copytree(os.path.join(root, "aarch64", "dump", "conv2d"), noso_dump)
+        for fn in os.listdir(noso_dump):
+            if fn.endswith(".so") or fn.endswith(".elf"):
+                os.remove(os.path.join(noso_dump, fn))
+        try_case("--dump-dir has files but no linked ELF, vmfb binding unverifiable (N2)",
+                 "conv2d", "aarch64", inv["layout_ir"], noso_dump, elf_json)
+        # ESCALATION: the same partial dump dir paired with a DIFFERENT model's
+        # vmfb -- this is the D10 hole re-opened through the None path, and it is
+        # what makes N2 a fail-open rather than only a bookkeeping gap.
+        inv_mlp = invocation("mlp16k", "aarch64")
+        out = os.path.join(tmp, "n2_escalation.json")
+        ti = TARGET_INFO["aarch64"]
+        cmd = ([PY, MAKE_CONTRACT, "--mlir", inv["mlir"], "--vmfb", inv_mlp["vmfb"],
+                "--layout-ir", inv["layout_ir"], "--dump-dir", noso_dump, "--triple", ti["triple"],
+                "--cpu", ti["cpu"], "--model-name", "conv2d", "--out", out, "--no-validate"]
+               + list(with_structural_override(()))
+               + ["--extra-args", "--mlir-elide-elementsattrs-if-larger=16"])
+        rc, o, err = run(cmd)
+        results.append(Result("make_contract-neg: partial dump-dir + WRONG model's vmfb -> refused (N2 escalation, D10 via None)",
+                              rc != 0 and not os.path.exists(out),
+                              "rc=%d wrote=%s stderr=%s" % (rc, os.path.exists(out), err.strip()[:200])))
+        # the override must still work, and must now RECORD why in provenance.notes
+        out = os.path.join(tmp, "n2_override.json")
+        cmd = base_cmd("conv2d", "aarch64", inv["layout_ir"], noso_dump, out, elf_json,
+                       extra_flags=("--allow-unverified-invocation",))
+        rc, o, err = run(cmd)
+        c = load(out) if (rc == 0 and os.path.exists(out)) else None
+        noted = bool(c) and any("one-invocation signal not verified" in n for n in c["provenance"]["notes"])
+        results.append(Result("make_contract-neg: --allow-unverified-invocation overrides it AND records a note (N2)",
+                              rc == 0 and c is not None and c["provenance"]["single_invocation"] is False and noted,
+                              "rc=%d noted=%s stderr=%s" % (rc, noted, err.strip()[:160])))
+
+        # N1 (external review v0.18-followup, E24): D25 refuses "could not observe
+        # the artifact-side constant total", but the STRONGER negative evidence --
+        # observed and CONTRADICTS the IR total -- was only written into a note.
+        # Reproduced with a fake iree-dump-module on PATH that reports one .rodata
+        # segment as 1 B instead of the real 2176 B (the observer is faked, not the
+        # observed, because the real tool cannot be made to disagree with a healthy
+        # artifact without editing the artifact).
+        fake_bin = os.path.join(tmp, "n1_fakebin")
+        os.makedirs(fake_bin, exist_ok=True)
+        real_dump = shutil.which("iree-dump-module")
+        shim = os.path.join(fake_bin, "iree-dump-module")
+        with open(shim, "w") as fh:
+            fh.write("#!%s\nimport re, subprocess, sys\n"
+                     "r = subprocess.run([%r] + sys.argv[1:], capture_output=True, text=True)\n"
+                     "sys.stdout.write(re.sub(r'(\\.rodata\\[\\s*0\\]\\s+embedded\\s+)2176( bytes)', r'\\g<1>   1\\g<2>', r.stdout))\n"
+                     "sys.stderr.write(r.stderr); sys.exit(r.returncode)\n" % (PY, real_dump))
+        os.chmod(shim, 0o755)
+        env = dict(os.environ, PATH=fake_bin + os.pathsep + os.environ.get("PATH", ""))
+        out = os.path.join(tmp, "n1_contradiction.json")
+        cmd = base_cmd("conv2d", "aarch64", inv["layout_ir"], os.path.join(root, "aarch64", "dump", "conv2d"),
+                       out, elf_json)
+        rc, o, err = run(cmd, env=env)
+        results.append(Result("make_contract-neg: artifact .rodata CONTRADICTS module_resident_constant_bytes -> refused (N1)",
+                              rc != 0 and not os.path.exists(out),
+                              "rc=%d wrote=%s stderr=%s" % (rc, os.path.exists(out), err.strip()[:200])))
+        out = os.path.join(tmp, "n1_override.json")
+        cmd = base_cmd("conv2d", "aarch64", inv["layout_ir"], os.path.join(root, "aarch64", "dump", "conv2d"),
+                       out, elf_json, extra_flags=("--allow-unconfirmed-constants",))
+        rc, o, err = run(cmd, env=env)
+        c = load(out) if (rc == 0 and os.path.exists(out)) else None
+        noted = bool(c) and any("CONTRADICTED" in n for n in c["provenance"]["notes"])
+        results.append(Result("make_contract-neg: --allow-unconfirmed-constants overrides it AND records a note (N1)",
+                              rc == 0 and c is not None and noted, "rc=%d noted=%s" % (rc, noted)))
+        # N1, the other direction (over-rejection guard): a model with ZERO
+        # module-resident constants must STILL build. subset_sum_match returns a
+        # plain False for "nothing to confirm", so the review's literal
+        # prescription (refuse whenever confirmed is not True) makes both shipped
+        # `dynamic` contracts -- the input of the A8 UNKNOWN_BOUND scenario --
+        # unbuildable. Measured: 2 of 14 refused. This case pins that carve-out.
+        inv_dyn = invocation("dynamic", "aarch64")
+        out = os.path.join(tmp, "n1_zero_consts.json")
+        cmd = base_cmd("dynamic", "aarch64", inv_dyn["layout_ir"],
+                       os.path.join(root, "aarch64", "dump", "dynamic"), out)
+        rc, o, err = run(cmd)
+        c = load(out) if (rc == 0 and os.path.exists(out)) else None
+        zero_const = bool(c) and c["resources"]["module_resident_constant_bytes"] == 0
+        results.append(Result("make_contract: zero-constant model still builds (N1 over-rejection guard, A8 input)",
+                              rc == 0 and zero_const, "rc=%d const=%s stderr=%s"
+                              % (rc, c and c["resources"]["module_resident_constant_bytes"], err.strip()[:160])))
 
     # F2 (external review, 2026-09): iree.abi.declaration being ENTIRELY
     # ABSENT from the layout IR used to only add a note, unlike a declaration
@@ -819,6 +973,11 @@ def structural_bugfix_regression_cases(root, tmp):
 IGNORE_PROVENANCE_KEYS = {
     "entry_print_used_chunk_index", "entry_print_used_sha256", "entry_print_used_is_last",
     "layout_ir_sha256", "layout_ir_dump_count", "entry_prints_in_dump", "entry_print_states_differ",
+    # N2 (E24): two signals that D14 computed and then discarded are now persisted
+    # in provenance. The 14 stored contracts predate them, so like the E19
+    # structural_walker fields they are new *recorded facts*, not changed values --
+    # every number in the regeneration still has to match exactly.
+    "layout_dispatch_names", "layout_dispatches_in_dump",
 }
 # E19: provenance.structural_walker is a field the 14 stored (pre-E19) contracts
 # never had -- comparing it leaf-by-leaf against IGNORE_PROVENANCE_KEYS by bare

@@ -135,10 +135,23 @@ def main():
     # Treat "the analysis itself flagged this as unreliable" the same as
     # "no figure at all" -- same --allow-unknown-stack escape hatch.
     stack_classification = r.get("kernel_stack_classification")
+    # N4 (external review v0.18-followup, 2026-09): F6 above asked "did the
+    # analysis flag this figure as unreliable" but read all three signals through
+    # bool()/`not in (None, ...)`, so a MISSING field was indistinguishable from a
+    # field that says "trusted". Deleting only kernel_stack_classification from a
+    # stored contract (or setting it to null, or dropping all three keys) produced
+    # a byte-identical header with KERNEL_STACK_BYTES_KNOWN=1. Absence of the
+    # verdict is not evidence of a trustworthy bound -- it is the same UNKNOWN as
+    # an explicit distrust marker (the D25 lesson again). None is deliberately
+    # untrusted for all three fields; do not "simplify" these back to bool().
+    # make_contract.py always writes all three (a real classification, or the
+    # literal "unknown" on the no-ELF path), so no contract this repo produces
+    # omits them, and no scoping to bound_known is needed -- the gate below
+    # already provides it (a bound_known=0 contract merely degrades to KNOWN=0).
     stack_untrusted = (
-        bool(r.get("kernel_dynamic_stack_alloc"))
-        or bool(r.get("kernel_external_call_insns"))
-        or stack_classification not in (None, "none", "bucket_2_task_stack_budget"))
+        r.get("kernel_dynamic_stack_alloc") is not False
+        or r.get("kernel_external_call_insns") != 0
+        or stack_classification not in ("none", "bucket_2_task_stack_budget"))
     if stack_untrusted:
         stack_known = False
     # D13/D15 (EVIDENCE_v0.9 SS11.5, SS11.9): a bound-known contract with no
@@ -149,7 +162,13 @@ def main():
     # caller can opt in explicitly (e.g. while iterating on a new model
     # before ELF analysis is wired up) via --allow-unknown-stack.
     if bound_known and not stack_known and not allow_unknown_stack:
-        if stack_untrusted:
+        # `and is_int(stack)` (N4): without it the no-ELF-analysis contract shape
+        # that make_contract.py itself can produce (stack=None, classification
+        # "unknown") hits the "a numeric stack figure is present (None)" branch --
+        # a pre-existing diagnostic bug on a reachable path, not one this change
+        # introduces. With the guard it gets the correct "no kernel_task_stack_*"
+        # message instead.
+        if stack_untrusted and is_int(stack):
             raise SystemExit("gen_contract_header: bound_method=%s and a numeric stack figure is present "
                              "(%r), but the ELF analysis flagged it as unreliable (kernel_stack_classification=%r "
                              "kernel_dynamic_stack_alloc=%r kernel_external_call_insns=%r) -- refusing to emit "
@@ -165,6 +184,37 @@ def main():
     n_in = len(i.get("inputs") or []) or 1
     n_out = len(i.get("outputs") or []) or 1
     dtypes = {t2.get("dtype") for t2 in (i.get("inputs") or []) + (i.get("outputs") or [])}
+    # N3 (external review v0.18-followup, 2026-09): interface.inputs/outputs are
+    # OPTIONAL extensions -- contracts/contract.schema.json requires only the
+    # singular interface.input/output, and each of those carries a dtype. Reading
+    # dtype exclusively from the plural arrays left `dtypes` EMPTY whenever they
+    # were absent, and because both the gate below and CONTRACT_DTYPES_ALL_F32
+    # test `dtypes - {"f32"}`, an empty set was indistinguishable from exactly
+    # {"f32"} -- so a contract whose only dtype statement said "f16" emitted
+    # CONTRACT_DTYPES_ALL_F32=1. Vacuous truth, the same "observed nothing" vs
+    # "observed and found none" confusion as D25. Folding the schema-REQUIRED
+    # singular dtype into the set closes it for all three variants measured
+    # (plural absent, plural empty, plural and singular disagreeing).
+    #
+    # NOT done here, deliberately: refusing outright when the plural arrays are
+    # absent. Measured over-rejection -- contracts/contract.filled.example.json
+    # and contract.e13_host.json are honest f32 contracts in exactly the shape
+    # this repo's own schema declares, and a refusal would reject the canonical
+    # format on the grounds that an UNDECLARED extension is missing.
+    # Read the singular dtype from BOTH blocks that can carry it, exactly as
+    # shape_from() above already does for shapes: contracts/contract.e14_aarch64.json
+    # declares f32 in validity.input/output and has no interface block at all, so
+    # looking only at `interface` here would refuse a contract that does state its
+    # dtype -- over-rejection, this repo's defect class (B).
+    for _blk in (c.get("validity") or {}, i):
+        for _sing in ("input", "output"):
+            _d = (_blk.get(_sing) or {}).get("dtype")
+            if _d is not None:
+                dtypes.add(_d)
+    if bound_known and not dtypes:
+        raise SystemExit("gen_contract_header: bound_method=%s but the contract states no dtype anywhere "
+                         "(neither interface.input/output nor interface.inputs/outputs) -- refusing to "
+                         "assert CONTRACT_DTYPES_ALL_F32 from an empty observation" % method)
     # D13 (EVIDENCE_v0.9 SS11.9, R3): native_learner.c and ai_learner.c both
     # hardcode a single f32 input and a single f32 output
     # (IREE_HAL_ELEMENT_TYPE_FLOAT_32 literal, one push/pop each) -- neither
@@ -215,7 +265,8 @@ def main():
         # f32), so today's normal path is safe -- but a stale or hand-edited
         # contract_gen.h (the exact threat model the C comment names) can have
         # correct counts and wrong dtypes with nothing in C to catch it.
-        "#define CONTRACT_DTYPES_ALL_F32 %d" % (1 if bound_known and not (dtypes - {"f32"}) else 0),
+        # N3: `dtypes and` -- an empty dtype set must never assert "all f32".
+        "#define CONTRACT_DTYPES_ALL_F32 %d" % (1 if bound_known and dtypes and not (dtypes - {"f32"}) else 0),
         "#define CONTRACT_DRIVER %s" % c_str(v.get("driver", "local-sync")),
         "#endif",
     ]

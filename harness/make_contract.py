@@ -214,8 +214,20 @@ def packed_constant_buffers(ir):
     return best
 
 
-def subset_sum_match(total, segs, max_segments=24):
-    """True if `total` equals the sum of some non-empty subset of `segs`."""
+SUBSET_SUM_MAX_SEGMENTS = 24
+
+
+def subset_sum_match(total, segs, max_segments=SUBSET_SUM_MAX_SEGMENTS):
+    """True if `total` equals the sum of some non-empty subset of `segs`.
+
+    NOTE (N1, v0.19/E24): this returns a plain False for three different states --
+    "enumerated everything and nothing matches" (contradiction), "total <= 0, there
+    is nothing to confirm", and "more than max_segments segments, gave up". Callers
+    that REFUSE on False must separate them; the N1 gate below does so explicitly.
+    Making this function itself tri-state is the cleaner fix and is recorded as out
+    of scope in docs/EVIDENCE_v0.19_E24.md §7 (it changes the stored note text of
+    the two `dynamic` contracts, so it is a deliberate regeneration, not diff-0).
+    """
     if total <= 0 or not segs:
         return False
     segs = list(segs)[:max_segments]
@@ -577,6 +589,39 @@ def build_contract(a, extra_args):
     invocation_errors = []
     if rodata_unavailable and not a.allow_unverified_invocation:
         invocation_errors.append(rodata_unavailable + " (pass --allow-unverified-invocation to override)")
+
+    # N1 (external review v0.18-followup, 2026-09): D25 above refuses "could not
+    # observe the artifact-side constant total". But the STRICTLY STRONGER negative
+    # evidence -- observed it and it CONTRADICTS the IR total -- was only written
+    # into constants_check_note and never refused. Reproduced: a dump reporting
+    # .rodata [1, 6344] against an IR total of 2176 B still wrote a contract whose
+    # header was byte-identical to the healthy one.
+    #
+    # Three carve-outs, each measured against the archived corpus rather than
+    # argued -- subset_sum_match() returns a plain False for all three of
+    # "contradicted", "nothing to confirm" and "gave up", so the gate has to
+    # separate them at the call site (the same tri-state lesson as D25, one level
+    # down; making subset_sum_match itself tri-state is the structurally cleaner
+    # fix and is recorded as out of scope in EVIDENCE_v0.19 §7):
+    #   (1) const_b == 0  -- nothing to confirm. Both shipped `dynamic` contracts
+    #       are exactly this, so a blanket refusal makes the UNKNOWN_BOUND model
+    #       of the A8 negative scenario unbuildable (measured: 2 of 14 refused).
+    #   (2) len(data_segs) > 24 -- subset_sum_match caps enumeration and returns
+    #       False on "gave up". No archived model has more than 2 segments, so
+    #       this path is untested; treat it as unevaluated, not contradicted.
+    #   (3) the dense sum IS confirmed and const_b >= dense_sum -- constant-buffer
+    #       alignment padding (D17/E20), a sound over-approximation that E20 fixed
+    #       AS an over-rejection defect. Refusing it would re-open D17 (measured:
+    #       the E20 regression fixture fails without this carve-out).
+    _consts_truncated = data_segs is not None and len(data_segs) > SUBSET_SUM_MAX_SEGMENTS
+    _consts_pad_ok = bool(consts_confirmed_dense) and dense_sum > 0 and const_b >= dense_sum
+    if const_b > 0 and consts_confirmed is False and not _consts_truncated and not _consts_pad_ok:
+        msg = ("module_resident_constant_bytes %d B is CONTRADICTED by the independent artifact-side "
+               "observation: no subset of the flatbuffer .rodata segments %s sums to it, and the dense "
+               "constant sum %d B is not confirmed either (iree-dump-module)" % (const_b, data_segs, dense_sum))
+        notes.append(msg)
+        if not a.allow_unconfirmed_constants:
+            invocation_errors.append(msg + " (pass --allow-unconfirmed-constants to override)")
     if not dump_files:
         msg = ("--dump-dir '%s' contains no files: none of the one-invocation cross-checks "
               "(embedded-ELF match, mlir-basename match, layout-ir dispatch match) could be "
@@ -599,10 +644,49 @@ def build_contract(a, extra_args):
         invocation_errors.append(
             "--layout-ir references dispatch(es) %s that have no file under --dump-dir: "
             "--layout-ir looks like it belongs to a different compile than --dump-dir" % missing)
+
+    # N2 (external review v0.18-followup, 2026-09): F1 above closed only the
+    # *empty* --dump-dir case. A NON-empty dump dir that is merely missing the
+    # linked executable (.so/.elf) leaves dump_elf_in_vmfb None -- no branch above
+    # fires, and the contract was written with single_invocation=false, an empty
+    # notes list, and a byte-identical deployable header. Reproduced by deleting
+    # one .so from a copy of the archived conv2d dump dir (exit 0, no override
+    # flag), and escalated: that same dump dir paired with a DIFFERENT model's
+    # vmfb also produced a contract, which is the D10 hole re-opened through the
+    # None path. It is reachable without hand-editing anything -- compiling with
+    # --iree-hal-dump-executable-sources-to/-intermediates-to instead of the meta
+    # flag --iree-hal-dump-executable-files-to yields exactly this dump dir.
+    #
+    # This catch-all deliberately covers ONLY the None ("could not evaluate")
+    # state: each False state already has an unconditional, non-overridable
+    # branch above, and folding those in here would both duplicate the diagnostic
+    # and wrongly advertise a verified mismatch as --allow-* overridable.
+    unverifiable = []
+    if dump_elf_in_vmfb is None:
+        unverifiable.append(
+            "dump_elf_sha256_in_vmfb=None (linked executable found under --dump-dir: %s): the vmfb<->dump-dir "
+            "binding could not be established -- pass --iree-hal-dump-executable-files-to (the meta flag), "
+            "not only the component --iree-hal-dump-executable-{sources,intermediates}-to flags"
+            % (dump_elf["name"] if dump_elf else "none"))
+    if stem_in_dump is None:
+        unverifiable.append("mlir_basename_in_dump_dir_files=None (--mlir stem %r could not be checked)" % mlir_stem)
+    if layout_dispatches_in_dump is None:
+        unverifiable.append("layout_dispatches_in_dump=None (layout-ir dispatch names %s could not be checked)"
+                            % (layout_dispatch_names or "[]"))
+    for m in unverifiable:
+        notes.append("one-invocation signal not verified: " + m)   # never silent again
+    if unverifiable and not a.allow_unverified_invocation:
+        invocation_errors.append("one-invocation cross-check(s) could not be evaluated: " + "; ".join(unverifiable)
+                                 + " (pass --allow-unverified-invocation to override)")
+
     if invocation_errors or hard_fail_errors:
         raise SystemExit("one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):\n  - "
                          + "\n  - ".join(invocation_errors + hard_fail_errors))
-    single_invocation = bool(dump_elf_in_vmfb) and (stem_in_dump is not False) and (layout_dispatches_in_dump is not False)
+    # N2: every signal must be positively True. The previous form accepted None
+    # for two of the three (`is not False`), i.e. "did not find a mismatch" was
+    # recorded as "confirmed same invocation".
+    single_invocation = (dump_elf_in_vmfb is True and stem_in_dump is True
+                         and layout_dispatches_in_dump is True)
 
     # ---- ELF analysis (harness/elf_stack_frame.py) --------------------------
     elf = None
@@ -796,6 +880,13 @@ def build_contract(a, extra_args):
             "dump_dir_files": dump_files,
             "dump_elf": dump_elf,
             "dump_elf_sha256_in_vmfb": dump_elf_in_vmfb,
+            # N2 (v0.19/E24): the third one-invocation signal was computed since D14
+            # and then discarded -- single_invocation was recorded as a single bool
+            # with no way to tell WHICH cross-check carried it. Persist the signal
+            # and the dispatch names it was derived from so the provenance is
+            # reviewable rather than merely asserted.
+            "layout_dispatch_names": layout_dispatch_names,
+            "layout_dispatches_in_dump": layout_dispatches_in_dump,
             "elf_analysis": elf_prov,
             "structural_walker": structural_prov,
             "notes": notes,
@@ -861,6 +952,10 @@ def parse_args(argv):
                          "(embedded-ELF match, mlir-basename match, layout-ir dispatch match) could not be "
                          "evaluated at all (F1, external review 2026-09; default is to refuse writing the "
                          "contract -- 'could not verify' is not the same as 'verified')")
+    ap.add_argument("--allow-unconfirmed-constants", action="store_true",
+                    help="N1 (v0.19/E24): write the contract even though the artifact-side .rodata observation "
+                         "CONTRADICTS module_resident_constant_bytes. Deliberately NOT --allow-unverified-invocation: "
+                         "that flag means 'could not evaluate', this one means 'evaluated and it disagrees'")
     ap.add_argument("--allow-triple-mismatch", action="store_true",
                     help="do not hard-fail when codegen.ll's target triple arch differs from --triple "
                          "(D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract)")
