@@ -458,7 +458,17 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
    "왜 MLIR/IREE 경로여야 하는가"에 답하는 같은 질문이다. TFLM 전제 확인과 빌드 시도 이력은
    아래 "참고 — TFLM 착수 이력"에 그대로 보존한다.
 
-**R-3. MLIR 접근의 고유 기여 (검토 C3 / E27)** — 현 구현은 **정규 MLIR pass가 아니라**
+**R-3. MLIR 접근의 고유 기여 (검토 C3 / E27)** — **전제가 바뀌었다**(v0.25 사전 관측,
+   `docs/plans/E27_mlir_contribution.md` §1, 재현 산출물 `results/e27_baselines/`):
+   *"이 수치는 MLIR이라야 얻는다"*는 **이 모델 집합에서 반증됐다.** MLIR도 컴파일러 덤프도
+   쓰지 않고 `iree-dump-module`만 보는 분석기(`harness/e27_baseline_vmfb_only.py`)가 conv2d·
+   mlp16k·multibranch의 `per_call`·`constants`·`bounded`를 **정확히** 재현한다.
+   그런데 컴파일러 버전이 한 단계 어긋나면(IREE 3.10 산출물) 그 분석기는 `bounded`를
+   **5,172로 152배 과소 추정하면서 `unresolved=[]`, 즉 문제 없음이라고 보고**한다 — 이 저장소가
+   D25·D28·D29에서 세 번 고친 바로 그 실패 양식이 조용히 일어난다. 같은 입력에서 이 저장소의
+   MLIR 경로는 786,476을 내고 도구 실패를 note로 기록한다.
+   **따라서 E27이 물을 것은 "누가 더 정확한가"가 아니라 "어느 정보 수준이 자기가 모른다는 것을
+   아는가"다.** 아래 옛 서술은 이력으로 남긴다 — 현 구현은 **정규 MLIR pass가 아니라**
    `--mlir-print-ir-after` 덤프를 다시 읽는 post-processing verifier다(F4·N6/S5로 세 번 지적됨;
    `docs/EVIDENCE_v0.13_E18.md` §7, `docs/EVIDENCE_v0.18_E23.md` §3). 검토가 제시한 선택지:
    - **최소안**: 현 post-processing verifier의 고유 장점(기존 도구 비침습성, 감사 가능성, cFS
@@ -635,6 +645,9 @@ docs/
   plans/E14_stage1_qemu_system_cfs.md  E14 Stage 1 원 계획 (완료됨, v0.9 참조)
   plans/E25_same_model_equivalence.md  E25 계획·사전 고정 기준 (완료됨, v0.22 참조)
   plans/E25_closeout_E26_E27.md  E25 정정·E25b·E26·E27 계획 (Phase A/B/C-3 완료, 상단 진행표 참조)
+  plans/E27_mlir_contribution.md ★ E27 계획 — 사전 관측이 R-3의 전제를 반증했다:
+                               아티팩트만 보는 분석기가 3.11에서 계약 수치를 정확히 재현한다.
+                               따라서 물어야 할 것은 정확도가 아니라 교란 조건에서의 정직성
   plans/E26_boundary_utility.md  ★ E26 사전 고정 기준 — 벤치마크 포트폴리오(B0/B2/B3 채택,
                                B1 전제 정정, B4 기각), 반입 경로, Q1~Q3 판정, tightness의
                                try_map 분기 가설. 결과보다 먼저 커밋됨
