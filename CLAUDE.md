@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.21**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.22**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -255,6 +255,24 @@ D42(F3 — 예산 초과 `None`이 기본 거부 안 됨. **리뷰 처방은 정
 맞는 문서를 틀리게 정정할 뻔했다.** 170/170 → **191/191**(이 컨테이너 실측). **CI 실측**(커밋 `50f16d0`): `full` 190/190+1 SKIP ·
 `without-iree` 103/103+11 SKIP · `stdlib-only` 103/103+11 SKIP — 차이 1건은 PyYAML 유무이며,
 SKIP이 9→11로 는 것은 신규 시험 2건이 `iree-dump-module`을 요구하는 정직한 SKIP이다.
+
+
+**v0.22에서 완료된 것 (E25, `docs/EVIDENCE_v0.22_E25.md`)**: 우선순위 R-1(OnAIR↔cFS 의미
+동치)을 **완결**했다. 이전까지 OnAIR fixture(`mlp_9x65536x2`, hidden 65536, 외부 `weights.npz`
+2.88 MB)와 cFS 배포(`mlp16k`, hidden 16384, baked)는 **서로 다른 모델**이었고 같은 것은
+인터페이스뿐이었다 — 검토 C2의 지적이 수치로 확인됐다. `harness/gen_model_canonical.py`가
+한 seed에서 baked MLIR과 npz를 함께 생성해 배포 경로 셋이 **같은 vmfb**를 공유하게 하고,
+npz는 NumPy reference 계산에만 쓰이게 했다(그래서 "weights가 계약 밖"이라는 문제가 배포
+경로에서 사라진다). hidden은 E14와 같은 16384라 **계약 값이 `mlp16k`와 정확히 일치**한다.
+**판정 PASS**: 다섯 경로(reference / OnAIR-IREE / native C / cFS x86-64 / cFS AArch64 게스트)
+중 네 IREE 경로의 출력이 **6쌍 전부 비트 동일**, reference 대비 256/256 원소·argmax 64/64,
+AArch64 반복 실행도 비트 동일(결정적). **AArch64가 다른 vmfb인데도 비트 동일한 것은 계획이
+예상하지 않은 결과이며 일반화하지 않는다** — 활성화 없는 matmul 2회 모델·이 컴파일러 버전에서
+관측된 것이다. **사전 고정 기준의 가치 실증**: telemetry regime은 abs 단독이면 1/64,
+normalized는 rel 단독이면 59/64 — 어느 한 기준만 요구했어도 정직한 결과가 FAIL이었다.
+E14가 남긴 cross-target `both_sound: null` 갭도 해소. 환경 실패 2건(게스트 emergency mode →
+fstab `nofail` + cloud-init 비활성화)은 의미 동치와 **분리해** 기록했다(EVIDENCE §7).
+**다음**: R-2(E26 계약 경계의 유용성) → R-3(E27 MLIR 고유 기여).
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -506,7 +524,9 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.21_E24c.md      ★ 최신. 외부 검토 v0.20/E24b F1-F5 — 확인된 4건 수정(D41-D44),
+  EVIDENCE_v0.22_E25.md       ★ 최신. R-1 완결 — canonical 모델로 다섯 경로 의미 동치,
+                               네 IREE 경로 비트 동일(AArch64 포함, 일반화 금지), PASS
+  EVIDENCE_v0.21_E24c.md       외부 검토 v0.20/E24b F1-F5 — 확인된 4건 수정(D41-D44),
                                F1은 리뷰 권고가 위조 경로로 악화시킴을 실측해 미채택.
                                F4 실물 근거 보존(results/e24c_manyconst31/). 191/191
   EVIDENCE_v0.20_E24b.md       외부 검토 v0.19-재정리본 R1-R5 — 음수 스택(claim

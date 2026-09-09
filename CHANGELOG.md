@@ -2,6 +2,33 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.22] — E25: OnAIR↔cFS 동일 모델·의미 동치 (PASS)
+
+판정: 다섯 실행 경로가 같은 canonical 모델을 실행하고 네 IREE 경로의 출력이 **전부 비트
+동일**하다. reference 대비 256/256 원소, argmax 64/64. AArch64 반복 실행도 비트 동일(결정적).
+
+이전까지 OnAIR fixture(`mlp_9x65536x2`, hidden 65536, 외부 `weights.npz` 2.88 MB)와 cFS
+배포(`mlp16k`, hidden 16384, baked)는 **서로 다른 모델**이었고 같은 것은 인터페이스뿐이었다.
+`harness/gen_model_canonical.py`가 한 seed에서 baked MLIR과 npz를 함께 생성해 배포 경로 셋이
+같은 vmfb를 공유하게 했고, npz는 reference 계산에만 쓰여 **배포 경로에서 사라졌다**.
+
+**계획이 예상하지 않은 결과**: AArch64는 다른 vmfb(`4e5b2972` vs `0e250c2f`)이므로 tolerance
+비교 대상으로 분류돼 있었는데 실제로는 비트까지 같았다. 두 ISA의 코드생성이 같은 누산 순서를
+만든 결과다. **일반화하지 않는다** — 활성화 없는 matmul 2회 모델에서 이 컴파일러 버전·두 타깃
+설정에 대해 관측된 것이고, 다른 할당·연산 구조에서도 성립한다는 근거는 없다. 그런 경우를 위해
+계획의 tolerance 기준은 그대로 유지한다.
+
+**사전 고정 기준의 가치가 실측으로 증명됐다**: telemetry regime(출력 ~1.3e9)은 절대 기준
+단독이면 1/64, normalized regime(~12)은 상대 기준 단독이면 59/64 통과다. 어느 한쪽만
+요구했어도 정직한 결과가 FAIL이 됐다. `e25_compare.py`가 `would_pass_abs_only`/
+`would_pass_rel_only`를 함께 기록해 사후 합리화가 아님을 감사 가능하게 한다.
+
+- 계약 값은 두 ISA에서 동일(786476/65580/720896/16), vmfb 바이트만 다르며 두 산출물이 같은
+  canonical source·weight에서 나왔음을 `invocation.json`이 연결한다.
+- E14의 cross-target 비교가 남긴 `both_sound`/`out0_agreement` `null`을 실제 출력 대조로 채웠다.
+- 환경 실패(게스트 emergency mode 2회 → fstab `nofail` + cloud-init 비활성화로 해소)는
+  EVIDENCE §7에 의미 동치와 **분리해** 기록했다.
+
 ## [v0.21] — E24c: 다섯 번째 외부 검토(F1–F5) — 확인된 4건 수정, 1건은 근거 있는 미채택
 
 판정: 5건 전부 재현하고 4건을 수정했다(D41–D44). `contract_negative_tests.py` 170/170 →
