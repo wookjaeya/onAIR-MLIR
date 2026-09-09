@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.26**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.26.1**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -381,6 +381,19 @@ f32 in/out만 허용하므로 다중 출력은 *계약은 생성되고 C 배치�
 TensorFlow↔TOSA↔IREE다(같은 세션 반박 검증 8건: UPHELD 1, QUALIFIED 7, 반전 0).
 
 
+**v0.26.1에서 정정된 것 (E26d, `docs/EVIDENCE_v0.25_E26.md` §9)**: 사전 고정 계획서
+(`docs/plans/E26_boundary_utility.md` §5-3)가 지정한 **A5b_canonical**이 실행되지도, 미실행으로
+기록되지도 않았다. E26의 판정(Q1·Q3 PASS, Q2 정량화)은 바뀌지 않는다 — A5b는 메모리 경계가
+아니라 손상 아티팩트 거부 경로의 질문이고 §2 기준에 들어가지 않는다. 그러나 **v0.9.1에서
+A5b를 두고 이미 한 번 정정한 유형**(실행하지 않은 시험을 "확인했다"고 서술)이라 조용히 넘기지
+않았다. **E26d에서 실제로 실행했다**: `flatbuffer_root_uoffset` 손상(크기 동일 732,760 B) +
+계약을 손상 파일의 실제 해시로 재생성 → **해시 게이트가 잡을 수 없는 조건** → 게스트
+`core-cpu1`에서 ADMIT → MATCH → `runtime_load_failed`(IREE FlatBuffer 검증기, E17과 같은 오류
+문자열) → cleanup 1회 → `CFE_ES_ExitApp`, 이후 cFS는 남은 앱을 계속 로드(크래시·abort 0,
+`check_expect` 불일치 0). **손상 아티팩트는 저장하지 않았다** — 손상이 결정적이므로 시험이
+in-tree 원본에서 재생성해 게스트가 실제로 적재한 해시와 대조한다. 이 컨테이너 **252/252**.
+
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -744,6 +757,8 @@ results/e26c_multiout/      ★ E26c/D49: 한 번의 iree-compile 호출 산출�
                              = per_call 192 + constants 512, HAL 실측 피크 704(tightness 1.00x).
                              dump/는 축소본(.o/.bc/.s 없음 → .gitignore 트랩 회피)이며 보관 계약이
                              이 축소본에서 그대로 재생성됨(시험이 매번 확인)
+results/e26_boundary_utility/aarch64/a5b_canonical/  ★ E26d: 계획 §5-3의 A5b_canonical 게스트 실행
+                             (계약·raw log·판정 JSON). 손상 vmfb는 결정적이라 저장하지 않고 시험이 재생성
 results/e24c_manyconst31/   ★ E24c/F4: 한 번의 iree-compile 호출 산출물(440 KB) — 33개 data
                              세그먼트(embedded 1024 B 슬랩 32 + external 1), 상수 총량 33792 B.
                              invocation.json에 argv·컴파일러 버전·sha256·관측 세그먼트 목록.

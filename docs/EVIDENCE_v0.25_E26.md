@@ -217,3 +217,48 @@ cd native && bash build.sh ../results/e14_aarch64_qemu/x86_64/contracts/contract
 # pip 런타임: harness/static_mem_bound.py::runtime_peak_check, 모델당 별도 프로세스
 python3 harness/e26_collect.py --root results/e26_boundary_utility --out results/e26_boundary_utility/summary.json
 ```
+
+---
+
+## 9. 정오표 (E26d, 2026-09-09) — 계획 §5-3의 A5b_canonical
+
+**누락을 정정한다.** 사전 고정 계획서(`docs/plans/E26_boundary_utility.md` §5 3단계)는
+게스트 세션에서 **A5b_canonical 1건**을 함께 실행하라고 지정했다. 이 문서는 그것을 **보고하지도,
+미실행이라고 밝히지도 않았다.** 판정(Q1·Q3 PASS, Q2 정량화)에는 영향이 없다 — A5b는 메모리 경계
+질문이 아니라 손상 아티팩트 거부 경로의 질문이며 §2의 기준 어디에도 들어가지 않는다. 그러나
+**사전에 고정한 단계를 조용히 건너뛴 것**은 이 저장소가 v0.9.1에서 A5b를 두고 이미 한 번
+정정한 바로 그 유형이므로 이렇게 남긴다.
+
+**E26d에서 실제로 실행했다.** 게스트가 아직 살아 있어 재구축 없이 돌렸다.
+
+| 항목 | 값 |
+|---|---|
+| 손상 방식 | `flatbuffer_root_uoffset` (`harness/corrupt_vmfb.py`, 임의 bit flip 아님) |
+| 원본 → 손상 vmfb | `4e5b2972…` → `b118305d…`, **크기 동일 732,760 B** |
+| 계약 | 손상된 파일의 실제 해시로 재생성 → **해시 게이트가 잡을 수 없는 조건** |
+| 빌드 | `e26d_canon_a5b` (cFS aarch64_std 크로스빌드, budget = bounded = 786,476) |
+
+게스트 `core-cpu1` 관측 순서:
+
+```
+stage=stack             kernel_stack_accounted=true (es=262160 = base 262144 + kernel 16)
+stage=admission         verdict=ADMIT   bounded=786476  budget=786476
+stage=binding           verdict=MATCH   artifact_sha256=b118305d… == contract_sha256
+stage=runtime_load_failed  step=append_bytecode_module
+                        INVALID_ARGUMENT; FlatBuffer length prefix out of bounds
+                        (prefix is 4294967295 but only 732692 available)
+stage=cleanup           released=true  cleanup_calls=1
+CFE_ES_ExitApp: Application AI_LEARNER called CFE_ES_ExitApp
+```
+
+`harness/e14_cfs_scenarios.py::check_expect`의 불일치 **0건**. AI_LEARNER 종료 후에도 cFS는
+남은 앱을 계속 로드했고(SC·MM·HS·MD·CS), 크래시·abort **0건**이다. 즉 손상은 admission도
+binding도 아니라 **IREE 자신의 FlatBuffer 검증기**가 잡았고, 앱은 자원을 회수하고 시작을
+포기했으며 시스템은 살아남았다 — E17이 관측한 것과 **같은 오류 문자열**이다.
+
+**`e25_mode` 레코드는 이 셀에 없다. 구조상 그렇다** — `ai_learner.c`는 그 레코드를 `:406`에서
+찍는데 여기서는 `:317`의 바이트코드 로드가 먼저 실패해 도달하지 않는다. E26의 계측 위생
+점검이 요구하는 것은 **추론에 도달하는 셀**의 증언이므로 이것은 갭이 아니다.
+
+산출물: `results/e26_boundary_utility/aarch64/a5b_canonical/`
+(손상 vmfb·계약·게스트 raw log·`canonical_A5b.json`).

@@ -2392,6 +2392,93 @@ MULTIOUT_SUBVIEW_LINE = ("%2 = stream.resource.subview %result[%c64_3] : "
                          "!stream.resource<external>{%c128_4} -> !stream.resource<external>{%c16}")
 
 
+A5B_CANONICAL_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utility",
+                                  "aarch64", "a5b_canonical")
+
+
+def a5b_canonical_guest_cases(tmp):
+    """E26d: the A5b_canonical guest run that the pre-fixed E26 plan (§5 step 3) named and
+    the E26 evidence originally neither reported nor disclaimed.
+
+    A5b is the corruption the artifact-hash gate CANNOT catch: the contract is regenerated
+    against the corrupted file's real hash, so admission ADMITs and binding MATCHes, and the
+    refusal has to come from IREE's own FlatBuffer verifier at load time. What makes the
+    claim reproducible from repository contents is that the corruption is DETERMINISTIC --
+    so this test does not store the corrupted 732,760 B artifact, it REGENERATES it from the
+    in-tree source vmfb and checks the digest the guest actually loaded.
+
+    (The repository has corrected an A5b claim once before, in v0.9.1, for asserting a run
+    that never happened. That is why a skipped plan step gets a test and not just a note.)"""
+    results = []
+    log_path = os.path.join(A5B_CANONICAL_DIR, "canonical_A5b.log")
+    rec_path = os.path.join(A5B_CANONICAL_DIR, "canonical_A5b.json")
+    src_vmfb = os.path.join(os.path.dirname(HERE), "results", "e25_equivalence", "aarch64",
+                            "model_canonical.aarch64.vmfb")
+    if not (os.path.exists(log_path) and os.path.exists(rec_path)):
+        results.append(Result("a5b-canonical: guest fixture present", False,
+                              "missing %s" % A5B_CANONICAL_DIR))
+        return results
+    rec = load(rec_path)
+
+    # -- the raw guest log says what the record claims it says --------------------------
+    import e14_cfs_scenarios as scen                          # noqa: PLC0415 - local module
+    with open(log_path) as f:
+        log = f.read()
+    parsed = scen.parse_log(log)
+    mism = scen.check_expect(parsed, {"admission": "ADMIT", "binding": "MATCH",
+                                      "runtime_load_failed": True, "cleanup_calls": 1})
+    results.append(Result("a5b-canonical: ADMIT -> MATCH -> runtime_load_failed -> 1 cleanup",
+                          mism == [], "mismatches=%s" % mism))
+    rlf = (parsed.get("runtime_load_failed") or [{}])[-1]
+    results.append(Result("a5b-canonical: rejected by IREE's FlatBuffer verifier, not by a gate",
+                          rlf.get("step") == "append_bytecode_module"
+                          and "FlatBuffer length prefix out of bounds" in str(rlf.get("status")),
+                          "step=%s status=%s" % (rlf.get("step"), str(rlf.get("status"))[:90])))
+    # the app gave up, cFS did not: more apps load after AI_LEARNER exits, and nothing aborts
+    tail = log.split("CFE_ES_ExitApp")[-1]
+    results.append(Result("a5b-canonical: cFS keeps running after the app stands down",
+                          "CFE_ES_ParseFileEntry" in tail,
+                          "%d further app loads after AI_LEARNER exit"
+                          % tail.count("CFE_ES_ParseFileEntry")))
+    # `cfe_assert.so` is a cFS library FILENAME, not an assertion firing -- match the shapes
+    # a real crash would print instead.
+    crash = [w for w in ("Segmentation fault", "core dumped", "Aborted") if w in log]
+    results.append(Result("a5b-canonical: no crash or abort in the guest log", not crash,
+                          "found %s" % crash))
+    results.append(Result("a5b-canonical: e25_mode absent by construction (load fails first)",
+                          parsed.get("e25_mode") is None,
+                          "e25_mode=%s" % (parsed.get("e25_mode"),)))
+
+    # -- the corruption regenerates to exactly the artifact the guest loaded -------------
+    if not os.path.exists(src_vmfb):
+        results.append(Result("a5b-canonical: corruption regenerates deterministically", False,
+                              "missing source vmfb %s" % src_vmfb))
+        return results
+    out_vmfb = os.path.join(tmp, "a5b_regen.vmfb")
+    rc, _, err = run([PY, os.path.join(HERE, "corrupt_vmfb.py"),
+                      "--method", "flatbuffer_root_uoffset",
+                      "--in", src_vmfb, "--out", out_vmfb])
+    if rc != 0:
+        results.append(Result("a5b-canonical: corruption regenerates deterministically", False,
+                              "corrupt_vmfb rc=%d: %s" % (rc, err.strip()[-200:])))
+        return results
+    with open(out_vmfb, "rb") as f:
+        digest = hashlib.sha256(f.read()).hexdigest()
+    results.append(Result("a5b-canonical: corruption regenerates deterministically",
+                          digest == rec["corrupted_vmfb_sha256"],
+                          "regenerated %s vs guest-loaded %s"
+                          % (digest[:16], str(rec["corrupted_vmfb_sha256"])[:16])))
+    results.append(Result("a5b-canonical: corrupted artifact is byte-for-byte the same SIZE",
+                          os.path.getsize(out_vmfb) == os.path.getsize(src_vmfb),
+                          "%d vs %d" % (os.path.getsize(out_vmfb), os.path.getsize(src_vmfb))))
+    # the hash gate provably cannot catch this one: the deployed contract signs the CORRUPTED file
+    contract = load(os.path.join(A5B_CANONICAL_DIR, "model_canonical.aarch64.a5b.contract.json"))
+    results.append(Result("a5b-canonical: contract signs the corrupted file (hash gate cannot fire)",
+                          contract["artifact"]["sha256"] == digest,
+                          "contract=%s file=%s" % (contract["artifact"]["sha256"][:16], digest[:16])))
+    return results
+
+
 def multiout_subview_cases(tmp):
     """D49 (E26c): `stream.resource.subview` must be recognized as a non-allocating
     VIEW whose containment claim is CHECKED -- not refused outright, and not trusted.
@@ -2635,6 +2722,7 @@ def main():
         all_results += call_resolution_cases(tmp)
         all_results += rodata_label_cases()
         all_results += multiout_subview_cases(tmp)
+        all_results += a5b_canonical_guest_cases(tmp)
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)
