@@ -79,6 +79,8 @@
 #endif
 #define AI_LEARNER_PIPE_DEPTH 8
 #define AI_LEARNER_MODEL_FILE "/cf/model.vmfb"
+#define AI_LEARNER_E25_INPUTS  "/cf/e25_inputs.bin"   /* E25: optional equivalence input set */
+#define AI_LEARNER_E25_OUTPUTS "/cf/e25_outputs.bin"
 #define AI_LEARNER_HDR_BYTES 16   /* CCSDS primary + telemetry secondary header skipped before features */
 
 enum {
@@ -320,6 +322,56 @@ static int32 AI_LEARNER_Init(void) {
       iree_make_const_byte_span(zeros, sizeof zeros), &g.x);
   if (!iree_status_is_ok(st)) return AI_LEARNER_LoadFailed("input_buffer_allocate", st);
   g.rss_kb_init1 = rss_kb();
+
+  /* ---- E25 equivalence mode (optional) ------------------------------------
+   * If /cf/e25_inputs.bin exists, run one inference per f32 vector in it and write
+   * the outputs to /cf/e25_outputs.bin, then continue normal startup. Placed AFTER
+   * every gate above (stack, admission, interface, artifact size + sha256) so the
+   * numbers come from the same fully-gated deployment path the app normally uses.
+   * Absent the file nothing changes. (E25, docs/plans/E25_same_model_equivalence.md) */
+  {
+    char e25_in[OS_MAX_LOCAL_PATH_LEN], e25_out[OS_MAX_LOCAL_PATH_LEN];
+    if (OS_TranslatePath(AI_LEARNER_E25_INPUTS, e25_in) == OS_SUCCESS &&
+        OS_TranslatePath(AI_LEARNER_E25_OUTPUTS, e25_out) == OS_SUCCESS) {
+      FILE* fi = fopen(e25_in, "rb");
+      if (fi) {
+        fseek(fi, 0, SEEK_END); long ib = ftell(fi); fseek(fi, 0, SEEK_SET);
+        long nvec = ib / (long)(CONTRACT_INPUT_ELEMS * sizeof(float));
+        float* xin = (nvec > 0) ? (float*)malloc((size_t)ib) : NULL;
+        long done = 0;
+        if (xin && fread(xin, 1, (size_t)ib, fi) == (size_t)ib) {
+          FILE* fo = fopen(e25_out, "wb");
+          if (fo) {
+            for (long v = 0; v < nvec; ++v) {
+              float yv[CONTRACT_OUTPUT_ELEMS];
+              iree_status_t s2 = iree_hal_buffer_map_write(iree_hal_buffer_view_buffer(g.x), 0,
+                  xin + v * CONTRACT_INPUT_ELEMS, CONTRACT_INPUT_ELEMS * sizeof(float));
+              if (!iree_status_is_ok(s2)) { iree_status_free(s2); break; }
+              iree_runtime_call_t c2; iree_hal_buffer_view_t* r2 = NULL;
+              s2 = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &c2);
+              if (!iree_status_is_ok(s2)) { iree_status_free(s2); break; }
+              s2 = iree_runtime_call_inputs_push_back_buffer_view(&c2, g.x);
+              if (iree_status_is_ok(s2)) s2 = iree_runtime_call_invoke(&c2, 0);
+              if (iree_status_is_ok(s2)) s2 = iree_runtime_call_outputs_pop_front_buffer_view(&c2, &r2);
+              if (iree_status_is_ok(s2)) s2 = iree_hal_buffer_map_read(iree_hal_buffer_view_buffer(r2), 0, yv, sizeof yv);
+              if (iree_status_is_ok(s2)) { fwrite(yv, sizeof yv, 1, fo); done++; }
+              else iree_status_free(s2);
+              if (r2) iree_hal_buffer_view_release(r2);
+              iree_runtime_call_deinitialize(&c2);
+            }
+            fclose(fo);
+          }
+        }
+        if (xin) free(xin);
+        fclose(fi);
+        AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"e25_equivalence\",\"inputs\":%ld,\"completed\":%ld,"
+                        "\"model\":\"%s\",\"target\":\"%s\",\"artifact_sha256\":\"%.16s...\"}\n",
+                        nvec, done, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, CONTRACT_ARTIFACT_SHA256);
+        CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_INFORMATION,
+                          "AI_LEARNER: E25 equivalence %ld/%ld inferences written", done, nvec);
+      }
+    }
+  }
 
   int32 sb = CFE_SB_CreatePipe(&g.pipe, AI_LEARNER_PIPE_DEPTH, "AI_LEARNER_PIPE");
   if (sb != CFE_SUCCESS) {

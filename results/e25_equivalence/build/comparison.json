@@ -13,6 +13,27 @@
   },
   "n_out": 2,
   "vs_reference": {
+    "cfs": {
+      "normalized": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 2.956390380859375e-05,
+        "rel_max": 2.4077380658127367e-05,
+        "would_pass_abs_only": 64,
+        "would_pass_rel_only": 59,
+        "output_abs_max": 12.11511516571045
+      },
+      "telemetry": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 3712.0,
+        "rel_max": 2.885821459130966e-06,
+        "would_pass_abs_only": 1,
+        "would_pass_rel_only": 64,
+        "output_abs_max": 1286287872.0
+      },
+      "all_passed": true
+    },
     "ireepy": {
       "normalized": {
         "elements": 64,
@@ -57,12 +78,24 @@
     }
   },
   "iree_vs_iree": {
+    "cfs__vs__ireepy": {
+      "bit_identical": true,
+      "differing_elements": 0
+    },
+    "cfs__vs__nativec": {
+      "bit_identical": true,
+      "differing_elements": 0
+    },
     "ireepy__vs__nativec": {
       "bit_identical": true,
       "differing_elements": 0
     }
   },
   "argmax": {
+    "cfs": {
+      "agree_with_reference": 64,
+      "total": 64
+    },
     "ireepy": {
       "agree_with_reference": 64,
       "total": 64
