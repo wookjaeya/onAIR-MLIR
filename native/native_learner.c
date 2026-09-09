@@ -120,7 +120,7 @@ static int runtime_load_failed(const char* step, iree_status_t st) {
 }
 
 int main(int argc, char** argv) {
-  if (argc < 4) { fprintf(stderr, "usage: %s model.vmfb budget_bytes iters\n", argv[0]); return 2; }
+  if (argc < 4) { fprintf(stderr, "usage: %s model.vmfb budget_bytes iters [inputs.bin outputs.bin]\n", argv[0]); return 2; }
   const char* vmfb_path = argv[1]; long budget = atol(argv[2]); int iters = atoi(argv[3]);
   if (iters < 1) iters = 1;
 
@@ -216,6 +216,63 @@ int main(int argc, char** argv) {
       (iree_hal_buffer_params_t){.type = IREE_HAL_MEMORY_TYPE_DEVICE_LOCAL, .access = IREE_HAL_MEMORY_ACCESS_ALL, .usage = IREE_HAL_BUFFER_USAGE_DEFAULT},
       iree_make_const_byte_span(xdata, sizeof xdata), &g.x);
   if (!iree_status_is_ok(st)) return runtime_load_failed("input_buffer_allocate", st);
+
+  /* ---- E25 equivalence mode (optional): argv[4] = inputs.bin, argv[5] = outputs.bin ----
+   * Reads N raw float32 vectors of CONTRACT_INPUT_ELEMS each, runs one inference per
+   * vector, writes N raw float32 vectors of CONTRACT_OUTPUT_ELEMS. Deliberately placed
+   * AFTER every gate above (stack, admission, interface, artifact size + sha256), so the
+   * numbers this mode produces come from the same fully-gated deployment path the app
+   * uses -- not from a bare inference harness. Absent argv[4..5] nothing changes.
+   * (E25 / docs/plans/E25_same_model_equivalence.md) */
+  if (argc >= 6) {
+    const char* e25_in = argv[4]; const char* e25_out = argv[5];
+    FILE* fi = fopen(e25_in, "rb");
+    if (!fi) { fprintf(stderr, "E25: cannot open %s\n", e25_in); return 4; }
+    fseek(fi, 0, SEEK_END); long ib = ftell(fi); fseek(fi, 0, SEEK_SET);
+    long nvec = ib / (long)(CONTRACT_INPUT_ELEMS * sizeof(float));
+    if (nvec <= 0 || ib % (long)(CONTRACT_INPUT_ELEMS * sizeof(float)) != 0) {
+      fprintf(stderr, "E25: %s is %ld B, not a multiple of %zu B (%d f32)\n",
+              e25_in, ib, CONTRACT_INPUT_ELEMS * sizeof(float), CONTRACT_INPUT_ELEMS);
+      fclose(fi); return 2;
+    }
+    float* xin = (float*)malloc((size_t)ib);
+    if (!xin || fread(xin, 1, (size_t)ib, fi) != (size_t)ib) { fprintf(stderr, "E25: read failed\n"); fclose(fi); return 4; }
+    fclose(fi);
+    FILE* fo = fopen(e25_out, "wb");
+    if (!fo) { fprintf(stderr, "E25: cannot open %s for writing\n", e25_out); free(xin); return 4; }
+    static float e25_y[CONTRACT_OUTPUT_ELEMS];
+    long done = 0;
+    for (long v = 0; v < nvec; ++v) {
+      iree_hal_buffer_view_t* xv = NULL;
+      st = iree_hal_buffer_view_allocate_buffer_copy(g.device, iree_runtime_session_device_allocator(g.session),
+          CONTRACT_INPUT_RANK, in_shape, IREE_HAL_ELEMENT_TYPE_FLOAT_32, IREE_HAL_ENCODING_TYPE_DENSE_ROW_MAJOR,
+          (iree_hal_buffer_params_t){.type = IREE_HAL_MEMORY_TYPE_DEVICE_LOCAL, .access = IREE_HAL_MEMORY_ACCESS_ALL, .usage = IREE_HAL_BUFFER_USAGE_DEFAULT},
+          iree_make_const_byte_span(xin + v * CONTRACT_INPUT_ELEMS, CONTRACT_INPUT_ELEMS * sizeof(float)), &xv);
+      if (!iree_status_is_ok(st)) { iree_status_free(st); break; }
+      iree_runtime_call_t c2; iree_hal_buffer_view_t* r2 = NULL;
+      st = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &c2);
+      if (!iree_status_is_ok(st)) { iree_status_free(st); iree_hal_buffer_view_release(xv); break; }
+      st = iree_runtime_call_inputs_push_back_buffer_view(&c2, xv);
+      if (iree_status_is_ok(st)) st = iree_runtime_call_invoke(&c2, 0);
+      if (iree_status_is_ok(st)) st = iree_runtime_call_outputs_pop_front_buffer_view(&c2, &r2);
+      if (iree_status_is_ok(st)) {
+        st = iree_hal_device_transfer_d2h(g.device, iree_hal_buffer_view_buffer(r2), 0, e25_y,
+                                          sizeof e25_y, IREE_HAL_TRANSFER_BUFFER_FLAG_DEFAULT,
+                                          iree_infinite_timeout());
+      }
+      if (iree_status_is_ok(st)) { fwrite(e25_y, sizeof e25_y, 1, fo); done++; }
+      else iree_status_free(st);
+      if (r2) iree_hal_buffer_view_release(r2);
+      iree_runtime_call_deinitialize(&c2);
+      iree_hal_buffer_view_release(xv);
+    }
+    fclose(fo); free(xin);
+    printf("{\"stage\":\"e25_equivalence\",\"inputs\":%ld,\"completed\":%ld,"
+           "\"artifact_sha256\":\"%.16s...\",\"input_elems\":%d,\"output_elems\":%d}\n",
+           nvec, done, hex, CONTRACT_INPUT_ELEMS, CONTRACT_OUTPUT_ELEMS);
+    fflush(stdout);
+    if (done != nvec) { fprintf(stderr, "E25: only %ld/%ld inferences completed\n", done, nvec); return 8; }
+  }
 
   iree_hal_allocator_t* alloc = iree_runtime_session_device_allocator(g.session);
   iree_hal_allocator_statistics_t st_warm = {0};
