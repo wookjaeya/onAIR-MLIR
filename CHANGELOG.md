@@ -2,6 +2,44 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.26] — E26c: 다중 출력 모델 과잉 거부 (D49)
+
+벤치마크 지침(B0–B4) 도입 조사가 `docs/plans/E26_boundary_utility.md` §6에 남겨 둔 잔여 결함
+후보 **C-1**을 직접 재현해 수정했다(**D49**). 이후 별도로 돌린 반박 검증의 "실제 CNN 규모를
+감당하는가" 축도 독립적으로 같은 결론에 도달했으나, 어느 보고도 액면 그대로 받지 않고 스톡
+2출력 모델을 한 번의 `iree-compile`로 컴파일해 직접 확인했다(E24c/F4의 교훈).
+
+증상: IREE는 결과가 둘 이상이면 **하나의 external 슬랩에 패킹**한 뒤 `stream.resource.subview`로
+쪼갠다. 그 op이 두 추출기(`static_mem_bound.py`의 정규식, `mlir_alloc_walk.py`의 구조적)
+화이트리스트 어디에도 없어 D13의 fail-closed 규칙이 `unresolved`로 밀어 넣었고, `bound_method`가
+`UNKNOWN_BOUND`가 됐다. **파서는 유일한 실제 할당(128 B)을 이미 건전하게, 그것도 보수적으로
+(128 ≥ 32 + 16) 계상하고 있었다** — 거부는 순전히 화이트리스트 누락이었다. 유형 (B) 과잉 거부다.
+
+수정: 두 화이트리스트에 추가하되, 이미 있던 비할당 항목(`tensor.export`·`resource.dealloca`)과
+달리 **검사를 붙였다** — 세 index 피연산자가 전부 상수로 풀리고 `offset + result_size <=
+source_size`일 때만 통과하고, 아니면 `unresolved`다. 구조적 추출기의 피연산자 순서
+`[source, source_size, offset, result_size]`는 실제 op에 MLIR API를 걸어 읽은 것이다.
+
+**revert-and-confirm-fail을 두 단계로** 했다: 화이트리스트만 되돌리면 **7건 FAIL**(과잉 거부가
+실재했다), 검사 코드만 빼면 **4건 FAIL**(검사가 없으면 거짓말하는 subview 두 종류가 그대로
+통과한다 — 유형 (B)를 고치면서 유형 (A)를 심는 경우).
+
+실물 근거(D43 규칙): `harness/gen_model_multiout.py` + `results/e26c_multiout/`(한 번의 컴파일
+호출, 128 KB). 계약은 **오버라이드 0개**로 생성되고 `constants_confirmation_state: confirmed`,
+구조적 크로스체크 일치. `iree.runtime` local-sync 실측 HAL 피크 **704 B = bounded 704 B**
+(tightness 1.00×), 출력 2개 확인.
+
+**남는 제약(명시)**: `gen_contract_header.py`는 이 계약을 받고도 헤더를 쓰지 않는다 — 두 C
+실행기가 실제로 단일 f32 in/out을 가정하기 때문이다. 이는 과잉 거부가 아니라 정확한 진술이며,
+E26c가 연 것은 **계약 생성 경로**이고 다중 출력의 C/cFS 배치는 여전히 열려 있지 않다.
+
+이 컨테이너 실측 **229/229 → 244/244**, 보관 14개 계약 diff 0.
+
+정정: `docs/plans/E26_boundary_utility.md` §1.4의 `iree-import-tflite` 차단 서술에서 **"TF 2.21에서"를
+철회한다.** 실측은 TF **2.19.1·2.20.0·2.21.0 셋 다** `ExperimentalTFLiteToTosaBytecode`를
+export하지 않는다 — 다운그레이드로 우회할 수 없고, 막는 축도 IREE 버전 불일치가 아니라
+TensorFlow↔TOSA↔IREE다(같은 세션 반박 검증 8건: UPHELD 1, QUALIFIED 7, 반전 0).
+
 ## [v0.22.1] — 정정: E25 주장 범위 (외부 검토 v0.22) + E25b 판정 도구
 
 일곱 번째 외부 검토(`docs/reviews/REVIEW_v0_22_E25.md`, 기준 커밋 `44c27ac`)는 E25를 "실질적

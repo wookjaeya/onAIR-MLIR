@@ -81,7 +81,19 @@ _CONT = r"(?:(?!\n\s*(?:%[\w.]+[,\s]|\}))[\s\S])*?"
 # which forces bound_method to UNKNOWN_BOUND. This is a whitelist, not a
 # parser: it does not understand what an unrecognized op does, only that this
 # tool cannot size it.
+# E26c/D49: `resource.subview` joins this set. It is structurally
+# non-allocating in the same sense as `tensor.export` -- it produces a VIEW of
+# an operand resource that some other op already allocated (verified on a
+# stock two-output model: ONE `stream.resource.alloca` of 128 B followed by two
+# subviews of 32 B @0 and 16 B @64 of that same slab). Leaving it out was not a
+# safe default but a type (B) over-rejection: every multi-output model IREE
+# packs into a single output slab came out UNKNOWN_BOUND even though the
+# parser had already sized the one real allocation soundly. Unlike the other
+# two non-allocating entries, this one is CHECKED rather than trusted: the
+# scanner below refuses unless offset + result_size <= source_size, so a
+# subview that claims to view bytes its source does not have is unresolved.
 _KNOWN_ENTRY_OPS = {"resource.alloca", "resource.pack", "resource.dealloca",
+                    "resource.subview",
                     "tensor.import", "tensor.export"}
 _OP_RE = re.compile(r"stream\.(resource|tensor)\.([A-Za-z_]+)")
 
@@ -136,6 +148,22 @@ def parse_alloc_ir(ir, entry="infer"):
         for s2 in re.finditer(r"\[\s*\d+\s*,\s*\d+\s*\]\s*=\s*(%[\w#]+)", mm.group(1)):
             v, ok = size_of(s2.group(1))
             (result["transient_slices"] if ok else result["unresolved"]).append(v if ok else s2.group(1))
+
+    # stream.resource.subview: allocates nothing, but its containment claim is
+    # verified rather than assumed (E26c/D49). Any subview whose three index
+    # operands are not resolvable constants, or whose window falls outside its
+    # source, is unresolved -- the parser then cannot state a bound.
+    for mm in re.finditer(r"stream\.resource\.subview\s+(%[\w#]+)\[(%[\w#]+)\]" + _CONT
+                          + r"\{(%[\w#]+)\}\s*->" + _CONT + r"\{(%[\w#]+)\}", body):
+        src_sym, off_sym, src_size_sym, res_size_sym = mm.groups()
+        off, ok_off = size_of(off_sym)
+        src_size, ok_src = size_of(src_size_sym)
+        res_size, ok_res = size_of(res_size_sym)
+        if not (ok_off and ok_src and ok_res):
+            result["unresolved"].append("subview_size:%s" % src_sym)
+        elif off + res_size > src_size:
+            result["unresolved"].append(
+                "subview_out_of_range:%s[%d for %d] of %d" % (src_sym, off, res_size, src_size))
 
     # fail-closed: any resource-producing op in the entry body that isn't one
     # of the ops this parser understands is an unsized allocation, not a

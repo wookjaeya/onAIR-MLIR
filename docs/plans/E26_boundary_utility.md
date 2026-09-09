@@ -111,9 +111,17 @@ B2·B3는 상수/per-call 비율이 **극단적으로 다르다**(B2 ≈ 1:1, B3
 
 ### 1.4 반입 경로 (검증됨, TensorFlow 불필요)
 
-`iree-import-tflite`는 **쓸 수 없다** — TF 2.21에서 `_pywrap_mlir`가
+`iree-import-tflite`는 **쓸 수 없다** — `_pywrap_mlir`가
 `ExperimentalTFLiteToTosaBytecode`를 export하지 않아 래퍼가 `NameError`로 깨진다(두 조사가
 독립 확인). 크기 문제가 아니다(`tensorflow-cpu` 273.8 MB는 규칙 이내).
+
+> **정정(E26c 반박 검증)**: 이 문장은 처음에 "TF 2.21에서"라고 썼다. 실측은 **TF 2.19.1·
+> 2.20.0·2.21.0 셋 다** 같은 심볼을 export하지 않는다 — 2.21 특유의 회귀가 아니므로
+> 다운그레이드로 우회할 수 없다. 아울러 차단 축을 정확히 적을 것: `iree-tools-tflite`는
+> PyPI에 살아 있고 최신 휠(20260316.1567)은 이 저장소의 `iree-compile`(3.11.0rc20260316 @
+> `e4a3b04`)과 **같은 릴리스 실행 산출물**이다. 즉 막는 것은 IREE 쪽 버전 불일치가 아니라
+> **TensorFlow↔TOSA↔IREE 축**이며, 그 휠 자체는 Requires-Dist가 없는 3,552 B shim이라
+> 날짜 일치가 기능 호환을 함의하지 않는다.
 
 확립된 경로:
 
@@ -267,9 +275,21 @@ layout IR을 직접 읽어 확인했다(`results/e14_aarch64_qemu/x86_64/layout_
 
 | # | 증상 | 영향 |
 |---|---|---|
-| C-1 | **다출력 모델 계약 불가** — 출력 2개 이상이면 단일 external alloca의 `stream.resource.subview`로 잡히는데 이 op이 양쪽 파서 화이트리스트에 없어 `UNKNOWN_BOUND`. 할당이 아니라 뷰이므로 성격상 과잉 거부 | 다출력 모델 전부 |
+| ~~C-1~~ | ~~**다출력 모델 계약 불가**~~ — **E26c에서 해소(D49)**. 아래 참조 | ~~다출력 모델 전부~~ |
 | C-2 | **헤더의 경계 시그니처 dtype 게이트** — `gen_contract_header.py`가 **엔트리 시그니처**를 단일 f32 in/out으로 강제해 f16 모델과 2입력 모델은 계약이 유효한데도 헤더 거부. dtype 전용 우회 플래그는 없다 | 실전 CNN(다입력·f16) |
 | C-3 | **cFS 앱의 feature 버퍼가 스택 배열이다** — `native/cfs_app/fsw/src/ai_learner.c:440`이 추론마다 `float feat[CONTRACT_INPUT_ELEMS]`를 **스택에** 잡는다. 입력 원소 수가 계약에서 오므로 9~256짜리 모델에서는 문제가 없지만, **영상 모델에서는 태스크 스택을 넘는다** | **B1을 SQUEEZE보다 먼저 막는다** |
+
+**C-1은 E26c에서 닫혔다(D49)**. 직접 재현했다 — 스톡 2출력 모델을 한 번의 `iree-compile`로
+컴파일하니 entry에 `stream.resource.alloca` **1개(128 B)**와 `stream.resource.subview` **2개**
+(32 B @0, 16 B @64)가 나왔다. 즉 파서는 유일한 실제 할당을 이미 건전하게(그것도 보수적으로:
+128 ≥ 32+16) 계상하고 있었고, 거부는 순전히 화이트리스트 누락 때문이었다 — 유형 (B) 과잉 거부.
+두 추출기에 op을 추가하되 **검사 없이 신뢰하지는 않는다**: 세 index 피연산자가 전부 상수로
+풀리고 `offset + result_size <= source_size`일 때만 통과하며, 그렇지 않으면 `unresolved`다.
+근거 실물은 `harness/gen_model_multiout.py` + `results/e26c_multiout/`(D43 규칙)이고,
+실측 HAL 피크 **704 B = bounded 704 B**로 tightness 1.00×다.
+**남는 제약**: C 헤더 생성기는 여전히 단일 f32 in/out만 허용하므로 다출력 모델은 *계약은
+생성되고 C 배치는 거부*된다(C-2와 같은 경계 시그니처 게이트). 이는 두 C 실행기가 실제로
+가정하는 바이므로 과잉 거부가 아니라 정확한 진술이다.
 
 **C-2의 정확한 범위**(반박 검증에서 좁혀짐): 이것은 **양자화 게이트가 아니라 경계 시그니처
 dtype 게이트**다. int8 연산을 내부에 두고 **f32로 입출력하는 표준 양자화 배포 형태**는 코드 수정

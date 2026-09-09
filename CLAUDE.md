@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.25**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.26**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -360,6 +360,27 @@ native / 같은 런타임의 cFS 앱 / qemu-user AArch64)에서 **같은 vmfb의
 회귀 시험 **CI 실측**(커밋 `3afdf80`): `full` **228/228 + 1 SKIP**(PyYAML 미설치) · `without-iree` **126/126 + 13 SKIP** · `stdlib-only` **126/126 + 13 SKIP**. 이 컨테이너와 `full`의 차이 1건은 PyYAML 유무다(D34 — 추정하지 않고 두 수치를 조건과 함께 병기).
 **범위**: E26-core(B0 3모델)의 판정이다. B2·B3 실행 측정과 AArch64 게스트 cFS는 E26-ext로 남음.
 
+**v0.26에서 완료된 것 (E26c, `docs/EVIDENCE_v0.26_E26c.md`)**: 벤치마크 지침 도입 조사가
+계획서 §6에 남겨 둔 잔여 결함 후보 **C-1**을 직접 재현·수정했다(**D49**, 유형 (B) 과잉 거부).
+IREE는 결과가 둘 이상이면 **하나의 external 슬랩(128 B)에 패킹**한 뒤 `stream.resource.subview`
+2개(32 B @0, 16 B @64)로 쪼갠다. 그 op이 두 추출기 화이트리스트에 없어 D13의 fail-closed 규칙이
+`unresolved`로 밀어 넣었고 **사실상 모든 다중 출력 모델이 계약을 만들 수 없었다** — 정보가 없어서가
+아니라 **파서가 이미 건전·보수적으로(128 ≥ 32+16) 계상한 정보를 쓰지 못해서**다. 두 화이트리스트에
+추가하되 기존 비할당 항목(`tensor.export`·`dealloca`)과 달리 **검사를 붙였다**: 세 index 피연산자가
+전부 상수로 풀리고 `offset + result_size <= source_size`일 때만 통과. **revert-and-confirm-fail을
+두 단계로** 했다 — 화이트리스트만 되돌리면 7건 FAIL(과잉 거부 실재), 검사 코드만 빼면 4건 FAIL
+(없으면 fail-open, 즉 유형 (B)를 고치며 유형 (A)를 심는 경우). 실물 근거는
+`harness/gen_model_multiout.py` + `results/e26c_multiout/`(한 번의 컴파일 호출, D43 규칙)이고,
+계약은 오버라이드 0개·`constants_confirmation_state: confirmed`, 실측 HAL 피크 **704 B =
+bounded 704 B**(tightness 1.00×). **남는 제약(명시)**: `gen_contract_header.py`는 여전히 단일
+f32 in/out만 허용하므로 다중 출력은 *계약은 생성되고 C 배치는 거부*된다 — 두 C 실행기가 실제로
+그렇게 가정하므로 과잉 거부가 아니라 정확한 진술이며, 다중 출력의 C/cFS 배치는 열려 있지 않다.
+이 컨테이너 **229/229 → 244/244**, 보관 14개 계약 diff 0. 정정: 계획서 §1.4의
+`iree-import-tflite` 차단 서술에서 **"TF 2.21에서"를 철회**한다 — TF **2.19.1·2.20.0·2.21.0 셋 다**
+같은 심볼을 export하지 않아 다운그레이드로 우회할 수 없고, 막는 축도 IREE 버전 불일치가 아니라
+TensorFlow↔TOSA↔IREE다(같은 세션 반박 검증 8건: UPHELD 1, QUALIFIED 7, 반전 0).
+
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -627,7 +648,9 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.22_E25.md       ★ 최신. R-1 완결 — canonical 모델로 다섯 경로 의미 동치,
+  EVIDENCE_v0.26_E26c.md      ★ 최신. E26c/D49 — 다중 출력 과잉 거부 수정(subview 봉쇄 검사),
+                               revert-confirm-fail 2단계(7건/4건), 실물 fixture, 244/244
+  EVIDENCE_v0.22_E25.md        R-1 완결 — canonical 모델로 다섯 경로 의미 동치,
                                네 IREE 경로 비트 동일(AArch64 포함, 일반화 금지), PASS
   EVIDENCE_v0.21_E24c.md       외부 검토 v0.20/E24b F1-F5 — 확인된 4건 수정(D41-D44),
                                F1은 리뷰 권고가 위조 경로로 악화시킴을 실측해 미채택.
@@ -690,6 +713,9 @@ harness/                    실험 스크립트
                                full 169/169+1 SKIP · without-iree 85/85+9 · stdlib-only 85/85+9,
                                크래시 없음(E22+E23 D24·D25, E24 N6·D33). 이 컨테이너는 PyYAML이
                                있어 170/170
+  gen_model_multiout.py       ★ E26c/D49: 다중 출력 모델 생성기 — IREE가 결과 2개를 한 슬랩에
+                               패킹하고 subview로 쪼개는 실물 근거. 비-splat 가중치(상수 실재)와
+                               서로 다른 크기의 결과 2개(봉쇄 검사가 우연히 만족되지 않도록)가 의도적
   gen_model_manyconst.py      ★ E24c/F4: 상수 다수 모델 생성기 — D38(24세그먼트 절단 제거)의
                                실물 근거. 16x32 tail로 두 번째 dispatch를 강제(없으면 dump 파일명에
                                mlir basename이 없어 one-invocation 검사가 정당하게 거부)
@@ -714,6 +740,10 @@ native/                     Python 없는 C 경로: native_learner.c, cfs_app/ (
                              헤더만으로 모델 독립적(v0.9); cfs_app/toolchain-aarch64-linux-gnu.cmake
 e13/                        LLVM IR·ELF 덤프 (x86-64 host/generic 설정 비교)
 e14/                        교차 ISA 검증 (aarch64/ = Stage 0 산출물)
+results/e26c_multiout/      ★ E26c/D49: 한 번의 iree-compile 호출 산출물(128 KB) — bounded 704
+                             = per_call 192 + constants 512, HAL 실측 피크 704(tightness 1.00x).
+                             dump/는 축소본(.o/.bc/.s 없음 → .gitignore 트랩 회피)이며 보관 계약이
+                             이 축소본에서 그대로 재생성됨(시험이 매번 확인)
 results/e24c_manyconst31/   ★ E24c/F4: 한 번의 iree-compile 호출 산출물(440 KB) — 33개 data
                              세그먼트(embedded 1024 B 슬랩 32 + external 1), 상수 총량 33792 B.
                              invocation.json에 argv·컴파일러 버전·sha256·관측 세그먼트 목록.

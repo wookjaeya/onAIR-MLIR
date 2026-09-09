@@ -52,7 +52,7 @@ GLOBAL_STORE_RE = re.compile(r'util\.global\.store\s+%[\w.#]+,\s*@([\w.$]+)\s*:\
 # unresolved (D13 fail-closed policy: unknown -> refuse, never ignore).
 KNOWN_ENTRY_OPS = {"stream.tensor.import", "stream.tensor.export",
                    "stream.resource.alloca", "stream.resource.dealloca",
-                   "stream.resource.pack"}
+                   "stream.resource.pack", "stream.resource.subview"}
 
 
 def _require_bindings():
@@ -180,6 +180,25 @@ def _extract_from_entry(entry_op):
                 v, ok = _resolve_index_value(opd)
                 (result["transient_slices"] if ok else result["unresolved"]).append(
                     v if ok else "pack_slice:%s" % v)
+        elif name == "stream.resource.subview":
+            # E26c/D49: a subview allocates nothing -- it is a window into an
+            # operand resource that some other op already allocated. Operand
+            # order, read off the real op with the MLIR API on a stock
+            # two-output model, is [source, source_size, offset, result_size].
+            # The containment claim is CHECKED, not trusted: a subview whose
+            # index operands are not constants, or whose window leaves its
+            # source, is unresolved so no bound can be stated.
+            if len(o.operands) < 4:
+                result["unresolved"].append("subview_arity:%d" % len(o.operands))
+            else:
+                src_size, ok_src = _resolve_index_value(o.operands[1])
+                off, ok_off = _resolve_index_value(o.operands[2])
+                res_size, ok_res = _resolve_index_value(o.operands[3])
+                if not (ok_src and ok_off and ok_res):
+                    result["unresolved"].append("subview_size:%s" % src_size)
+                elif off + res_size > src_size:
+                    result["unresolved"].append(
+                        "subview_out_of_range:[%d for %d] of %d" % (off, res_size, src_size))
         # stream.tensor.export / stream.resource.dealloca: consume an
         # already-counted resource, allocate nothing new -- intentionally
         # not sized (matches static_mem_bound.py's KNOWN_ENTRY_OPS treatment).
