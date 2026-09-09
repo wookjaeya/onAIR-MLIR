@@ -1,0 +1,81 @@
+{
+ "model": "b2_resnet (MLPerf Tiny ResNet, CIFAR-10)",
+ "layer": "E26-ext",
+ "source": "results/e26_boundary_utility/mlperf_tiny_resnet_fixture/ (mlcommons/tiny @ 4addd0fa)",
+ "contract": {
+  "bounded_bytes": 618856,
+  "static_per_call_bytes": 309416,
+  "module_resident_constant_bytes": 309440,
+  "static_transient_bytes": 297088,
+  "static_io_bytes": 12328,
+  "dispatches": 16,
+  "kernel_task_stack_bytes": 368,
+  "artifact_bytes": 345616,
+  "artifact_sha256": "961f02c2c0ab0179f79ac5e2aa7c51f24ace40fa100a031121d8021e1e379fa0"
+ },
+ "contract_numbers_match_stored_fixture": true,
+ "contract_numbers_match_note": "the fixture's stored contract (a different iree-compile run) has the SAME bounded/per_call/constants/transient/io/dispatches; only artifact bytes and sha256 differ",
+ "cells": [
+  {
+   "runner": "pip_runtime",
+   "budget": null,
+   "admitted": true,
+   "hal_device_bytes_peak": 309416,
+   "branch": "mapped",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 2.0001
+  },
+  {
+   "runner": "native_c",
+   "budget": 618855,
+   "admitted": false,
+   "exit_reason": "not admitted",
+   "hal_device_bytes_peak": null,
+   "branch": null,
+   "peak_within_bounded": null,
+   "tightness_bounded_over_peak": null
+  },
+  {
+   "runner": "native_c",
+   "budget": 618856,
+   "admitted": true,
+   "exit_reason": "ok",
+   "hal_device_bytes_peak": 618856,
+   "branch": "allocated",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 1.0
+  },
+  {
+   "runner": "native_c",
+   "budget": 618857,
+   "admitted": true,
+   "exit_reason": "ok",
+   "hal_device_bytes_peak": 618856,
+   "branch": "allocated",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 1.0
+  },
+  {
+   "runner": "native_c",
+   "budget": 1048576,
+   "admitted": true,
+   "exit_reason": "ok",
+   "hal_device_bytes_peak": 618856,
+   "branch": "allocated",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 1.0
+  }
+ ],
+ "q1_peak_within_bounded_all": true,
+ "q2_branches": [
+  "allocated",
+  "mapped"
+ ],
+ "q2_hypothesis_refuted": [],
+ "q2_tightness_range": [
+  1.0,
+  2.0001
+ ],
+ "q3_deny_at_bound_minus_1": true,
+ "q3_admit_at_bound_and_above": true
+}

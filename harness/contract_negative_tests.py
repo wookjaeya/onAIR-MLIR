@@ -2396,6 +2396,74 @@ A5B_CANONICAL_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary
                                   "aarch64", "a5b_canonical")
 
 
+EXT_B2_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utility",
+                          "x86_64", "ext_b2_resnet")
+
+
+def ext_b2_resnet_cases():
+    """E26e: the E26-ext measurement on a real MLPerf Tiny CNN, pinned.
+
+    Two things are worth a regression test here and neither is a defect gate.
+
+    (1) The contract QUANTITIES are stable across iree-compile runs even though the
+        ARTIFACT BYTES are not (§4 of the evidence: three threaded compiles of the same
+        file gave three different vmfb digests). If a later change silently altered what
+        the extractor reports for this model, the stored pair would stop agreeing.
+    (2) The branch hypothesis holds on this workload, and the same artifact lands in
+        DIFFERENT branches in different runtime deployments -- which is E26's central
+        claim, measured here outside the synthetic model set."""
+    results = []
+    summ_path = os.path.join(EXT_B2_DIR, "summary.json")
+    ctr_path = os.path.join(EXT_B2_DIR, "b2_resnet.contract.json")
+    fixture_ctr = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utility",
+                               "mlperf_tiny_resnet_fixture", "resnet.contract.json")
+    for p_ in (summ_path, ctr_path, fixture_ctr):
+        if not os.path.exists(p_):
+            results.append(Result("ext-b2-resnet: fixture present", False, "missing %s" % p_))
+            return results
+    summ, ctr, fix = load(summ_path), load(ctr_path), load(fixture_ctr)
+
+    # (1) same numbers, different artifact -- both halves asserted
+    keys = ("bounded_bytes", "static_per_call_bytes", "module_resident_constant_bytes",
+            "static_transient_bytes", "static_io_bytes", "dispatches")
+    same = {k: (ctr["resources"][k], fix["resources"][k]) for k in keys}
+    results.append(Result("ext-b2-resnet: contract quantities match the fixture's other compile",
+                          all(a == b for a, b in same.values()),
+                          "; ".join("%s %s!=%s" % (k, a, b) for k, (a, b) in same.items() if a != b)))
+    results.append(Result("ext-b2-resnet: ...while the artifact identity does NOT (compile is not "
+                          "byte-reproducible)",
+                          ctr["artifact"]["sha256"] != fix["artifact"]["sha256"],
+                          "%s vs %s" % (ctr["artifact"]["sha256"][:16],
+                                        fix["artifact"]["sha256"][:16])))
+
+    # (2) soundness, branch hypothesis, and the admission boundary
+    results.append(Result("ext-b2-resnet: every measured cell is within the bound (Q1)",
+                          summ["q1_peak_within_bounded_all"] is True,
+                          "cells=%s" % [c.get("hal_device_bytes_peak") for c in summ["cells"]]))
+    results.append(Result("ext-b2-resnet: branch hypothesis not refuted on a real CNN (Q2)",
+                          summ["q2_hypothesis_refuted"] == [],
+                          "refuted=%s" % summ["q2_hypothesis_refuted"]))
+    results.append(Result("ext-b2-resnet: the SAME vmfb takes both branches in different deployments",
+                          sorted(summ["q2_branches"]) == ["allocated", "mapped"],
+                          "branches=%s" % summ["q2_branches"]))
+    per, const = ctr["resources"]["static_per_call_bytes"], ctr["resources"]["module_resident_constant_bytes"]
+    peaks = sorted({c["hal_device_bytes_peak"] for c in summ["cells"] if c["hal_device_bytes_peak"]})
+    results.append(Result("ext-b2-resnet: the two peaks differ by exactly the module constants",
+                          peaks == [per, per + const],
+                          "peaks=%s per_call=%d constants=%d" % (peaks, per, const)))
+    results.append(Result("ext-b2-resnet: DENY at bound-1, ADMIT at bound and above (Q3)",
+                          summ["q3_deny_at_bound_minus_1"] is True
+                          and summ["q3_admit_at_bound_and_above"] is True,
+                          "deny=%s admit=%s" % (summ["q3_deny_at_bound_minus_1"],
+                                                summ["q3_admit_at_bound_and_above"])))
+    # D50: the pip cell's peak must be the released-buffer figure, not the retained one
+    pip = [c for c in summ["cells"] if c["runner"] == "pip_runtime"]
+    results.append(Result("ext-b2-resnet: pip cell peak is the released-buffer figure (D50)",
+                          bool(pip) and pip[0]["hal_device_bytes_peak"] == per,
+                          "peak=%s per_call=%d" % (pip[0]["hal_device_bytes_peak"] if pip else None, per)))
+    return results
+
+
 def a5b_canonical_guest_cases(tmp):
     """E26d: the A5b_canonical guest run that the pre-fixed E26 plan (§5 step 3) named and
     the E26 evidence originally neither reported nor disclaimed.
@@ -2723,6 +2791,7 @@ def main():
         all_results += rodata_label_cases()
         all_results += multiout_subview_cases(tmp)
         all_results += a5b_canonical_guest_cases(tmp)
+        all_results += ext_b2_resnet_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

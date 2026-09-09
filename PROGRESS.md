@@ -1,7 +1,7 @@
 # PROGRESS — Contract-Guided MLIR Lowering for AI Deployment in NASA OnAIR/cFS
 
 **기준 버전**: v0.3.1 — 이 문서는 그 시점의 한 장 요약이며, **현재 상태의 정본이 아니다.**
-> **현재 버전은 v0.26.1이다.** 최신 상태는 `CLAUDE.md`(프로젝트 컨텍스트·우선순위) →
+> **현재 버전은 v0.27이다.** 최신 상태는 `CLAUDE.md`(프로젝트 컨텍스트·우선순위) →
 > `EXPERIMENT_LOG.md`(실험 레지스트리·결함 원장) → `CHANGELOG.md` 순으로 읽는다.
 > v0.4 총괄은 `REPORT_v0.4.md`, 최신 판정은 `docs/EVIDENCE_v0.25_E26.md`(계약 경계의 유용성:
 > Q1·Q3 PASS, tightness 1.00×~45.50×)와 `docs/EVIDENCE_v0.26_E26c.md`(다중 출력 과잉 거부

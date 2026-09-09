@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.26.1**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.27**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -394,6 +394,23 @@ A5b를 두고 이미 한 번 정정한 유형**(실행하지 않은 시험을 "�
 in-tree 원본에서 재생성해 게스트가 실제로 적재한 해시와 대조한다. 이 컨테이너 **252/252**.
 
 
+**v0.27에서 완료된 것 (E26e, `docs/EVIDENCE_v0.27_E26e.md`)**: **E26-ext** — E26-core의 결론이
+합성 모델 밖에서 재현되는지 실물 MLPerf Tiny ResNet(CIFAR-10, 16 dispatch)으로 확인했다.
+Q1(위반 0)·Q2(반증 0)·Q3(`B−1`→DENY, `B`·`B+1`→ADMIT) **전부 성립**, 계약 `bounded` 618,856 =
+`per_call` 309,416 + `constants` 309,440, 오버라이드 0개. **핵심 관측**: 같은 vmfb가 배포에 따라
+`try_map`의 **두 분기를 모두** 탔다 — pip `iree.runtime` peak 309,416(`mapped`, tightness 2.00×)
+vs 소스 빌드 C 런타임 618,856(`allocated`, 1.00×), 차이가 **정확히 상수량**. E26의 "정적 계약은
+배포 독립, 런타임 계측은 그 배포 한정" 결론의 외적 타당성이다. **ext는 판정을 산출하지 않으므로
+v0.25의 판정은 그대로다.** 부수 실측 2건: (1) **`iree-compile`은 이 구성에서 바이트 재현적이지
+않다**(ResNet 스레딩 3회 = 3개 해시, `--mlir-disable-threading`은 동일) — 그러나 **계약 수치는
+전부 동일**하고 `artifact.bytes`/`sha256`만 다르다. 흔들리는 것은 아티팩트 동일성이지 경계
+수치가 아니며, **측정에 쓴 vmfb는 보존해야 한다**(작업 규율 7의 두 번째 이유). (2) **D50** —
+반환 버퍼를 붙들면 HAL 피크가 부풀어(309,576 = per_call + 4×40) 저장소 분류기가 **거짓
+`refutes_hypothesis`**를 냈다. 놓아주면 정확히 per_call이고 `allocated == freed`다.
+**HAL 통계는 관측자가 무엇을 붙들고 있는지에 반응한다.** 이 컨테이너 **260/260**.
+**남은 ext**: B3 Deep AutoEncoder fixture, 이 모델의 cFS 셀.
+
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -661,7 +678,9 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.26_E26c.md      ★ 최신. E26c/D49 — 다중 출력 과잉 거부 수정(subview 봉쇄 검사),
+  EVIDENCE_v0.27_E26e.md      ★ 최신. E26-ext — 실물 MLPerf Tiny ResNet에서 Q1·Q2·Q3 재현,
+                               같은 vmfb가 배포에 따라 두 분기(2.00x vs 1.00x), 컴파일 비재현성, D50
+  EVIDENCE_v0.26_E26c.md        E26c/D49 — 다중 출력 과잉 거부 수정(subview 봉쇄 검사),
                                revert-confirm-fail 2단계(7건/4건), 실물 fixture, 244/244
   EVIDENCE_v0.22_E25.md        R-1 완결 — canonical 모델로 다섯 경로 의미 동치,
                                네 IREE 경로 비트 동일(AArch64 포함, 일반화 금지), PASS
@@ -819,6 +838,8 @@ cd $HOME/onair-mlir-bench/ext/cFS/build-native_std/exe/cpu1 && ./core-cpu1   # A
 | cmake `check_c_source_compiles` unknown command | 이 IREE 커밋의 ukernel CMakeLists가 include 누락 | `40_setup_iree_source_runtime.sh`가 자동 패치함 |
 | CMake `target_link_libraries` plain/keyword 혼용 에러 | cFS의 `add_cfe_app`이 plain 시그니처 사용 | 앱 CMakeLists도 plain 시그니처로 통일 |
 | 재컴파일한 vmfb의 해시가 이전과 다름 | **입력 MLIR 파일명이 vmfb 심볼명에 들어감** | 계약·덤프·배치 아티팩트는 한 번의 컴파일 호출에서 생성 |
+| 파일명·플래그를 똑같이 맞췄는데도 vmfb 해시가 매번 다름 | `iree-compile`이 스레딩 기본값에서 **바이트 재현적이지 않다**(E26e: 16-dispatch 모델 3회 = 3개 해시, `--mlir-disable-threading` 2회 = 동일). 계약 수치는 동일하고 아티팩트 동일성만 흔들린다 | 측정에 쓴 vmfb를 저장소에 **보존**한다(레시피만으로는 되돌아오지 않음). 재현성이 필요하면 `--mlir-disable-threading` |
+| HAL `device_bytes_peak`가 계약값보다 조금 큼(분류기가 `refutes_hypothesis`) | 반환된 출력 버퍼를 붙들고 있어 이전 호출분이 해제되지 않음(D50, E26e: per_call + 4×40 B) | 호출마다 결과를 놓아주고 `allocated == freed`인 상태에서 피크를 읽는다 |
 
 ## 이 컨테이너(claude.ai)에서 검증됐던 사실과의 관계
 
