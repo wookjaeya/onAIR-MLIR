@@ -2,6 +2,32 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.20] — E24b: 네 번째 외부 검토(연구 목표 재정리본)의 반례 5건 + 우선순위 재편
+
+판정: 검토 §5.2의 반례 5건(R1–R5)을 전부 실제로 재현하고 수정했다(D35–D39). 부수로 발견한
+D40(문서화된 스모크 경로 2개 파손, 그중 1건은 E24의 N3 게이트가 만든 유형 (B) 회귀)도 수정.
+`contract_negative_tests.py` 143/143 → **170/170**(이 컨테이너 실측 — CI 세 레그 값은
+D34의 교훈에 따라 추정하지 않고 `docs/EVIDENCE_v0.20_E24b.md` §9.1에 실측으로 기록).
+보관 14개 헤더는 `CONTRACT_PROVENANCE_VERIFIED` 한 줄만 추가되고 다른 바이트 변화 0.
+
+정정: **심각도 재분류가 두 번 있었고 방향이 서로 반대다.** R1(음수 스택)은 검토가 "매우 낮음:
+수동 변조 필요"로 분류했으나, 계약을 손대지 않고 `--elf-analysis` 입력만 바꾸면 정상
+`make_contract.py` 경로로 도달하는 **claim blocker**였다(cFS 스택 게이트가 unsigned 비교
+때문에 모든 스택 크기에서 참인 항등식이 된다). 반대로 R4(상수 세그먼트 절단)는 검토가 제안한
+문자 그대로의 수정이 **정직한 31세그먼트 모델을 통째로 거부**하는 것으로 실측돼 채택하지
+않았다 — 열거기를 진짜 tri-state로 고쳐 해결했다. E20(D16·D17)·E24(N1·N3)에 이어 양방향
+결함 정의(fail-open과 과잉 거부 모두 결함)가 다시 결정적이었다.
+
+- R5(override trust): `waive()`가 거부 지점이 아니라 **플래그 접근**을 감싼다 — 기계적 패치는
+  결합형 게이트 2곳을 놓치고, 그러면 override가 적용됐는데 `verification_grade="verified"`라고
+  주장하는 신규 fail-open이 된다. 드리프트를 1곳만 주입하면 **행위 시험 5건은 전부 PASS이고
+  소스 수준 가드만 FAIL**함을 실측으로 확인했다.
+- `provenance.overrides_applied`/`verification_grade` 신설(스키마 **선택** 필드 — 필수화하면
+  보관 14개 계약이 전부 무효), `gen_contract_header.py`가 override 계약을 기본 거부
+  (`--allow-override-contract`가 opt-out), `CONTRACT_PROVENANCE_VERIFIED` 매크로 신설.
+- `CLAUDE.md` 우선순위를 검토 §5·§7의 연구 목표 축(C1–C4 / E25–E27)으로 재편. 중심 주장
+  문장(`docs/EVIDENCE_v0.9_E14_stage1.md` §11.8)은 변경 없음.
+
 ## [v0.19] — E24: fail-closed 계약 불변식 닫기 (외부 검토 v0.18-후속 N1–N6, S5)
 
 판정: 리뷰가 지적한 "검증 불가·모순 상태에서도 `CONTRACT_BOUND_KNOWN=1` 헤더가 생성되는 경로"

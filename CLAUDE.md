@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.19**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.20**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -200,6 +200,32 @@ vmfb를 짝지어도 계약이 나와 **D10 구멍이 None 경로로 재개방**
 `subset_sum_match` tri-state 리팩터링(EVIDENCE_v0.19 §7).
 
 
+
+**v0.20에서 완료된 것 (E24b, `docs/EVIDENCE_v0.20_E24b.md`)**: 네 번째 외부 검토
+(`docs/reviews/REVIEW_v0_19_E24_RESEARCH_REFRAME.md`, 기준 커밋 `f51f66e`)가 도착 — E21–E24를
+"구현 완성도와 재현성이 높은 프로토타입"으로 인정하면서 **연구의 남은 핵심 과제는 방어 조건을
+더 늘리는 것이 아니라 계약 경계의 실질적 가치·OnAIR↔cFS 의미 동치·MLIR 기여를 증명하는 것**
+이라고 재정리했다. §5.2의 반례 5건(R1–R5)을 10개 에이전트(재현 5 + 각 수정안의 과잉 거부 위험 5)로
+검증해 **5건 전부 재현**했고, 심각도 재분류가 두 번, 방향이 서로 반대였다: **R1은 리뷰의 "매우 낮음:
+수동 변조 필요"와 달리 정상 `make_contract.py` 경로로 도달하는 claim blocker**(`--elf-analysis`
+입력의 음수 스택이 truthiness로 "신뢰" 버킷에 오르고, cFS 스택 게이트가 unsigned 비교 때문에
+**스택 0에서도 참인 항등식**이 된다 — 실제 C 식 컴파일로 확인), 반대로 **R4는 리뷰의 문자 그대로의
+처방이 정직한 31세그먼트 모델을 통째로 거부**해 미채택하고 열거기를 진짜 tri-state로 고쳤다(스톡
+플래그 `--iree-stream-resource-max-allocation-size=1024` 하나로 31세그먼트가 나오며, 옛 코드는
+일치하는 총합에 **"NOT matched"라는 거짓 진술을 계약에 기록**했다). D35–D40 수정:
+D35(R1), D36(`bounded_bytes`가 자기 구성요소 합과 미대조 — `>=`가 아니라 `==`, `>=`는 부풀린
+자기모순 값만 통과시켜 유형 (B)), D37(`validity`↔`interface` shape 미대조, **존재하는 것끼리만**
+비교), D38(R4), D39(**적용된 override가 계약에 기록되지 않고** 헤더 생성기가 provenance를 전혀
+읽지 않아 우회 계약과 검증 계약이 같은 배치 가능 헤더를 만듦 — `waive()`가 거부 지점이 아니라
+**플래그 접근**을 감싸고, 드리프트 1곳 주입 시 **행위 시험 5건은 전부 PASS이고 소스 수준 가드만
+FAIL**함을 실측), D40(`CLAUDE.md`가 문서화한 스모크 경로 2개가 rc=1로 깨져 있었고 그중 1건은
+**E24의 N3 게이트가 만든 유형 (B) 회귀** — "과잉 거부 위험을 측정했다"는 주장이 어떤 입력
+집합에서 측정했는지에 전적으로 의존함을 세 번째로 확인). `contract_negative_tests.py`
+143/143 → **170/170**(이 컨테이너 실측; CI 세 레그 값은 D34의 교훈에 따라 추정하지 않고
+EVIDENCE §9.1에 실측 기록), 보관 14개 헤더는 `CONTRACT_PROVENANCE_VERIFIED` 한 줄만 추가.
+**우선순위 재편**: 이 버전에서 "지금 바로 이어서 할 일"의 축을 fail-closed 방어에서 **연구 질문
+(R-1 OnAIR↔cFS 의미 동치 / R-2 계약 경계의 유용성·외적 타당성 / R-3 MLIR 고유 기여)**으로 바꿨다.
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -235,126 +261,174 @@ vmfb를 짝지어도 계약이 나와 **D10 구멍이 None 경로로 재개방**
 "계산값과 관측값이 일치했다"는 항상 "같은 할당 계획의 두 관측이 서로 모순되지 않는다"는
 뜻일 뿐, 계획 자체가 맞다는 증명이 아니다. **새 실험을 설계할 때마다 이 함정을 의심할 것.**
 
-## 지금 바로 이어서 할 일 (Claude Code, 우선순위 1)
+## 지금 바로 이어서 할 일 (Claude Code) — **v0.20에서 재편**
 
-v0.9.1 정정(외부 검토 2건, `docs/EVIDENCE_v0.9_E14_stage1.md` §11)에서 두 검토가 합의한 순서를
-그대로 우선순위로 쓴다 — **모델·시나리오 수를 늘리는 것보다 "어떤 정보가 없거나 잘못됐을 때 절대
-ADMIT하지 않는가"를 먼저 닫는다.** 항목 1은 v0.10(E15), 항목 2는 v0.11(E16, x86-64) +
-v0.12(E17, AArch64 게스트)로 완료됐다.
+**재편 사유(v0.20/E24b)**: v0.9.1 이후의 우선순위는 두 외부 검토가 합의한 순서
+("모델·시나리오 수를 늘리기 전에 '어떤 정보가 없거나 잘못됐을 때 절대 ADMIT하지 않는가'를
+먼저 닫는다")였고, 그 축의 항목은 **전부 끝났다**(아래 "완료된 구현 hardening" 참조).
+네 번째 외부 검토(`docs/reviews/REVIEW_v0_19_E24_RESEARCH_REFRAME.md`)가 이 상태를
+정확히 짚었다:
 
-1. ~~fail-closed 계약 verifier~~ — **완료(v0.10/E15)**.
-2. ~~C 게이트 보강 + 남은 cFS 음성·생명주기 시험~~ — **완료(v0.11/E16 x86-64 + v0.12/E17 AArch64
-   게스트, `docs/EVIDENCE_v0.11_E16.md`·`docs/EVIDENCE_v0.12_E17.md`)**. A5b(구조 손상 기반, 3레벨
-   전부 실행), mlp16k·multibranch A2 경계값, 재시작 2회+DELETE(정상 종료 cleanup도 함께 확인),
-   스택 실거부·blob 크기 선검사의 AArch64 교차 확인까지 전부 완료. 남은 잔여: multibranch cFS 레벨
-   A2, dynamic 모델의 게스트 재현(우선순위 낮음, EVIDENCE_v0.12 §6).
-3. **정규 MLIR/IREE pass (미착수 목표)** — 이 항목명은 **아직 만들지 않은 것**을 가리킨다:
-   PassManager에 등록되어 완전한 in-memory module 위에서 실행되며 계약을 컴파일러 산출물로 직접
-   emit하는 pass. E18~E20이 만든 것은 그것이 아니라 `--mlir-print-ir-after` 덤프를 다시 읽는
-   **"MLIR API 기반 구조적 post-processing verifier"**다(외부 검토 F4·N6/S5,
-   `docs/EVIDENCE_v0.13_E18.md` §7, `docs/EVIDENCE_v0.18_E23.md` §3). 아래 "N단계 완료"는
-   그 verifier의 단계 완료이지 pass 자체의 완료가 아니다. — 텍스트 정규식 파서(E15로 fail-closed는 됐으나 여전히 정규식 기반)를
-   compiler 내부 Operation·Type·SSA 정보로 대체. 평가지표: 알려진 allocation 누락 없음, 미지원
-   표현 무시 안 함, compiler 버전 변경 시 명시적 실패, 기존 파서와 정상 모델에서 동일 값, 적대적
-   변형에서 과소 추정 방지(EVIDENCE_v0.10 §5가 남긴 한계).
-   **1단계(verifier) 완료(v0.13/E18, `docs/EVIDENCE_v0.13_E18.md`)**: `harness/mlir_alloc_walk.py`가
-   `parse_alloc_ir`의 크기 추출을 실제 `iree.compiler.ir` API로 재구현 — 유일한 텍스트 처리는
-   `util.global.load`/`store` 줄에서 선언을 합성하는 좁은 전처리뿐이고(아래 착수 전 조사가 찾아낸
-   조각남 문제의 해법), 그 이후는 전부 `op.name`·define-use 체인 추적이다. 14개 보관 아티팩트
-   전부 정규식 파서와 값 일치, 화이트리스트 축소로 미인식 op fail-closed 재확인,
-   `contract_negative_tests.py` 66/66. **남은 것(당시)**: `make_contract.py` 파이프라인 통합(이번엔
-   독립 검증 도구로만 존재), `stream.resource.pack` 실사용 시험(현재 모델 중 아무것도 안 씀),
-   다른 IREE 버전에서의 재확인.
-   **2단계(verifier 결선) 완료(v0.14/E19, `docs/EVIDENCE_v0.14_E19.md`)**: `make_contract.py`에 구조적 추출기를
-   **필수 크로스체크**로 결선(대체 아님) — 정규식 파서와 불일치하거나 구조적 추출기가 파싱 실패하면
-   계약을 거부. 14개 보관 계약을 실제 `make_contract.py` 서브프로세스 재실행으로 재생성해 diff 0 +
-   신규 크로스체크 필드 14/14 일치 확인, 하드 실패 배선은 monkeypatch로 실제 발동 확인.
-   `contract_negative_tests.py` 85/85. **여전히 남은 것**: `stream.resource.pack` 실사용 시험,
-   다른 IREE 버전에서의 실제 재확인(강제 지점은 마련됐으나 시뮬레이션으로만 확인).
-   **적대적 리뷰·결함 수정(v0.15/E20, `docs/EVIDENCE_v0.15_E20.md`)**: 이 크로스체크 자체를
-   4관점 병렬 리뷰+반박검증으로 검토해 과잉 거부 결함 2건(D16: `whole` 대신 `p`를 썼어야, D17:
-   `dense_sum` 대신 `const_b`를 썼어야) 실제 재현·수정. 보관 14개 모델은 우연히 이 조건에 안
-   걸려 v0.14의 "14/14 일치" 판정 자체는 여전히 참이지만, 크로스체크 로직 자체의 건전성은
-   v0.15 전까지 검증되지 않았었다. 재현을 고정 회귀 시험으로 등록하고 수정 전 코드로 되돌려
-   시험이 실제로 실패함을 확인. `contract_negative_tests.py` 85/85 → **96/96**.
-   **착수 전 조사(v0.12, 실험 아님, 참고용으로 유지)**: `python3 -c "import
-   iree.compiler.ir"`로 MLIR Python 바인딩이 실제로 사용 가능함을 확인했다(정규식 대신 실제
-   Operation/Type API로 순회 가능). 그러나 `--mlir-print-ir-after=iree-stream-layout-slices`가
-   만드는 layout IR은 **함수별로 조각나 있다**(entry 함수 print가 `util.global.load
-   @__hoisted_tensor_...`처럼 다른 청크의 `util.initializer`가 정의하는 전역을 참조하는데, 그
-   전역의 **선언 자체**는 어느 청크에도 없다 — 선언은 이 패스가 바꾸지 않아 재출력되지 않음).
-   `ir.Module.parse()`로 entry 함수 청크만 단독 파싱하면 항상 "undefined global" 검증 오류로
-   실패한다(`--mlir-disable-threading`를 추가해도 청크 수·구조는 동일 — 이건 프린트 *순서*의
-   결정성 문제였지 조각남의 원인이 아니었다, 재확인함).
-   **주의**: 재컴파일해서 얻은 IR로 검증하면 one-invocation 규칙(§작업 규율 7)을 위반하므로,
-   기존 vmfb와 짝지어 쓰려면 반드시 같은 컴파일 호출의 산출물이어야 한다(v0.13은 재컴파일 없이
-   v0.9의 보관 `layout_ir`만 사용해 이 규칙을 지켰다).
-4. **동일 경계의 대안 비교** — TFLite Micro(정적 아레나) 등과 같은 메모리 경계에서 비교해
-   "왜 MLIR/IREE 경로여야 하는가"에 답한다. 전제(TFLM이 컴파일 시 아레나 크기를 제공하는가)부터
-   1차 문서로 확인할 것. 지표: 과소 추정 발생률, tightness/과도한 거부, 분석 가능 범위, 재생성
-   자동화, stale contract 탐지, 분석·통합 비용.
-   **전제 확인 결과(이 세션, 1차 문서 대조 — 실험 아님, TFLM 빌드/측정 없음)**:
-   [`tensorflow/tflite-micro` `micro_interpreter.h`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_interpreter.h)의
-   `arena_used_bytes()` 주석 원문: *"Returns the actual used arena in bytes. This method gives
-   the optimal arena size. It's only available after `AllocateTensors` has been called."* —
-   즉 **`Invoke()`(실제 추론 실행) 없이 `AllocateTensors()`(그래프+shape 기반 메모리 계획 단계)만
-   호출한 뒤에도 유효한 값**이라는 점에서, 우리 `bounded_bytes`(post-layout 슬랩 크기, 추론 미실행)
-   와 **같은 부류의 값**(실행이 아니라 계획 단계에서 나옴)이다 — "TFLM은 런타임 계측만 준다"는
-   첫 대략적 확인은 부정확했다(정정). 다만 [`docs/memory_management.md`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/docs/memory_management.md)
-   는 이 값을 **"For debugging only"**로만 표기하고, 우리가 `bounded_bytes`에 대해 확보한 것과
-   같은 종류의 **건전성 근거(60/60 실측 일치, 경계값 시험 등)를 TFLM 쪽 문서는 제시하지 않는다** —
-   "이 값이 모든 유효 입력에 대해 상한임을 증명한다"는 주장은 TFLM 공식 문서 어디에도 없다. 따라서
-   비교를 시작할 수 있는 전제(컴파일/준비 단계에서 나오는 계획 기반 수치가 존재한다)는 **참**이지만,
-   그 수치의 건전성은 TFLM 쪽에서 **직접 확인해야 하는 새로운 질문**이다(우리 쪽 `bounded_bytes`도
-   처음엔 그렇게 시작해서 D2·D3 등 결함을 거쳐 검증됐다는 점을 상기할 것 — 같은 함정을 TFLM 비교에도
-   적용해야 한다). 실제 비교 실험은 TFLM 빌드 도구체인(이 컨테이너에 없음, 별도 환경 구축 필요)이
-   있어야 착수 가능 — 다음 세션 항목.
-   **빌드 착수 시도 결과(이 세션, 실험 아님 — host 빌드 성공 못 함)**: TFLM은 더 이상 Makefile
-   빌드(`tensorflow/lite/micro/tools/make/`)를 제공하지 않고 **Bazel(bzlmod) 전용**으로
-   전환됐다(예제 디렉터리도 별도 저장소로 이관돼 이 저장소엔 `hello_world`가 없음) — 대신
-   `arena_used_bytes()`를 직접 assert하는 `micro_interpreter_test.cc`를 빌드 타깃으로 시도했다.
-   **막힌 지점**: 이 세션의 GitHub 접근 브로커가 `git clone/fetch`(smart-HTTP)는 허용하지만
-   Bazel의 `http_archive`가 쓰는 tarball 다운로드(`codeload.github.com`, `bcr.bazel.build`)는
-   **일괄 403**으로 차단한다 — 같은 공개 저장소라도 프로토콜에 따라 결과가 다르다는 뜻. 우회는
-   가능함을 확인했다(각 의존성을 `git clone` + 수동 `BUILD.bazel`/`REPO.bazel` 작성 +
-   `--override_repository`로 4단계까지 성공: `bats-core`·`flatbuffers`·`kissfft` 통과, `grpc`
-   에서 멈춤 — grpc 자체가 protobuf/abseil/c-ares/re2/boringssl 등 대형 의존 트리를 갖고 있고,
-   이건 실제 C++ 로직과 무관한 `testing` 패키지의 pip 요구사항 로딩 때문에 끌려온 것). **판단**:
-   근본적 차단(원리적 불가능)이 아니라 **의존 트리 깊이를 사전에 알 수 없는 노동집약적 우회
-   작업**이다 — 다음 세션이 이어받을 인수인계 경로: `/root/tflite-micro-work/tflite-micro`(클론),
-   `/root/tflite-micro-work/bin/{bazel-real,bazelisk}`(bazel 8.7.0),
-   `/root/tflite-micro-work/bazel_overrides.sh`(현재까지의 override 플래그),
-   `/root/tflite-micro-work/{bats-local,flatbuffers-src,kissfft-src}`(수동 준비 완료 의존성).
-   다음 필요한 작업은 `grpc` 오버라이드를 같은 패턴으로 계속하는 것. (`/home/user/onAIR-MLIR`는
-   이 시도 동안 전혀 건드리지 않았음 — `git status` clean 확인됨.)
-5. **임무 유사 workload + 다중 AI 앱 동시 admission** — 단일 앱 계약 수용 규칙(1–3)이 끝난 뒤 착수.
-   다중 앱은 전역 예산의 예약·해제·경합 설계가 새로 필요하다(현재는 전역 예약 없음).
-   **외부 검토 F11(v0.15, E23에서 확인)과 합침**: 현재 admission이 "이 부분 계약 값이 로컬
-   정책 한도 이하인가"를 판정할 뿐 "온보드 컴퓨터 전체가 이 모델을 수용 가능한가"를 판정하는
-   게 아니라는 지적은 이미 위 문장이 말하는 것과 같은 한계다(새 결함 아님, 검증 결과
-   not-a-defect로 판정 — `docs/EVIDENCE_v0.18_E23.md` §4 참조). 계약 JSON 자신의
-   `resources.scope`/`bound_assumptions` 필드가 이 한계를 매 계약마다 이미 명시하고 있다.
-   F11이 추가로 짚은 요소 중 **allocator fragmentation**만은 이 저장소 어디에도 명시적으로
-   다뤄진 적이 없어 보인다 — 다중 앱 설계 시 위 5개 요소(IREE runtime context, OSAL/cFS 메모리,
-   다른 앱, 동시 실행, task stack)에 이것도 추가로 반영할 것. E23은 판정 산출물 자체가 범위를
-   말하도록 `ai_learner.c`의 admission JSON에 `"scope":"per_app_local_budget"`을 추가했다.
-8. **OnAIR↔native/cFS 경로의 동일성 (외부 검토 F10의 나머지 절반)** — E23이 F10의 즉시
-   고칠 수 있는 부분(OnAIR 플러그인의 계약-아티팩트 바인딩 게이트 부재, D27)은 닫았지만,
-   리뷰가 지적한 **구조적 단절은 그대로 남아 있다**: OnAIR 플러그인은 `weights.npz`를 별도
-   인수로 받고 native/cFS는 baked-weight vmfb를 쓰며, cFS 앱은 플러그인의 이식이 아니라 별도
-   C 앱이고(`CFE_ES_HK_TLM_MID` payload를 feature로 사용), **같은 입력에 대해 OnAIR Python /
-   OnAIR IREE / native C / cFS 앱의 출력이 동치라는 end-to-end 시험이 없다**. "OnAIR에서 생성된
-   AI workload가 같은 의미로 cFS에 배포됐다"는 주장을 하려면 이 동치 시험이 필요하다(현재
-   결과는 그 주장의 근거가 아니다 — `docs/EVIDENCE_v0.18_E23.md` §2). 착수 전제: OnAIR 설치
-   (`scripts/20_setup_onair.sh`)와 x86-64 IREE C 런타임 재구축.
-6. 시간 축 계약 — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리, SCHED_FIFO)가
-   있어야 착수 가능. 이 컨테이너에서는 원리적으로 불가능하다.
-7. RTEMS 단계(제안서 §17) — Linux AArch64 단계가 통과했으므로 이제 착수 가능하나 우선순위는 낮음.
+> onAIR-MLIR v0.19는 구현 완성도와 재현성이 높은 cFS/IREE 부분 메모리 admission
+> 프로토타입이다. 남은 핵심 과제는 **주변적인 방어 조건을 계속 늘리는 것이 아니라**,
+> 계약 경계의 실질적 가치, OnAIR↔cFS 의미 동치, MLIR 기반 접근의 고유 기여를 증명하는 것이다.
+
+따라서 우선순위 축을 **fail-closed 방어 → 연구 질문**으로 바꾼다. 방어 조건 추가는
+새 결함이 재현될 때만 하고(그때도 실험 1건으로 처리), 기본 진행 방향은 아래 R-1~R-3이다.
+
+### 0. 착수 전에 정해야 할 것 — **threat model** (검토 §5.2)
+
+검토가 지적한 대로, R1–R3(음수 스택·자기모순 bounded·shape 충돌) 같은 반례의 **중요도는
+논문이 어느 threat model을 채택하느냐에 따라 달라진다**:
+
+- **"배포 계약은 저장소의 신뢰된 생성기로 만들며 생성 후 수동 변경하지 않는다"** → 그 반례들은
+  구현 품질 문제이지 핵심 반증이 아니다.
+- **계약 JSON을 외부 교환 형식·장기 보관 형식·비신뢰 입력으로 취급한다** → 중요도가 다시 올라가고,
+  E24b가 넣은 sanitization이 본질적인 방어가 된다.
+
+**논문은 둘 중 어느 쪽인지 명시해야 한다.** 아직 정하지 않았으므로, 정하는 것이 R-1보다
+먼저다(문서 1문단이면 되고 실험이 아니다). 참고: E24b의 R1은 **신뢰된 생성기 가정 아래에서도**
+정상 파이프라인으로 도달했으므로, 어느 쪽을 택하든 그 수정은 유지된다.
+
+### 최우선 — 연구·논문 핵심 (검토 §5.1, §7)
+
+**R-1. OnAIR↔cFS 동일 모델·동일 의미 검증 (검토 C2 / E25)** — 다음 실험으로 가장 우선.
+   E23이 F10의 즉시 고칠 수 있는 부분(OnAIR 플러그인의 계약-아티팩트 바인딩 게이트 부재, D27)은
+   닫았지만 **구조적 단절은 그대로 남아 있다**: OnAIR 플러그인은 `weights.npz`를 별도 인수로 받고
+   native/cFS는 baked-weight vmfb를 쓰며, cFS 앱은 플러그인의 이식이 아니라 별도 C 앱이고
+   (`CFE_ES_HK_TLM_MID` payload를 feature로 사용), **같은 입력에 대해 OnAIR Python / OnAIR IREE /
+   native C / cFS 앱의 출력이 동치라는 end-to-end 시험이 없다.**
+   이 시험이 없는 동안 안전한 표현은 *"OnAIR와 cFS에 각각 IREE 실행 경로를 구현했다"*이고,
+   *"동일한 OnAIR AI 모델을 cFS에 배치했다"*는 근거를 넘어선다(`docs/EVIDENCE_v0.18_E23.md` §2).
+   할 일: (1) OnAIR·cFS의 모델·가중치·vmfb 통일(권장: 양쪽 다 baked-weight, 외부 weights를
+   유지해야 한다면 vmfb+weights+preprocessing을 하나의 artifact bundle manifest로 결속 —
+   현재 `weights.npz` 2,884,078 B가 계약 밖에 있다), (2) 동일 입력 벡터·전처리,
+   (3) Python reference / OnAIR-IREE / native C / cFS x86-64 / cFS AArch64 출력 비교,
+   (4) **절대·상대 오차 tolerance와 pass 기준을 사전에 정의**, (5) E23의 결정적 A5b 생성기
+   (`harness/corrupt_vmfb.py`)로 AArch64 게스트 raw log 재생성.
+   착수 전제: `scripts/20_setup_onair.sh`(OnAIR 설치) + x86-64 IREE C 런타임 재구축.
+
+**R-2. 계약 경계의 유용성과 외적 타당성 (검토 C1+C4 / E26)** — "수치가 맞는가"가 아니라
+   **"이 부분 계약이 실제 cFS 배치 판단에 얼마나 유용한가"**에 답한다. 지금까지의 결과는
+   전자만 말한다. 할 일: (1) 모델별로 계약 영역 / IREE runtime / wrapper / cFS·OSAL 메모리를
+   **분리 측정**, (2) 계약값과 실제 HAL peak의 soundness·tightness를 모델별로 비교
+   (conv2d native 1,352 vs cFS 3,528처럼 tightness가 구성마다 다른 사례가 이미 있다 —
+   원인 규명이 여기 포함된다), (3) 제외된 runtime·wrapper 비용을 고정 오버헤드 또는 별도
+   bucket으로 다룰 수 있는지, (4) 실제 임무형 경량 모델 1~2개 추가, (5) **다른 IREE 버전**에서
+   계약 생성 성공·명시적 거부·수치 변화 측정(E19가 하드 실패 강제 지점은 만들었으나 발동은
+   시뮬레이션으로만 확인했다), (6) x86-64/AArch64에서 ISA 독립 영역과 종속 영역 구분.
+   여기에 **동일 경계의 대안 비교(구 우선순위 4, TFLite Micro)**를 합친다 — 별도 축이 아니라
+   "왜 MLIR/IREE 경로여야 하는가"에 답하는 같은 질문이다. TFLM 전제 확인과 빌드 시도 이력은
+   아래 "참고 — TFLM 착수 이력"에 그대로 보존한다.
+
+**R-3. MLIR 접근의 고유 기여 (검토 C3 / E27)** — 현 구현은 **정규 MLIR pass가 아니라**
+   `--mlir-print-ir-after` 덤프를 다시 읽는 post-processing verifier다(F4·N6/S5로 세 번 지적됨;
+   `docs/EVIDENCE_v0.13_E18.md` §7, `docs/EVIDENCE_v0.18_E23.md` §3). 검토가 제시한 선택지:
+   - **최소안**: 현 post-processing verifier의 고유 장점(기존 도구 비침습성, 감사 가능성, cFS
+     통합 방법)을 runtime-only / C / LLVM-IR 접근과의 **비교 실험**으로 입증
+   - **강화안**: PassManager에 등록되어 완전한 in-memory module 위에서 실행되며 계약을 컴파일러
+     산출물로 직접 emit하는 **진짜 pass**로 발전(= 이 항목의 원래 이름이 가리키던 것, 여전히 미착수)
+   평가지표: 추출 완전성, compiler-version 취약성, 수동 dump 의존성, 계약 생성 실패율, 감사 가능성.
+   **중요**: 현 구현을 pass라고 부르는 것이 목표가 아니라, **왜 MLIR 수준의 정보가 C/LLVM IR
+   또는 runtime 계측보다 계약 생성에 유리한지**를 보이는 것이 목표다.
+   착수 전 조사(v0.12, 실험 아님, 유지): `iree.compiler.ir` 바인딩은 실제 사용 가능하나
+   `--mlir-print-ir-after=iree-stream-layout-slices`가 만드는 layout IR은 **함수별로 조각나
+   있다**(entry 함수 청크가 다른 청크의 `util.initializer`가 정의하는 전역을 참조하는데 그 전역의
+   **선언 자체**는 어느 청크에도 없다 — 선언은 이 패스가 바꾸지 않아 재출력되지 않음).
+   `ir.Module.parse()`로 entry 청크만 단독 파싱하면 항상 "undefined global" 검증 오류다
+   (`--mlir-disable-threading`을 더해도 청크 수·구조는 동일 — 그건 프린트 *순서*의 결정성
+   문제였지 조각남의 원인이 아니었다). E18이 `util.global.load`/`store` 선언 합성 전처리로 우회했다.
+   **주의**: 재컴파일해서 얻은 IR로 검증하면 one-invocation 규칙(작업 규율 7)을 위반한다.
+
+### 그 다음 — 범위·환경 제약이 있는 항목
+
+**R-4. 임무 유사 workload + 다중 AI 앱 동시 admission** — 다중 앱은 전역 예산의 예약·해제·경합
+   설계가 새로 필요하다(현재는 전역 예약 없음). 외부 검토 F11(E23에서 not-a-defect로 판정)이
+   지적한 "온보드 컴퓨터 전체 수용성" 한계와 같은 항목이며, 계약 JSON의 `resources.scope`/
+   `bound_assumptions`와 admission JSON의 `"scope":"per_app_local_budget"`이 이 한계를 매 판정마다
+   명시하고 있다. F11이 짚은 요소 중 **allocator fragmentation**은 이 저장소 어디에서도 다뤄진 적이
+   없다 — 설계 시 나머지 5개(IREE runtime context, OSAL/cFS 메모리, 다른 앱, 동시 실행, task stack)에
+   더해 반영할 것. 검토 §5.3은 이 항목 전체를 **명시적 범위 밖(후속 연구)**으로 두는 것도
+   타당하다고 본다 — R-1~R-3보다 먼저 손대지 말 것.
+
+**R-5. 시간 축 계약** — `platform_check.py`가 PASS를 반환하는 전용 하드웨어(코어 격리,
+   SCHED_FIFO)가 있어야 착수 가능. 이 컨테이너에서는 원리적으로 불가능하다. 검토 §8도 같은
+   결론이다: QEMU는 기능 논리(바이너리 생성·cFS 통합·게이트 동작·손상 거부·정리/재시작)에는
+   충분하고, latency·jitter·WCET·RSS/allocator/cache 거동을 주장하려면 실물이 필요하다.
+   **다만 비싼 우주급 보드가 아니라 저가 AArch64 SBC로 충분하며, 하드웨어보다 R-1·R-2가 먼저다.**
+
+**R-6. RTEMS 단계(제안서 §17)** — 착수 가능하나 우선순위 낮음.
+
+### 완료된 구현 hardening (이력 — 다시 주가설로 세우지 말 것)
+
+- **H-1. fail-closed 계약 verifier** — 완료(v0.10/E15).
+- **H-2. C 게이트 보강 + cFS 음성·생명주기 시험** — 완료(v0.11/E16 x86-64 + v0.12/E17 AArch64 게스트).
+  A5b(구조 손상, 3레벨 전부 실행), mlp16k·multibranch A2 경계값, 재시작 2회+DELETE(정상 종료
+  cleanup 포함), 스택 실거부·blob 크기 선검사의 AArch64 교차 확인. 잔여(우선순위 낮음):
+  multibranch cFS 레벨 A2, dynamic 모델 게스트 재현(`docs/EVIDENCE_v0.12_E17.md` §6).
+- **H-3. MLIR API 기반 구조적 post-processing verifier** — 1단계 완료(v0.13/E18: `harness/mlir_alloc_walk.py`),
+  2단계 완료(v0.14/E19: `make_contract.py`에 **필수 크로스체크**로 결선, 대체 아님),
+  적대적 리뷰·과잉 거부 결함 2건 수정(v0.15/E20, D16·D17).
+  **이것은 R-3이 말하는 "정규 pass"가 아니다** — 이름을 혼동하지 말 것.
+- **H-4. 외부 검토 4회분의 fail-open/과잉거부 결함** — v0.16/E21(F1·F2·F3·F5·F6·F7, D18–D23),
+  v0.17/E22(F9 재현성, D24), v0.18/E23(F4·F8·F10·F11 + CI가 잡은 D25, D26·D27),
+  v0.19/E24(N1–N6, D28–D34), v0.20/E24b(R1–R5, D35–D40). `contract_negative_tests.py` 170/170.
+  **이 축은 여기서 닫는다** — 새 결함이 실제로 재현될 때만 다시 연다.
+
+### 논문 주장 가드레일 (검토 §9 — 그대로 채택)
+
+**지금 근거가 있는 주장**
+- IREE 컴파일 중간표현과 vmfb/ELF 산출물을 결속해 AI 모델의 **프로그램 할당 메모리 일부**에 대한
+  정적 계약을 생성하고, 이를 cFS 앱 시작 전 admission 및 artifact identity 검사에 연결하는
+  **프로토타입을 구현했다.**
+- x86-64와 AArch64/QEMU에서 정상·경계·손상·동적형상 시나리오로 **기능적 거부 동작과 계약 생성의
+  재현성**을 평가했다.
+
+**아직 하면 안 되는 주장**
+- 온보드 컴퓨터 **전체** 메모리 수용성을 보장한다 → R-4
+- **모든** 계약 불변식을 검증한다 → 검증한 것은 재현된 결함 집합이다
+- **정규 MLIR compiler pass**를 구현했다 → R-3(미착수)
+- 실시간 성능 또는 WCET를 보장한다 → R-5
+- OnAIR와 cFS가 **동일한 AI 모델을 의미적으로 동등하게** 실행한다 → R-1
+- **실제 비행 하드웨어**에서 검증됐다 → QEMU 게스트다
+
+중심 주장 문장은 `docs/EVIDENCE_v0.9_E14_stage1.md` §11.8의 정오표 반영 개정판을 그대로 쓴다
+(이 파일 맨 위에 인용됨) — 재편은 **다음에 무엇을 할지**의 순서를 바꾼 것이지 기존 판정을
+바꾼 것이 아니다.
+
+### 참고 — TFLM 착수 이력 (R-2에 흡수, 실험 아님)
+
+**전제 확인(1차 문서 대조, TFLM 빌드/측정 없음)**:
+[`micro_interpreter.h`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/micro_interpreter.h)의
+`arena_used_bytes()` 주석 원문 — *"Returns the actual used arena in bytes. This method gives the
+optimal arena size. It's only available after `AllocateTensors` has been called."* 즉
+**`Invoke()` 없이 `AllocateTensors()`만으로 유효한 값**이라는 점에서 우리 `bounded_bytes`
+(post-layout 슬랩 크기, 추론 미실행)와 **같은 부류**다("TFLM은 런타임 계측만 준다"는 첫 확인은
+부정확했다 — 정정). 다만
+[`docs/memory_management.md`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/docs/memory_management.md)는
+이 값을 **"For debugging only"**로만 표기하고, 우리가 `bounded_bytes`에 대해 확보한 종류의
+건전성 근거(60/60 실측 일치, 경계값 시험)를 TFLM 문서는 제시하지 않는다 — "모든 유효 입력에 대한
+상한임을 증명한다"는 주장은 TFLM 공식 문서 어디에도 없다. **비교의 전제는 참이지만 그 수치의
+건전성은 TFLM 쪽에서 직접 확인해야 하는 새로운 질문이다**(우리 `bounded_bytes`도 D2·D3을 거쳐
+검증됐음을 상기 — 같은 함정을 TFLM 비교에도 적용할 것).
+
+**빌드 착수 시도(host 빌드 성공 못 함)**: TFLM은 Makefile 빌드를 더 이상 제공하지 않고
+**Bazel(bzlmod) 전용**이다(예제도 별도 저장소로 이관). `arena_used_bytes()`를 직접 assert하는
+`micro_interpreter_test.cc`를 타깃으로 시도했으나, 이 세션의 GitHub 접근 브로커가
+`git clone/fetch`(smart-HTTP)는 허용하면서 Bazel의 `http_archive` tarball 다운로드
+(`codeload.github.com`, `bcr.bazel.build`)는 **일괄 403**으로 막았다. 우회는 가능함을 확인했다
+(의존성마다 `git clone` + 수동 `BUILD.bazel`/`REPO.bazel` + `--override_repository`로 4단계 진행:
+`bats-core`·`flatbuffers`·`kissfft` 통과, `grpc`에서 멈춤 — `testing` 패키지의 pip 요구사항 로딩
+때문에 끌려온 대형 의존 트리). **원리적 불가능이 아니라 의존 트리 깊이를 사전에 알 수 없는
+노동집약적 우회 작업**이다. 인수인계 경로: `/root/tflite-micro-work/tflite-micro`(클론),
+`/root/tflite-micro-work/bin/{bazel-real,bazelisk}`(bazel 8.7.0),
+`/root/tflite-micro-work/bazel_overrides.sh`, `/root/tflite-micro-work/{bats-local,flatbuffers-src,kissfft-src}`.
+다음 작업은 `grpc` 오버라이드를 같은 패턴으로 계속하는 것.
 
 **환경 참고**: 이 컨테이너는 세션마다 새로 시작되며 `~/onair-mlir-bench`(cFS 빌드, IREE C 런타임,
-AArch64 게스트 이미지)가 비어 있을 수 있다. 항목 1은 `iree-compile`(동일 커밋 필요)과
+AArch64 게스트 이미지)가 비어 있을 수 있다. H-1은 `iree-compile`(동일 커밋 필요)과
 `results/e14_aarch64_qemu/`의 보관 산출물만으로 재구축 없이 완료했다(`harness/contract_negative_tests.py`
-로 재검증 가능). 항목 2는 x86-64(`scripts/10`+`40`+`50`, v0.11)와 AArch64 게스트
+로 재검증 가능). H-2는 x86-64(`scripts/10`+`40`+`50`, v0.11)와 AArch64 게스트
 (`scripts/60`+`61`+`70`+`71`+`51`, v0.12) 둘 다 이 세션들에서 재구축해 완료했다 — AArch64 게스트
 부팅은 이번엔 ~170초로 정상 완료됐고 크래시가 재발하지 않았지만(§9 한계 유지, 안정성을 일반화하지
 않음), 표본은 여전히 작다. 게스트 아티팩트(`~/onair-mlir-bench/ext/cfs-aarch64-exe/`,
@@ -402,7 +476,10 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.19_E24.md       ★ 최신. 외부 검토 v0.18-후속 N1-N6·S5 — fail-closed 불변식 4건
+  EVIDENCE_v0.20_E24b.md      ★ 최신. 외부 검토 v0.19-재정리본 R1-R5 — 음수 스택(claim
+                               blocker로 상향)·자기모순 bounded·shape 충돌·subset-sum tri-state·
+                               override trust(D35-D40). 리뷰 처방 1건은 실측 과잉거부로 미채택. 170/170
+  EVIDENCE_v0.19_E24.md        외부 검토 v0.18-후속 N1-N6·S5 — fail-closed 불변식 4건
                                (D28-D30), E23이 출하한 과잉거부 회귀(D31), 하네스 거짓경보(D32).
                                리뷰 제안 3건은 실측 과잉거부로 범위 축소. 142/142
   EVIDENCE_v0.18_E23.md        외부 검토 잔여 4건(F4/F8/F10/F11) + CI가 잡은 신규
@@ -432,15 +509,20 @@ harness/                    실험 스크립트
                                fail-closed: layout IR↔dump-dir 결합·ABI/triple/ELF 불일치 hard fail, E15;
                                구조적 추출기 필수 크로스체크 E19 — 불일치/파싱실패 hard fail, 미설치는 skip;
                                비교 기준 p/const_b로 수정 E20, D16·D17; 빈 dump-dir·ABI 반사 부재·
-                               구조적 검증기 미설치도 기본 hard fail E21, D18·D19·D20)
+                               구조적 검증기 미설치도 기본 hard fail E21, D18·D19·D20;
+                               ELF 분석의 음수 스택 거부·truthiness 승격 제거 E24b D35, subset_sum
+                               tri-state E24b D38, waive()로 적용된 override 기록 E24b D39)
   elf_stack_frame.py          ★ IREE embedded-ELF 정적 분석 (x86-64/AArch64 공통 정의, EVIDENCE_v0.9 §5 근거)
   gen_contract_header.py      계약 JSON → C 헤더 (contract_gen.h; fail-closed 검증 E15; 스택 불신뢰
                                분류 거부 E21 D22, CONTRACT_DTYPES_ALL_F32 신설 E21 D23;
                                스택 신뢰 신호 '부재'도 UNKNOWN E24 D29, dtype을 스키마 필수
-                               단수형에서도 읽어 공허참 차단 E24 D30)
+                               단수형에서도 읽어 공허참 차단 E24 D30; 음수 스택 거부 D35,
+                               bounded==per_call+const 강제 D36, validity↔interface shape 대조 D37,
+                               override 계약 기본 거부 + CONTRACT_PROVENANCE_VERIFIED E24b D39)
   contract_negative_tests.py  ★ 계약 도구 음성·단위·회귀·구조적 추출기 일치·크로스체크 배선·과잉거부·
-                               fail-open·손상방식·OnAIR 바인딩·불변식·워크플로우 YAML 회귀 시험, CI 실측 142/142+1 SKIP
-                               (E15+E18+E19+E20+E21+E23+E24); 모듈만 부재 95/95+3 SKIP, 도구·모듈 모두
+                               fail-open·손상방식·OnAIR 바인딩·불변식·워크플로우 YAML·override 기록
+                               회귀 시험, 이 컨테이너 실측 170/170(E15+E18+E19+E20+E21+E23+E24+E24b);
+                               v0.19 기준 CI 실측 142/142+1 SKIP; 모듈만 부재 95/95+3 SKIP, 도구·모듈 모두
                                부재(without-iree)와 아무것도 설치하지 않은 진짜 무의존성
                                둘 다 58/58+9 SKIP(CI 실측), 크래시 없음(E22+E23 D24·D25, E24 N6·D33)
   corrupt_vmfb.py             ★ E23: A5a(flip)·A5b(flatbuffer_root_uoffset) 손상 방식 실제 구현 —
