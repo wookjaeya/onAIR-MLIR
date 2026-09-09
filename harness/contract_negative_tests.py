@@ -2400,6 +2400,52 @@ EXT_B2_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utilit
                           "x86_64", "ext_b2_resnet")
 
 
+EXT_B3_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utility",
+                          "x86_64", "ext_b3_deepae")
+
+
+def ext_b3_deepae_cases():
+    """E26f: the constant-dominated end of the E26-ext portfolio, pinned.
+
+    B3 exists in the portfolio because its constants:per_call ratio (171.3 : 1) is the
+    opposite extreme from B2 ResNet's (1.00 : 1). If the branch hypothesis or the budget
+    boundary held only for balanced models, this is the model that would show it."""
+    results = []
+    summ_path = os.path.join(EXT_B3_DIR, "summary.json")
+    if not os.path.exists(summ_path):
+        results.append(Result("ext-b3-deepae: fixture present", False, "missing %s" % EXT_B3_DIR))
+        return results
+    summ = load(summ_path)
+    ctr = summ["contract"]
+    results.append(Result("ext-b3-deepae: bounded == per_call + constants",
+                          ctr["bounded_bytes"] == ctr["static_per_call_bytes"]
+                          + ctr["module_resident_constant_bytes"],
+                          "%s = %s + %s" % (ctr["bounded_bytes"], ctr["static_per_call_bytes"],
+                                            ctr["module_resident_constant_bytes"])))
+    results.append(Result("ext-b3-deepae: this model really is constant-dominated (>100:1)",
+                          ctr["constants_to_per_call_ratio"] > 100,
+                          "ratio=%s" % ctr["constants_to_per_call_ratio"]))
+    results.append(Result("ext-b3-deepae: every measured cell is within the bound (Q1)",
+                          summ["q1_peak_within_bounded_all"] is True,
+                          "peaks=%s" % [c.get("hal_device_bytes_peak") for c in summ["cells"]]))
+    results.append(Result("ext-b3-deepae: branch hypothesis not refuted (Q2)",
+                          summ["q2_hypothesis_refuted"] == [],
+                          "refuted=%s" % summ["q2_hypothesis_refuted"]))
+    results.append(Result("ext-b3-deepae: the SAME vmfb takes both branches in different deployments",
+                          sorted(summ["q2_branches"]) == ["allocated", "mapped"],
+                          "branches=%s" % summ["q2_branches"]))
+    # the headline: the widest deployment spread this repository has measured
+    lo, hi = summ["q2_tightness_range"]
+    results.append(Result("ext-b3-deepae: tightness spread exceeds E26-core's 45.50x maximum",
+                          lo == 1.0 and hi > 45.5, "range=%s..%s" % (lo, hi)))
+    results.append(Result("ext-b3-deepae: DENY at bound-1, ADMIT at bound and above (Q3)",
+                          summ["q3_deny_at_bound_minus_1"] is True
+                          and summ["q3_admit_at_bound_and_above"] is True,
+                          "deny=%s admit=%s" % (summ["q3_deny_at_bound_minus_1"],
+                                                summ["q3_admit_at_bound_and_above"])))
+    return results
+
+
 def ext_b2_resnet_cases():
     """E26e: the E26-ext measurement on a real MLPerf Tiny CNN, pinned.
 
@@ -2792,6 +2838,7 @@ def main():
         all_results += multiout_subview_cases(tmp)
         all_results += a5b_canonical_guest_cases(tmp)
         all_results += ext_b2_resnet_cases()
+        all_results += ext_b3_deepae_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

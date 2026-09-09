@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.27**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.28**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -411,6 +411,19 @@ v0.25의 판정은 그대로다.** 부수 실측 2건: (1) **`iree-compile`은 �
 **남은 ext**: B3 Deep AutoEncoder fixture, 이 모델의 cFS 셀.
 
 
+**v0.28에서 완료된 것 (E26f, `docs/EVIDENCE_v0.28_E26f.md`)**: **E26-ext 완결** — 계획서가 채택한
+마지막 ext 모델(MLPerf Tiny **Deep AutoEncoder**, 상수:per-call **171.3 : 1**)을 실행했다.
+Q1·Q2·Q3 전부 성립, `bounded` 1,069,632 = `per_call` 6,208 + `constants` 1,063,424, 오버라이드 0개
+— 계획서 §1.1이 조사에서 인용해 둔 값과 **정확히 일치**(독립 재현). 반입은 이 세션에서 직접 수행
+(`tflite2onnx` → `graph.name=infer` → `iree-import-onnx --opset-version 17` → `iree-opt` torch→linalg
+→ **한 번의 `iree-compile`**, 잔여 torch op 0). **배포 의존성 최대 사례**: 같은 vmfb가 pip
+`iree.runtime` **6,208**(`mapped`, tightness **172.30×**) vs 소스 빌드 C 런타임 **1,069,632**
+(`allocated`, 1.00×) — E26-core 상한 45.50×를 넓혔다. **B2(1:1)와 B3(171:1)는 할당 구조가 정반대인데
+결론이 같다** — tightness는 상수 비중을 따라가고, 분기 가설은 어느 쪽도 반증하지 않으며, 예산 경계
+동작은 동일하다. ext는 판정을 산출하지 않으므로 **v0.25의 판정은 그대로다**. 이 컨테이너 **267/267**.
+**남은 것**: 두 ext 모델의 cFS 셀(미실행), 그리고 **R-3(E27)**.
+
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -678,7 +691,9 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.27_E26e.md      ★ 최신. E26-ext — 실물 MLPerf Tiny ResNet에서 Q1·Q2·Q3 재현,
+  EVIDENCE_v0.28_E26f.md      ★ 최신. E26-ext 완결 — 상수 지배형(171:1) 실물 모델에서
+                               Q1·Q2·Q3 성립, 배포 간 tightness 172.30x (최대 실측)
+  EVIDENCE_v0.27_E26e.md        E26-ext — 실물 MLPerf Tiny ResNet에서 Q1·Q2·Q3 재현,
                                같은 vmfb가 배포에 따라 두 분기(2.00x vs 1.00x), 컴파일 비재현성, D50
   EVIDENCE_v0.26_E26c.md        E26c/D49 — 다중 출력 과잉 거부 수정(subview 봉쇄 검사),
                                revert-confirm-fail 2단계(7건/4건), 실물 fixture, 244/244

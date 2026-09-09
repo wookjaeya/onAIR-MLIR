@@ -1,0 +1,2 @@
+{"stage":"admission","verdict":"NOT_ADMITTED","model":"b3_deepae","target":"x86_64-unknown-linux-gnu","bounded_bytes":1069632,"budget_bytes":1069631,"per_call":6208,"constants":1063424,"kernel_stack_bytes":32,"bound_known":true}
+{"stage":"exit","reason":"not admitted","cleanup_calls":0}
