@@ -214,27 +214,49 @@ def packed_constant_buffers(ir):
     return best
 
 
-SUBSET_SUM_MAX_SEGMENTS = 24
+# R4 (external review v0.19-reframe, E24b): the enumeration budget is now on the
+# TOTAL, not on the number of segments. The old `max_segments=24` truncation was
+# the reachable half of R4: a single honest `iree-compile` with the stock flag
+# --iree-stream-resource-max-allocation-size=1024 yields 31 data segments, and the
+# old code then silently dropped segments 25.. and reported "NOT matched" about a
+# total that DOES match -- a factually false assertion in a shipped contract,
+# copied onward by cross_target_compare.py. Measured cost of the bitset form:
+# 0.1 ms at that real 31-segment case. The cap below only bounds the bitset width.
+SUBSET_SUM_MAX_TOTAL = 1 << 28   # 256 MiB of module-resident constants
 
 
-def subset_sum_match(total, segs, max_segments=SUBSET_SUM_MAX_SEGMENTS):
-    """True if `total` equals the sum of some non-empty subset of `segs`.
+def subset_sum_match(total, segs, max_total=SUBSET_SUM_MAX_TOTAL):
+    """Tri-state (R4, E24b):
 
-    NOTE (N1, v0.19/E24): this returns a plain False for three different states --
-    "enumerated everything and nothing matches" (contradiction), "total <= 0, there
-    is nothing to confirm", and "more than max_segments segments, gave up". Callers
-    that REFUSE on False must separate them; the N1 gate below does so explicitly.
-    Making this function itself tri-state is the cleaner fix and is recorded as out
-    of scope in docs/EVIDENCE_v0.19_E24.md §7 (it changes the stored note text of
-    the two `dynamic` contracts, so it is a deliberate regeneration, not diff-0).
+      True  -- some non-empty subset of `segs` sums to `total`
+      False -- enumerated EXHAUSTIVELY and nothing sums to `total` (a contradiction)
+      None  -- unevaluable: nothing to confirm (`total <= 0`), no observation at all
+               (`segs` empty/None), or `total` exceeds the enumeration budget
+
+    This is the fix EVIDENCE_v0.19 §7 recorded as out of scope: previously a plain
+    `False` meant all three, so the N1 gate had to re-separate them at the call
+    site with carve-outs. `False` now means only "contradicted", which is what a
+    fail-closed gate should refuse on.
+
+    Exhaustive, not truncating: a bitset DP pruned to `total` (segments larger than
+    `total` cannot participate, so they are skipped rather than dropped by
+    position). Bit i of `reach` means "some subset sums to i".
     """
-    if total <= 0 or not segs:
-        return False
-    segs = list(segs)[:max_segments]
-    reach = {0}
+    if segs is None or not segs:
+        return None
+    if total is None or total <= 0:
+        return None
+    if total > max_total:
+        return None                      # budget exceeded -> unevaluable, never "contradicted"
+    mask = (1 << (total + 1)) - 1
+    reach = 1                            # bit 0: the empty subset
     for s in segs:
-        reach |= {r + s for r in reach}
-    return total in reach
+        if not isinstance(s, int) or s <= 0 or s > total:
+            continue                     # cannot participate in a subset summing to `total`
+        reach |= (reach << s) & mask
+        if (reach >> total) & 1:
+            return True                  # early exit
+    return bool((reach >> total) & 1)
 
 
 def iree_dump_module(vmfb):
@@ -597,25 +619,18 @@ def build_contract(a, extra_args):
     # .rodata [1, 6344] against an IR total of 2176 B still wrote a contract whose
     # header was byte-identical to the healthy one.
     #
-    # Three carve-outs, each measured against the archived corpus rather than
-    # argued -- subset_sum_match() returns a plain False for all three of
-    # "contradicted", "nothing to confirm" and "gave up", so the gate has to
-    # separate them at the call site (the same tri-state lesson as D25, one level
-    # down; making subset_sum_match itself tri-state is the structurally cleaner
-    # fix and is recorded as out of scope in EVIDENCE_v0.19 §7):
-    #   (1) const_b == 0  -- nothing to confirm. Both shipped `dynamic` contracts
-    #       are exactly this, so a blanket refusal makes the UNKNOWN_BOUND model
-    #       of the A8 negative scenario unbuildable (measured: 2 of 14 refused).
-    #   (2) len(data_segs) > 24 -- subset_sum_match caps enumeration and returns
-    #       False on "gave up". No archived model has more than 2 segments, so
-    #       this path is untested; treat it as unevaluated, not contradicted.
-    #   (3) the dense sum IS confirmed and const_b >= dense_sum -- constant-buffer
-    #       alignment padding (D17/E20), a sound over-approximation that E20 fixed
-    #       AS an over-rejection defect. Refusing it would re-open D17 (measured:
-    #       the E20 regression fixture fails without this carve-out).
-    _consts_truncated = data_segs is not None and len(data_segs) > SUBSET_SUM_MAX_SEGMENTS
+    # R4 (E24b) simplified this gate. subset_sum_match() is now genuinely
+    # tri-state, so `False` means ONLY "enumerated exhaustively and contradicted"
+    # -- the two carve-outs that used to re-separate the states at this call site
+    # ("nothing to confirm" for const_b == 0, and ">24 segments, gave up") are now
+    # answered by `None` inside the function itself, which the D25 branch above
+    # already treats as unevaluable. One carve-out remains and must stay:
+    #   the dense sum IS confirmed and const_b >= dense_sum -- constant-buffer
+    #   alignment padding (D17/E20), a sound over-approximation that E20 fixed AS
+    #   an over-rejection defect. Refusing it would re-open D17 (measured: the E20
+    #   regression fixture fails without this carve-out).
     _consts_pad_ok = bool(consts_confirmed_dense) and dense_sum > 0 and const_b >= dense_sum
-    if const_b > 0 and consts_confirmed is False and not _consts_truncated and not _consts_pad_ok:
+    if consts_confirmed is False and not _consts_pad_ok:
         msg = ("module_resident_constant_bytes %d B is CONTRADICTED by the independent artifact-side "
                "observation: no subset of the flatbuffer .rodata segments %s sums to it, and the dense "
                "constant sum %d B is not confirmed either (iree-dump-module)" % (const_b, data_segs, dense_sum))
@@ -814,7 +829,19 @@ def build_contract(a, extra_args):
         "constants_check_note": (
             # D25 (E23): three states, not two -- "not evaluated" must never be
             # printed as "NOT matched" (checked and contradicted).
-            rodata_unavailable if consts_confirmed is None else
+            # R4 (E24b): `None` now also covers "nothing to confirm" (const_b == 0)
+            # and "over the enumeration budget". The old text said
+            # "0 B NOT matched by artifact .rodata segments [7440]" for the two
+            # `dynamic` models -- a FALSE statement about a model that has no
+            # constants to match. Name each unevaluable state instead of writing
+            # a bare null.
+            (rodata_unavailable if rodata_unavailable else
+             "no module-resident constants to confirm (module_resident_constant_bytes = %r)" % (const_b,)
+             if not (isinstance(const_b, int) and const_b > 0) else
+             "module constant total %d B exceeds the subset-sum enumeration budget (%d B): not evaluated"
+             % (const_b, SUBSET_SUM_MAX_TOTAL) if const_b > SUBSET_SUM_MAX_TOTAL else
+             "artifact .rodata segments were not observed: not evaluated")
+            if consts_confirmed is None else
             "module constant total %d B equals a subset-sum of the flatbuffer .rodata segments %s (iree-dump-module)"
             % (const_b, data_segs) if consts_confirmed else
             "module constant total %d B NOT matched by artifact .rodata segments %s" % (const_b, data_segs)),

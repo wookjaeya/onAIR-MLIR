@@ -1332,6 +1332,42 @@ module {
 # contract<->artifact binding gate (plugins/compiled_learner/artifact_binding.py)
 # refuses exactly what native_learner.c / the cFS app refuse.
 # ----------------------------------------------------------------------------
+def subset_sum_tristate_cases():
+    """R4 (external review v0.19-reframe, E24b): subset_sum_match() used to return
+    a plain False for three different states, and truncated enumeration at 24
+    segments. The reachable half was not the skipped gate but the FALSE FIELD: a
+    single honest iree-compile with the stock flag
+    --iree-stream-resource-max-allocation-size=1024 yields 31 data segments, and
+    the old code then wrote `constants_independently_confirmed_in_artifact: false`
+    plus a note stating "NOT matched" about a total that DOES match -- a false
+    assertion in a shipped contract, copied onward by cross_target_compare.py.
+
+    Unit-level (stdlib only, no IREE needed), so this runs in every environment."""
+    sys.path.insert(0, HERE)
+    import make_contract as mc
+    f = mc.subset_sum_match
+    cases = [
+        ("exact single segment", (2176, [2176, 6344]), True),
+        ("subset of several", (2176, [1000, 1176, 99]), True),
+        ("contradicted (enumerated, no subset matches)", (2176, [1, 6344]), False),
+        ("nothing to confirm (total == 0)", (0, [7440]), None),
+        ("no observation (empty segs)", (2176, []), None),
+        ("no observation (segs is None)", (2176, None), None),
+        # the reachable case: >24 segments must be ENUMERATED, not truncated
+        ("31 segments, subset matches (was truncated to False)",
+         (2176, [2176] + [100003 + i for i in range(30)]), True),
+        ("31 segments, genuinely contradicted", (2176, [2177] + [100003 + i for i in range(30)]), False),
+        ("over the enumeration budget -> unevaluable, never contradicted",
+         (mc.SUBSET_SUM_MAX_TOTAL + 1, [1, 2]), None),
+    ]
+    results = []
+    for name, args, expect in cases:
+        got = f(*args)
+        results.append(Result("subset-sum tri-state: %s" % name, got is expect,
+                              "got %r expected %r" % (got, expect)))
+    return results
+
+
 def workflow_yaml_cases():
     """E24: every .github/workflows/*.yml must actually parse.
 
@@ -1554,6 +1590,7 @@ def main():
         all_results += structural_walker_checks(a.root)
         all_results += structural_hard_fail_cases(a.root)
         all_results += structural_bugfix_regression_cases(a.root, tmp)
+        all_results += subset_sum_tristate_cases()
         all_results += workflow_yaml_cases()
         all_results += default_plugin_fixture_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)

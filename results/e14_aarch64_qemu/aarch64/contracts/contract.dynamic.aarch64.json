@@ -115,9 +115,9 @@
     "artifact_rodata_data_segments": [
       7440
     ],
-    "constants_independently_confirmed_in_artifact": false,
-    "constants_dense_sum_confirmed_in_artifact": false,
-    "constants_check_note": "module constant total 0 B NOT matched by artifact .rodata segments [7440]",
+    "constants_independently_confirmed_in_artifact": null,
+    "constants_dense_sum_confirmed_in_artifact": null,
+    "constants_check_note": "no module-resident constants to confirm (module_resident_constant_bytes = 0)",
     "scope": "program-allocated buffers only; excludes IREE runtime context (VM, HAL device, module tables) and the task stack",
     "kernel_task_stack_bytes": 144,
     "kernel_task_stack_invocation_bytes": 144,
@@ -282,10 +282,23 @@
       "sha256": "7a6a9a90a0259ccfc2f01b5cff0c5567564630b51b7b4e0617bf257c5e14e36c"
     },
     "dump_elf_sha256_in_vmfb": true,
+    "layout_dispatch_names": [
+      "infer_dispatch_0",
+      "infer_dispatch_1"
+    ],
+    "layout_dispatches_in_dump": true,
     "elf_analysis": {
       "file": "dynamic.elf_analysis.json",
       "sha256": "2fd696fc59bc8c0da4c06c04f04d6a4e021aa44dcb46f5b5b3f8bc3a7e1282ec",
       "elf_sha256_in_vmfb": true
+    },
+    "structural_walker": {
+      "available": true,
+      "parse_error": null,
+      "agrees_with_regex_parser": true,
+      "diffs": [],
+      "dispatches": 0,
+      "note": "structural (iree.compiler.ir) extractor agrees with the regex parser"
     },
     "notes": [],
     "entry_prints_in_dump": 2,
