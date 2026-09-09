@@ -283,3 +283,34 @@ PYTHONPATH=<jsonschema 스텁 디렉터리> python3 harness/contract_negative_te
 env -i PATH=<pip 없는 venv>/bin:/usr/bin:/bin <venv>/bin/python3 \
   harness/contract_negative_tests.py                           # 58/58 + 9 SKIP (CI와 동일)
 ```
+
+## 10. 정오표 (E24b, v0.20에서 추가 — 철회 아님, 범위 정정)
+
+### 10.1 §2.2의 "gen_contract_header에 두 번째 게이트는 넣지 않았다" → **좁힌 범위로 채택**
+
+당시 판단의 근거는 실측이었고 그 실측 자체는 여전히 참이다: `is not True` 게이트를
+**무조건** 걸면 provenance가 없는 정상 예시 계약 3개(`contracts/*.json`)와 스크립트가
+인라인으로 만드는 계약을 전부 거부한다. 정정할 것은 결론이 아니라 **범위 설정**이다 —
+E24b는 게이트를 `bound_known`이고 **provenance 블록이 실제로 있는** 계약에만 걸어
+그 세 계약을 건드리지 않는다(`docs/EVIDENCE_v0.20_E24b.md` §6.2).
+
+채택 이유도 §2.2가 쓴 것과 달라졌다. §2.2는 "두 번째 게이트의 실효는 운영자가 의도를
+한 번 더 반복하게 만드는 것뿐"이라고 봤는데, E24b/R5가 그 전제를 무너뜨렸다: 적용된
+override가 **계약 어디에도 기록되지 않았으므로** 배치 시점에는 그 의도가 있었는지조차
+알 수 없었다(D39). `provenance.overrides_applied`/`verification_grade`가 생긴 뒤에야
+헤더 게이트가 "의도의 반복"이 아니라 **새로운 정보에 대한 판정**이 된다.
+
+### 10.2 §2.2가 근거로 든 두 스모크 경로는 그때 이미 깨져 있었다
+
+`native/build.sh`와 `scripts/62_compile_and_check_aarch64.sh`가 새 게이트 때문에 깨질
+것이라고 서술했지만, E24b가 확인한 바로는 **두 경로 모두 이 문장을 쓰던 시점에 이미
+rc=1로 실패하고 있었다**(D40) — 두 원인은 E15부터의 기존 문제였고, 하나는 E24 자신의 N3
+게이트가 만든 것이다. 즉 §2.2는 "깨지지 않은 것을 지킨다"고 썼지만 실제로는 이미 깨진
+것을 근거로 삼았다. E24b가 셋 다 고치고 회귀 시험(`documented_smoke_path_cases`)을
+신설했다.
+
+### 10.3 §7 "범위 밖"의 `subset_sum_match` tri-state → **E24b에서 완료**
+
+§7이 "저장된 계약 2개의 재생성을 동반해야 함"이라며 범위 밖으로 둔 항목을 E24b가 처리했다.
+재생성 비용은 예고한 그대로였다 — `dynamic` 계약 2개의 3개 필드(총 6개 스칼라)만 바뀌고
+나머지 12개 계약과 14개 헤더의 수치는 변하지 않았다(`docs/EVIDENCE_v0.20_E24b.md` §5).
