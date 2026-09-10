@@ -78,6 +78,11 @@ DeepAE를 x86-64 소스빌드 런타임에서 재면 copy 분기라 1,069,632다
 보관 JSON 판독·소스 텍스트 검사·게스트 raw log 판독이라 툴체인 없이 실제로 돈다.
 이후 §5b의 peak 가드 5건이 더해져 **컨테이너 544/544**가 됐고, 그 커밋의 CI는 아래에 따로 적는다.
 
+**CI 실측**(커밋 `d1beb44`, run 161, 3레그 success): `full` **543/543 + 1 SKIP**(PyYAML) ·
+`without-iree` **403/403 + 26 SKIP** · `stdlib-only` **403/403 + 26 SKIP** — 컨테이너 544/544와 `full`의
+차이 1건은 PyYAML 유무다(D34). 축소 레그가 398→403으로 **정확히 +5**라 §5b의 peak 가드 5건이
+**전부 나타난다**(신규 SKIP 0).
+
 ## [v0.40] — E36b: ResNet·DeepAE의 AArch64 확장 (단계 4의 잔여 셀) — Q3 전부 PASS, stage_4_complete: true
 
 **판정.** 사전 고정 기준(`docs/plans/E36_aarch64_cfs_completion.md` **§3.3**, 측정 전 커밋 `f3ac80c`)대로
