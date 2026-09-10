@@ -20,7 +20,7 @@ onnx checker·shape inference·`iree-compile`·런타임이 전부 통과하는�
 나온다. 합성 11건 회귀: CONVERTED 5건은 IREE 출력이 TFLite 의미와 **비트 동일**(max_abs_diff 0.0), REFUSED
 6건, 크래시 0, 비행 모델 ONNX 바이트 불변. 문서 정밀화(검증 노트): 인터페이스 좁힘이 레이아웃 외에 **배치
 고정**(shape_signature −1 → 1)도 있음을 기록, "NHWC" 라벨의 출처(CONV_2D 규약)와 C 실행기 서술을 정정.
-이 컨테이너 **353/353 → 371/371**. **교훈**: *형상·원소 수·dtype이 보존된다는 것은 데이터 순서가 보존된다는
+이 컨테이너 **353/353 → 371/371**. **CI 실측**(커밋 `39a4692`, run 112, 3레그 success): `full` **370/370 + 1 SKIP**(PyYAML) · `without-iree` **240/240 + 21 SKIP** · `stdlib-only` **240/240 + 21 SKIP** — 컨테이너 371/371과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 20→21은 e30b의 합성 사례 시험이 변환기 패키지 없이는 정직하게 SKIP하기 때문이다. **교훈**: *형상·원소 수·dtype이 보존된다는 것은 데이터 순서가 보존된다는
 뜻이 아니다* — 구조 조건은 레이아웃 변환을 통과한 뒤에도 성립해야 한다.
 
 ## [v0.33] — E30: OPS-SAT SmartCam 반입 타당성 (P1) — TRANSFORM_REQUIRED → GO

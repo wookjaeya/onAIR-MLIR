@@ -536,7 +536,7 @@ flatbuffer로 재현했다 — C1–C4를 통과하는 TFLite-유효 부분 sque
 방출돼 **데이터가 조용히 전치**(reshape 모드 max_abs_diff 5.46/1.89/2.61, 컴파일러·런타임 무경고). 비행 모델은
 남는 축 {N,C}라 무관. 수정 **C5**(남는 축의 순서가 레이아웃 순열 아래에서 보존) + 옵션 부재 크래시·중복 축·항등
 사례. 합성 11건 회귀(`harness/gen_tflite_squeeze_cases.py` + `e30b_squeeze_probe.py`; CONVERTED 5건은 IREE 출력을
-TFLite 의미와 비트 대조, max_abs_diff 0.0), revert 시 3건 CONVERTED로 전환. **353/353 → 371/371**. 교훈: *형상·원소
+TFLite 의미와 비트 대조, max_abs_diff 0.0), revert 시 3건 CONVERTED로 전환. **353/353 → 371/371**. **CI 실측**(커밋 `39a4692`, run 112, 3레그 success): `full` **370/370 + 1 SKIP**(PyYAML) · `without-iree` **240/240 + 21 SKIP** · `stdlib-only` **240/240 + 21 SKIP** — 컨테이너 371/371과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 20→21은 e30b의 합성 사례 시험이 변환기 패키지 없이는 정직하게 SKIP하기 때문이다. 교훈: *형상·원소
 수·dtype 보존 ≠ 데이터 순서 보존*. 인터페이스 좁힘이 둘(레이아웃 + 배치 고정)임도 기록.
 **다음은 P2**(SmartCam TFLite↔IREE 의미 동치 + x86-64 구현 검증 — 전치 입력 필수, 배치 1) → P4 → P3.
 
