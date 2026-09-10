@@ -2822,6 +2822,68 @@ def e37_guest_rerun_cases():
     return results
 
 
+def e37_peak_vs_budget_cases():
+    """E37 §5b: "the peak fit in the budget" and "the bound was tight" are different sentences.
+
+    The completeness critic caught the claim sentence flattening these.  Measured: on the
+    unconditional cells the observed HAL peak is 51.5% / 50.0% / 0.6% of the budget it was
+    approved on; exactly ONE cell reaches 100.0%, and it is the conditional one.  The slack is
+    not evidence of tightness -- it is E29b making the app 64-byte-align its own blob so the map
+    arm is taken; the same DeepAE measured on the x86-64 source-built runtime takes the copy arm
+    and reports 1,069,632 (E26f).
+
+    So this pins two things at once: every admitted cell really is within its approved budget
+    (the claim), and the ratios really do vary (the qualifier).  If a later change made every
+    cell sit at 100%, the second check fails and someone has to look -- because that would mean
+    the arm changed, not that the contract got tighter."""
+    results = []
+    cells = []
+    e36 = os.path.join(E36_DIR, "summary.json")
+    if os.path.exists(e36):
+        for name, c in load(e36)["cells"].items():
+            if c.get("hal_peak") is not None and c.get("admitted_budget_bytes"):
+                cells.append(("smartcam/" + name, c["hal_peak"], c["admitted_budget_bytes"],
+                              c.get("admission_mode")))
+    e36b = os.path.join(E36B_DIR, "summary.json")
+    if os.path.exists(e36b):
+        for m, blk in load(e36b)["models"].items():
+            c = blk.get("cfs_admit") or {}
+            if c.get("hal_peak") is not None and c.get("admitted_budget_bytes"):
+                cells.append((m + "/cfs_admit", c["hal_peak"], c["admitted_budget_bytes"],
+                              c.get("admission_mode")))
+    if not cells:
+        results.append(Result("e37/peak: admitted cells present", False, "no cells found"))
+        return results
+
+    over = ["%s %d>%d" % (n, p, b) for n, p, b, _ in cells if p > b]
+    results.append(Result("e37/peak: every admitted cell's observed peak is within the budget it "
+                          "was approved on (%d cells)" % len(cells), not over,
+                          "" if not over else str(over)))
+
+    ratios = {n: p / float(b) for n, p, b, _ in cells}
+    at_bound = [n for n, r in ratios.items() if abs(r - 1.0) < 1e-9]
+    _ok = len(at_bound) == 1 and "cond_positive" in at_bound[0]
+    results.append(Result("e37/peak: exactly one cell sits AT its budget and it is the "
+                          "conditional one -- the rest have slack, so 'within budget' must not "
+                          "be quoted as tightness", _ok,
+                          "" if _ok else "cells at bound: %s" % at_bound))
+
+    spread = max(ratios.values()) - min(ratios.values())
+    results.append(Result("e37/peak: the ratios really do vary (%.1f%%..%.1f%%) -- if they all "
+                          "collapsed to one value the try_map arm changed, not the contract"
+                          % (100 * min(ratios.values()), 100 * max(ratios.values())),
+                          spread > 0.5, "spread=%.3f" % spread))
+
+    for doc in ("docs/EVIDENCE_v0.41_E37.md", "CLAUDE.md"):
+        txt = open(os.path.join(os.path.dirname(HERE), doc), encoding="utf-8",
+                   errors="replace").read()
+        _ok = "tightness의" in txt and "승인 근거 예산 이하" in txt
+        results.append(Result("e37/peak: %s states the bound as 'within the approved budget' and "
+                              "says outright that this is not a tightness claim" % doc, _ok,
+                              "" if _ok else "the qualifier is missing"))
+    return results
+
+
 def e37_d60_extension_cases():
     """E37: the D60 erratum, extended to the places the first pass did not reach.
 
@@ -5405,6 +5467,7 @@ def main():
         all_results += e37_d60_extension_cases()
         all_results += e37_truncated_record_cases()
         all_results += e37_guest_rerun_cases()
+        all_results += e37_peak_vs_budget_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
