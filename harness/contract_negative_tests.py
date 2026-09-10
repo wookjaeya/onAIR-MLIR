@@ -2570,6 +2570,321 @@ def e36b_aarch64_models_cases():
     return results
 
 
+E37_DIR = os.path.join(os.path.dirname(HERE), "results", "evidence_linkage")
+
+
+def e37_evidence_linkage_cases():
+    """E37: the three-model evidence linkage table, and what it must never be allowed to become.
+
+    The table's whole value is that a reader can walk from a claim to the raw file and the
+    judging code.  Two ways that value can quietly evaporate, both of which this repository
+    has already been bitten by, are pinned here:
+
+      * D55 -- a document cites a raw log that is not in the repository.  Every path the table
+        names must exist AND be git-tracked, or the table is citing something a fresh clone
+        will not have.
+      * D29 -- a missing key read as a zero.  The first version of the generator resolved each
+        admission cell as ONE parent object, so E36b's DENY cells passing without `inferences`
+        looked like a filled cell.  Adversarial verification caught it.  The locators are now
+        per-sub-key, and this test pins that: if any item-4 locator loses its sub-key suffix,
+        the granularity has regressed to the version that could not see the gap.
+
+    A null is not automatically a gap, and that distinction is the third thing pinned here: on
+    a refused cell there IS no approved budget, and on a BUDGET_INVALID cell there is no
+    admission record at all -- those nulls are licensed by a POSITIVE signal in the same
+    record (the verdict, or budget_invalid_event), never by absence."""
+    results = []
+    root = os.path.dirname(HERE)
+    linkage = os.path.join(E37_DIR, "linkage.json")
+
+    if not os.path.exists(linkage):
+        results.append(Result("e37: linkage table present", False, "missing %s" % linkage))
+        return results
+
+    rc, out, err = run([sys.executable, os.path.join(HERE, "mk_evidence_linkage.py"), "--check"])
+    results.append(Result("e37: the linkage table regenerates from the raw data unchanged "
+                          "(no value in it was typed by hand)", rc == 0,
+                          "" if rc == 0 else (out + err).strip()[:300]))
+
+    data = load(linkage)
+    t = data["totals"]
+    _ok = t["cells"] == 21 and t["not_present"] == 0
+    results.append(Result("e37: all 21 cells (3 models x 7 items) resolve", _ok,
+                          "" if _ok else "not_present=%s %s" % (t["not_present"],
+                                                                data["cells_not_present"])))
+
+    # D55: every raw path the table cites must be in the repository AND tracked.
+    cited = set()
+    for m in data["models"].values():
+        for num, item in m["items"].items():
+            for src in item.get("sources", []):
+                cited.add(src["path"])
+            for e in item.get("entries", []):
+                for k in ("raw", "script"):
+                    if e.get(k):
+                        cited.add(e[k])
+    missing = [p for p in sorted(cited) if not os.path.exists(os.path.join(root, p))]
+    results.append(Result("e37: every path the table cites exists on disk", not missing,
+                          "" if not missing else "missing: %s" % missing[:4]))
+    untracked = []
+    for p in sorted(cited):
+        if os.path.exists(os.path.join(root, p)):
+            r = subprocess.run(["git", "-C", root, "ls-files", "--error-unmatch", p],
+                               capture_output=True, text=True)
+            if r.returncode != 0:
+                untracked.append(p)
+    results.append(Result("e37: and every one of them is git-tracked (D55: a table that cites "
+                          "an untracked file does not survive a fresh clone)", not untracked,
+                          "" if not untracked else "untracked: %s" % untracked[:4]))
+
+    # D29: a null that no positive signal licenses is a gap, not a value.
+    unlicensed = []
+    for name, m in data["models"].items():
+        for num, item in m["items"].items():
+            for src in item.get("sources", []):
+                if src["status"] == "null_value":
+                    unlicensed.append("%s/%s %s" % (name, num, src["locator"]))
+    results.append(Result("e37: no cell is filled with an unlicensed null (a null is only a "
+                          "value when a positive signal in the same record allows it)",
+                          not unlicensed, "" if not unlicensed else str(unlicensed[:4])))
+
+    # The granularity fix itself. Item 4 must be resolved per sub-key, never per parent object.
+    coarse = []
+    for name, m in data["models"].items():
+        for src in m["items"]["4"].get("sources", []):
+            leaf = src["locator"].rsplit(".", 1)[-1]
+            if leaf not in ("verdict", "budget_bytes", "budget_source", "inferences", "hal_peak",
+                            "admitted_budget_bytes", "peak_within_admitted_budget",
+                            "admission_mode"):
+                coarse.append("%s: %s" % (name, src["locator"]))
+    results.append(Result("e37: item 4 is resolved per sub-key, not per parent object -- the "
+                          "granularity that let E36b's missing `inferences` pass as filled",
+                          not coarse, "" if not coarse else str(coarse[:4])))
+
+    # E36b's DENY cells must actually carry the field whose absence started this.
+    b = os.path.join(E36B_DIR, "summary.json")
+    if os.path.exists(b):
+        bs = load(b)
+        gaps = [m for m in ("b2_resnet", "b3_deepae")
+                if "inferences" not in bs["models"][m]["cfs_deny_B_minus_1"]]
+        results.append(Result("e37: E36b's DENY cells record `inferences` explicitly (0), so a "
+                              "reader never has to infer 'no inference' from an absent key",
+                              not gaps, "" if not gaps else "still absent for %s" % gaps))
+        zero = [m for m in ("b2_resnet", "b3_deepae")
+                if bs["models"][m]["cfs_deny_B_minus_1"].get("inferences") != 0]
+        results.append(Result("e37: and the value derived from the guest log is 0", not zero,
+                              "" if not zero else str(zero)))
+
+    # Reproduction check (mandatory work C): the judging step re-run on the final code.
+    rep = os.path.join(E37_DIR, "reproduce_check.json")
+    if not os.path.exists(rep):
+        results.append(Result("e37: reproduce_check present", False, "missing %s" % rep))
+    else:
+        rp = load(rep)
+        _ok = rp.get("verdict") == "PASS" and rp["totals"]["differing"] == 0 \
+            and rp["totals"]["tool_error"] == 0
+        results.append(Result("e37: re-judging every archived cell with the FINAL code gives the "
+                              "stored verdict (%d cells)" % rp["totals"]["cells"], _ok,
+                              "" if _ok else json.dumps(rp["totals"])))
+        # The table must READ that result, not restate it.
+        by_cell = {c["cell"]: c.get("identical") for c in rp["cells"]}
+        wrong = []
+        for name, m in data["models"].items():
+            for e in m["items"]["7"].get("entries", []):
+                if e.get("rejudge_cell"):
+                    if e.get("rejudged_at_final_version") != by_cell.get(e["rejudge_cell"]):
+                        wrong.append("%s/%s" % (name, e["rejudge_cell"]))
+        results.append(Result("e37: the table's re-judge column is read from the check's own "
+                              "output, not asserted independently", not wrong,
+                              "" if not wrong else str(wrong[:4])))
+    return results
+
+
+def e37_truncated_record_cases():
+    """E37 / D68: a record the parser could not read is not a record that is not there.
+
+    The E36b summary generator this experiment wrote counted `run` records with
+    `except ValueError: continue`, so DeepAE -- whose run lines carry a 640-element output
+    array and are cut at 766 characters -- was recorded as `run_records: 0` while SEVEN such
+    records sat in the log.  The generator's own docstring said "absence is not zero".  This is
+    D51's shape again: "could not see it" written down as "looked and there was nothing".
+
+    Pinned from both ends: the truncated lines really are in the archived log (so the condition
+    is real, not a paraphrase), and the summary reports them as observed-but-unparseable rather
+    than as absent."""
+    results = []
+    log = os.path.join(E36B_DIR, "cfs", "deepae_admit_B.log")
+    if not os.path.exists(log):
+        results.append(Result("e37/d68: deepae admit log present", False, log))
+        return results
+
+    seen = unparsed = 0
+    for line in open(log, encoding="utf-8", errors="replace"):
+        i = line.find('{"app":"AI_LEARNER"')
+        if i < 0:
+            continue
+        frag = line[i:].strip()
+        if '"stage":"run"' not in frag:
+            continue
+        seen += 1
+        try:
+            json.loads(frag)
+        except ValueError:
+            unparsed += 1
+    _ok = seen > 0 and unparsed == seen
+    results.append(Result("e37/d68: the archived DeepAE log really does carry run records whose "
+                          "payload is truncated (%d of %d)" % (unparsed, seen), _ok,
+                          "" if _ok else "seen=%d unparsed=%d" % (seen, unparsed)))
+
+    summ = os.path.join(E36B_DIR, "summary.json")
+    if os.path.exists(summ):
+        cell = load(summ)["models"]["b3_deepae"]["cfs_admit"]
+        _ok = cell.get("run_records") == seen
+        results.append(Result("e37/d68: and the summary counts them as observed (%d), not as 0 -- "
+                              "a payload the parser cannot read still proves the record existed"
+                              % seen, _ok, "" if _ok else "run_records=%s" % cell.get("run_records")))
+        _ok = cell.get("run_records_unparseable") == unparsed
+        results.append(Result("e37/d68: the summary says how many it could not parse, so the "
+                              "reader is never handed a silent count", _ok,
+                              "" if _ok else "unparseable=%s" % cell.get("run_records_unparseable")))
+        deny = load(summ)["models"]["b3_deepae"]["cfs_deny_B_minus_1"]
+        _ok = deny.get("run_records") == 0 and deny.get("run_records_unparseable") == 0
+        results.append(Result("e37/d68: and a genuinely empty cell still reads 0/0 -- the fix did "
+                              "not turn 'no records' into 'unknown'", _ok,
+                              "" if _ok else json.dumps(deny)))
+
+    for gen in ("mk_e36_summary.py", "mk_e36b_summary.py"):
+        txt = open(os.path.join(HERE, gen), encoding="utf-8", errors="replace").read()
+        _ok = "__unparsed__" in txt and "record_count" in txt
+        results.append(Result("e37/d68: %s counts unparseable records instead of dropping them"
+                              % gen, _ok, "" if _ok else "still drops them silently"))
+    return results
+
+
+def e37_guest_rerun_cases():
+    """E37 §5: the one cell that genuinely needed the guest again, and what it settled.
+
+    E32's SmartCam cFS equivalence cell was produced by `ai_learner.c` BEFORE D61 added the
+    runtime budget resolver, and E36's no-override regression cell did not exercise that path
+    (`e25_mode active=false` in all seven E36 cells; only E32's A_admit.log has it true).  So it
+    was the single cell whose currency could not be settled from archived material -- everything
+    else was re-judged in place.  It was re-run on the final code and the result is compared,
+    element for element, against the pre-D61 run: same verdict, same totals, same worst element.
+
+    The comparison direction matters.  This does NOT say "D61 was harmless" in general; it says
+    this cell's numbers did not move, which is the only thing the cell can testify to."""
+    results = []
+    d = os.path.join(os.path.dirname(HERE), "results", "e37_evidence_consolidation",
+                     "s_cfs_post_d61")
+    summ = os.path.join(d, "summary.json")
+    if not os.path.exists(summ):
+        results.append(Result("e37/rerun: the re-run cell is preserved", False, "missing %s" % summ))
+        return results
+    js = load(summ)
+
+    rec = js.get("app_records", {})
+    _ok = (rec.get("e25_mode") or {}).get("active") is True
+    results.append(Result("e37/rerun: the app itself testifies the equivalence mode was ON -- the "
+                          "whole reason this cell needed re-running is that E36's cells had it off",
+                          _ok, "" if _ok else json.dumps(rec.get("e25_mode"))))
+    eq = rec.get("e25_equivalence") or {}
+    _ok = eq.get("inputs") == 5 and eq.get("completed") == 5
+    results.append(Result("e37/rerun: five inputs replayed, five completed", _ok,
+                          "" if _ok else json.dumps(eq)))
+    adm = rec.get("admission") or {}
+    _ok = adm.get("verdict") == "ADMIT" and adm.get("budget_source") == "macro"
+    results.append(Result("e37/rerun: and it ran through the same admission gate (the budget "
+                          "resolver D61 added reports which budget it judged on)", _ok,
+                          "" if _ok else json.dumps(adm)))
+
+    m = js.get("matches_e32_pre_d61", {})
+    for key in ("verdict", "totals", "worst_element"):
+        _ok = m.get(key) is True
+        results.append(Result("e37/rerun: %s is identical to the pre-D61 run" % key, _ok,
+                              "" if _ok else "differs"))
+
+    cmpf = os.path.join(d, "comparison.json")
+    if os.path.exists(cmpf):
+        c = load(cmpf)
+        _ok = c.get("verdict") == "PASS" and (c.get("totals") or {}).get("elements_failed") == 0
+        results.append(Result("e37/rerun: judged by the same pre-fixed criteria, not a new rule",
+                              _ok and (c.get("criteria") or {}).get("abs_tol") == 1e-4,
+                              "" if _ok else json.dumps(c.get("totals"))))
+
+    raw = os.path.join(d, "s_cfs_equiv.log")
+    tracked = subprocess.run(["git", "-C", os.path.dirname(HERE), "ls-files", "--error-unmatch",
+                              os.path.relpath(raw, os.path.dirname(HERE))],
+                             capture_output=True, text=True).returncode == 0
+    results.append(Result("e37/rerun: the guest raw log is committed (D55 -- a cited log that is "
+                          "not in the repository does not survive a fresh clone)",
+                          os.path.exists(raw) and tracked,
+                          "" if tracked else "raw log present but untracked"))
+    return results
+
+
+def e37_d60_extension_cases():
+    """E37: the D60 erratum, extended to the places the first pass did not reach.
+
+    v0.38.1 retracted "released" in the evidence document.  Reading the raw data again for the
+    linkage table showed the retracted wording still standing in two machine-readable places a
+    later reader would take as current -- the summary the document cites, and the plugin's own
+    docstring.  A retraction that lives only in prose gets restored by the next person who reads
+    the source.  It also showed the guard pinned only `p_admit` while `p_legacy` carries the
+    same condition, and that the ledger's instance breakdown was miscounted.
+
+    The correspondence between leaked instances and inference count is recorded here as a
+    measurement, NOT as grounds to flip the verdict: the status stays MEMORY RELEASE NOT
+    VERIFIED in both directions until someone measures the HAL peak on this path."""
+    results = []
+    root = os.path.dirname(HERE)
+
+    counts = {}
+    for cell, expect_inf in (("p_admit", 5), ("p_legacy", 4)):
+        rj = os.path.join(E33_DIR, cell, "run.json")
+        if not os.path.exists(rj):
+            results.append(Result("e37/d60: %s raw run.json present" % cell, False, rj))
+            continue
+        tail = load(rj).get("stderr_tail", "") or ""
+        hbv = len(re.findall(r'leaked instance .* of type "[^"]*HalBufferView"', tail))
+        mm = len(re.findall(r'leaked instance .* of type "[^"]*MappedMemory"', tail))
+        counts[cell] = (hbv, mm)
+        _ok = hbv > 0 and mm > 0
+        results.append(Result("e37/d60: %s also reports unreleased runtime objects (the guard "
+                              "used to pin only p_admit)" % cell, _ok,
+                              "" if _ok else "HalBufferView=%d MappedMemory=%d" % (hbv, mm)))
+        _ok = hbv == expect_inf and mm == expect_inf
+        results.append(Result("e37/d60: %s -- one of each per inference (%d), recorded as a "
+                              "measurement and NOT as grounds to un-retract" % (cell, expect_inf),
+                              _ok, "" if _ok else "HalBufferView=%d MappedMemory=%d" % (hbv, mm)))
+
+    if "p_admit" in counts:
+        hbv, mm = counts["p_admit"]
+        log = open(os.path.join(root, "EXPERIMENT_LOG.md"), encoding="utf-8",
+                   errors="replace").read()
+        _ok = ("HalBufferView %d · MappedMemory %d" % (hbv, mm)) in log
+        results.append(Result("e37/d60: the defect ledger's instance breakdown matches the raw "
+                              "count (it said 6/4; the file says %d/%d)" % (hbv, mm), _ok,
+                              "" if _ok else "ledger does not carry the counted breakdown"))
+
+    summ = os.path.join(E33_DIR, "summary.json")
+    if os.path.exists(summ):
+        v = load(summ).get("verdicts", {})
+        _ok = "Q4_note_erratum" in v and "NOT VERIFIED" in v.get("Q4_note_erratum", "")
+        results.append(Result("e37/d60: the raw summary the evidence cites carries the erratum "
+                              "beside the retracted sentence, so a machine-readable consumer "
+                              "cannot read the withdrawn half as current", _ok,
+                              "" if _ok else "no Q4_note_erratum in verdicts"))
+
+    plug = os.path.join(root, "plugins", "compiled_learner", "compiled_learner_plugin.py")
+    if os.path.exists(plug):
+        txt = open(plug, encoding="utf-8", errors="replace").read()
+        _ok = "result buffer is released each call" not in txt and "NOT VERIFIED" in txt
+        results.append(Result("e37/d60: the plugin docstring no longer asserts the retracted "
+                              "release (a retraction only in prose gets restored from source)",
+                              _ok, "" if _ok else "the docstring still asserts release"))
+    return results
+
+
 def cited_raw_logs_tracked_cases():
     """D55 (v0.32.1): a summary.json may cite a raw log that is not in the repository.
 
@@ -5086,6 +5401,10 @@ def main():
         all_results += e33_e35_errata_cases()
         all_results += e36_aarch64_cfs_cases()
         all_results += e36b_aarch64_models_cases()
+        all_results += e37_evidence_linkage_cases()
+        all_results += e37_d60_extension_cases()
+        all_results += e37_truncated_record_cases()
+        all_results += e37_guest_rerun_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

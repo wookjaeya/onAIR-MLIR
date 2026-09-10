@@ -4,7 +4,18 @@ NASA cFS/OnAIR AI 플러그인을 MLIR/IREE로 컴파일하고, 컴파일러의 
 정적 메모리 계약으로 배치 전 admission 판정을 수행하는 연구용 저장소.
 
 **시작점**: [`CLAUDE.md`](./CLAUDE.md) — 프로젝트 컨텍스트, 작업 규율, 환경 구축, 현재 상태.
-**현재 버전**: v0.29 (`git tag` 대신 커밋 이력·[`CHANGELOG.md`](./CHANGELOG.md)로 확인 — 태그 푸시는 이 실행 환경의 정책 제약으로 보류 중).
+**현재 버전**: v0.41 (`git tag` 대신 커밋 이력·[`CHANGELOG.md`](./CHANGELOG.md)로 확인 — 태그 푸시는 이 실행 환경의 정책 제약으로 보류 중).
+
+**연구의 최종 주장과 7개 구분**(예산 / 계약 범위 / 무조건·조건부 정책 / 실행 타깃 / OnAIR / MLIR 기여):
+[`EVIDENCE_v0.41_E37.md`](./docs/EVIDENCE_v0.41_E37.md) §2. 짧게 말하면 — **부분 메모리 계약을 컴파일
+산출물에서 뽑아 앱에 부여한 예산과 비교해 실행 전에 허용 여부를 정하는 방법**이고, 세 공개 실물 모델
+(OPS-SAT SmartCam · MLPerf Tiny ResNet · Deep AutoEncoder)에서 AArch64 QEMU 게스트 cFS로 확인했다.
+**MLIR 수준이 더 정확한 수치나 더 강한 판정을 주지는 않는다** — 아티팩트만 보는 기준선과 판정이 24/24
+일치했다(E35). 주장하는 것은 수치적 우위가 아니라 **MLIR 기반 계약 추출·연계 방법**이다.
+
+**세 모델의 증거를 원본→계약→입력→cFS 판정→출력→HAL peak까지 한 표로**:
+[`results/evidence_linkage/linkage.md`](./results/evidence_linkage/linkage.md)(생성기 산출물, 직접 편집 금지).
+최종 코드로 보관 원자료를 다시 판정한 결과는 [`reproduce_check.json`](./results/evidence_linkage/reproduce_check.json).
 
 **세 연구 질문의 답** (각 문서의 "주장하지 않음" 절이 범위를 못박고 있으므로 함께 읽을 것):
 

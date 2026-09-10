@@ -56,9 +56,21 @@ doc = {
                                and cells["p_mismatch"]["inferences"] == 0
                                and cells["p_mismatch"]["returncode"] == 0) else "FAILED"),
    "Q4_lifecycle": "PASS",
+   # v0.38.1 / D60: "released" was RETRACTED for the runtime objects.  The sentence stays here
+   # verbatim (working rule 3: judgements are corrected by appending, not by rewriting), and the
+   # erratum field below travels with it so a machine-readable consumer of this file cannot read
+   # the retracted half as current.  E37 added the field after finding the retraction had reached
+   # the evidence document but not the raw summary that document cites.
    "Q4_note": ("outputs are read back and released every call; latency history is a fixed-size "
      "ring (LAT_RING) rather than a per-call list; a render_reasoning() with no fresh input "
      "repeats the previous answer instead of spending an inference"),
+   "Q4_note_erratum": ("v0.38.1 / D60 -- 'released' is WITHDRAWN for the IREE runtime objects: the "
+     "status is MEMORY RELEASE NOT VERIFIED, and the opposite ('there is a leak') may not be "
+     "written either.  What the plugin does is drop the Python reference (`del out`); this run's "
+     "own stderr_tail reports unreleased nanobind instances at interpreter shutdown, and the HAL "
+     "peak was never measured on this path.  The rest of Q4 (call-contract lifecycle: fixed-size "
+     "latency ring, no inference without a fresh input) is unaffected and still holds.  See "
+     "docs/EVIDENCE_v0.36_E33.md SS10."),
    "legacy_regression": ("PASS" if (cells["p_legacy"]["active"] and cells["p_legacy"]["inferences"] > 0)
                           else "FAILED"),
    "stage_3_complete": None},

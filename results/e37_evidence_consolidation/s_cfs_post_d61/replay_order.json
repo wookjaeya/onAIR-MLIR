@@ -1,0 +1,22 @@
+[
+ {
+  "sample_id": "img_msec_1597559030639_2",
+  "kind": "real_example"
+ },
+ {
+  "sample_id": "img_msec_1607377664281_2",
+  "kind": "real_example"
+ },
+ {
+  "sample_id": "img_msec_1607639907670_2",
+  "kind": "real_example"
+ },
+ {
+  "sample_id": "edge_zeros",
+  "kind": "edge"
+ },
+ {
+  "sample_id": "edge_ones",
+  "kind": "edge"
+ }
+]

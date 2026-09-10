@@ -1,0 +1,104 @@
+{
+  "experiment": "E37",
+  "cell": "s_cfs_equivalence_post_d61",
+  "question": "E32의 SmartCam cFS 등가 모드 셀은 D61(ai_learner.c 예산 resolver) **이전** 코드의 산출물이고, E36의 무오버라이드 회귀 셀은 e25_mode active=false 라 그 경로를 밟지 않았다. 최종 코드에서 같은 결과가 나오는가?",
+  "why_this_one": "E37의 재현 대조에서 게스트 재실행이 실제로 필요한 셀은 **이것 하나**로 좁혀졌다 — 나머지는 보관 원자료에서 판정을 재계산해 확인했다(reproduce_check.json).",
+  "app_records": {
+    "e25_mode": {
+      "app": "AI_LEARNER",
+      "stage": "e25_mode",
+      "active": true,
+      "inputs_path": "/cf/e25_inputs.bin"
+    },
+    "admission": {
+      "app": "AI_LEARNER",
+      "stage": "admission",
+      "verdict": "ADMIT",
+      "model": "smartcam",
+      "target": "aarch64-unknown-linux-gnu",
+      "bounded": 18222796,
+      "budget": 18222797,
+      "budget_source": "macro",
+      "per_call": 9382092,
+      "constants": 8840704,
+      "kernel_stack_bytes": 1919,
+      "bound_known": true,
+      "scope": "per_app_local_budget"
+    },
+    "e25_equivalence": {
+      "app": "AI_LEARNER",
+      "stage": "e25_equivalence",
+      "inputs": 5,
+      "completed": 5,
+      "model": "smartcam",
+      "target": "aarch64-unknown-linux-gnu",
+      "artifact_sha256": "ecffe6e0bcbadf51..."
+    },
+    "stack": {
+      "app": "AI_LEARNER",
+      "stage": "stack",
+      "es_stack_size": 264063,
+      "stack_base_bytes": 262144,
+      "contract_kernel_stack_bytes": 1919,
+      "kernel_stack_accounted": true
+    },
+    "map_branch": {
+      "app": "AI_LEARNER",
+      "stage": "map_branch",
+      "model": "smartcam",
+      "module_ptr_mod64": 0,
+      "hal_peak_after_append": 0,
+      "contract_const_bytes": 8840704,
+      "contract_per_call_bytes": 9382092,
+      "arm": "map",
+      "admission_mode": "unconditional"
+    }
+  },
+  "artifacts": {
+    "inputs_bin_sha256": null,
+    "outputs_bin_sha256": "8d9c3a231dbcdbd82354582bc5605220ea9175464486a47b7207661f2e90e86d",
+    "outputs_bin_bytes": 60,
+    "inputs_note": "e25_inputs.bin(3,010,560 B)은 보존하지 않는다 — E31 fixture 의 nchw 배열 5개를 replay_order 순서로 이어 붙인 것이고, manifest 의 sha256 5/5 일치를 확인한 뒤 만들었으므로 저장소에서 결정적으로 재생성된다."
+  },
+  "verdict_this_run": "PASS",
+  "totals_this_run": {
+    "samples": 5,
+    "elements": 15,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "by_kind": {
+      "edge": 2,
+      "real_example": 3
+    }
+  },
+  "worst_element_this_run": {
+    "abs": 1.2516975402832031e-06,
+    "rel": 1.3420437511375419e-06,
+    "sample_id": "edge_zeros",
+    "index": 0
+  },
+  "matches_e32_pre_d61": {
+    "verdict": true,
+    "totals": true,
+    "worst_element": true,
+    "compared_against": "results/e32_smartcam_aarch64/cfs/comparison.json"
+  },
+  "criteria": {
+    "source": "docs/plans/E31_smartcam_semantic_equivalence.md SS4, committed before measurement",
+    "inherited_from": "E25 SS3.2, unchanged (ninth review SS9.3)",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05,
+    "rule": "per element: abs_err <= abs_tol OR rel_err <= rel_tol",
+    "rel_definition": "|a-b| / max(|a|,|b|,1e-30)",
+    "argmax": "must agree on every sample, but agreeing argmax is NOT equivalence on its own",
+    "argmax_mode": "require",
+    "detail_mode": "all",
+    "detail_note": "every per-element row stored",
+    "bit_identity": "not required between these two implementations, and not generalised if seen"
+  },
+  "not_claimed": [
+    "정확도 — 실이미지 3장은 평가셋이 아니다",
+    "이 셀은 메모리를 재지 않는다 (등가 모드는 초기화 시점에 돌고, HAL 피크 판정은 E36 셀의 몫이다)",
+    "게스트 안정성 일반화 — 한 번의 부팅 관측이다"
+  ]
+}

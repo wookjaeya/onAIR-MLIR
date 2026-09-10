@@ -8,9 +8,28 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.38.1**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
-중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
-§11.8이 정본, 아래는 그 요약):
+연구. 현재 버전: **v0.41**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+
+**중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
+
+> 이 연구는 IREE로 AOT 컴파일한 AI 모델의 **부분 메모리 계약**(호출별 버퍼 + 모듈 상주 상수)을
+> 컴파일 산출물에서 추출하고, 그것을 cFS 앱에 **부여한 예산**과 비교해 추론이 시작되기 전에 허용
+> 여부를 결정하는 방법을 구현·평가했다. 세 개의 공개 실물 모델(OPS-SAT SmartCam 비행 모델,
+> MLPerf Tiny ResNet, MLPerf Tiny Deep AutoEncoder)에 대해 AArch64 QEMU 게스트의 cFS에서 예산
+> 경계가 `B`→ADMIT / `B−1`→NOT_ADMITTED로 동작했고, 허용된 실행에서는 같은 계약 영역의 HAL 관측
+> 피크가 **승인 근거 예산 이하**였으며, 전체 출력이 원본 TFLite 실행기의 출력과 사전 고정한 기준
+> (원소별 `abs ≤ 1e-4` **또는** `rel ≤ 1e-5`)을 만족했다. SmartCam에서는 전제조건을 **측정으로**
+> 확인하는 조건부 정책이 같은 계약에서 **1.94배 작은 예산**(9,382,092 B)으로 완주했고, 같은 예산의
+> opt-in 없는 대조군은 거부됐다. 정보 수준 비교에서 **MLIR 수준이 더 정확한 수치나 더 강한 판정을
+> 주지는 않았다** — 같은 계약 범위·같은 조건부 지식에서 아티팩트만 보는 기준선과 판정이 **24/24
+> 일치**했다. 따라서 이 연구가 주장하는 것은 수치적 우위가 아니라 **MLIR 기반 계약 추출·연계 방법**이다.
+
+**7개 구분**(예산 / 계약 범위 / 무조건 정책 / 조건부 정책 / 실행 타깃 / OnAIR / MLIR 기여)의 확정된
+의미는 `docs/EVIDENCE_v0.41_E37.md` §2 표에 있다. **예산은 앱에 배정한 값이지 가용 RAM 탐지가 아니고,
+OnAIR는 호환성 보조 실증이며, MLIR 기여는 "MLIR이라야 얻는다"가 아니다.**
+
+아래는 **E14 시점(v0.9)의 중심 문장**이며 이력으로 남긴다 — 합성 3모델 기준이라 실물 모델·조건부
+정책·OnAIR·E35 기준선 비교가 전부 그 뒤에 나왔다(`docs/EVIDENCE_v0.9_E14_stage1.md` §11.8):
 
 > 정적 메모리 계약(per-call 버퍼 + 모듈 상주 상수)은 MLP·Conv2D·multi-branch 세 가지 할당
 > 구조에서 x86-64와 AArch64(Cortex-A53, QEMU 시스템 에뮬레이션) 모두 동일한 값으로 산출됐고,
@@ -713,6 +732,23 @@ DeepAE `1,069,632 = 6,208 + 1,063,424`로 **x86-64와 정확히 동일**하고 �
 **하지 않음**: 정확도(합성 전용 — **E34 §5 등급 그대로**, AArch64에서 돌았다고 오르지 않는다)·
 이 두 모델의 OnAIR·지연·조건부 계층(무조건 계층만).
 
+**v0.41에서 완료된 것 (E37, `docs/EVIDENCE_v0.41_E37.md`)**: 열한 번째 외부 문서
+(`RESEARCH_COMPLETION_ACTIONS.md`, 기준 커밋 `2aa0d68`)가 남은 과제를 *"실험 대상을 늘리는 일이 아니라
+확보한 증거를 하나의 재현 가능한 결과로 확정하는 일"*로 지목했다. 주장 8건을 원자료로 대조하고 건별
+적대적 반박을 붙여 **문서 정정 요구 0건 · 반박 6건 전부 refuted=false**로 확인했다(이 저장소가 받은
+검토 중 처음). **A**: 정본 중심 주장이 여전히 **E14 시점 문장**(합성 3모델)이었다 — v0.41 문장으로
+교체하고 7개 구분을 `docs/ASSUMPTIONS_AND_SCOPE.md`에 확정. **B**: `harness/mk_evidence_linkage.py`로
+3모델 × 7항목 **21/21 present**(원자료 참조 121건). **C**: `harness/e37_reproduce_check.py`로 최종 코드
+재판정 **13/13 동일**, 그리고 게스트 재실행이 실제로 필요한 셀이 **정확히 1개**(SmartCam cFS 등가 모드 —
+D61 이후 코드로 밟은 적이 없다)로 좁혀져 **실행했고 E32와 판정·totals·최악 원소가 동일**했다.
+**D**: 모델의 실제성 / 가중치 / **입력의 실제성** / 검증한 성질을 네 축으로 분리.
+**결함 6건 중 3건이 이 세션의 새 도구 결함**: D63(연결표가 부모 객체 단위 resolve라 하위 키 결손을
+present로 통과 — 적대적 검증이 잡음), D64(E36b 요약이 손조립이라 DENY 셀 `inferences` 부재),
+D65(D60 정정이 산문에만 남고 원자료·소스엔 철회된 서술이 그대로), D66(원장 누수 수치 오기 6·4 → 5·5),
+D67(계약 키 오독), **D68(파싱 실패를 `0`으로 기록 — *"absence is not zero"*라고 쓴 파일 자신이;
+적대적 반박이 잡음)**. **교훈**: ***"정정이 산문에만 남았는지, 기계가 읽는 자리와 소스에도 닿았는지
+확인하라"*** — 그리고 **증거를 검사하는 도구도 증거다**.
+
 **이로써 §10 단계 1~5가 전부 닫혔다**(단계 2는 E36, 단계 4는 E36b). 다음 작업은 **연구 책임자 결정
 대기** — 논문 초고 착수 / PR 병합 / v0.40 태그 / WGAN 반입 중 선택.
 
@@ -1151,6 +1187,16 @@ scripts/
   73_console.sh                       게스트 양방향 시리얼 콘솔 (emergency-mode 등 ssh 안 될 때)
   99_bootstrap_all.sh              ★ 전체 순서 실행 (x86-64 기준; aarch64는 60-62, 70-73 별도 실행)
 harness/                    실험 스크립트
+  mk_evidence_linkage.py      ★ E37: 세 실물 모델 × 7항목 증거 연결표 생성기 — 값은 전부 원자료에서 읽고
+                               못 읽은 셀은 사유와 함께 남긴다. admission 셀은 **하위 키마다** 확인한다(D63:
+                               부모 객체 단위 resolve가 키 결손을 present로 통과시켰다). 거부·BUDGET_INVALID
+                               셀의 null 은 같은 레코드의 **양성 신호**가 허가할 때만 값으로 센다
+  e37_reproduce_check.py      ★ E37: 최종 고정 코드로 보관 원자료를 **다시 판정**해 보관 판정과 대조(13셀).
+                               필드 이름이 `rejudged_at_final_version`이지 `rerun`이 아니다 — 게스트 부팅·
+                               cFS 기동·추론은 재현하지 않는다
+  mk_e36b_summary.py          ★ E37/D64: E36b 요약을 게스트 로그·계약·비교 JSON에서 유도(이전엔 손조립이라
+                               DENY 셀의 `inferences`가 부재했다). D68: 잘려서 파싱 안 되는 레코드도 **관측으로
+                               센다** — `run_records` + `run_records_unparseable`
   static_mem_bound.py, admission_check.py, platform_check.py 등  E0-E13 기반 도구
   make_contract.py            ★ SAME iree-compile 호출 산출물에서만 계약 JSON 생성 (one-invocation 검증,
                                fail-closed: layout IR↔dump-dir 결합·ABI/triple/ELF 불일치 hard fail, E15;
@@ -1245,6 +1291,11 @@ results/e26_boundary_utility/  ★ E26 계열 전체: 사전 고정 기준(docs/
                              instrumentation_check/, x86_64|aarch64/{native,cfs,pip_runtime}/,
                              mlperf_tiny_{resnet,vww}_fixture/, x86_64/ext_b{2,3}_*/ (실물 워크로드
                              단일 호출 산출물 + 측정), aarch64/a5b_canonical/, comparison/, summary.json
+results/evidence_linkage/   ★ E37: linkage.{json,md}(3모델 × 7항목, 원자료 참조 121건) +
+                             reproduce_check.json(최종 코드 재판정 13셀). **직접 편집 금지** — 생성기 산출물
+results/e37_evidence_consolidation/s_cfs_post_d61/  ★ E37 §5: 게스트 재실행이 실제로 필요했던 유일한 셀
+                             (SmartCam cFS 등가 모드, D61 이후 코드). raw log·출력·판정, E32와 판정·totals·
+                             최악 원소 동일. `e25_inputs.bin`은 결정적 재생성이라 미보존
 results/e31_smartcam_equivalence/  ★ E31/P2: 공유 fixture(manifest + 실이미지 3·경계 2의 .npy; 합성 32는 seed 31에서
                              비트 재생성되므로 미보존, 시험이 sha256으로 대조), 두 경로의 전체 출력, 판정, 음성 대조
 results/p1_smartcam_feasibility/   ★ E30/P1: OPS-SAT SmartCam 비행 모델 원본(무수정, 8,950,028 B) + source_manifest·
