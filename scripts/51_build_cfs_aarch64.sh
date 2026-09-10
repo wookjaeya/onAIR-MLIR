@@ -20,6 +20,9 @@
 #   OUT_TAG             variant name; exe tree lands in $OUT_ROOT/<OUT_TAG>/cpu1
 #
 #   env: OUT_ROOT (default <ext>/cfs-aarch64-exe), JOBS (nproc), REPORT_EVERY (AI_LEARNER_REPORT_EVERY),
+#        ALLOW_CONDITIONAL_MAP (AI_LEARNER_ALLOW_CONDITIONAL_MAP, default 0; ALWAYS passed explicitly and
+#        verified to have reached the compile -- the arch build tree is shared, so an unset value would
+#        otherwise inherit the previous build cache value, D61),
 #        MODEL_VMFB (optional: copied to <out>/cpu1/cf/model.vmfb and hashed against the header),
 #        DROP_APPS (space list of MISSION_GLOBAL_APPLIST apps to leave out of the aarch64 build;
 #        default none -- only for apps that fail to cross-compile and are not needed).
@@ -52,6 +55,9 @@ CFS_ROOT="${1:-$EXT_DEFAULT/cFS}"
 IREE_B="${2:-$EXT_DEFAULT/iree-src/build-rt-aarch64}"
 CONTRACT_HEADER="${3:-$BENCH_DIR/native/cfs_app/fsw/src/contract_gen.h}"
 BUDGET_BYTES="${4:-1048576}"
+# D61: default explicitly -- never let "unset" mean 0, because the arch build tree is
+# shared between invocations and CMakeCache.txt remembers the previous build's value.
+ALLOW_CONDITIONAL_MAP="${ALLOW_CONDITIONAL_MAP:-0}"
 STACK_BASE_BYTES="${5:-262144}"
 KERNEL_STACK_BYTES="${6:-}"
 OUT_TAG="${7:-default}"
@@ -166,7 +172,7 @@ if grep -q "AI_LEARNER_BUDGET_BYTES" "$APPDIR/CMakeLists.txt"; then
 else
   KNOB_ROUTE=compile_definitions
   cat >> "$APPDIR/CMakeLists.txt" <<CM
-target_compile_definitions(ai_learner PRIVATE AI_LEARNER_BUDGET_BYTES=$BUDGET_BYTES AI_LEARNER_STACK_BASE_BYTES=$STACK_BASE_BYTES${REPORT_EVERY:+ AI_LEARNER_REPORT_EVERY=$REPORT_EVERY})
+target_compile_definitions(ai_learner PRIVATE AI_LEARNER_BUDGET_BYTES=$BUDGET_BYTES AI_LEARNER_STACK_BASE_BYTES=$STACK_BASE_BYTES${REPORT_EVERY:+ AI_LEARNER_REPORT_EVERY=$REPORT_EVERY} AI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP)
 CM
 fi
 
@@ -200,7 +206,8 @@ ARCH_DIR="build-$CFG/$SIM/default_cpu1"
 grep -q "toolchain-$SIM.cmake" "$ARCH_DIR/CMakeCache.txt" || die "arch tree $ARCH_DIR was not configured with toolchain-$SIM.cmake"
 if [ "$KNOB_ROUTE" = cache ]; then
   cmake -DAI_LEARNER_BUDGET_BYTES="$BUDGET_BYTES" -DAI_LEARNER_STACK_BASE_BYTES="$STACK_BASE_BYTES" \
-        ${REPORT_EVERY:+-DAI_LEARNER_REPORT_EVERY="$REPORT_EVERY"} "$ARCH_DIR" 2>&1 | tee -a "$LOG"
+        ${REPORT_EVERY:+-DAI_LEARNER_REPORT_EVERY="$REPORT_EVERY"} \
+        -DAI_LEARNER_ALLOW_CONDITIONAL_MAP="$ALLOW_CONDITIONAL_MAP" "$ARCH_DIR" 2>&1 | tee -a "$LOG"
 fi
 T2=$(date +%s)
 make -j"$JOBS" "$CFG.install" 2>&1 | tee -a "$LOG"
@@ -249,6 +256,9 @@ PY
 )"
 [ -n "$AI_CMD" ] || die "ai_learner.c not in compile_commands.json"
 grep -q -- "-DAI_LEARNER_BUDGET_BYTES=$BUDGET_BYTES\b" <<<"$AI_CMD" || die "AI_LEARNER_BUDGET_BYTES=$BUDGET_BYTES did not reach the ai_learner.c compile: $AI_CMD"
+# D61: verify the opt-in the SAME way -- a stale cache value must fail the BUILD, not surface
+# as a cell that quietly admitted what it was supposed to refuse.
+grep -q -- "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP\b" <<<"$AI_CMD" || die "AI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP did not reach the ai_learner.c compile (stale CMakeCache?): $AI_CMD"
 grep -q -- "-DAI_LEARNER_STACK_BASE_BYTES=$STACK_BASE_BYTES\b" <<<"$AI_CMD" || die "AI_LEARNER_STACK_BASE_BYTES did not reach the ai_learner.c compile"
 grep -q -- "-mcpu=cortex-a53" <<<"$AI_CMD" || die "-mcpu=cortex-a53 missing from the ai_learner.c compile"
 grep -q -- "apps_aarch64/ai_learner/fsw/src/ai_learner.c" <<<"$AI_CMD" || die "ai_learner.c was not taken from apps_aarch64/"

@@ -2411,6 +2411,95 @@ E27_SUMMARY = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "s
 RESULTS_DIR = os.path.join(os.path.dirname(HERE), "results")
 
 
+E36_DIR = os.path.join(os.path.dirname(HERE), "results", "e36_aarch64_cfs")
+
+
+def e36_aarch64_cfs_cases():
+    """E36: the AArch64 cFS cells SS10 stage 2 asked for, pinned from the guest raw logs.
+
+    Two of these exist because the change that produced them ALSO produced two defects
+    (evidence SS6), and neither was caught by a test -- both were caught by a field the plan
+    required every admission record to carry.  So the pins here are on that field as much as
+    on the verdicts: a refusal must say which budget it refused against, or a budget of 0
+    from a botched edit reads exactly like a principled denial."""
+    results = []
+    p = os.path.join(E36_DIR, "summary.json")
+    if not os.path.exists(p):
+        results.append(Result("e36: summary present", False, "missing %s" % p))
+        return results
+    d = load(p)
+    c, PER_CALL = d["cells"], 9382092
+
+    _ok = (c["deny_B_minus_1"]["verdict"] == "NOT_ADMITTED"
+           and c["deny_B_minus_1"]["inferences"] == 0
+           and c["deny_B_minus_1"]["budget_bytes"] == 18222795)
+    results.append(Result("e36 Q1: the cFS budget-shortfall cell refuses and runs zero inferences "
+                          "(unreachable in E32 -- the budget was a compile-time constant)", _ok,
+                          "" if _ok else json.dumps(c["deny_B_minus_1"])[:220]))
+
+    alive = c["deny_B_minus_1"].get("cfs_alive_after_refusal", {})
+    _ok = alive.get("exit_app_logged") is True and len(alive.get("apps_loaded_after", [])) >= 4
+    results.append(Result("e36 Q1: and the rest of cFS keeps running afterwards -- the stage-2 "
+                          "criterion, checked on the log rather than assumed", _ok,
+                          "" if _ok else json.dumps(alive)[:220]))
+
+    for cell in ("malformed_abc", "zero_budget"):
+        _ok = c[cell]["budget_invalid_event"] and c[cell]["inferences"] == 0
+        results.append(Result("e36 Q1b: a malformed budget override (%s) refuses initialisation "
+                              "instead of silently falling back to the compiled-in budget" % cell,
+                              _ok, "" if _ok else json.dumps(c[cell])[:200]))
+
+    cp = c["cond_positive"]
+    _ok = (cp["verdict"] == "ADMIT_CONDITIONAL_MAP" and cp["admitted_budget_bytes"] == PER_CALL
+           and cp["hal_peak"] == PER_CALL and cp["peak_within_admitted_budget"] is True
+           and cp["inferences"] > 0)
+    results.append(Result("e36 Q2: the conditional tier runs on AArch64 cFS with the real 8.9 MB "
+                          "model and the peak lands EXACTLY on the budget it was admitted on", _ok,
+                          "" if _ok else json.dumps(cp)[:240]))
+    mb = cp.get("map_branch", {})
+    _ok = mb.get("arm") == "map" and mb.get("module_ptr_mod64") == 0 and mb.get("hal_peak_after_append") == 0
+    results.append(Result("e36 Q2: and E29b's two preconditions are recorded as MEASURED, not "
+                          "assumed (64B-aligned image, zero append peak)", _ok,
+                          "" if _ok else json.dumps(mb)[:200]))
+    _ok = c["cond_denied_without_optin"]["verdict"] == "NOT_ADMITTED"
+    results.append(Result("e36 Q2: the control -- the same budget without the opt-in is refused, so "
+                          "the pass is the conditional tier and not a loose budget", _ok,
+                          "" if _ok else json.dumps(c["cond_denied_without_optin"])[:200]))
+
+    r = c["regression_no_override"]
+    _ok = (r["budget_source"] == "macro" and r["budget_bytes"] == 18222797
+           and r["verdict"] == "ADMIT" and r["hal_peak"] == PER_CALL
+           and r["admission_mode"] == "unconditional" and r["peak_within_admitted_budget"] is True)
+    results.append(Result("e36 Q4: with the override unset the app reproduces E32's deterministic "
+                          "values exactly -- the knob did not change the existing verdicts", _ok,
+                          "" if _ok else json.dumps(r)[:240]))
+
+    _ok = all(c[n]["budget_source"] in ("macro", "override") or c[n]["budget_invalid_event"]
+              for n in c)
+    results.append(Result("e36: every cell testifies which budget it judged on -- the field that "
+                          "caught both defects this change introduced", _ok,
+                          "" if _ok else "a cell has no budget_source"))
+
+    # the build script must pass the opt-in explicitly: `${VAR:+-D...}` inherited a stale
+    # CMakeCache value and turned a deny cell into ADMIT_CONDITIONAL_MAP (evidence SS6.2)
+    sh = os.path.join(os.path.dirname(HERE), "scripts", "51_build_cfs_aarch64.sh")
+    txt = open(sh, encoding="utf-8", errors="replace").read() if os.path.exists(sh) else ""
+    _ok = ('ALLOW_CONDITIONAL_MAP="${ALLOW_CONDITIONAL_MAP:-0}"' in txt
+           and "${ALLOW_CONDITIONAL_MAP:+" not in txt
+           and "did not reach the ai_learner.c compile (stale CMakeCache?)" in txt)
+    results.append(Result("e36 D61: the AArch64 build passes the conditional opt-in explicitly and "
+                          "verifies it reached the compile (a shared cmake tree remembers)", _ok,
+                          "" if _ok else "51_build_cfs_aarch64.sh still lets an unset opt-in inherit the cache"))
+
+    src = os.path.join(os.path.dirname(HERE), "native", "cfs_app", "fsw", "src", "ai_learner.c")
+    ctxt = open(src, encoding="utf-8", errors="replace").read() if os.path.exists(src) else ""
+    _ok = "g.budget_bytes = g.budget_bytes" not in ctxt and "return g.budget_bytes > 0;" in ctxt
+    results.append(Result("e36 D61: the macro path really reads the macro, and a non-positive "
+                          "budget is an explicit refusal rather than a denial that hides its cause",
+                          _ok, "" if _ok else "the resolver is back to a self-assignment or drops the > 0 check"))
+    return results
+
+
 def cited_raw_logs_tracked_cases():
     """D55 (v0.32.1): a summary.json may cite a raw log that is not in the repository.
 
@@ -4925,6 +5014,7 @@ def main():
         all_results += e34_comparator_generalisation_cases(tmp)
         all_results += e35_fair_baseline_cases()
         all_results += e33_e35_errata_cases()
+        all_results += e36_aarch64_cfs_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

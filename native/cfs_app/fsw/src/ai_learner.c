@@ -10,7 +10,8 @@
  *      as telemetry only, never enforced) -- it runs first because it costs
  *      nothing to acquire (CFE_ES_GetAppInfo, no allocation) and is the one
  *      check native_learner.c cannot exercise at all (it has no ES task).
- *   2. admission: contract bounded_bytes vs AI_LEARNER_BUDGET_BYTES, still
+ *   2. admission: contract bounded_bytes vs the app budget (AI_LEARNER_BUDGET_BYTES,
+ *      or AI_LEARNER_BUDGET_OVERRIDE at init -- E36 SS3.1), still
  *      before the IREE runtime is created and before the artifact is even
  *      opened. A contract without a static bound (CONTRACT_BOUND_KNOWN == 0)
  *      is refused as UNKNOWN_BOUND at the same point. A bound-known contract
@@ -53,6 +54,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -99,7 +101,55 @@ static struct {
   bool first_fail_reported;
   double lat_sum_us, lat_max_us, lat_last_us; float out[CONTRACT_OUTPUT_ELEMS];
   long rss_kb_init0, rss_kb_init1, rss_kb_after_session;
+  long budget_bytes; const char* budget_source;
 } g;
+
+/* E36 Q1: the app budget as a RUNTIME value.
+ *
+ * It used to be the compile-time macro alone, and that made one cell of the
+ * pre-registered matrix unreachable: with a constant budget the compiler folds
+ * `CONTRACT_BOUNDED_BYTES > budget` statically, deletes the post-admission code
+ * (including the contract sha256 string the build verifies), and the BUILD then
+ * refuses -- so `budget = bounded - 1` never reached a running app.  Reading the
+ * budget at init keeps that code live and lets the real refusal path execute.
+ *
+ * The knob is itself a place a defect could live, so the rules are fixed (plan
+ * SS3.1, committed before measuring):
+ *   - unset            -> the macro, byte-for-byte the previous behaviour;
+ *   - set and parsable -> that value;
+ *   - set and NOT parsable, negative or zero -> REFUSE to initialise.
+ * The last line is the D29 lesson: a malformed signal is not the same as an
+ * absent one, and silently falling back to the macro would let an integrator
+ * believe a budget was applied when it was not.  Every admission record carries
+ * `budget_source`, so a measurement can always prove which budget it judged on
+ * (the E25-mode lesson: instrumentation must be able to testify). */
+static int AI_LEARNER_ResolveBudget(void) {
+  const char* e = getenv("AI_LEARNER_BUDGET_OVERRIDE");
+  if (e == NULL) {
+    /* NOTE: spell the macro through a local. An earlier edit of this file did a
+     * blanket rename of `(long)AI_LEARNER_BUDGET_BYTES` -> `g.budget_bytes` and
+     * turned this very line into a self-assignment, so the compiled-in budget
+     * silently became 0 and every unset-override run reported NOT_ADMITTED with
+     * `"budget":0`. It was caught immediately -- not by a test, but because the
+     * plan (SS3.1) required every admission record to carry `budget_source` and
+     * `budget`, so the measurement could testify which budget it judged on.
+     * The `> 0` below turns that class of mistake into an explicit refusal
+     * instead of a denial that merely looks principled. */
+    const long compiled_in = (long)AI_LEARNER_BUDGET_BYTES;
+    g.budget_bytes = compiled_in; g.budget_source = "macro";
+    return g.budget_bytes > 0;
+  }
+  while (*e == ' ' || *e == '\t') e++;
+  if (*e == '\0') return 0;                       /* set but empty: malformed, not absent */
+  char* end = NULL; errno = 0;
+  long v = strtol(e, &end, 10);
+  if (errno != 0 || end == e) return 0;
+  while (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r') end++;
+  if (*end != '\0') return 0;                     /* trailing garbage: refuse, do not guess */
+  if (v <= 0) return 0;
+  g.budget_bytes = v; g.budget_source = "override";
+  return 1;
+}
 
 static long rss_kb(void) {
   FILE* f = fopen("/proc/self/status", "r"); char line[256]; long v = -1;
@@ -176,14 +226,14 @@ static void AI_LEARNER_AdmissionJson(const char* verdict) {
   /* F11 (external review, 2026-09; not a code defect -- CLAUDE.md priority 5
    * already documents this scope, and resources.scope/bound_assumptions in
    * the contract JSON already say it): this verdict compares CONTRACT_BOUNDED_BYTES
-   * against AI_LEARNER_BUDGET_BYTES only -- a per-app local budget, not a
+   * against this app's own budget only -- a per-app local budget, not a
    * check that the whole onboard computer can fit this model alongside
    * everything else running on it. "scope" here propagates that same
    * disclosure into the runtime telemetry, not just the offline contract. */
   AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"admission\",\"verdict\":\"%s\",\"model\":\"%s\",\"target\":\"%s\","
-                  "\"bounded\":%ld,\"budget\":%ld,\"per_call\":%ld,\"constants\":%ld,\"kernel_stack_bytes\":%ld,\"bound_known\":%s,"
+                  "\"bounded\":%ld,\"budget\":%ld,\"budget_source\":\"%s\",\"per_call\":%ld,\"constants\":%ld,\"kernel_stack_bytes\":%ld,\"bound_known\":%s,"
                   "\"scope\":\"per_app_local_budget\"}\n",
-                  verdict, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, (long)CONTRACT_BOUNDED_BYTES, (long)AI_LEARNER_BUDGET_BYTES,
+                  verdict, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, (long)CONTRACT_BOUNDED_BYTES, g.budget_bytes, g.budget_source ? g.budget_source : "unresolved",
                   (long)CONTRACT_PER_CALL_BYTES, (long)CONTRACT_CONST_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES,
                   GATE_BOUND_KNOWN ? "true" : "false");
 }
@@ -234,6 +284,17 @@ static void* AI_LEARNER_AllocModuleImage(size_t n, int* out_mod64) {
 static int32 AI_LEARNER_Init(void) {
   CFE_EVS_Register(NULL, 0, CFE_EVS_EventFilter_BINARY);
 
+  /* Budget first: every gate below reports against it, so it must exist before
+   * anything can be judged -- and a malformed override must stop the app before
+   * it acquires anything (same ordering rule as the stack gate, D15). */
+  if (!AI_LEARNER_ResolveBudget()) {
+    CFE_EVS_SendEvent(EID_NOT_ADMITTED, CFE_EVS_EventType_CRITICAL,
+      "AI_LEARNER BUDGET_INVALID: budget did not resolve to a positive integer (source=%s value=%ld); "
+      "app will not start (a malformed override is NOT silently replaced by the compiled-in budget)",
+      g.budget_source ? g.budget_source : "override", g.budget_bytes);
+    return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
+
   /* ---- task-stack gate: ES-reported task stack vs base + kernel dispatch frame.
    * Runs FIRST -- before admission, before the artifact, before any IREE call --
    * because CFE_ES_GetAppID()/GetAppInfo() acquire nothing that needs releasing,
@@ -267,18 +328,18 @@ static int32 AI_LEARNER_Init(void) {
     AI_LEARNER_Cleanup();
     return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
-  if ((long)CONTRACT_BOUNDED_BYTES > (long)AI_LEARNER_BUDGET_BYTES) {
+  if ((long)CONTRACT_BOUNDED_BYTES > g.budget_bytes) {
     /* E29: the conditional tier, when the integrator opted in, admits on the
      * map arm's bound (per-call only).  It is not a weaker check -- it is the
      * same contract read under a precondition this app enforces and then
      * verifies after append (below), refusing before any inference if the arm
      * it got was the copy arm. */
-    if (AI_LEARNER_ALLOW_CONDITIONAL_MAP && (long)CONTRACT_PER_CALL_BYTES <= (long)AI_LEARNER_BUDGET_BYTES) {
+    if (AI_LEARNER_ALLOW_CONDITIONAL_MAP && (long)CONTRACT_PER_CALL_BYTES <= g.budget_bytes) {
       g.conditional_map = 1;
     } else {
       CFE_EVS_SendEvent(EID_NOT_ADMITTED, CFE_EVS_EventType_CRITICAL,
         "AI_LEARNER NOT_ADMITTED: contract bounded=%ld > budget=%ld; app will not start",
-        (long)CONTRACT_BOUNDED_BYTES, (long)AI_LEARNER_BUDGET_BYTES);
+        (long)CONTRACT_BOUNDED_BYTES, g.budget_bytes);
       AI_LEARNER_AdmissionJson("NOT_ADMITTED");
       AI_LEARNER_Cleanup();
       return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
@@ -594,7 +655,7 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
      * D53's rule ("compare the number you admitted on") applied to the post-hoc check.
      * Both are kept: one is about contract soundness, the other about this deployment. */
     long admitted_budget = g.conditional_map ? (long)CONTRACT_PER_CALL_BYTES
-                                             : (long)AI_LEARNER_BUDGET_BYTES;
+                                             : g.budget_bytes;
     int within_budget = (long)stats.device_bytes_peak <= admitted_budget;
     if (!within_budget) {
       CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_ERROR,

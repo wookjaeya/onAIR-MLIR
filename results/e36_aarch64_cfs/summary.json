@@ -1,0 +1,202 @@
+{
+ "experiment": "E36",
+ "title": "AArch64 cFS evidence completion -- the refusal cell SS10 stage 2 asked for, and the conditional tier under a real flight model",
+ "plan": "docs/plans/E36_aarch64_cfs_completion.md (committed before measurement, f3ac80c)",
+ "contract": {
+  "bounded": 18222796,
+  "per_call": 9382092,
+  "constants": 8840704,
+  "source": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+  "note": "not regenerated -- E32's single-invocation artefacts are reused"
+ },
+ "cells": {
+  "regression_no_override": {
+   "log": "results/e36_aarch64_cfs/smartcam/regression_no_override.log",
+   "verdict": "ADMIT",
+   "budget_bytes": 18222797,
+   "budget_source": "macro",
+   "inferences": 35,
+   "run_records": 35,
+   "hal_peak": 9382092,
+   "admitted_budget_bytes": 18222797,
+   "peak_within_admitted_budget": true,
+   "admission_mode": "unconditional",
+   "budget_invalid_event": false,
+   "exit": "124",
+   "map_branch": {
+    "module_ptr_mod64": 0,
+    "hal_peak_after_append": 0,
+    "arm": "map",
+    "admission_mode": "unconditional"
+   }
+  },
+  "admit_B": {
+   "log": "results/e36_aarch64_cfs/smartcam/admit_B.log",
+   "verdict": "ADMIT",
+   "budget_bytes": 18222796,
+   "budget_source": "override",
+   "inferences": 34,
+   "run_records": 34,
+   "hal_peak": 9382092,
+   "admitted_budget_bytes": 18222796,
+   "peak_within_admitted_budget": true,
+   "admission_mode": "unconditional",
+   "budget_invalid_event": false,
+   "exit": "124",
+   "map_branch": {
+    "module_ptr_mod64": 0,
+    "hal_peak_after_append": 0,
+    "arm": "map",
+    "admission_mode": "unconditional"
+   }
+  },
+  "deny_B_minus_1": {
+   "log": "results/e36_aarch64_cfs/smartcam/deny_B_minus_1.log",
+   "verdict": "NOT_ADMITTED",
+   "budget_bytes": 18222795,
+   "budget_source": "override",
+   "inferences": 0,
+   "run_records": 0,
+   "hal_peak": null,
+   "admitted_budget_bytes": null,
+   "peak_within_admitted_budget": null,
+   "admission_mode": null,
+   "budget_invalid_event": false,
+   "exit": "124",
+   "cfs_alive_after_refusal": {
+    "exit_app_logged": true,
+    "apps_loaded_after": [
+     "cs",
+     "ds",
+     "fm",
+     "hk",
+     "hs",
+     "md",
+     "mm",
+     "sc"
+    ],
+    "log_lines_after_exit": 64
+   }
+  },
+  "malformed_abc": {
+   "log": "results/e36_aarch64_cfs/smartcam/malformed_abc.log",
+   "verdict": null,
+   "budget_bytes": null,
+   "budget_source": null,
+   "inferences": 0,
+   "run_records": 0,
+   "hal_peak": null,
+   "admitted_budget_bytes": null,
+   "peak_within_admitted_budget": null,
+   "admission_mode": null,
+   "budget_invalid_event": true,
+   "exit": "124",
+   "cfs_alive_after_refusal": {
+    "exit_app_logged": true,
+    "apps_loaded_after": [
+     "cf",
+     "cs",
+     "ds",
+     "fm",
+     "hk",
+     "hs",
+     "md",
+     "mm",
+     "sc"
+    ],
+    "log_lines_after_exit": 69
+   }
+  },
+  "zero_budget": {
+   "log": "results/e36_aarch64_cfs/smartcam/zero_budget.log",
+   "verdict": null,
+   "budget_bytes": null,
+   "budget_source": null,
+   "inferences": 0,
+   "run_records": 0,
+   "hal_peak": null,
+   "admitted_budget_bytes": null,
+   "peak_within_admitted_budget": null,
+   "admission_mode": null,
+   "budget_invalid_event": true,
+   "exit": "124",
+   "cfs_alive_after_refusal": {
+    "exit_app_logged": true,
+    "apps_loaded_after": [
+     "cs",
+     "ds",
+     "fm",
+     "hk",
+     "hs",
+     "md",
+     "mm",
+     "sc"
+    ],
+    "log_lines_after_exit": 67
+   }
+  },
+  "cond_denied_without_optin": {
+   "log": "results/e36_aarch64_cfs/smartcam/cond_denied_without_optin.log",
+   "verdict": "NOT_ADMITTED",
+   "budget_bytes": 9382092,
+   "budget_source": "override",
+   "inferences": 0,
+   "run_records": 0,
+   "hal_peak": null,
+   "admitted_budget_bytes": null,
+   "peak_within_admitted_budget": null,
+   "admission_mode": null,
+   "budget_invalid_event": false,
+   "exit": "124",
+   "cfs_alive_after_refusal": {
+    "exit_app_logged": true,
+    "apps_loaded_after": [
+     "cs",
+     "ds",
+     "fm",
+     "hk",
+     "hs",
+     "md",
+     "mm",
+     "sc"
+    ],
+    "log_lines_after_exit": 65
+   }
+  },
+  "cond_positive": {
+   "log": "results/e36_aarch64_cfs/smartcam/cond_positive.log",
+   "verdict": "ADMIT_CONDITIONAL_MAP",
+   "budget_bytes": 9382092,
+   "budget_source": "override",
+   "inferences": 35,
+   "run_records": 35,
+   "hal_peak": 9382092,
+   "admitted_budget_bytes": 9382092,
+   "peak_within_admitted_budget": true,
+   "admission_mode": "conditional_map",
+   "budget_invalid_event": false,
+   "exit": "124",
+   "map_branch": {
+    "module_ptr_mod64": 0,
+    "hal_peak_after_append": 0,
+    "arm": "map",
+    "admission_mode": "conditional_map"
+   }
+  }
+ },
+ "verdicts": {
+  "Q1_cfs_budget_refusal": "PASS",
+  "Q2_lifecycle_conditional": "PASS",
+  "Q1b_knob_is_fail_closed": "PASS",
+  "Q4_no_override_unchanged": "PASS",
+  "Q3_resnet_deepae_aarch64": "NOT_RUN (deferred to E36b -- this commit does not claim it)",
+  "stage_2_complete": true
+ },
+ "not_claimed": [
+  "ResNet/DeepAE on AArch64 (Q3): not run here",
+  "accuracy: no evaluation set for this model in this environment",
+  "latency/throughput: FUNCTIONAL_ONLY host",
+  "OnAIR on AArch64 or SBN linkage: out of scope (E33 SS9)",
+  "the inference COUNT is timeout-dependent, not an invariant -- only the deterministic values (verdict, budget, peak, mode) are compared with E32"
+ ]
+}
