@@ -1,0 +1,422 @@
+{
+ "tool": "harness/e35_baseline_policy_matrix.py",
+ "experiment": "E35",
+ "plan": "docs/plans/E35_fair_baseline.md (committed before measurement, 3bc617f)",
+ "fairness": {
+  "same_policy_code": "harness/admission_policy.py, applied to BOTH levels",
+  "conditional_knowledge_given_to_baseline": true,
+  "why": "review SS8.3: letting only the MLIR side use the map-arm bound would measure execution policy, not information representation",
+  "budget_bands": "fixed by rule (B, P, P-1) for every model, so no model receives the budget that flatters it (review SS9.2)",
+  "recompiled": 0,
+  "models_run": 0
+ },
+ "models": {
+  "smartcam_x86_64": {
+   "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+   "contract": "results/p1_smartcam_feasibility/build/smartcam.contract.json",
+   "level_c_mlir": {
+    "bounded_bytes": 18222796,
+    "per_call_bytes": 9382092,
+    "constants_bytes": 8840704,
+    "kernel_stack_bytes": 439,
+    "kernel_stack_frame_bytes": 368,
+    "kernel_stack_classification": "bucket_2_task_stack_budget",
+    "interface_dtypes": [
+     "f32"
+    ],
+    "one_invocation_binding": true,
+    "produced_by": "harness/make_contract.py (MLIR layout IR + dump dir + ELF)"
+   },
+   "level_b_artifact_only": {
+    "status": "value",
+    "bounded_bytes": 18222796,
+    "per_call_bytes": 9382092,
+    "constants_bytes": 8840704,
+    "interface_dtypes": null,
+    "abi_declaration": "iree.abi.declaration: sync func @infer(%input0: tensor<1x3x224x224xf32>) -> (%output0: tensor<1x3xf32>)",
+    "refusals": [],
+    "produced_by": "harness/e27_baseline_vmfb_only_hardened.py (vmfb + iree-dump-module only)",
+    "kernel_stack_bytes": 439,
+    "kernel_stack_from": "elf_stack_frame.py --vmfb (no dump dir)",
+    "one_invocation_binding": null,
+    "one_invocation_note": "not produced at this level: binding needs a second artifact from the same compile to cross-check against"
+   },
+   "three_figures_agree": true,
+   "kernel_stack_agrees": true
+  },
+  "smartcam_aarch64": {
+   "vmfb": "results/e32_smartcam_aarch64/build/smartcam.vmfb",
+   "contract": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+   "level_c_mlir": {
+    "bounded_bytes": 18222796,
+    "per_call_bytes": 9382092,
+    "constants_bytes": 8840704,
+    "kernel_stack_bytes": 1919,
+    "kernel_stack_frame_bytes": 1856,
+    "kernel_stack_classification": "bucket_2_task_stack_budget",
+    "interface_dtypes": [
+     "f32"
+    ],
+    "one_invocation_binding": true,
+    "produced_by": "harness/make_contract.py (MLIR layout IR + dump dir + ELF)"
+   },
+   "level_b_artifact_only": {
+    "status": "value",
+    "bounded_bytes": 18222796,
+    "per_call_bytes": 9382092,
+    "constants_bytes": 8840704,
+    "interface_dtypes": null,
+    "abi_declaration": "iree.abi.declaration: sync func @infer(%input0: tensor<1x3x224x224xf32>) -> (%output0: tensor<1x3xf32>)",
+    "refusals": [],
+    "produced_by": "harness/e27_baseline_vmfb_only_hardened.py (vmfb + iree-dump-module only)",
+    "kernel_stack_bytes": 1919,
+    "kernel_stack_from": "elf_stack_frame.py --vmfb (no dump dir)",
+    "one_invocation_binding": null,
+    "one_invocation_note": "not produced at this level: binding needs a second artifact from the same compile to cross-check against"
+   },
+   "three_figures_agree": true,
+   "kernel_stack_agrees": true
+  },
+  "b2_resnet": {
+   "vmfb": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.vmfb",
+   "contract": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.contract.json",
+   "level_c_mlir": {
+    "bounded_bytes": 618856,
+    "per_call_bytes": 309416,
+    "constants_bytes": 309440,
+    "kernel_stack_bytes": 439,
+    "kernel_stack_frame_bytes": 368,
+    "kernel_stack_classification": "bucket_2_task_stack_budget",
+    "interface_dtypes": [
+     "f32"
+    ],
+    "one_invocation_binding": true,
+    "produced_by": "harness/make_contract.py (MLIR layout IR + dump dir + ELF)"
+   },
+   "level_b_artifact_only": {
+    "status": "value",
+    "bounded_bytes": 618856,
+    "per_call_bytes": 309416,
+    "constants_bytes": 309440,
+    "interface_dtypes": null,
+    "abi_declaration": "iree.abi.declaration: sync func @infer(%input0: tensor<1x3x32x32xf32>) -> (%output0: tensor<1x10xf32>)",
+    "refusals": [],
+    "produced_by": "harness/e27_baseline_vmfb_only_hardened.py (vmfb + iree-dump-module only)",
+    "kernel_stack_bytes": 439,
+    "kernel_stack_from": "elf_stack_frame.py --vmfb (no dump dir)",
+    "one_invocation_binding": null,
+    "one_invocation_note": "not produced at this level: binding needs a second artifact from the same compile to cross-check against"
+   },
+   "three_figures_agree": true,
+   "kernel_stack_agrees": true
+  },
+  "b3_deepae": {
+   "vmfb": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.vmfb",
+   "contract": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json",
+   "level_c_mlir": {
+    "bounded_bytes": 1069632,
+    "per_call_bytes": 6208,
+    "constants_bytes": 1063424,
+    "kernel_stack_bytes": 32,
+    "kernel_stack_frame_bytes": 24,
+    "kernel_stack_classification": "bucket_2_task_stack_budget",
+    "interface_dtypes": [
+     "f32"
+    ],
+    "one_invocation_binding": true,
+    "produced_by": "harness/make_contract.py (MLIR layout IR + dump dir + ELF)"
+   },
+   "level_b_artifact_only": {
+    "status": "value",
+    "bounded_bytes": 1069632,
+    "per_call_bytes": 6208,
+    "constants_bytes": 1063424,
+    "interface_dtypes": null,
+    "abi_declaration": "iree.abi.declaration: sync func @infer(%input0: tensor<1x640xf32>) -> (%output0: tensor<1x640xf32>)",
+    "refusals": [],
+    "produced_by": "harness/e27_baseline_vmfb_only_hardened.py (vmfb + iree-dump-module only)",
+    "kernel_stack_bytes": 32,
+    "kernel_stack_from": "elf_stack_frame.py --vmfb (no dump dir)",
+    "one_invocation_binding": null,
+    "one_invocation_note": "not produced at this level: binding needs a second artifact from the same compile to cross-check against"
+   },
+   "three_figures_agree": true,
+   "kernel_stack_agrees": true
+  }
+ },
+ "cells": [
+  {
+   "model": "smartcam_x86_64",
+   "band": "band_above_B",
+   "budget_bytes": 18222796,
+   "policy": "unconditional",
+   "level_c_verdict": "ADMIT",
+   "level_b_verdict": "ADMIT",
+   "level_c_admitted_budget": 18222796,
+   "level_b_admitted_budget": 18222796,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_x86_64",
+   "band": "band_above_B",
+   "budget_bytes": 18222796,
+   "policy": "conditional_map",
+   "level_c_verdict": "ADMIT",
+   "level_b_verdict": "ADMIT",
+   "level_c_admitted_budget": 18222796,
+   "level_b_admitted_budget": 18222796,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_x86_64",
+   "band": "band_between",
+   "budget_bytes": 9382092,
+   "policy": "unconditional",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_x86_64",
+   "band": "band_between",
+   "budget_bytes": 9382092,
+   "policy": "conditional_map",
+   "level_c_verdict": "ADMIT_CONDITIONAL_MAP",
+   "level_b_verdict": "ADMIT_CONDITIONAL_MAP",
+   "level_c_admitted_budget": 9382092,
+   "level_b_admitted_budget": 9382092,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_x86_64",
+   "band": "band_below_P",
+   "budget_bytes": 9382091,
+   "policy": "unconditional",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_x86_64",
+   "band": "band_below_P",
+   "budget_bytes": 9382091,
+   "policy": "conditional_map",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_aarch64",
+   "band": "band_above_B",
+   "budget_bytes": 18222796,
+   "policy": "unconditional",
+   "level_c_verdict": "ADMIT",
+   "level_b_verdict": "ADMIT",
+   "level_c_admitted_budget": 18222796,
+   "level_b_admitted_budget": 18222796,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_aarch64",
+   "band": "band_above_B",
+   "budget_bytes": 18222796,
+   "policy": "conditional_map",
+   "level_c_verdict": "ADMIT",
+   "level_b_verdict": "ADMIT",
+   "level_c_admitted_budget": 18222796,
+   "level_b_admitted_budget": 18222796,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_aarch64",
+   "band": "band_between",
+   "budget_bytes": 9382092,
+   "policy": "unconditional",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_aarch64",
+   "band": "band_between",
+   "budget_bytes": 9382092,
+   "policy": "conditional_map",
+   "level_c_verdict": "ADMIT_CONDITIONAL_MAP",
+   "level_b_verdict": "ADMIT_CONDITIONAL_MAP",
+   "level_c_admitted_budget": 9382092,
+   "level_b_admitted_budget": 9382092,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_aarch64",
+   "band": "band_below_P",
+   "budget_bytes": 9382091,
+   "policy": "unconditional",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "smartcam_aarch64",
+   "band": "band_below_P",
+   "budget_bytes": 9382091,
+   "policy": "conditional_map",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b2_resnet",
+   "band": "band_above_B",
+   "budget_bytes": 618856,
+   "policy": "unconditional",
+   "level_c_verdict": "ADMIT",
+   "level_b_verdict": "ADMIT",
+   "level_c_admitted_budget": 618856,
+   "level_b_admitted_budget": 618856,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b2_resnet",
+   "band": "band_above_B",
+   "budget_bytes": 618856,
+   "policy": "conditional_map",
+   "level_c_verdict": "ADMIT",
+   "level_b_verdict": "ADMIT",
+   "level_c_admitted_budget": 618856,
+   "level_b_admitted_budget": 618856,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b2_resnet",
+   "band": "band_between",
+   "budget_bytes": 309416,
+   "policy": "unconditional",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b2_resnet",
+   "band": "band_between",
+   "budget_bytes": 309416,
+   "policy": "conditional_map",
+   "level_c_verdict": "ADMIT_CONDITIONAL_MAP",
+   "level_b_verdict": "ADMIT_CONDITIONAL_MAP",
+   "level_c_admitted_budget": 309416,
+   "level_b_admitted_budget": 309416,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b2_resnet",
+   "band": "band_below_P",
+   "budget_bytes": 309415,
+   "policy": "unconditional",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b2_resnet",
+   "band": "band_below_P",
+   "budget_bytes": 309415,
+   "policy": "conditional_map",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b3_deepae",
+   "band": "band_above_B",
+   "budget_bytes": 1069632,
+   "policy": "unconditional",
+   "level_c_verdict": "ADMIT",
+   "level_b_verdict": "ADMIT",
+   "level_c_admitted_budget": 1069632,
+   "level_b_admitted_budget": 1069632,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b3_deepae",
+   "band": "band_above_B",
+   "budget_bytes": 1069632,
+   "policy": "conditional_map",
+   "level_c_verdict": "ADMIT",
+   "level_b_verdict": "ADMIT",
+   "level_c_admitted_budget": 1069632,
+   "level_b_admitted_budget": 1069632,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b3_deepae",
+   "band": "band_between",
+   "budget_bytes": 6208,
+   "policy": "unconditional",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b3_deepae",
+   "band": "band_between",
+   "budget_bytes": 6208,
+   "policy": "conditional_map",
+   "level_c_verdict": "ADMIT_CONDITIONAL_MAP",
+   "level_b_verdict": "ADMIT_CONDITIONAL_MAP",
+   "level_c_admitted_budget": 6208,
+   "level_b_admitted_budget": 6208,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b3_deepae",
+   "band": "band_below_P",
+   "budget_bytes": 6207,
+   "policy": "unconditional",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  },
+  {
+   "model": "b3_deepae",
+   "band": "band_below_P",
+   "budget_bytes": 6207,
+   "policy": "conditional_map",
+   "level_c_verdict": "NOT_ADMITTED",
+   "level_b_verdict": "NOT_ADMITTED",
+   "level_c_admitted_budget": null,
+   "level_b_admitted_budget": null,
+   "verdicts_agree": true
+  }
+ ],
+ "totals": {
+  "cells": 24,
+  "verdicts_agreeing": 24,
+  "verdicts_disagreeing": 0,
+  "models_where_three_figures_agree": 4,
+  "models_where_kernel_stack_agrees": 4,
+  "models_total": 4
+ },
+ "disagreeing_cells": []
+}

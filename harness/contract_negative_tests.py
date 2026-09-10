@@ -3963,6 +3963,85 @@ def e34_comparator_generalisation_cases(tmp):
     return results
 
 
+E35_DIR = os.path.join(os.path.dirname(HERE), "results", "e35_fair_baseline")
+
+
+def e35_fair_baseline_cases():
+    """E35 / stage 5: with the SAME conditional knowledge, the artifact-only level decides
+    exactly what the MLIR level decides.
+
+    This is the deflationary result the ninth review SS8.3 asked for, and the pins here exist
+    to stop it being quietly re-inflated later:
+
+      * 24/24 admission verdicts agree -- if a future change makes them differ, that is a
+        finding, not a silent improvement;
+      * the baseline really was GIVEN the conditional bound (band_between admits
+        conditionally at per_call on BOTH levels). A comparison that forgot to do that
+        would manufacture an MLIR advantage out of execution policy;
+      * the kernel stack agrees too. The first run of the collector said 0/4, which was a
+        TOOL bug (wrong contract field name), not a finding -- the embedded ELF is inside
+        the vmfb, so the same analyser runs at either level;
+      * the one asymmetry (one-invocation binding) is recorded as a COST of using several
+        artifacts, never as an MLIR advantage."""
+    results = []
+    p = os.path.join(E35_DIR, "summary.json")
+    if not os.path.exists(p):
+        results.append(Result("e35: fair-baseline matrix present", False, "missing %s" % p))
+        return results
+    d = load(p)
+    t = d["totals"]
+
+    _ok = t["cells"] == 24 and t["verdicts_disagreeing"] == 0 and t["verdicts_agreeing"] == 24
+    results.append(Result("e35: all 24 admission verdicts agree between the MLIR and artifact-only levels",
+                          _ok, "" if _ok else json.dumps(t)))
+    _ok = t["models_where_three_figures_agree"] == t["models_total"] == 4
+    results.append(Result("e35: bounded/per_call/constants agree on all 4 models",
+                          _ok, "" if _ok else json.dumps(t)))
+    _ok = t["models_where_kernel_stack_agrees"] == 4
+    results.append(Result("e35: the kernel stack figure agrees too (it is not MLIR-exclusive)",
+                          _ok, "" if _ok else json.dumps(t)))
+
+    f = d["fairness"]
+    _ok = (f["conditional_knowledge_given_to_baseline"] is True
+           and "admission_policy.py" in f["same_policy_code"]
+           and f["recompiled"] == 0)
+    results.append(Result("e35: the baseline was given the conditional bound and both levels ran ONE "
+                          "policy implementation", _ok, "" if _ok else json.dumps(f)[:220]))
+
+    # the fairness claim has to be visible in the cells, not only asserted in a field
+    between = [c for c in d["cells"] if c["band"] == "band_between" and c["policy"] == "conditional_map"]
+    _ok = (len(between) == 4
+           and all(c["level_b_verdict"] == "ADMIT_CONDITIONAL_MAP" for c in between)
+           and all(c["level_b_admitted_budget"] == c["level_c_admitted_budget"] for c in between))
+    results.append(Result("e35: in the between band the artifact-only level admits conditionally on "
+                          "the SAME budget (the fairness condition, checked in the cells)",
+                          _ok, "" if _ok else json.dumps(between)[:260]))
+    uncond = [c for c in d["cells"] if c["band"] == "band_between" and c["policy"] == "unconditional"]
+    _ok = len(uncond) == 4 and all(c["level_c_verdict"] == "NOT_ADMITTED" for c in uncond)
+    results.append(Result("e35: and the unconditional policy denies that same budget, so the band "
+                          "actually separates the two policies", _ok,
+                          "" if _ok else json.dumps(uncond)[:220]))
+
+    # the asymmetry must stay described as a cost
+    m = next(iter(d["models"].values()))
+    _ok = (m["level_c_mlir"]["one_invocation_binding"] is True
+           and m["level_b_artifact_only"]["one_invocation_binding"] is None
+           and "cross-check against" in m["level_b_artifact_only"].get("one_invocation_note", ""))
+    results.append(Result("e35: one-invocation binding is recorded as not-produced with the reason, "
+                          "not as an MLIR advantage", _ok,
+                          "" if _ok else json.dumps(m.get("level_b_artifact_only", {}))[:220]))
+
+    # and the claim guardrails must carry the deflation
+    claude = os.path.join(os.path.dirname(HERE), "CLAUDE.md")
+    if os.path.exists(claude):
+        txt = open(claude, encoding="utf-8", errors="replace").read()
+        _ok = "24/24" in txt and "MLIR 기반 계약 추출·연계 방법" in txt
+        results.append(Result("e35: the claim guardrails record the 24/24 result and the narrowed "
+                              "wording", _ok,
+                              "" if _ok else "CLAUDE.md does not carry E35's narrowing"))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -4776,6 +4855,7 @@ def main():
         all_results += e33_official_onair_cases(tmp)
         all_results += e34_two_models_cases()
         all_results += e34_comparator_generalisation_cases(tmp)
+        all_results += e35_fair_baseline_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
