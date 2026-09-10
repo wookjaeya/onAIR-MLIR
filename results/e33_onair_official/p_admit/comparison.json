@@ -1,0 +1,245 @@
+{
+ "tool": "harness/e31_compare.py",
+ "experiment": "E31 (P2: SmartCam semantic preservation)",
+ "criteria": {
+  "source": "docs/plans/E31_smartcam_semantic_equivalence.md SS4, committed before measurement",
+  "inherited_from": "E25 SS3.2, unchanged (ninth review SS9.3)",
+  "abs_tol": 0.0001,
+  "rel_tol": 1e-05,
+  "rule": "per element: abs_err <= abs_tol OR rel_err <= rel_tol",
+  "rel_definition": "|a-b| / max(|a|,|b|,1e-30)",
+  "argmax": "must agree on every sample, but agreeing argmax is NOT equivalence on its own",
+  "bit_identity": "not required between these two implementations, and not generalised if seen"
+ },
+ "paths": {
+  "oracle": {
+   "file": "results/e31_smartcam_equivalence/oracle_tflite.json",
+   "runner": "ai_edge_litert Interpreter (LiteRT), original flatbuffer unmodified",
+   "model_sha256": "fd1ecbd01ad2d46bd35cbac17809cfa24b1d929b8f14871fc1fb6fca5ff06aae"
+  },
+  "iree": {
+   "file": "results/e33_onair_official/p_admit/iree_onair.json",
+   "runner": "NASA OnAIR driver.py -> onair/src/util/plugin_import.import_plugins -> plugins/compiled_learner Plugin, pip iree.runtime (local-sync), x86-64 host",
+   "artifact_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8"
+  }
+ },
+ "totals": {
+  "samples": 5,
+  "elements": 15,
+  "elements_failed": 0,
+  "argmax_failed": 0,
+  "by_kind": {
+   "edge": 2,
+   "real_example": 3
+  }
+ },
+ "worst_element": {
+  "abs": 5.364418029785156e-07,
+  "rel": 5.677437880786547e-07,
+  "sample_id": "img_msec_1597559030639_2",
+  "index": 2
+ },
+ "verdict": "PASS",
+ "scope": {
+  "declared_subset": [
+   "edge_ones",
+   "edge_zeros",
+   "img_msec_1597559030639_2",
+   "img_msec_1607377664281_2",
+   "img_msec_1607639907670_2"
+  ],
+  "note": "this verdict covers exactly these samples and no others"
+ },
+ "samples": [
+  {
+   "sample_id": "edge_ones",
+   "kind": "edge",
+   "elements_ok": 3,
+   "elements": 3,
+   "argmax_oracle": 0,
+   "argmax_iree": 0,
+   "argmax_ok": true,
+   "max_abs_err": 1.7881393432617188e-07,
+   "max_rel_err": 2.429549148564501e-06,
+   "ok": true,
+   "elements_detail": [
+    {
+     "index": 0,
+     "oracle": 0.925284206867218,
+     "iree": 0.9252843856811523,
+     "abs_err": 1.7881393432617188e-07,
+     "rel_err": 1.9325294697860613e-07,
+     "ok": true
+    },
+    {
+     "index": 1,
+     "oracle": 0.05213307589292526,
+     "iree": 0.052132949233055115,
+     "abs_err": 1.2665987014770508e-07,
+     "rel_err": 2.429549148564501e-06,
+     "ok": true
+    },
+    {
+     "index": 2,
+     "oracle": 0.02258274145424366,
+     "iree": 0.02258271351456642,
+     "abs_err": 2.7939677238464355e-08,
+     "rel_err": 1.2372137056554771e-06,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "sample_id": "edge_zeros",
+   "kind": "edge",
+   "elements_ok": 3,
+   "elements": 3,
+   "argmax_oracle": 0,
+   "argmax_iree": 0,
+   "argmax_ok": true,
+   "max_abs_err": 1.30385160446167e-07,
+   "max_rel_err": 4.060482157893357e-06,
+   "ok": true,
+   "elements_detail": [
+    {
+     "index": 0,
+     "oracle": 0.9326788783073425,
+     "iree": 0.9326789975166321,
+     "abs_err": 1.1920928955078125e-07,
+     "rel_err": 1.278138457799415e-07,
+     "ok": true
+    },
+    {
+     "index": 1,
+     "oracle": 0.03521046042442322,
+     "iree": 0.035210467875003815,
+     "abs_err": 7.450580596923828e-09,
+     "rel_err": 2.1160129491528437e-07,
+     "ok": true
+    },
+    {
+     "index": 2,
+     "oracle": 0.03211075812578201,
+     "iree": 0.03211062774062157,
+     "abs_err": 1.30385160446167e-07,
+     "rel_err": 4.060482157893357e-06,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "sample_id": "img_msec_1597559030639_2",
+   "kind": "real_example",
+   "elements_ok": 3,
+   "elements": 3,
+   "argmax_oracle": 2,
+   "argmax_iree": 2,
+   "argmax_ok": true,
+   "max_abs_err": 5.364418029785156e-07,
+   "max_rel_err": 1.5726420519909745e-05,
+   "ok": true,
+   "elements_detail": [
+    {
+     "index": 0,
+     "oracle": 0.03559163957834244,
+     "iree": 0.03559190779924393,
+     "abs_err": 2.682209014892578e-07,
+     "rel_err": 7.536007988168467e-06,
+     "ok": true
+    },
+    {
+     "index": 1,
+     "oracle": 0.019542375579476357,
+     "iree": 0.01954268291592598,
+     "abs_err": 3.073364496231079e-07,
+     "rel_err": 1.5726420519909745e-05,
+     "ok": true
+    },
+    {
+     "index": 2,
+     "oracle": 0.9448660016059875,
+     "iree": 0.9448654651641846,
+     "abs_err": 5.364418029785156e-07,
+     "rel_err": 5.677437880786547e-07,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "sample_id": "img_msec_1607377664281_2",
+   "kind": "real_example",
+   "elements_ok": 3,
+   "elements": 3,
+   "argmax_oracle": 1,
+   "argmax_iree": 1,
+   "argmax_ok": true,
+   "max_abs_err": 1.1920928955078125e-07,
+   "max_rel_err": 5.882674491890778e-06,
+   "ok": true,
+   "elements_detail": [
+    {
+     "index": 0,
+     "oracle": 0.01029049139469862,
+     "iree": 0.01029055193066597,
+     "abs_err": 6.05359673500061e-08,
+     "rel_err": 5.882674491890778e-06,
+     "ok": true
+    },
+    {
+     "index": 1,
+     "oracle": 0.9860488176345825,
+     "iree": 0.986048698425293,
+     "abs_err": 1.1920928955078125e-07,
+     "rel_err": 1.2089593072759885e-07,
+     "ok": true
+    },
+    {
+     "index": 2,
+     "oracle": 0.003660732414573431,
+     "iree": 0.0036607387010008097,
+     "abs_err": 6.28642737865448e-09,
+     "rel_err": 1.7172565135380554e-06,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "sample_id": "img_msec_1607639907670_2",
+   "kind": "real_example",
+   "elements_ok": 3,
+   "elements": 3,
+   "argmax_oracle": 1,
+   "argmax_iree": 1,
+   "argmax_ok": true,
+   "max_abs_err": 4.172325134277344e-07,
+   "max_rel_err": 3.987792641670638e-06,
+   "ok": true,
+   "elements_detail": [
+    {
+     "index": 0,
+     "oracle": 0.08220694214105606,
+     "iree": 0.08220726996660233,
+     "abs_err": 3.2782554626464844e-07,
+     "rel_err": 3.987792641670638e-06,
+     "ok": true
+    },
+    {
+     "index": 1,
+     "oracle": 0.8924376964569092,
+     "iree": 0.8924372792243958,
+     "abs_err": 4.172325134277344e-07,
+     "rel_err": 4.6752004659171207e-07,
+     "ok": true
+    },
+    {
+     "index": 2,
+     "oracle": 0.025355415418744087,
+     "iree": 0.02535545825958252,
+     "abs_err": 4.284083843231201e-08,
+     "rel_err": 1.6896101026342637e-06,
+     "ok": true
+    }
+   ]
+  }
+ ]
+}

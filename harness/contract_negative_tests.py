@@ -3650,6 +3650,175 @@ def e32_admitted_budget_cases():
     return results
 
 
+E33_DIR = os.path.join(os.path.dirname(HERE), "results", "e33_onair_official")
+
+
+def e33_official_onair_cases(tmp):
+    """E33 / stage 3: the plugin runs under NASA OnAIR's OWN loader, and a refusal
+    leaves OnAIR alive.
+
+    v0.22.1 had to correct E25's "OnAIR-IREE" to "direct iree.runtime call": the
+    official loading path had never been exercised. What is pinned here is the
+    difference between those two things, plus the three NASA-source constraints the
+    design had to obey and the two-way defect rule applied to a refusal:
+
+      * the loader passes (construct_name, headers) and nothing else, so deployment
+        settings must arrive out of band;
+      * `AIPlugin` asserts non-empty headers while an image must NOT be spread over
+        150,528 header fields -> two input modes;
+      * NASA's csv parser floatifies every field, so a STRING sample id would arrive
+        as 0.0 and every frame would silently replay sample zero -> numeric index.
+
+    The refusal cells matter as much as the admitting one: a plugin that takes the
+    OnAIR process down with it is not fail-closed, it is just broken."""
+    results = []
+    pure = admission_policy_unit_cases()
+    results.extend(pure)
+
+    summ_p = os.path.join(E33_DIR, "summary.json")
+    if not os.path.exists(summ_p):
+        results.append(Result("e33: official OnAIR run summary present", False,
+                              "missing %s" % summ_p))
+        return results
+    d = load(summ_p)
+    cells = d["cells"]
+
+    # every cell must have gone through NASA's loader with OnAIR core untouched
+    bad = [n for n, c in cells.items()
+           if not (c["plugin_constructed_by_nasa_loader"] and c["onair_core_unmodified"])]
+    results.append(Result("e33: all four cells were constructed by NASA's loader with OnAIR core untouched",
+                          not bad, "" if not bad else "cells failing: %s" % bad))
+
+    a = cells["p_admit"]
+    _ok = a["active"] is True and a["inferences"] == 5 and a["returncode"] == 0
+    results.append(Result("e33: P-admit ran 5 inferences through the official path",
+                          _ok, "" if _ok else json.dumps({k: a[k] for k in
+                                                          ("active", "inferences", "returncode")})))
+    s = a["semantics"]
+    _ok = (s["verdict"] == "PASS" and s["elements"] == 15 and s["elements_failed"] == 0
+           and s["argmax_failed"] == 0)
+    results.append(Result("e33: and its outputs meet the criteria inherited unchanged from E25/E31/E32",
+                          _ok, "" if _ok else json.dumps(s)[:220]))
+    _ok = "ORIGINAL TFLite oracle" in s["reference"]
+    results.append(Result("e33: judged against the ORIGINAL oracle, not against another IREE run",
+                          _ok, "" if _ok else s.get("reference")))
+
+    # the refusals: zero inferences AND a living OnAIR process
+    for name, why in (("p_deny", "budget below the bound"),
+                      ("p_mismatch", "artifact does not match the contract")):
+        c = cells[name]
+        _ok = (c["active"] is False and c["inferences"] == 0 and c["returncode"] == 0
+               and bool(c["inactive_reason"]))
+        results.append(Result("e33: %s refuses (%s) with 0 inferences and OnAIR still exits cleanly"
+                              % (name, why), _ok,
+                              "" if _ok else json.dumps({k: c[k] for k in
+                                                         ("active", "inferences", "returncode",
+                                                          "inactive_reason")})[:240]))
+    _ok = "before reading" in (cells["p_mismatch"]["inactive_reason"] or "")
+    results.append(Result("e33: the mismatch is caught BEFORE the artifact is read (size pre-check first)",
+                          _ok, "" if _ok else cells["p_mismatch"].get("inactive_reason")))
+
+    # the legacy path must not have been broken by any of this (type (B) regression)
+    lg = cells["p_legacy"]
+    _ok = lg["active"] is True and lg["inferences"] > 0
+    results.append(Result("e33: the original MLP path still runs (telemetry mode, external weights)",
+                          _ok, "" if _ok else json.dumps(lg)[:200]))
+    _ok = (lg["admission"] or {}).get("verdict") == "NOT_EVALUATED"
+    results.append(Result("e33: and its old-style contract records NOT_EVALUATED rather than "
+                          "inventing a bound", _ok,
+                          "" if _ok else json.dumps(lg.get("admission"))[:200]))
+
+    # the constraints that were read out of NASA's source, kept where a future
+    # change would have to notice them
+    k = d["constraints_read_from_nasa_source"]
+    _ok = ("floatify" in k["csv_floatifies"] and "0.0" in k["csv_floatifies"]
+           and "NUMERIC index" in k["csv_floatifies"])
+    results.append(Result("e33: the record keeps WHY the frame carries a numeric index "
+                          "(a string id would floatify to 0.0 and replay sample zero)",
+                          _ok, "" if _ok else k.get("csv_floatifies", "")[:200]))
+    _ok = "6 results for 5 frames" in k["extra_render_call"]
+    results.append(Result("e33: and that OnAIR calls render_reasoning() once more with no fresh input",
+                          _ok, "" if _ok else k.get("extra_render_call", "")[:200]))
+
+    # the plugin source: the properties the review's SS6.1 table asked for
+    src_p = os.path.join(os.path.dirname(HERE), "plugins", "compiled_learner",
+                         "compiled_learner_plugin.py")
+    if os.path.exists(src_p):
+        src = open(src_p, encoding="utf-8", errors="replace").read()
+        for label, pat in (("a fixed-size latency ring, not a per-call list", "deque(maxlen=LAT_RING)"),
+                           ("deployment settings out of band", "ONAIR_MLIR_DEPLOYMENT_CONFIG"),
+                           ("full outputs preserved for verification", "self.last_output"),
+                           ("stale render calls do not spend an inference", "self.n_stale_calls")):
+            results.append(Result("e33: plugin keeps %s" % label, pat in src,
+                                  "" if pat in src else "expected %r in the plugin" % pat))
+        _ok = "self._x[0, i] = 0.0" not in src
+        results.append(Result("e33: an unconvertible telemetry field is an error, not a silent 0.0",
+                              _ok, "" if _ok else "the zero-substitution path is back"))
+    return results
+
+
+def admission_policy_unit_cases():
+    """The pure decision, exercised directly. It is shared by the plugin and must never
+    invent a bound: an unknown method refuses, and the conditional tier is only reachable
+    when the unconditional answer does NOT already fit (E29) -- otherwise a deployment
+    would trade a proven bound for a precondition for nothing."""
+    import admission_policy as ap                                # noqa: PLC0415
+    out = []
+
+    def contract(bounded, per_call, constants, method="static_from_stream_layout"):
+        return {"resources": {"bound_method": method, "bounded_bytes": bounded,
+                              "static_per_call_bytes": per_call,
+                              "module_resident_constant_bytes": constants}}
+
+    c = contract(100, 40, 60)
+    v = ap.decide(c, 100)
+    _ok = v["verdict"] == ap.ADMIT and v["admitted_budget_bytes"] == 100
+    out.append(Result("e33/policy: budget == bounded admits, and records the budget it decided on",
+                      _ok, "" if _ok else json.dumps(v)[:200]))
+    v = ap.decide(c, 99)
+    _ok = v["verdict"] == ap.NOT_ADMITTED and v["admitted_budget_bytes"] is None
+    out.append(Result("e33/policy: budget == bounded-1 refuses", _ok,
+                      "" if _ok else json.dumps(v)[:200]))
+    v = ap.decide(c, 99, allow_conditional_map=True)
+    _ok = (v["verdict"] == ap.ADMIT_CONDITIONAL_MAP and v["admitted_budget_bytes"] == 40)
+    out.append(Result("e33/policy: the conditional tier admits on per_call and says so in "
+                      "admitted_budget_bytes (D59's number)", _ok,
+                      "" if _ok else json.dumps(v)[:220]))
+    v = ap.decide(c, 100, allow_conditional_map=True)
+    _ok = v["verdict"] == ap.ADMIT and v["conditional_available"] is False
+    out.append(Result("e33/policy: when the unconditional bound already fits, the conditional "
+                      "tier is NOT entered", _ok, "" if _ok else json.dumps(v)[:220]))
+    v = ap.decide(c, 39, allow_conditional_map=True)
+    _ok = v["verdict"] == ap.NOT_ADMITTED
+    out.append(Result("e33/policy: a budget below per_call refuses even with the tier enabled",
+                      _ok, "" if _ok else json.dumps(v)[:200]))
+    for method in (None, "NONE", "none", "unspecified"):
+        v = ap.decide(contract(100, 40, 60, method), 10 ** 9)
+        _ok = v["verdict"] == ap.REFUSED_UNKNOWN_BOUND
+        out.append(Result("e33/policy: bound_method %r refuses at any budget" % method, _ok,
+                          "" if _ok else json.dumps(v)[:200]))
+    try:
+        ap.decide(contract(101, 40, 60), 10 ** 9)
+        _ok = False
+    except ap.AdmissionInputError:
+        _ok = True
+    out.append(Result("e33/policy: a contract whose bounded != per_call + constants is refused, "
+                      "not admitted on the larger figure", _ok,
+                      "" if _ok else "a self-inconsistent contract was accepted"))
+    for bad in (-1, "100", 1.5, True):
+        try:
+            ap.decide(contract(100, 40, 60), bad)
+            _ok = False
+        except ap.AdmissionInputError:
+            _ok = True
+        out.append(Result("e33/policy: budget %r is refused as input, never coerced" % (bad,), _ok,
+                          "" if _ok else "budget %r was accepted" % (bad,)))
+    _ok = not ap.admitted("ADMITTED") and not ap.admitted(None) and ap.admitted(ap.ADMIT)
+    out.append(Result("e33/policy: admitted() is a whitelist -- an unrecognised verdict is not "
+                      "an admission", _ok, "" if _ok else "admitted() accepted an unknown verdict"))
+    return out
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -4460,6 +4629,7 @@ def main():
         all_results += e31_semantic_equivalence_cases(tmp)
         all_results += e32_aarch64_realigned_frame_cases(tmp)
         all_results += e32_admitted_budget_cases()
+        all_results += e33_official_onair_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

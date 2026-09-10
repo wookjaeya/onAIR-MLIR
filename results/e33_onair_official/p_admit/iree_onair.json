@@ -1,0 +1,119 @@
+{
+ "tool": "harness/e33_onair_outputs.py",
+ "runner": "NASA OnAIR driver.py -> onair/src/util/plugin_import.import_plugins -> plugins/compiled_learner Plugin, pip iree.runtime (local-sync), x86-64 host",
+ "official_path_note": "these outputs came out of the official loader, not a direct iree.runtime call -- the distinction v0.22.1 had to correct for E25",
+ "mode": "file_replay",
+ "admission": {
+  "bounded_bytes": 18222796,
+  "per_call_bytes": 9382092,
+  "constants_bytes": 8840704,
+  "budget_bytes": 18222796,
+  "bound_method": "static_from_stream_layout",
+  "scope": "per_app_local_budget",
+  "verdict": "ADMIT",
+  "admitted_budget_bytes": 18222796,
+  "conditional_available": false,
+  "reason": "bounded 18222796 <= budget 18222796"
+ },
+ "binding": {
+  "verdict": "MATCH",
+  "artifact_bytes": 8915257,
+  "artifact_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8"
+ },
+ "artifact": {
+  "path": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+  "bytes": 8915257,
+  "sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8"
+ },
+ "fixture": {
+  "dir": "results/e31_smartcam_equivalence/fixture",
+  "total_samples": 5
+ },
+ "results": [
+  {
+   "sample_id": "img_msec_1597559030639_2",
+   "kind": "real_example",
+   "input_sha256": "ae6e459af90c371fbdfbee2cf5b44b05bcf9da0a810dac22cb49231a7729b18a",
+   "output": [
+    0.03559190779924393,
+    0.01954268291592598,
+    0.9448654651641846
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1607377664281_2",
+   "kind": "real_example",
+   "input_sha256": "0fedf9ee3ea5c3f17defb9dc311f88f6eed5cc1b9027fd8cfd00a1c096a566aa",
+   "output": [
+    0.01029055193066597,
+    0.986048698425293,
+    0.0036607387010008097
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1607639907670_2",
+   "kind": "real_example",
+   "input_sha256": "27001077ac365de09086c660cc1a37106f4f1eacd91e98cdc6da12ae458cc814",
+   "output": [
+    0.08220726996660233,
+    0.8924372792243958,
+    0.02535545825958252
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "edge_zeros",
+   "kind": "edge",
+   "input_sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc",
+   "output": [
+    0.9326789975166321,
+    0.035210467875003815,
+    0.03211062774062157
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "edge_ones",
+   "kind": "edge",
+   "input_sha256": "fb446ff86f61c7dfadb0cc01a6ad2d5923a13392df002e8e869c9ee50ba0aafa",
+   "output": [
+    0.9252843856811523,
+    0.052132949233055115,
+    0.02258271351456642
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  }
+ ]
+}

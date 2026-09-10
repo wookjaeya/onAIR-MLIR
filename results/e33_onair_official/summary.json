@@ -1,0 +1,143 @@
+{
+ "experiment": "E33",
+ "title": "Official OnAIR path (stage 3 of the ninth review's build order)",
+ "plan": "docs/plans/E33_official_onair_path.md (committed before measurement, 3f8aa01)",
+ "what_official_means": "NASA driver.py -> onair/src/util/plugin_import.import_plugins -> plugin.Plugin(construct_name, headers). The harness runs the driver as a subprocess and never imports the plugin itself, because importing AIPlugin and calling the class proves nothing about the official loading path (review SS10 stage 3).",
+ "constraints_read_from_nasa_source": {
+  "loader_arity": "plugin_import.py:49 passes exactly (construct_name, headers)",
+  "headers_nonempty": "AIPlugin.__init__ asserts len(_headers) > 0",
+  "csv_floatifies": "parser_util.floatify_input turns any non-numeric field into 0.0, so a string sample id would arrive as 0.0 and every frame would replay sample zero; the frame therefore carries a NUMERIC index and the deployment config holds the ordered sample_ids",
+  "extra_render_call": "OnAIR calls render_reasoning() once more after the data source is exhausted, with no fresh update(); measured as 6 results for 5 frames before the fix"
+ },
+ "cells": {
+  "p_admit": {
+   "returncode": 0,
+   "plugin_constructed_by_nasa_loader": true,
+   "active": true,
+   "inactive_reason": null,
+   "admission": {
+    "bounded_bytes": 18222796,
+    "per_call_bytes": 9382092,
+    "constants_bytes": 8840704,
+    "budget_bytes": 18222796,
+    "bound_method": "static_from_stream_layout",
+    "scope": "per_app_local_budget",
+    "verdict": "ADMIT",
+    "admitted_budget_bytes": 18222796,
+    "conditional_available": false,
+    "reason": "bounded 18222796 <= budget 18222796"
+   },
+   "binding_verdict": "MATCH",
+   "inferences": 5,
+   "onair_core_unmodified": true,
+   "onair_head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+   "run": "results/e33_onair_official/p_admit/run.json",
+   "records": "results/e33_onair_official/p_admit/plugin_records.jsonl",
+   "semantics": {
+    "verdict": "PASS",
+    "samples": 5,
+    "elements": 15,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "worst_element": {
+     "abs": 5.364418029785156e-07,
+     "rel": 5.677437880786547e-07,
+     "sample_id": "img_msec_1597559030639_2",
+     "index": 2
+    },
+    "declared_subset": [
+     "edge_ones",
+     "edge_zeros",
+     "img_msec_1597559030639_2",
+     "img_msec_1607377664281_2",
+     "img_msec_1607639907670_2"
+    ],
+    "reference": "the ORIGINAL TFLite oracle recorded in E31, not re-run",
+    "comparison": "results/e33_onair_official/p_admit/comparison.json"
+   }
+  },
+  "p_deny": {
+   "returncode": 0,
+   "plugin_constructed_by_nasa_loader": true,
+   "active": false,
+   "inactive_reason": "ContractViolation: admission NOT_ADMITTED -- bounded 18222796 > budget 18222795 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)",
+   "admission": {
+    "bounded_bytes": 18222796,
+    "per_call_bytes": 9382092,
+    "constants_bytes": 8840704,
+    "budget_bytes": 18222795,
+    "bound_method": "static_from_stream_layout",
+    "scope": "per_app_local_budget",
+    "verdict": "NOT_ADMITTED",
+    "admitted_budget_bytes": null,
+    "conditional_available": true,
+    "reason": "bounded 18222796 > budget 18222795 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)"
+   },
+   "binding_verdict": null,
+   "inferences": 0,
+   "onair_core_unmodified": true,
+   "onair_head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+   "run": "results/e33_onair_official/p_deny/run.json",
+   "records": "results/e33_onair_official/p_deny/plugin_records.jsonl"
+  },
+  "p_mismatch": {
+   "returncode": 0,
+   "plugin_constructed_by_nasa_loader": true,
+   "active": false,
+   "inactive_reason": "ContractViolation: CONTRACT_ARTIFACT_MISMATCH: size 8991281 != contract artifact.bytes 8915257 (refused before reading /home/user/onAIR-MLIR/results/e33_onair_official/_mismatch_artifacts/smartcam.vmfb)",
+   "admission": {
+    "bounded_bytes": 18222796,
+    "per_call_bytes": 9382092,
+    "constants_bytes": 8840704,
+    "budget_bytes": 18222796,
+    "bound_method": "static_from_stream_layout",
+    "scope": "per_app_local_budget",
+    "verdict": "ADMIT",
+    "admitted_budget_bytes": 18222796,
+    "conditional_available": false,
+    "reason": "bounded 18222796 <= budget 18222796"
+   },
+   "binding_verdict": null,
+   "inferences": 0,
+   "onair_core_unmodified": true,
+   "onair_head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+   "run": "results/e33_onair_official/p_mismatch/run.json",
+   "records": "results/e33_onair_official/p_mismatch/plugin_records.jsonl"
+  },
+  "p_legacy": {
+   "returncode": 0,
+   "plugin_constructed_by_nasa_loader": true,
+   "active": true,
+   "inactive_reason": null,
+   "admission": {
+    "verdict": "NOT_EVALUATED",
+    "admitted_budget_bytes": null,
+    "reason": "no budget_bytes configured for this deployment"
+   },
+   "binding_verdict": "MATCH",
+   "inferences": 4,
+   "onair_core_unmodified": true,
+   "onair_head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+   "run": "results/e33_onair_official/p_legacy/run.json",
+   "records": "results/e33_onair_official/p_legacy/plugin_records.jsonl"
+  }
+ },
+ "verdicts": {
+  "Q1_semantics": "PASS",
+  "Q2_official_path": "PASS",
+  "Q3_admission": "PASS",
+  "Q4_lifecycle": "PASS",
+  "Q4_note": "outputs are read back and released every call; latency history is a fixed-size ring (LAT_RING) rather than a per-call list; a render_reasoning() with no fresh input repeats the previous answer instead of spending an inference",
+  "legacy_regression": "PASS",
+  "stage_3_complete": true
+ },
+ "not_claimed": [
+  "SBN or any cFS linkage -- a standalone CSV OnAIR run is NOT a cFS integration (review SS2.3)",
+  "accuracy (no evaluation set)",
+  "latency or throughput (FUNCTIONAL_ONLY host; boundaries are recorded for provenance only)",
+  "OnAIR on AArch64 (x86-64 host only)",
+  "other models (stage 4)",
+  "a fair baseline (stage 5)",
+  "arbitrary model hot-swap"
+ ]
+}

@@ -1,0 +1,5 @@
+{"event": "init", "active": true, "inactive_reason": null, "input_mode": "telemetry", "admission": {"verdict": "NOT_EVALUATED", "admitted_budget_bytes": null, "reason": "no budget_bytes configured for this deployment"}, "binding": {"verdict": "MATCH", "artifact_bytes": 10642, "artifact_sha256": "63635f0a72d52aa987a1adc032c40aa18a7ecb31966b8128e318e86f9a2ee3a3"}, "entry": "infer", "deployment_source": "/home/user/onAIR-MLIR/results/e33_onair_official/p_legacy/deployment.json[legacy_mlp]"}
+{"event": "inference", "n": 1, "sample_id": null, "mode": "telemetry", "output": [-3.0701258182525635, 4.789425849914551], "admitted_budget_bytes": null}
+{"event": "inference", "n": 2, "sample_id": null, "mode": "telemetry", "output": [-7.111638069152832, 7.070802211761475], "admitted_budget_bytes": null}
+{"event": "inference", "n": 3, "sample_id": null, "mode": "telemetry", "output": [-11.153212547302246, 9.352182388305664], "admitted_budget_bytes": null}
+{"event": "inference", "n": 4, "sample_id": null, "mode": "telemetry", "output": [-15.194828987121582, 11.633317947387695], "admitted_budget_bytes": null}
