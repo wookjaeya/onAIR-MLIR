@@ -3536,6 +3536,120 @@ def e32_aarch64_realigned_frame_cases(tmp):
     return results
 
 
+def e32_admitted_budget_cases():
+    """E32 / D59: the post-hoc memory check compared the peak with the wrong number.
+
+    `peak_within_bounded` answers "is the UNCONDITIONAL contract sound?".  In the
+    conditional tier admission is granted on `per_call`, not on `bounded`, so a
+    conditional deployment that peaks ABOVE its approved budget still logged
+    `peak_within_bounded: true`.  Measured on SmartCam/aarch64: admitted at 9,382,092,
+    peaked at 9,984,204 (106.4% of the approved budget) -- and the overrun is exactly
+    602,112 B, one input tensor, because a replay that keeps the resident input buffer
+    AND allocates a per-sample input has two inputs live while `per_call`'s io term
+    counts one.
+
+    E29/E29b could not have seen this: their conditional cells used models whose input
+    is a few dozen bytes, so the same structural overrun was invisible in the numbers.
+
+    This is D53's rule ("compare the number you admitted on") applied to the check that
+    runs AFTER inference, which E29b left comparing `bounded`.  Both figures are kept --
+    one is about contract soundness, the other about this deployment -- and the cases
+    below pin that both are emitted by both C paths."""
+    results = []
+    nat = os.path.join(os.path.dirname(HERE), "native", "native_learner.c")
+    app = os.path.join(os.path.dirname(HERE), "native", "cfs_app", "fsw", "src", "ai_learner.c")
+    for label, path in (("native_learner.c", nat), ("ai_learner.c", app)):
+        if not os.path.exists(path):
+            results.append(Result("e32: %s present" % label, False, "missing %s" % path))
+            continue
+        src = open(path, encoding="utf-8", errors="replace").read()
+        _ok = "CONTRACT_PER_CALL_BYTES" in src and "admitted_budget" in src
+        results.append(Result("e32: %s derives the admitted budget from the tier it admitted on" % label,
+                              _ok, "" if _ok else "no admitted_budget derived from the conditional tier"))
+        _ok = "peak_within_admitted_budget" in src
+        results.append(Result("e32: %s reports peak_within_admitted_budget, not only peak_within_bounded" % label,
+                              _ok, "" if _ok else "the deployment-budget comparison is not emitted"))
+        _ok = "peak_within_bounded" in src
+        results.append(Result("e32: %s still reports peak_within_bounded (contract soundness is not dropped)" % label,
+                              _ok, "" if _ok else "the unconditional soundness signal was removed -- both are needed"))
+    # the app must make an overrun loud, not merely tabulate it
+    if os.path.exists(app):
+        src = open(app, encoding="utf-8", errors="replace").read()
+        _ok = "budget overrun" in src and "CFE_EVS_EventType_ERROR" in src
+        results.append(Result("e32: the cFS app raises an EVS ERROR when the peak exceeds the admitted budget",
+                              _ok, "" if _ok else "an overrun is recorded in JSON only, with no operator-visible event"))
+
+    # --- the measured cells, and above all the CONTROL that made the diagnosis a
+    # measurement rather than an argument ---
+    summ_p = os.path.join(E32_DIR, "summary.json")
+    if not os.path.exists(summ_p):
+        results.append(Result("e32: E32 summary present", False, "missing %s" % summ_p))
+        return results
+    d = load(summ_p)
+
+    v = d["verdicts"]
+    _ok = (v["Q1_semantics"] == "PASS" and v["Q2_contract_admission"] == "PASS"
+           and v["Q4_mode_separation"] == "PASS" and "FAILED" in v["Q3_lifecycle"]
+           and d["verdicts"]["stage_2_complete"] is False)
+    results.append(Result("e32: the recorded verdict keeps Q3's conditional shortfall (stage 2 not complete)",
+                          _ok, "" if _ok else json.dumps(v)[:240]))
+
+    c = d["contract"]
+    _ok = (c["bounded_bytes"] == 18222796 and c["per_call_bytes"] == 9382092
+           and c["constants_bytes"] == 8840704 and not c["overrides_applied"]
+           and c["kernel_stack_classification"] == "bucket_2_task_stack_budget")
+    results.append(Result("e32: the aarch64 contract is x86-64's three figures with zero overrides",
+                          _ok, "" if _ok else json.dumps(c)[:240]))
+
+    n, cf = d["cells"]["S_native"], d["cells"]["S_cfs"]
+    _ok = (n["verdict"] == "PASS" and n["samples"] == 37 and n["elements"] == 111
+           and n["elements_failed"] == 0 and n["argmax_failed"] == 0)
+    results.append(Result("e32: S-native PASS on all 37 fixture samples (111 elements, 0 failures)",
+                          _ok, "" if _ok else json.dumps(n)[:200]))
+    _ok = (cf["verdict"] == "PASS" and cf["samples"] == 5 and cf["elements"] == 15
+           and cf["elements_failed"] == 0 and cf["argmax_failed"] == 0
+           and len(cf["declared_subset"] or []) == 5)
+    results.append(Result("e32: S-cfs PASS on the 5 samples the plan declared before measuring",
+                          _ok, "" if _ok else json.dumps(cf)[:200]))
+    # the declared subset must still contain the non-constant real images: E31 measured that
+    # constant edge inputs cannot detect a layout error at all.
+    _ok = sum(1 for s in (cf["declared_subset"] or []) if s.startswith("img_")) == 3
+    results.append(Result("e32: that declared subset contains all three non-constant real images",
+                          _ok, "" if _ok else "declared=%s" % json.dumps(cf["declared_subset"])))
+
+    t = d["D59_conditional_tier"]
+    _ok = (t["with_replay"]["hal_peak"] == 9984204
+           and t["without_replay"]["hal_peak"] == 9382092
+           and t["without_replay"]["ratio"] == 1.0)
+    results.append(Result("e32: the control isolates the overrun -- same budget, replay off, peak is exactly per_call",
+                          _ok, "" if _ok else json.dumps({k: t[k] for k in ("with_replay", "without_replay")})[:260]))
+    ar = t["arithmetic"]
+    _ok = (ar["per_call"] == ar["io"] + ar["transient"]
+           and ar["io"] == ar["input_tensor_bytes"] + ar["output_bytes"]
+           and t["with_replay"]["hal_peak"] == ar["per_call"] + ar["input_tensor_bytes"])
+    results.append(Result("e32: and the decomposition is exact -- peak == per_call + one input tensor",
+                          _ok, "" if _ok else json.dumps(ar)[:220]))
+    af = t["after_fix"]
+    _ok = (af["peak_within_bounded"] is True and af["peak_within_admitted_budget"] is False
+           and af["admission_mode"] == "conditional_map")
+    results.append(Result("e32: after D59 the same run reports the violation instead of hiding it",
+                          _ok, "" if _ok else json.dumps(af)[:220]))
+    _ok = t["cfs_app_contrast"]["equals_per_call"] is True
+    results.append(Result("e32: the cFS deployment adapter keeps one input live -- its peak is exactly per_call",
+                          _ok, "" if _ok else json.dumps(t["cfs_app_contrast"])[:200]))
+
+    b = d["budget_cells"]
+    _ok = (b["native_B_minus_1"]["verdict"] == "NOT_ADMITTED" and b["native_B_minus_1"]["inferences"] == 0
+           and b["native_B"]["verdict"] == "ADMIT" and b["native_B_plus_1"]["verdict"] == "ADMIT")
+    results.append(Result("e32: budget boundary holds on aarch64 (B-1 DENY with 0 inferences, B and B+1 ADMIT)",
+                          _ok, "" if _ok else json.dumps(b)[:240]))
+    # the plan said something that turned out to be impossible; that has to stay recorded
+    _ok = (b["cfs_B_minus_1"]["buildable"] is False and "plan_error" in b["cfs_B_minus_1"])
+    results.append(Result("e32: the cFS B-1 cell records why it is unbuildable AND that the plan was wrong about it",
+                          _ok, "" if _ok else json.dumps(b.get("cfs_B_minus_1"))[:240]))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -4345,6 +4459,7 @@ def main():
         all_results += e30b_squeeze_extension_cases(tmp)
         all_results += e31_semantic_equivalence_cases(tmp)
         all_results += e32_aarch64_realigned_frame_cases(tmp)
+        all_results += e32_admitted_budget_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

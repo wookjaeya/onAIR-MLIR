@@ -1,0 +1,11 @@
+=== budget 18222795 ===
+{"stage":"admission","verdict":"NOT_ADMITTED","model":"smartcam","target":"aarch64-unknown-linux-gnu","bounded_bytes":18222796,"budget_bytes":18222795,"per_call":9382092,"constants":8840704,"kernel_stack_bytes":1919,"bound_known":true}
+{"stage":"exit","reason":"not admitted","cleanup_calls":0}
+=== budget 18222796 ===
+{"stage":"admission","verdict":"ADMIT","model":"smartcam","target":"aarch64-unknown-linux-gnu","bounded_bytes":18222796,"budget_bytes":18222796,"per_call":9382092,"constants":8840704,"kernel_stack_bytes":1919,"bound_known":true}
+{"stage":"exit","reason":"ok","cleanup_calls":1}
+=== budget 18222797 ===
+{"stage":"admission","verdict":"ADMIT","model":"smartcam","target":"aarch64-unknown-linux-gnu","bounded_bytes":18222796,"budget_bytes":18222797,"per_call":9382092,"constants":8840704,"kernel_stack_bytes":1919,"bound_known":true}
+{"stage":"exit","reason":"ok","cleanup_calls":1}
+
+[exited with code 0]

@@ -1,0 +1,757 @@
+{
+ "tool": "harness/e32_native_aarch64.py",
+ "runner": "native/native_learner.c cross-built aarch64-linux-gnu, IREE C runtime (local-sync, embedded ELF loader), executed under qemu-aarch64 (user mode)",
+ "artifact": {
+  "path": "results/e32_smartcam_aarch64/build/smartcam.vmfb",
+  "bytes": 8991281,
+  "sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"
+ },
+ "fixture": {
+  "dir": "results/e31_smartcam_equivalence/fixture",
+  "total_samples": 37
+ },
+ "budget_bytes": 18222796,
+ "returncode": 0,
+ "stages": [
+  {
+   "stage": "admission",
+   "verdict": "ADMIT",
+   "model": "smartcam",
+   "target": "aarch64-unknown-linux-gnu",
+   "bounded_bytes": 18222796,
+   "budget_bytes": 18222796,
+   "per_call": 9382092,
+   "constants": 8840704,
+   "kernel_stack_bytes": 1919,
+   "bound_known": true
+  },
+  {
+   "stage": "binding",
+   "verdict": "MATCH",
+   "artifact_bytes": 8991281,
+   "artifact_sha256": "ecffe6e0bcbadf51...",
+   "contract_sha256": "ecffe6e0bcbadf51..."
+  },
+  {
+   "stage": "map_branch",
+   "model": "smartcam",
+   "module_ptr_mod64": 0,
+   "hal_peak_after_append": 0,
+   "contract_const_bytes": 8840704,
+   "contract_per_call_bytes": 9382092,
+   "arm": "map",
+   "admission_mode": "unconditional"
+  },
+  {
+   "stage": "e25_equivalence",
+   "inputs": 37,
+   "completed": 37,
+   "artifact_sha256": "ecffe6e0bcbadf51...",
+   "input_elems": 150528,
+   "output_elems": 3
+  },
+  {
+   "stage": "run",
+   "model": "smartcam",
+   "target": "aarch64-unknown-linux-gnu",
+   "iters": 3,
+   "warmup": 200,
+   "attempted": 203,
+   "completed": 203,
+   "fail_input": 0,
+   "fail_invoke": 0,
+   "fail_output": 0,
+   "median_us": 2480399.38,
+   "p99_us": 2484540.31,
+   "max_us": 2484540.31,
+   "out0": 0.819946,
+   "out": [
+    0.819946,
+    0.090916,
+    0.089138
+   ],
+   "hal_device_bytes_peak": 9984204,
+   "peak_within_bounded": true,
+   "hal_bytes_per_call_amortized": 10492982.5,
+   "hal_bytes_per_call_steady": 8779980.0,
+   "steady_within_per_call": true,
+   "rss_kb": {
+    "start": 19124,
+    "after_runtime": 19364,
+    "after_module": 19744,
+    "after_run": 34460
+   },
+   "rss_delta_kb": {
+    "runtime_bringup": 240,
+    "module_load": 380,
+    "inference": 14716,
+    "total": 15336
+   },
+   "vmfb_bytes": 8991281,
+   "kernel_stack_bytes": 1919,
+   "phase_hal": {
+    "after_init": {
+     "peak": 602112,
+     "allocated": 602112
+    },
+    "after_first_call": {
+     "peak": 9984204,
+     "allocated": 356519496,
+     "observed": true
+    },
+    "steady_baseline": {
+     "peak": 9984204,
+     "allocated": 2103735516
+    }
+   },
+   "e25_mode_active": true,
+   "first_fail_step": "",
+   "first_fail_status": ""
+  },
+  {
+   "stage": "cleanup",
+   "released": true,
+   "cleanup_calls": 1
+  },
+  {
+   "stage": "exit",
+   "reason": "ok",
+   "cleanup_calls": 1
+  }
+ ],
+ "outputs_written": 37,
+ "wall_seconds": 586.9,
+ "wall_note": "qemu-user on a FUNCTIONAL_ONLY host: feasibility only, NOT timing evidence",
+ "memory_note": "the HAL peak reported in `stages` is the C runtime's own allocator statistic and it covers the output-CONSUMING equivalence pass that ran before the measured calls (plan SS3.3).",
+ "results": [
+  {
+   "sample_id": "img_msec_1597559030639_2",
+   "kind": "real_example",
+   "input_sha256": "ae6e459af90c371fbdfbee2cf5b44b05bcf9da0a810dac22cb49231a7729b18a",
+   "output": [
+    0.0355919748544693,
+    0.019542690366506577,
+    0.944865345954895
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1607377664281_2",
+   "kind": "real_example",
+   "input_sha256": "0fedf9ee3ea5c3f17defb9dc311f88f6eed5cc1b9027fd8cfd00a1c096a566aa",
+   "output": [
+    0.010290587320923805,
+    0.986048698425293,
+    0.003660745918750763
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1607639907670_2",
+   "kind": "real_example",
+   "input_sha256": "27001077ac365de09086c660cc1a37106f4f1eacd91e98cdc6da12ae458cc814",
+   "output": [
+    0.08220729231834412,
+    0.8924372792243958,
+    0.0253553856164217
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_00",
+   "kind": "synthetic",
+   "input_sha256": "d59b327126251abde7f624c4ede287401f9eb0f9ead6463d4d57a04b5f9269b2",
+   "output": [
+    0.9059848785400391,
+    0.045128628611564636,
+    0.04888651892542839
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_01",
+   "kind": "synthetic",
+   "input_sha256": "81c5e1ace42011f5bf39c3dfe55c6fe9239ba7231de1b140b5ac4710d876e585",
+   "output": [
+    0.9131876230239868,
+    0.04262030869722366,
+    0.044192124158144
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_02",
+   "kind": "synthetic",
+   "input_sha256": "05c35aaf05d768b1ef18c00365e02d62d0e41fb8aa3052e6dfab9c6a62a9b0a1",
+   "output": [
+    0.8941419124603271,
+    0.0530458427965641,
+    0.05281226336956024
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_03",
+   "kind": "synthetic",
+   "input_sha256": "cd9b508a7fe6510e2b25d268370cd4028e75e78b54f4f5aaf9fc2fc3605a0107",
+   "output": [
+    0.923498809337616,
+    0.04644544795155525,
+    0.030055640265345573
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999998807907104
+  },
+  {
+   "sample_id": "synthetic_04",
+   "kind": "synthetic",
+   "input_sha256": "70a625ea7928fea4502d5ccb93cc37fef16322086548f06a194722c75b53a386",
+   "output": [
+    0.9225587248802185,
+    0.04704190045595169,
+    0.030399350449442863
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_05",
+   "kind": "synthetic",
+   "input_sha256": "3b1268a8df9aecad40ec80efe5a6172bb3122c06ea8c18c474e3d4a9fa98aa65",
+   "output": [
+    0.9012029767036438,
+    0.05698247253894806,
+    0.04181455075740814
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_06",
+   "kind": "synthetic",
+   "input_sha256": "856174781136ee8b04b1dbc9ce6ce1018bc0beadf9f6e5b53bc0a2050a0941c9",
+   "output": [
+    0.906898021697998,
+    0.05256026238203049,
+    0.04054168984293938
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_07",
+   "kind": "synthetic",
+   "input_sha256": "bfa6a364b17243d35761ad3d3362e141af43f857bff7b50125b6b33225a8ff47",
+   "output": [
+    0.9236517548561096,
+    0.04342694208025932,
+    0.032921284437179565
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_08",
+   "kind": "synthetic",
+   "input_sha256": "47d5069be95e193d60e30701a585fd61968f9a8c70274c162f209ca22a84ed55",
+   "output": [
+    0.9253445267677307,
+    0.04032348468899727,
+    0.034331973642110825
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_09",
+   "kind": "synthetic",
+   "input_sha256": "6c190fcfe26f25c86eead05fc415d67df78515dc885d10d57d78dc760d2c6004",
+   "output": [
+    0.9091938734054565,
+    0.052934955805540085,
+    0.03787122666835785
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_10",
+   "kind": "synthetic",
+   "input_sha256": "1429ab26a1aafcd73bab07529285960c2b227aa0a624a3c2b0572329c3706b7f",
+   "output": [
+    0.903740406036377,
+    0.05232982710003853,
+    0.04392976313829422
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_11",
+   "kind": "synthetic",
+   "input_sha256": "d90a03ff1f08aa37d10541ddfee022911cbe0a7fe1869b06490d27c5035a4362",
+   "output": [
+    0.921855628490448,
+    0.045517079532146454,
+    0.03262718394398689
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999998807907104
+  },
+  {
+   "sample_id": "synthetic_12",
+   "kind": "synthetic",
+   "input_sha256": "14f66a58847113f04571be82b6afe4a06a0e4529c676ae5c994236be223c5c98",
+   "output": [
+    0.926005482673645,
+    0.04072057455778122,
+    0.033274006098508835
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "synthetic_13",
+   "kind": "synthetic",
+   "input_sha256": "4aa7f945121f24b04473632d7075e8f459d7176ff17b384408d8c8758bc0f386",
+   "output": [
+    0.9279972314834595,
+    0.04032468423247337,
+    0.031678009778261185
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_14",
+   "kind": "synthetic",
+   "input_sha256": "a6f2decfb2751c48bb0e0e4d789b1533c7bcf7ac86cb8a241296dbec7d7f2097",
+   "output": [
+    0.9107875227928162,
+    0.04686977341771126,
+    0.04234272614121437
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_15",
+   "kind": "synthetic",
+   "input_sha256": "bd1e9d88968c611964adbfb7eb7ce3b7add7bc617de9f31c9ce0f4f337336f1d",
+   "output": [
+    0.9195061922073364,
+    0.04818214476108551,
+    0.032311733812093735
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_16",
+   "kind": "synthetic",
+   "input_sha256": "6d7841ef644731091c52ecf5877938d76767154f07a5cdfbc588a0b240b96812",
+   "output": [
+    0.9210717082023621,
+    0.046946123242378235,
+    0.03198223561048508
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_17",
+   "kind": "synthetic",
+   "input_sha256": "81ff4f1e7b64ed6eb9dc4610b666f2196a80d13e4da7e6abc2b5e2445e6a8572",
+   "output": [
+    0.914467990398407,
+    0.05383852869272232,
+    0.03169352561235428
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "synthetic_18",
+   "kind": "synthetic",
+   "input_sha256": "5796e42c65bb25d92f5c24bc393c3274c0020d28d5045d9a4d35604872d87724",
+   "output": [
+    0.9350940585136414,
+    0.04068281129002571,
+    0.02422322705388069
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "synthetic_19",
+   "kind": "synthetic",
+   "input_sha256": "e3a8fa27cead06f207f6f5dcf56b62b05b8309e5375c7eb8826588c7030fd4dc",
+   "output": [
+    0.9115510582923889,
+    0.04998728260397911,
+    0.038461655378341675
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_20",
+   "kind": "synthetic",
+   "input_sha256": "e6cbc37cfbcc1eb132a6b8169ceba035a13eb0535714d932487d0228b6c78bb6",
+   "output": [
+    0.9169723391532898,
+    0.04643915966153145,
+    0.036588408052921295
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_21",
+   "kind": "synthetic",
+   "input_sha256": "166bc0da2fe40cec0c24ebaaea0c41a81a7c2955d8d567396e2ba0900eb627d0",
+   "output": [
+    0.922971248626709,
+    0.044429633766412735,
+    0.032599058002233505
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_22",
+   "kind": "synthetic",
+   "input_sha256": "f73c90c68050f4d277ce1fe0f654689c4b818de128e2a5ae7877fa53c2683791",
+   "output": [
+    0.911220133304596,
+    0.05139633268117905,
+    0.037383489310741425
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_23",
+   "kind": "synthetic",
+   "input_sha256": "ee57c9cec93554a783172e1c978de1a1954cee0b8c5e5293aba3bba59d3e4c2c",
+   "output": [
+    0.9028293490409851,
+    0.045166730880737305,
+    0.05200395733118057
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_24",
+   "kind": "synthetic",
+   "input_sha256": "b503941101e346a471364628445e761f70867e5df5e87099dea3e7a17be8afc5",
+   "output": [
+    0.9027999639511108,
+    0.057735078036785126,
+    0.039464887231588364
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_25",
+   "kind": "synthetic",
+   "input_sha256": "682237b54cd5394211e2e74fabb6aad7bca0385245568fbf008b90ae82e15ac1",
+   "output": [
+    0.9142415523529053,
+    0.04584798961877823,
+    0.03991050273180008
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "synthetic_26",
+   "kind": "synthetic",
+   "input_sha256": "45214017279497eb8644791f5d5e859568530bf1a5d554b7d94befe94a0bbe5e",
+   "output": [
+    0.9217588901519775,
+    0.04741539806127548,
+    0.030825672671198845
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_27",
+   "kind": "synthetic",
+   "input_sha256": "1b361323dbfadc8f542884a3fa71c25fdf987da5cc162e3ae0f0d963108ce991",
+   "output": [
+    0.9160552024841309,
+    0.04897565022110939,
+    0.034969039261341095
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999998807907104
+  },
+  {
+   "sample_id": "synthetic_28",
+   "kind": "synthetic",
+   "input_sha256": "c0ff1f058635e1e395978198df694f01f0c593355da0b31e189bf952a6c297c4",
+   "output": [
+    0.9133666753768921,
+    0.05022357404232025,
+    0.03640979528427124
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_29",
+   "kind": "synthetic",
+   "input_sha256": "f7b0b63d6a4c348f9fd9c409934d7efb5fffbe16818eba4ee50f13abda19e0ba",
+   "output": [
+    0.9145054221153259,
+    0.04740290343761444,
+    0.03809170797467232
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_30",
+   "kind": "synthetic",
+   "input_sha256": "d5a6bc2cde73ad55a1053b4a1245ba9bc88657568de3dd9ee142cb808ecfce31",
+   "output": [
+    0.9208889007568359,
+    0.04087327793240547,
+    0.038237858563661575
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_31",
+   "kind": "synthetic",
+   "input_sha256": "a095402847b6d388a1492cfd87d913544d2f7af9c095014272f4200fca23e38c",
+   "output": [
+    0.9079145789146423,
+    0.046627968549728394,
+    0.04545733332633972
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999998807907104
+  },
+  {
+   "sample_id": "edge_zeros",
+   "kind": "edge",
+   "input_sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc",
+   "output": [
+    0.9326801300048828,
+    0.03520979359745979,
+    0.03211010619997978
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "edge_ones",
+   "kind": "edge",
+   "input_sha256": "fb446ff86f61c7dfadb0cc01a6ad2d5923a13392df002e8e869c9ee50ba0aafa",
+   "output": [
+    0.9252843856811523,
+    0.05213286355137825,
+    0.02258278988301754
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  }
+ ]
+}

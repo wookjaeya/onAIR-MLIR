@@ -587,6 +587,21 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   if (g.n_infer % AI_LEARNER_REPORT_EVERY == 0) {
     iree_hal_allocator_statistics_t stats; iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &stats);
     int within = (long)stats.device_bytes_peak <= (long)CONTRACT_BOUNDED_BYTES;
+    /* E32 / D59: `within` says the UNCONDITIONAL contract held. It does not say this
+     * deployment stayed inside the budget it was ADMITTED on, and in the conditional
+     * tier those are different numbers (per_call vs bounded). Reporting only `within`
+     * lets a conditional app run over its approved budget and still log "true" --
+     * D53's rule ("compare the number you admitted on") applied to the post-hoc check.
+     * Both are kept: one is about contract soundness, the other about this deployment. */
+    long admitted_budget = g.conditional_map ? (long)CONTRACT_PER_CALL_BYTES
+                                             : (long)AI_LEARNER_BUDGET_BYTES;
+    int within_budget = (long)stats.device_bytes_peak <= admitted_budget;
+    if (!within_budget) {
+      CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_ERROR,
+                        "AI_LEARNER budget overrun: hal_peak=%ld > admitted=%ld (mode=%s)",
+                        (long)stats.device_bytes_peak, admitted_budget,
+                        g.conditional_map ? "conditional_map" : "unconditional");
+    }
     static char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8]; AI_LEARNER_FormatOut(outs, sizeof outs);  /* D52: was automatic, 16 B per output element */
     CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_INFORMATION, "AI_LEARNER completed=%u/%u mean=%.1fus max=%.1fus hal_peak=%ld within_bounded=%d",
                       (unsigned)g.n_infer, (unsigned)g.n_attempt, g.lat_sum_us / g.n_infer, g.lat_max_us, (long)stats.device_bytes_peak, within);
@@ -596,9 +611,12 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
                     (unsigned)g.n_attempt, (unsigned)g.n_infer, (unsigned)g.n_fail_input, (unsigned)g.n_fail_invoke, (unsigned)g.n_fail_output,
                     g.lat_sum_us / g.n_infer, g.lat_max_us, g.lat_last_us, g.out[0], outs);
     AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"mem\",\"model\":\"%s\",\"target\":\"%s\",\"completed\":%u,\"hal_peak\":%ld,\"peak_within_bounded\":%s,"
+                    "\"admitted_budget_bytes\":%ld,\"peak_within_admitted_budget\":%s,\"admission_mode\":\"%s\","
                     "\"hal_bytes_per_call_amortized\":%.1f,\"process_rss_kb\":%ld,\"process_rss_delta_init_kb\":%ld}\n",
                     CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE,
                     (unsigned)g.n_infer, (long)stats.device_bytes_peak, within ? "true" : "false",
+                    admitted_budget, within_budget ? "true" : "false",
+                    g.conditional_map ? "conditional_map" : "unconditional",
                     (double)stats.device_bytes_allocated / g.n_infer, rss_kb(), g.rss_kb_init1 - g.rss_kb_init0);
   }
 }

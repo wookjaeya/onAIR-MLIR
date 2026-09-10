@@ -41,12 +41,38 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--abs-tol", type=float, default=ABS_TOL)
     ap.add_argument("--rel-tol", type=float, default=REL_TOL)
+    ap.add_argument("--subset", default=None,
+                    help="JSON file naming the sample ids this comparison is DECLARED to cover "
+                         "(E32: a cell whose scope was fixed in the plan before measuring). Both "
+                         "sides must contain every named id -- this narrows the declared scope, it "
+                         "does NOT relax the same-sample-set guard, and the ids are recorded in the "
+                         "result so a subset can never be read as the full fixture.")
     a = ap.parse_args()
 
     orc = json.load(open(a.oracle))
     ire = json.load(open(a.iree))
     o_by = {r["sample_id"]: r for r in orc["results"]}
     i_by = {r["sample_id"]: r for r in ire["results"]}
+
+    declared = None
+    if a.subset:
+        raw = json.load(open(a.subset))
+        declared = [r["sample_id"] if isinstance(r, dict) else r for r in raw]
+        if len(set(declared)) != len(declared):
+            rec = {"verdict": "REFUSED", "reason": "the declared subset repeats a sample id",
+                   "declared": declared}
+            json.dump(rec, open(a.out, "w"), indent=1)
+            print(json.dumps(rec, indent=1))
+            return 0
+        o_by = {k: v for k, v in o_by.items() if k in set(declared)}
+        i_by = {k: v for k, v in i_by.items() if k in set(declared)}
+        missing = sorted(set(declared) - (set(o_by) & set(i_by)))
+        if missing:
+            rec = {"verdict": "REFUSED", "reason": "a declared sample is absent from one of the runs",
+                   "declared": declared, "missing": missing}
+            json.dump(rec, open(a.out, "w"), indent=1)
+            print(json.dumps(rec, indent=1))
+            return 0
 
     only_oracle = sorted(set(o_by) - set(i_by))
     only_iree = sorted(set(i_by) - set(o_by))
@@ -112,6 +138,10 @@ def main():
                                for k in sorted({r.get("kind") for r in rows})}},
         "worst_element": worst,
         "verdict": verdict,
+        "scope": ({"declared_subset": sorted(declared),
+                   "note": "this verdict covers exactly these samples and no others"}
+                  if declared is not None else
+                  {"declared_subset": None, "note": "every sample both runs contain"}),
         "samples": rows,
     }
     json.dump(rec, open(a.out, "w"), indent=1)

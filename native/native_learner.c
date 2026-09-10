@@ -415,6 +415,18 @@ int main(int argc, char** argv) {
      so it is compared with the BOUNDED figure. Steady-state per-call allocation is
      the counter difference across the measured window (reviewer §5). */
   int peak_within_bounded = peak <= (long)CONTRACT_BOUNDED_BYTES;
+  /* E32 / D59: `peak_within_bounded` answers "is the UNCONDITIONAL contract sound?".
+   * It does NOT answer "did this deployment stay inside the budget it was admitted on".
+   * Those are the same number only in the unconditional tier. In the conditional tier
+   * admission is granted on CONTRACT_PER_CALL_BYTES, so comparing the peak with
+   * CONTRACT_BOUNDED_BYTES reports `true` for a run that is over its approved budget --
+   * D53's lesson ("check the number you admitted on") applied to the post-hoc check that
+   * E29/E29b left comparing the wrong quantity. Measured on SmartCam/aarch64: admitted at
+   * 9,382,092, peaked at 9,984,204 (106.4%), reported within_bounded=true.
+   * The extra is exactly one input tensor: a replay that keeps the resident input buffer
+   * AND allocates a per-sample input has TWO inputs live, while per_call's io term counts one. */
+  long admitted_budget = g.conditional_map ? (long)CONTRACT_PER_CALL_BYTES : budget;
+  int peak_within_budget = peak <= admitted_budget;
   double steady_per_call = (double)(stats.device_bytes_allocated - st_warm.device_bytes_allocated) / iters;
   int steady_within_per_call = steady_per_call <= (double)CONTRACT_PER_CALL_BYTES;
 
@@ -426,6 +438,7 @@ int main(int argc, char** argv) {
          lat[iters / 2], lat[(int)(iters * 0.99)], lat[iters - 1], out[0]);
   for (int k = 0; k < CONTRACT_OUTPUT_ELEMS; ++k) printf("%s%.6f", k ? "," : "", out[k]);
   printf("],\"hal_device_bytes_peak\":%ld,\"peak_within_bounded\":%s,"
+         "\"admitted_budget_bytes\":%ld,\"peak_within_admitted_budget\":%s,\"admission_mode\":\"%s\","
          "\"hal_bytes_per_call_amortized\":%.1f,\"hal_bytes_per_call_steady\":%.1f,\"steady_within_per_call\":%s,"
          "\"rss_kb\":{\"start\":%ld,\"after_runtime\":%ld,\"after_module\":%ld,\"after_run\":%ld},"
          "\"rss_delta_kb\":{\"runtime_bringup\":%ld,\"module_load\":%ld,\"inference\":%ld,\"total\":%ld},"
@@ -439,6 +452,8 @@ int main(int argc, char** argv) {
          "\"e25_mode_active\":%s,"
          "\"first_fail_step\":\"%s\",\"first_fail_status\":\"%s\"}\n",
          peak, peak_within_bounded ? "true" : "false",
+         admitted_budget, peak_within_budget ? "true" : "false",
+         g.conditional_map ? "conditional_map" : "unconditional",
          (double)(stats.device_bytes_allocated) / (iters + WARMUP_CALLS), steady_per_call, steady_within_per_call ? "true" : "false",
          rss0, rss1, rss2, rss3, rss1 - rss0, rss2 - rss1, rss3 - rss2, rss3 - rss0, n, (long)CONTRACT_KERNEL_STACK_BYTES,
          (long)st_init.device_bytes_peak, (long)st_init.device_bytes_allocated,
