@@ -11,6 +11,7 @@
  "schema_version": 3,
  "description": "MLIR Converted.",
  "subgraphs": 1,
+ "inventory_complete": true,
  "inputs": [
   {
    "index": 0,
@@ -63,9 +64,34 @@
  },
  "sensitive_instances": [
   {
+   "tflite_squeeze_dims": [
+    1,
+    2
+   ],
+   "input_shape_tflite": [
+    1,
+    1,
+    1,
+    1280
+   ],
+   "output_shape": [
+    1,
+    1280
+   ],
+   "input_dtype": 0,
+   "output_dtype": 0,
+   "C1_squeezed_axes_size_1": true,
+   "C2_elements_preserved": true,
+   "C3_dtype_preserved": true,
+   "C4_static_output_equals_expected": true,
+   "expected_output_shape": [
+    1,
+    1280
+   ],
+   "identity": false,
    "op_index": 65,
    "op": "SQUEEZE",
-   "squeeze_dims": [
+   "raw_squeeze_dims": [
     1,
     2
    ],
@@ -99,15 +125,7 @@
     ],
     "dtype": "FLOAT32"
    },
-   "squeezed_axes_all_size_1": true,
-   "element_count_preserved": true,
-   "dtype_preserved": true,
-   "output_shape_static": true,
-   "expected_output_shape": [
-    1,
-    1280
-   ],
-   "expected_matches_recorded": true
+   "conditions_1_to_4_satisfied": true
   }
  ],
  "static_shapes": {

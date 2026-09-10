@@ -2662,13 +2662,24 @@ def p1_smartcam_feasibility_cases(tmp):
                           and inv["outputs"][0]["shape"] == [1, 3] and inv["outputs"][0]["dtype"] == "FLOAT32",
                           "total=%s distinct=%s hist=%s" % (inv["operators"]["total"], inv["operators"]["distinct"], hist)))
     s0 = sens[0] if sens else {}
+    # Field names come from the converter's own check_squeeze_conditions: since E30's adversarial
+    # review the inventory imports that function instead of re-deriving the conditions, so the two
+    # P1 tools cannot report different verdicts for the same op (scope bundle, medium findings).
+    _c14 = (bool(s0) and s0.get("C1_squeezed_axes_size_1") is True and s0.get("C2_elements_preserved") is True
+            and s0.get("C3_dtype_preserved") is True and s0.get("C4_static_output_equals_expected") is True
+            and s0.get("conditions_1_to_4_satisfied") is True
+            and s0.get("input", {}).get("shape") == [1, 1, 1, 1280] and s0.get("output", {}).get("shape") == [1, 1280]
+            and s0.get("tflite_squeeze_dims") == [1, 2] and s0.get("raw_squeeze_dims") == [1, 2])
     results.append(Result("p1-smartcam: the SQUEEZE instance satisfies C1..C4 in the flatbuffer itself "
-                          "([1,1,1,1280] -> [1,1280], dims [1,2])",
-                          bool(s0) and s0["squeezed_axes_all_size_1"] and s0["element_count_preserved"]
-                          and s0["dtype_preserved"] and s0["output_shape_static"] and s0["expected_matches_recorded"]
-                          and s0["input"]["shape"] == [1, 1, 1, 1280] and s0["output"]["shape"] == [1, 1280]
-                          and s0["squeeze_dims"] == [1, 2],
-                          "instance=%s" % {k: s0.get(k) for k in ("squeeze_dims", "squeezed_axes_all_size_1", "element_count_preserved", "dtype_preserved", "expected_matches_recorded")}))
+                          "([1,1,1,1280] -> [1,1280], dims [1,2]), judged by the converter's own checker",
+                          _c14,
+                          "" if _c14 else "instance=%s" % {k: s0.get(k) for k in (
+                              "tflite_squeeze_dims", "raw_squeeze_dims", "C1_squeezed_axes_size_1",
+                              "C2_elements_preserved", "C3_dtype_preserved", "C4_static_output_equals_expected",
+                              "conditions_1_to_4_satisfied")}))
+    results.append(Result("p1-smartcam: the inventory reports itself complete (single-subgraph model)",
+                          inv.get("inventory_complete") is True,
+                          "" if inv.get("inventory_complete") is True else "inventory_complete=%s" % inv.get("inventory_complete")))
     results.append(Result("p1-smartcam: cFS interface fit recorded as single f32 in/out, static, 150528 -> 3 elements",
                           inv["cfs_interface_fit"]["single_f32_in_single_f32_out_static"] is True
                           and inv["cfs_interface_fit"]["input_elems"] == 150528 and inv["cfs_interface_fit"]["output_elems"] == 3,
@@ -2952,11 +2963,12 @@ def e30b_squeeze_extension_cases(tmp):
     results = []
     root = os.path.dirname(HERE)
     ext_src = open(os.path.join(HERE, "tflite2onnx_ext_squeeze.py"), encoding="utf-8").read()
-    results.append(Result("e30b: extension enforces C5 (kept-axis order under the layout perm) and refuses instead of emitting",
-                          ("check_kept_axis_order(" in ext_src and "if not ok5:" in ext_src
-                          and "raise SqueezeConditionError" in ext_src.split("if not ok5:")[1][:400]),
-                          "" if ("check_kept_axis_order(" in ext_src and "if not ok5:" in ext_src
-                          and "raise SqueezeConditionError" in ext_src.split("if not ok5:")[1][:400]) else "C5 check or its refusal is gone from transform()"))
+    _c5 = ("check_kept_axis_order(" in ext_src and "if not ok5:" in ext_src
+           and "raise SqueezeConditionError" in ext_src.split("if not ok5:")[1][:400]
+           and "np.array_equal(got, ref)" in ext_src and "got.shape == ref.shape" in ext_src)
+    results.append(Result("e30b: C5 is decided by simulation against np.squeeze (shape AND values), and refuses instead of emitting",
+                          _c5,
+                          "" if _c5 else "C5's simulation, its shape+value equality, or its refusal is gone from the extension"))
     results.append(Result("e30b: a missing SqueezeOptions table is a decision (empty dims), not a crash",
                           ("if opt is None:" in ext_src and "raw_dims = []" in ext_src),
                           "" if ("if opt is None:" in ext_src and "raw_dims = []" in ext_src) else "opt-None path missing in parse()"))
@@ -2965,7 +2977,9 @@ def e30b_squeeze_extension_cases(tmp):
                           "" if ("def normalize_squeeze_dims(" in ext_src and "sorted(set(" in ext_src.split("def normalize_squeeze_dims(")[1][:400]) else "normalize_squeeze_dims missing or no longer dedupes"))
 
     if not _converter_available():
-        results.append(Result("e30b: synthetic SQUEEZE cases (11) give the pinned outcomes", True,
+        results.append(Result("e30b: synthetic SQUEEZE cases give the pinned outcomes", True,
+                              "tflite/tflite2onnx/onnx not installed", skip=True))
+        results.append(Result("e30b: the inventory tool agrees with the converter on every synthetic case", True,
                               "tflite/tflite2onnx/onnx not installed", skip=True))
         return results
     gen = os.path.join(HERE, "gen_tflite_squeeze_cases.py")
@@ -2988,6 +3002,10 @@ def e30b_squeeze_extension_cases(tmp):
         "sq_H77":      ("REFUSED", None, "C5"),
         "sq_N":        ("REFUSED", None, "C5"),
         "sq_identity": ("REFUSED", None, "C5"),              # identity on a layout-tagged input needs a Transpose
+        # C5's two boundary cases (E30 adversarial review, medium on the FIRST C5): the axis-position
+        # argument over-refused the first, and its obvious repair would fail-open on the second.
+        "sq_c5_extent1_reorder": ("CONVERTED", [2], None),   # kept axes reorder, but every reordered one has extent 1
+        "sq_c5_shape_mismatch":  ("REFUSED", None, "C5"),    # declared [2,1,1] vs ONNX-inferred [1,2,1]
         "bad_c1":      ("REFUSED", None, "structural conditions"),
         "bad_c4":      ("REFUSED", None, "structural conditions"),
     }
@@ -3023,13 +3041,54 @@ def e30b_squeeze_extension_cases(tmp):
     if not have_iree:
         results.append(Result("e30b: CONVERTED cases reproduce TFLite semantics bit for bit under IREE", True,
                               "iree tools / iree.runtime not available", skip=True))
+    # The inventory tool and the converter must agree about the SS5 conditions on every case.
+    # E30's adversarial review (scope bundle, both medium findings) showed they did not: the
+    # inventory crashed with an uncaught AttributeError on a SQUEEZE with no SqueezeOptions
+    # table -- the exact condition E30b had just fixed in the converter and recorded as fixed --
+    # and it reported C1/C4 as FAILING for negative squeeze_dims that the converter correctly
+    # accepts, i.e. the audit tool contradicted the transform it exists to audit. Both now
+    # import the converter's own normalize_squeeze_dims/check_squeeze_conditions, so this pins
+    # that they cannot diverge again.
+    inv_rows = {}
+    for name in expect:
+        out_inv = os.path.join(tmp, "e30b_inv_%s.json" % name)
+        rc, _, err = run([PY, os.path.join(HERE, "p1_tflite_inventory.py"),
+                          os.path.join(cases_dir, name + ".tflite"), "--out", out_inv])
+        if rc != 0 or not os.path.exists(out_inv):
+            inv_rows[name] = {"rc": rc, "error": (err or "").strip()[-160:]}
+            continue
+        inv = load(out_inv)
+        sens = inv.get("sensitive_instances") or [{}]
+        inv_rows[name] = {"rc": rc, "dims": sens[0].get("tflite_squeeze_dims"),
+                          "raw": sens[0].get("raw_squeeze_dims"),
+                          "c1to4": sens[0].get("conditions_1_to_4_satisfied"),
+                          "complete": inv.get("inventory_complete")}
+    crashed = [n for n, r in inv_rows.items() if r["rc"] != 0]
+    results.append(Result("e30b: the inventory tool reads every synthetic case without crashing "
+                          "(including the SQUEEZE with no SqueezeOptions table)",
+                          not crashed, "" if not crashed else "rc!=0 for %s" % {n: inv_rows[n] for n in crashed}))
+    # C1..C4 are structural, so the inventory's verdict must match the converter's audit wherever
+    # the converter got far enough to record one. sq_c5_shape_mismatch and the C5 refusals pass
+    # C1..C4 and fail only C5, which the inventory (a flatbuffer reader, no layout) does not judge.
+    c1to4_expected_true = ["sq_HW", "sq_neg", "sq_dup", "sq_empty", "sq_noopt", "sq_H", "sq_H77",
+                           "sq_N", "sq_c5_extent1_reorder", "sq_c5_shape_mismatch"]
+    mism = [n for n in c1to4_expected_true if inv_rows.get(n, {}).get("c1to4") is not True]
+    results.append(Result("e30b: the inventory agrees with the converter on C1..C4 -- negative and empty "
+                          "squeeze_dims are normalised, not reported as violations",
+                          not mism, "" if not mism else "inventory says C1..C4 fail for %s" % {n: inv_rows.get(n) for n in mism}))
+    results.append(Result("e30b: bad_c1 / bad_c4 are reported as failing C1..C4 by the inventory too",
+                          inv_rows.get("bad_c1", {}).get("c1to4") is False
+                          and inv_rows.get("bad_c4", {}).get("c1to4") is False,
+                          "bad_c1=%s bad_c4=%s" % (inv_rows.get("bad_c1", {}).get("c1to4"),
+                                                   inv_rows.get("bad_c4", {}).get("c1to4"))))
+
     # the refused partial squeezes must never have produced an ONNX file (refusal before emission)
     results.append(Result("e30b: refused cases emit nothing (refusal happens before any ONNX is written)",
                           (all("onnx" not in outcomes.get(n, {}) for n, (w, _, _) in expect.items() if w == "REFUSED")),
                           "" if (all("onnx" not in outcomes.get(n, {}) for n, (w, _, _) in expect.items() if w == "REFUSED")) else "a refused case still wrote an ONNX file"))
     # reshape mode (the analysis document's literal suggestion) must refuse the same partial squeezes:
     # before C5 it converted, compiled and ran them with wrong numbers (5.46 / 1.89 / 2.61)
-    for name in ("sq_H", "sq_H77", "sq_N"):
+    for name in ("sq_H", "sq_H77", "sq_N", "sq_c5_shape_mismatch"):
         rc, out, err = run([PY, probe, os.path.join(cases_dir, name + ".tflite"), "--mode", "reshape",
                             "--workdir", os.path.join(tmp, "e30b_r_" + name)])
         try:

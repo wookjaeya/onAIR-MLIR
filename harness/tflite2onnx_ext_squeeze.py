@@ -117,15 +117,51 @@ def normalize_squeeze_dims(dims, ishape):
     return dims
 
 
-def check_kept_axis_order(rank, dims, perm):
-    """C5, pure.  `perm` is tflite2onnx's Layout.perm (new_shape[i] = old_shape[perm[i]]),
-    or None for a layout-free tensor.  Returns (ok, mapped_positions_of_kept_axes)."""
-    kept = [k for k in range(rank) if k not in dims]
+def check_kept_axis_order(ishape, dims, perm):
+    """C5, decided by SIMULATION rather than by an argument about axis positions.
+
+    E30b's first version compared only positions -- it required every kept axis to keep
+    its relative order under the layout permutation -- and the adversarial review of E30
+    showed that argument wrong in BOTH directions:
+
+      * over-rejection (reproduced, 7 of the 81 layout-tagged rank-4 shapes that pass
+        C1-C4): reordering axes whose extent is 1 moves no data, so e.g. [2,1,1,1] with
+        squeeze_dims [1] was refused with a message ("would reorder data") that is simply
+        false for that input -- the emission is correct and IREE reproduces np.squeeze
+        exactly;
+      * and the obvious repair -- "only the extent>1 kept axes must keep their order" --
+        is itself a fail-open: [1,2,1,1] with squeeze_dims [0] satisfies it (one extent>1
+        kept axis), yet the emitted Squeeze produces ONNX shape [1,2,1] while the graph
+        declares the TFLite output shape [2,1,1]. The flattened values coincide; the
+        declared and inferred shapes do not.
+
+    Rather than patch the argument again, this decides the question directly: build a
+    labelled array of the model's own input shape, apply the layout permutation and the
+    re-indexed squeeze exactly as the emitted ONNX would, and require the result to equal
+    TFLite's own reference (np.squeeze on the untransformed input) in BOTH shape and
+    values. That is the same equality harness/e30b_squeeze_probe.py checks under IREE,
+    computed here without a compiler, so C5 can no longer be right for the wrong reason.
+    The arrays are the model's shape (SmartCam's largest is 1,280 elements), so the cost
+    is negligible.
+
+    `perm` is tflite2onnx's Layout.perm (new_shape[i] = old_shape[perm[i]]), or None for a
+    layout-free tensor.  Returns (ok, onnx_axes) -- the squeeze axes the ONNX node needs.
+    """
+    ishape = [int(d) for d in ishape]
+    dims = [int(d) for d in dims]
+    if any(d < 1 for d in ishape):          # dynamic (-1) or degenerate (0): not simulatable
+        return False, sorted(dims)
+    arr = np.arange(_numel(ishape)).reshape(ishape)
+    ref = np.squeeze(arr, axis=tuple(dims)) if dims else arr
     if perm is None:
-        return True, kept
+        return True, sorted(dims)
     perm = [int(p) for p in perm]
-    mapped = [perm.index(k) for k in kept]
-    return mapped == sorted(mapped), mapped
+    onnx_axes = sorted(set(perm.index(d) for d in dims))
+    transformed = arr.transpose(perm)
+    if onnx_axes and not all(transformed.shape[a] == 1 for a in onnx_axes):
+        return False, onnx_axes             # not size-1 post-layout; the C1 re-check restates this
+    got = np.squeeze(transformed, axis=tuple(onnx_axes)) if onnx_axes else transformed
+    return bool(got.shape == ref.shape and np.array_equal(got, ref)), onnx_axes
 
 
 class Squeeze(Operator):
@@ -177,24 +213,23 @@ class Squeeze(Operator):
 
     def transform(self):
         it, ot = self.inputs[0], self.outputs[0]
-        axes = list(self.tflite_axes)
-        rank = len(self.audit["input_shape_tflite"])
+        ishape = list(self.audit["input_shape_tflite"])
         perm = list(it.layout.perm) if it.layout is not None else None
-        # C5: the kept axes must keep their TFLite order under the layout permutation,
-        # otherwise the emitted op would reorder data (see module docstring).
-        ok5, mapped = check_kept_axis_order(rank, axes, perm)
+        # C5: simulate the layout transform + re-indexed squeeze on a labelled array of this
+        # model's own shape and require BOTH shape and values to equal TFLite's own reference.
+        # See check_kept_axis_order's docstring: the earlier position argument over-refused,
+        # and its obvious repair fail-opened on a declared/inferred shape mismatch.
+        ok5, axes = check_kept_axis_order(ishape, self.tflite_axes, perm)
         self.audit["C5_kept_axis_order_preserved"] = ok5
-        self.audit["kept_axes_positions_after_layout"] = mapped
+        self.audit["C5_decided_by"] = "numeric simulation vs np.squeeze reference (shape and values)"
         if perm is not None:
-            # it.shape has already been re-indexed by Tensor.transform(); map the axes the same way.
-            axes = sorted(set(perm.index(a) for a in axes))    # new_shape[i] = old_shape[perm[i]]
             self.audit["layout"] = str(it.layout)
             self.audit["input_shape_onnx"] = list(it.shape)
         if not ok5:
-            raise SqueezeConditionError("SQUEEZE at op %d would reorder data: kept axes %s map to positions %s "
-                                        "under layout %s (C5); a Transpose would be needed, which this extension "
-                                        "does not insert" % (self.index, [k for k in range(rank) if k not in self.tflite_axes],
-                                                              mapped, it.layout))
+            raise SqueezeConditionError("SQUEEZE at op %d does not reproduce TFLite's own semantics under layout "
+                                        "%s (C5, decided by simulating the emitted op against np.squeeze on the "
+                                        "untransformed input): a Transpose would be needed, which this extension "
+                                        "does not insert" % (self.index, it.layout))
         # C1 re-check in the emitted layout
         if not all(int(it.shape[a]) == 1 for a in axes):
             raise SqueezeConditionError("SQUEEZE axes %s are not size-1 after layout transform (shape %s)"

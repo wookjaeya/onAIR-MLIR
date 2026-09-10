@@ -10,7 +10,7 @@ a reproducible tool.  It records what the model IS; it does not transform it.
 Usage: p1_tflite_inventory.py MODEL.tflite --out inventory.json
 Requires: pip install tflite  (schema bindings; version recorded in the output)
 """
-import argparse, collections, hashlib, json, sys
+import argparse, collections, hashlib, json, os, sys
 
 try:
     import tflite
@@ -18,6 +18,15 @@ try:
 except ImportError as e:  # explicit, not a crash (D24 lesson)
     print("p1_tflite_inventory: `tflite` schema package not installed: %s" % e, file=sys.stderr)
     sys.exit(2)
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from tflite2onnx_ext_squeeze import check_squeeze_conditions, normalize_squeeze_dims  # noqa: E402
+# Single source of truth for TFLite SQUEEZE semantics (E30b/D56 adversarial review, medium finding
+# 2 of 2): this file used to compute C1/C4 straight off the raw squeeze_dims, so a TFLite-valid
+# negative-axis SQUEEZE ([-3,-2] on a rank-4 tensor) was reported as FAILING conditions the sibling
+# converter (harness/tflite2onnx_ext_squeeze.py) correctly ACCEPTS on the identical file -- an
+# inventory tool contradicting the transform it is meant to audit. Importing the same two pure
+# functions the converter uses makes divergence between the two P1 tools impossible by construction.
 
 TYPES = {getattr(tflite.TensorType, n): n for n in dir(tflite.TensorType) if not n.startswith("_")}
 BOPS = {getattr(tflite.BuiltinOperator, n): n for n in dir(tflite.BuiltinOperator) if not n.startswith("_")}
@@ -53,8 +62,11 @@ def main():
         "description": (m.Description() or b"").decode(errors="replace"),
         "subgraphs": m.SubgraphsLength(),
     }
-    if m.SubgraphsLength() != 1:
-        inv["note"] = "multi-subgraph model; only subgraph 0 inventoried"
+    inv["inventory_complete"] = (m.SubgraphsLength() == 1)
+    if not inv["inventory_complete"]:
+        inv["note"] = ("multi-subgraph model (%d subgraphs); only subgraph 0 inventoried -- "
+                       "operator/custom-op histogram and dynamic-tensor counts are PARTIAL, "
+                       "not a complete picture of the model") % m.SubgraphsLength()
     g = m.Subgraphs(0)
     inv["inputs"] = [tensor_rec(g, g.Inputs(k)) for k in range(g.InputsLength())]
     inv["outputs"] = [tensor_rec(g, g.Outputs(k)) for k in range(g.OutputsLength())]
@@ -75,25 +87,19 @@ def main():
         if name == "SQUEEZE":
             ins = [op.Inputs(j) for j in range(op.InputsLength())]
             outs = [op.Outputs(j) for j in range(op.OutputsLength())]
-            so = SqueezeOptions(); bo = op.BuiltinOptions(); so.Init(bo.Bytes, bo.Pos)
-            dims = [so.SqueezeDims(j) for j in range(so.SqueezeDimsLength())]
             ti, to = g.Tensors(ins[0]), g.Tensors(outs[0])
             ishape, oshape = shape_of(ti), shape_of(to)
-            def numel(s):
-                n = 1
-                for d in s: n *= d
-                return n
-            instances.append({
-                "op_index": i, "op": "SQUEEZE", "squeeze_dims": dims,
-                "input": tensor_rec(g, ins[0]), "output": tensor_rec(g, outs[0]),
-                # the structural conditions the transform must prove (analysis doc SS5)
-                "squeezed_axes_all_size_1": all(0 <= d < len(ishape) and ishape[d] == 1 for d in dims),
-                "element_count_preserved": numel(ishape) == numel(oshape),
-                "dtype_preserved": ti.Type() == to.Type(),
-                "output_shape_static": all(d > 0 for d in oshape),
-                "expected_output_shape": [d for k, d in enumerate(ishape) if k not in dims],
-                "expected_matches_recorded": [d for k, d in enumerate(ishape) if k not in dims] == oshape,
-            })
+            bo = op.BuiltinOptions()
+            if bo is None:   # no SqueezeOptions table: TFLite treats it as empty squeeze_dims
+                raw_dims = []  # explicit, not a crash (D24 class; converter has the same fix, E30b)
+            else:
+                so = SqueezeOptions(); so.Init(bo.Bytes, bo.Pos)
+                raw_dims = [so.SqueezeDims(j) for j in range(so.SqueezeDimsLength())]
+            dims = normalize_squeeze_dims(raw_dims, ishape)  # negatives, dedupe, empty == all size-1
+            ok, audit = check_squeeze_conditions(ishape, oshape, ti.Type(), to.Type(), dims)
+            instances.append(dict(audit, op_index=i, op="SQUEEZE", raw_squeeze_dims=raw_dims,
+                                  input=tensor_rec(g, ins[0]), output=tensor_rec(g, outs[0]),
+                                  conditions_1_to_4_satisfied=ok))
     inv["operators"] = {"total": g.OperatorsLength(), "distinct": len(ops),
                         "histogram": dict(sorted(ops.items(), key=lambda kv: -kv[1])),
                         "custom": custom}

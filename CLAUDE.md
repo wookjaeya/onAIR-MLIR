@@ -536,7 +536,15 @@ flatbuffer로 재현했다 — C1–C4를 통과하는 TFLite-유효 부분 sque
 방출돼 **데이터가 조용히 전치**(reshape 모드 max_abs_diff 5.46/1.89/2.61, 컴파일러·런타임 무경고). 비행 모델은
 남는 축 {N,C}라 무관. 수정 **C5**(남는 축의 순서가 레이아웃 순열 아래에서 보존) + 옵션 부재 크래시·중복 축·항등
 사례. 합성 11건 회귀(`harness/gen_tflite_squeeze_cases.py` + `e30b_squeeze_probe.py`; CONVERTED 5건은 IREE 출력을
-TFLite 의미와 비트 대조, max_abs_diff 0.0), revert 시 3건 CONVERTED로 전환. **353/353 → 371/371**. **CI 실측**(커밋 `39a4692`, run 112, 3레그 success): `full` **370/370 + 1 SKIP**(PyYAML) · `without-iree` **240/240 + 21 SKIP** · `stdlib-only` **240/240 + 21 SKIP** — 컨테이너 371/371과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 20→21은 e30b의 합성 사례 시험이 변환기 패키지 없이는 정직하게 SKIP하기 때문이다. 교훈: *형상·원소
+TFLite 의미와 비트 대조, max_abs_diff 0.0), revert 시 3건 CONVERTED로 전환. **353/353 → 371/371**.
+**v0.33.2/E30b 후속(D57)**: 그 **C5 자신이 과잉 거부**였음이 같은 검증에서 재현됐다 — 재정렬되는 남는 축이
+전부 extent 1이면 데이터가 안 움직이는데 *"would reorder data"*로 거부했고(81형상 중 7건), **명백한 수정
+("extent>1 축만 순서 유지")은 곧 fail-open**이다(선언 `[2,1,1]` vs ONNX 추론 `[1,2,1]`). 논증을 세 번째로
+고치는 대신 **시뮬레이션**으로 교체 — 모델 형상의 라벨 배열로 방출될 ONNX를 그대로 계산해 `np.squeeze` 기준과
+**형상·값 둘 다** 대조한다. 경계 2사례 신설, 인벤토리가 변환기 순수 함수를 직접 import(형제 도구가 D56과 같은
+조건에서 크래시하고 음수 dims를 오보고하던 것도 해소). 비행 모델 산출물 불변, **378/378**. **적대적 검증의
+실행 범위**: 반박 9묶음 완주, **2인 검증은 세션 한도로 0건 실행** — 확인 주체는 구현자 자신이다.
+**교훈**: *경계 조건을 논증으로 좁히면 논증이 틀린 만큼 틀린다 — 계산할 수 있는 것은 계산하라*. **CI 실측**(커밋 `39a4692`, run 112, 3레그 success): `full` **370/370 + 1 SKIP**(PyYAML) · `without-iree` **240/240 + 21 SKIP** · `stdlib-only` **240/240 + 21 SKIP** — 컨테이너 371/371과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 20→21은 e30b의 합성 사례 시험이 변환기 패키지 없이는 정직하게 SKIP하기 때문이다. 교훈: *형상·원소
 수·dtype 보존 ≠ 데이터 순서 보존*. 인터페이스 좁힘이 둘(레이아웃 + 배치 고정)임도 기록.
 **다음은 P2**(SmartCam TFLite↔IREE 의미 동치 + x86-64 구현 검증 — 전치 입력 필수, 배치 1) → P4 → P3.
 
@@ -968,7 +976,8 @@ harness/                    실험 스크립트
                                있어 170/170
   p1_tflite_inventory.py      ★ E30/P1: TFLite flatbuffer 기계 판독 인벤토리(tflite 스키마 패키지만; I/O·op 히스토그램·
                                SQUEEZE 인스턴스 C1–C4·정적 형상·cFS 인터페이스 적합). 모델을 변환하지 않는다
-  tflite2onnx_ext_squeeze.py  ★ E30/P1: tflite2onnx SQUEEZE 변환기 확장 — check_squeeze_conditions()(순수 함수)가
+  tflite2onnx_ext_squeeze.py  ★ E30/P1: tflite2onnx SQUEEZE 변환기 확장 — C5는 축 위치 논증이 아니라 **시뮬레이션**이다
+                               (D57: 논증이 과잉 거부·fail-open 양방향으로 틀렸다). check_squeeze_conditions()(순수 함수)가
                                C1–C4 전부 참일 때만 변환, NHWC→NCHW 축 재색인 후 C1 재검사, 위반은 SqueezeConditionError.
                                두 방출 모드(Squeeze / 정적 Reshape)는 linalg부터 바이트 동일
   p1_tflite_to_onnx.py        ★ E30/P1: 위 확장을 등록해 변환하고 transform_manifest.json(해시·서명·감사)을 쓰는 래퍼.

@@ -47,6 +47,14 @@ CASES = {
     "sq_N":         ([1, 3, 3, 4], [0], [3, 3, 4], True),           # kept {H,W,C} -> {C,H,W}
     # identity: no size-1 axis, empty dims (TFLite-valid, output == input)
     "sq_identity":  ([2, 3, 4, 5], [], [2, 3, 4, 5], True),
+    # C5's two boundary cases (E30's adversarial review, medium finding on the first C5):
+    # kept axes DO reorder under the perm, but every reordered one has extent 1, so no data
+    # moves and the emitted op reproduces np.squeeze exactly -- must CONVERT, not be refused.
+    "sq_c5_extent1_reorder": ([2, 1, 1, 1], [1], [2, 1, 1], True),
+    # ... and the case that the obvious repair ("only extent>1 kept axes must keep order")
+    # would wrongly accept: one extent>1 kept axis, so that rule is satisfied, yet the emitted
+    # Squeeze infers ONNX shape [1,2,1] while the graph declares the TFLite output [2,1,1].
+    "sq_c5_shape_mismatch":  ([1, 2, 1, 1], [0], [2, 1, 1], True),
     # structural violations (C1..C4) the checker must refuse regardless of layout
     "bad_c1":       ([1, 2, 1, 64], [1, 2], [2, 64], True),         # axis 1 has size 2
     "bad_c4":       ([1, 1, 1, 64], [1, 2], [64, 1], True),         # recorded output shape is not the expected one

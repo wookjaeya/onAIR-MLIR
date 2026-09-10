@@ -90,10 +90,7 @@
     2
    ],
    "C5_kept_axis_order_preserved": true,
-   "kept_axes_positions_after_layout": [
-    0,
-    1
-   ],
+   "C5_decided_by": "numeric simulation vs np.squeeze reference (shape and values)",
    "layout": "NCHW(NHWC->NCHW)",
    "input_shape_onnx": [
     1,
