@@ -546,6 +546,10 @@ TFLite 의미와 비트 대조, max_abs_diff 0.0), revert 시 3건 CONVERTED로 
 실행 범위**: 반박 9묶음 완주, **2인 검증은 세션 한도로 0건 실행** — 확인 주체는 구현자 자신이다.
 **교훈**: *경계 조건을 논증으로 좁히면 논증이 틀린 만큼 틀린다 — 계산할 수 있는 것은 계산하라*. **CI 실측**(커밋 `39a4692`, run 112, 3레그 success): `full` **370/370 + 1 SKIP**(PyYAML) · `without-iree` **240/240 + 21 SKIP** · `stdlib-only` **240/240 + 21 SKIP** — 컨테이너 371/371과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 20→21은 e30b의 합성 사례 시험이 변환기 패키지 없이는 정직하게 SKIP하기 때문이다. 교훈: *형상·원소
 수·dtype 보존 ≠ 데이터 순서 보존*. 인터페이스 좁힘이 둘(레이아웃 + 배치 고정)임도 기록.
+**D57까지 반영한 CI 실측**(커밋 `e4e60c3`, run 121, 3레그 success): `full` **377/377 + 1 SKIP**(PyYAML) ·
+`without-iree` **241/241 + 22 SKIP** · `stdlib-only` **241/241 + 22 SKIP** — 컨테이너 378/378과 `full`의
+차이 1건은 PyYAML 유무(D34). 축소 레그의 총계가 컨테이너보다 적은 것은 변환기 패키지가 없으면
+`e30b_squeeze_extension_cases`가 SKIP 2건을 남기고 **조기 반환**하기 때문이다(사례별 SKIP 나열 안 함).
 **v0.34에서 완료된 것 (E31, `docs/EVIDENCE_v0.34_E31.md`)**: **P2 — SmartCam 원본 의미 보존, PASS.**
 아홉 번째 외부 검토(`docs/reviews/ONAIR_MLIR_ARCHITECTURE_PLAN_20260910.md`)가 §14에서 **"지금 가장 먼저
 착수할 구현"**으로 지목한 셋(입력 fixture · 원본 출력 oracle · 전체 출력 comparator)을 만들어 §10 단계 1을
@@ -561,7 +565,11 @@ reshape) → **FAIL 105/111**인데 **argmax만 봤으면 34/37(92%) 통과**였
 — **경계 입력만으로는 레이아웃 오류를 원리적으로 못 잡는다**(비상수 실데이터 필요). **부수**: fixture 자기검사
 첫 구현이 *값*으로 transpose≠reshape를 판정해 전부 0 입력에서 **과잉 거부**(D57 직후 같은 계열) → `arange`
 라벨로 형상만 판정. **하지 않음**: 정확도(공개 예제 3장은 평가셋 아님)·비행 파이프라인 동치·AArch64/cFS/OnAIR·
-다른 모델·메모리 측정. 회귀 14건(라이브 재실행 포함), **378/378 → 392/392**.
+다른 모델·메모리 측정. 회귀 14건(라이브 재실행 포함), **378/378 → 392/392**. **CI 실측**(커밋 `0f25ad4`,
+run 122, 3레그 success): `full` **391/391 + 1 SKIP**(PyYAML) · `without-iree` **251/251 + 26 SKIP** ·
+`stdlib-only` **251/251 + 26 SKIP** — 컨테이너 392/392와 `full`의 차이 1건은 PyYAML 유무(D34), 축소 레그
+에서는 신규 14건이 **10 PASS + 4 SKIP**으로 전부 나타난다(라이브 재실행 4건만 `ai_edge_litert`·
+`iree.runtime`·`numpy`를 요구하고, 보관 JSON을 읽는 10건은 의존성 없이 실제로 돈다).
 **다음은 검토서 §10 단계 2**(SmartCam AArch64 cFS 실행 — 환경은 이미 존재하므로 재구축하지 않는다) →
 단계 3(공식 OnAIR 경로 갱신) → 단계 4(ResNet·DeepAE) → 단계 5(공정한 기준선).
 
