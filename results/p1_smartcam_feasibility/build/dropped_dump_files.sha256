@@ -8,3 +8,5 @@ fbae9facb52400fa8660333cec8cd781ec96761a27dfd4e37a75e910dc1c96cd  dump/module_sm
 42a88d37b05b1db563d2f3c1df48029b6c71630f1237d5a3f8d06d9ff33f7a3f  dump/module_smartcam_linked_embedded_elf_x86_64.o  128824
 069bcd60f297af29bd6838dfb8b450715b8610503f18b0f31bfb0a3fe1da94d2  dump/module_smartcam_linked_embedded_elf_x86_64.optimized.bc  93460
 7fa0ef685a045e61b67745661bc6a1e579b0f322140146b4cdf9beb2922a8031  dump/module_smartcam_linked_embedded_elf_x86_64.optimized.ll  421241
+# the pre-reduction contract those six hashes were read from (overwritten in place by the regenerated one):
+# d926855bc2ea8a73b2db37af8023d1542e3e3dc5b5ac0af3c45fd8b7c8b6bc47  <pre-reduction smartcam.contract.json>  35807

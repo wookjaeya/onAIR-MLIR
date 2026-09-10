@@ -1,4 +1,8 @@
-# reshape-mode build outputs (not stored: byte-identical to build/ -- see equivalence.json)
+# reshape-mode build outputs (not stored). smartcam.mlir / smartcam.vmfb / contract_gen.smartcam.h are byte-identical to build/;
+# smartcam.layout_ir.txt is identical in content (the four IR-dump chunks come out in thread-dependent order, so the bytes differ);
+# smartcam.elf.json and smartcam.contract.json differ from build/ only in provenance paths and the pre-reduction 129-file dump list.
+# build_reshape_variant/dump/: 129 files -- the adversarial review of E30 recompiled the identical input and found every one byte-identical
+# to build/dump/ plus the six files in build/dropped_dump_files.sha256. See equivalence.json. sha256  path  bytes
 f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4  build_reshape_variant/smartcam.mlir  17750942
 aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8  build_reshape_variant/smartcam.vmfb  8915257
 f9398d7e01da066864a7a1efa6734ab7aa5385e2b55349a5addc2d3034b47f55  build_reshape_variant/smartcam.layout_ir.txt  210468

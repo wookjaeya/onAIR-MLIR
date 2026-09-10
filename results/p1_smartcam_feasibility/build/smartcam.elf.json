@@ -1,6 +1,6 @@
 {
   "tool": "harness/elf_stack_frame.py",
-  "elf": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/chain/build_squeeze/dump/module_smartcam_linked_embedded_elf_x86_64.so",
+  "elf": "results/p1_smartcam_feasibility/build/dump/module_smartcam_linked_embedded_elf_x86_64.so",
   "arch": "x86_64",
   "elf_bytes": 55136,
   "elf_sha256": "4e23c6e20bd1e859073a6fc47aaf34c27358f201b550c40de94b5b96177a20e8",
@@ -2868,25 +2868,18 @@
   "max_dispatch_invocation_stack_bytes_with_calls": 439,
   "classification_note": "bucket (2) TASK-STACK with resolved calls: 38 call instruction(s) target 2 address(es) inside this same ELF; every callee has a static frame and no indirect or outbound control flow, so the deepest per-invocation chain is 439 B (vs 439 B for the calling dispatch alone). Not HAL memory (not in bounded_bytes); add the chain figure to the task/thread stack budget.",
   "source": {
-    "dump_dir": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/chain/build_squeeze/dump",
+    "dump_dir": "results/p1_smartcam_feasibility/build/dump",
     "dump_dir_elf_files": [
       {
-        "path": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/chain/build_squeeze/dump/module_smartcam_linked_embedded_elf_x86_64.o",
-        "bytes": 128824,
-        "arch": "x86_64",
-        "e_type": 1,
-        "sha256": "42a88d37b05b1db563d2f3c1df48029b6c71630f1237d5a3f8d06d9ff33f7a3f"
-      },
-      {
-        "path": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/chain/build_squeeze/dump/module_smartcam_linked_embedded_elf_x86_64.so",
+        "path": "results/p1_smartcam_feasibility/build/dump/module_smartcam_linked_embedded_elf_x86_64.so",
         "bytes": 55136,
         "arch": "x86_64",
         "e_type": 3,
         "sha256": "4e23c6e20bd1e859073a6fc47aaf34c27358f201b550c40de94b5b96177a20e8"
       }
     ],
-    "selected": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/chain/build_squeeze/dump/module_smartcam_linked_embedded_elf_x86_64.so",
-    "vmfb": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/chain/build_squeeze/smartcam.vmfb",
+    "selected": "results/p1_smartcam_feasibility/build/dump/module_smartcam_linked_embedded_elf_x86_64.so",
+    "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
     "vmfb_bytes": 8915257,
     "vmfb_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8",
     "vmfb_embedded_elfs": [

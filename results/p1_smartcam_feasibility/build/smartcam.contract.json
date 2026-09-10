@@ -917,7 +917,7 @@
     "layout_dispatches_in_dump": true,
     "elf_analysis": {
       "file": "smartcam.elf.json",
-      "sha256": "efc22d5e7472b7acb0e8953abe463021ed881985426dfd76ac69c447f05e9307",
+      "sha256": "1f058d4b4456f126fdc58ee7c9ceed7cd2590b2812380f7a9fb4a1735e6f08f9",
       "elf_sha256_in_vmfb": true
     },
     "structural_walker": {
