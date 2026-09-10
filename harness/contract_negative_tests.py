@@ -3101,6 +3101,282 @@ def e30b_squeeze_extension_cases(tmp):
     return results
 
 
+E31_DIR = os.path.join(os.path.dirname(HERE), "results", "e31_smartcam_equivalence")
+
+
+def _litert_available():
+    return run([PY, "-c", "import ai_edge_litert"])[0] == 0
+
+
+def e31_semantic_equivalence_cases(tmp):
+    """E31 / P2: the imported SmartCam model computes what the original computes.
+
+    The ninth external review (docs/reviews/ONAIR_MLIR_ARCHITECTURE_PLAN_20260910.md SS10 step 1)
+    named this the first thing to build, and E30 had explicitly left it open
+    (`condition_7_numeric_equivalence: "NOT DONE -- P2"`). The criteria were fixed in
+    docs/plans/E31_smartcam_semantic_equivalence.md SS4 and committed BEFORE the measurement,
+    inherited unchanged from E25.
+
+    What is pinned here, and why each pin is a claim rather than a checksum:
+      - the verdict, its totals, and that the criteria in the stored comparison are the plan's
+        (a later widening of the tolerance would show up here, not pass silently);
+      - the fixture's preprocessing is the ORIGINAL's own config values and the layout step is a
+        transpose whose round trip the generator verified;
+      - the synthetic inputs -- which are not stored -- regenerate bit-exactly from the recorded
+        seed, so the fixture is complete evidence without carrying 38 MB of regenerable arrays;
+      - the negative control: feeding the same model a RESHAPED (wrong-layout) input must FAIL,
+        because a PASS means nothing if the criteria cannot fail. It is regenerated here, not
+        remembered, and its two lessons are asserted as numbers: argmax alone would have accepted
+        the wrong layout on 34 of 37 samples, and the only samples it could not catch are the
+        constant edge inputs (a constant array is invariant under any permutation).
+    Everything that needs LiteRT, IREE or Pillow SKIPs cleanly without them (D24/D25)."""
+    results = []
+    need = ["summary.json", "comparison.json", "oracle_tflite.json", "iree_x86_64.json",
+            "negative_control_reshape.comparison.json", "fixture/manifest.json"]
+    missing = [n for n in need if not os.path.exists(os.path.join(E31_DIR, n))]
+    results.append(Result("e31: fixture and results present", not missing,
+                          "" if not missing else "missing: %s" % missing))
+    if missing:
+        return results
+    summ = load(os.path.join(E31_DIR, "summary.json"))
+    comp = load(os.path.join(E31_DIR, "comparison.json"))
+    man = load(os.path.join(E31_DIR, "fixture", "manifest.json"))
+    orc = load(os.path.join(E31_DIR, "oracle_tflite.json"))
+    ire = load(os.path.join(E31_DIR, "iree_x86_64.json"))
+    neg = load(os.path.join(E31_DIR, "negative_control_reshape.comparison.json"))
+
+    # --- the verdict and the criteria it was reached under ---
+    t = comp["totals"]
+    _v = (comp["verdict"] == "PASS" and summ["verdict"] == "PASS" and t["elements_failed"] == 0
+          and t["argmax_failed"] == 0 and t["samples"] == 37 and t["elements"] == 111)
+    results.append(Result("e31: PASS on 37 samples / 111 elements, 0 element failures, 0 argmax failures",
+                          _v, "" if _v else "totals=%s verdict=%s" % (t, comp["verdict"])))
+    _c = (comp["criteria"]["abs_tol"] == 1e-4 and comp["criteria"]["rel_tol"] == 1e-5
+          and "abs_err <= abs_tol OR rel_err <= rel_tol" in comp["criteria"]["rule"])
+    results.append(Result("e31: the verdict was reached under the plan's pre-fixed tolerance (E25's, unchanged)",
+                          _c, "" if _c else "criteria=%s" % comp["criteria"]))
+
+    # --- the OR rule was load-bearing: rel alone would have failed an honest result ---
+    rk = summ["by_kind"]["real_example"]
+    _or = (rk["max_rel_err"] > comp["criteria"]["rel_tol"] and rk["all_elements_ok"] is True)
+    results.append(Result("e31: the pre-fixed OR rule was load-bearing -- a real image's worst rel_err "
+                          "(%.3e) exceeds rel_tol, and only abs_err carried it" % rk["max_rel_err"],
+                          _or, "" if _or else "real_example max_rel_err=%s rel_tol=%s"
+                          % (rk["max_rel_err"], comp["criteria"]["rel_tol"])))
+
+    # --- provenance: the oracle ran the flight artifact, the runner ran E30's vmfb ---
+    _p = (orc["model"]["sha256"] == "fd1ecbd01ad2d46bd35cbac17809cfa24b1d929b8f14871fc1fb6fca5ff06aae"
+          and ire["artifact"]["sha256"] == "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8"
+          and orc["interpreter_signature"]["input_shape"] == [1, 224, 224, 3]
+          and ire["results"] and len(orc["results"]) == len(ire["results"]) == 37)
+    results.append(Result("e31: the oracle ran the unmodified flight .tflite (NHWC) and the runner ran E30's vmfb (NCHW)",
+                          _p, "" if _p else "oracle=%s iree=%s" % (orc["model"]["sha256"][:16],
+                                                                   ire["artifact"]["sha256"][:16])))
+
+    # --- preprocessing is the original's own, and the layout step is a transpose ---
+    norm = man["preprocessing"]["normalisation"]
+    _pp = (norm["mean"] == 0 and norm["std"] == 255
+           and man["preprocessing"]["resize"]["to"] == [224, 224]
+           and "transpose" in man["preprocessing"]["layout"]["operation"]
+           and "round trip" in man["preprocessing"]["layout"]["verified"])
+    results.append(Result("e31: preprocessing uses the original config's mean=0/std=255 at 224x224 and a "
+                          "verified transpose (not a reshape)",
+                          _pp, "" if _pp else "preprocessing=%s" % man["preprocessing"]))
+    _counts = man["counts"] == {"edge": 2, "real_example": 3, "synthetic": 32}
+    results.append(Result("e31: inputs are separated into real (3, all the public examples) / synthetic (32, "
+                          "coverage only) / edge (2), never conflated",
+                          _counts, "" if _counts else "counts=%s" % man["counts"]))
+
+    # --- the negative control's numbers, which is what makes the PASS meaningful ---
+    nc = neg["negative_control"]["observed"]
+    _n = (neg["verdict"] == "FAIL" and nc["elements_failed"] == 105 and nc["of"] == 111
+          and nc["argmax_failed"] == 3 and nc["argmax_only_would_have_passed"] == 34)
+    results.append(Result("e31: negative control -- the wrong layout FAILS (105/111 elements), and argmax "
+                          "alone would have accepted it on 34/37 samples",
+                          _n, "" if _n else "observed=%s verdict=%s" % (nc, neg["verdict"])))
+    _const = [r["sample_id"] for r in neg["samples"] if r.get("elements_ok") == r.get("elements")]
+    results.append(Result("e31: under the wrong layout only the two CONSTANT edge inputs pass -- boundary "
+                          "inputs alone cannot detect a layout error",
+                          sorted(_const) == ["edge_ones", "edge_zeros"],
+                          "" if sorted(_const) == ["edge_ones", "edge_zeros"] else "passed: %s" % _const))
+
+    # --- non-claims are recorded, not assumed ---
+    nots = " ".join(summ.get("not_claimed", []))
+    _nc = all(k in nots for k in ("accuracy", "AArch64", "flight-pipeline", "bit identity"))
+    results.append(Result("e31: the summary records what is NOT claimed (accuracy, flight pipeline, "
+                          "AArch64/cFS/OnAIR, bit identity)",
+                          _nc, "" if _nc else "not_claimed=%s" % summ.get("not_claimed")))
+
+    # --- the unstored synthetic inputs regenerate bit-exactly from the recorded seed ---
+    if not _converter_available() and not os.path.exists("/usr/lib/python3/dist-packages/numpy"):
+        pass  # numpy is checked directly below
+    if run([PY, "-c", "import numpy"])[0] != 0:
+        results.append(Result("e31: the unstored synthetic inputs regenerate bit-exactly from the seed",
+                              True, "numpy not installed", skip=True))
+    else:
+        probe = r"""
+import json, hashlib, sys
+import numpy as np
+man = json.load(open(%r))
+rng = np.random.default_rng(31)
+bad = []
+for s in man["samples"]:
+    if s["kind"] != "synthetic":
+        continue
+    nhwc = rng.random((1, 224, 224, 3), dtype=np.float32)
+    nchw = np.ascontiguousarray(nhwc.transpose(0, 3, 1, 2))
+    if hashlib.sha256(nhwc.tobytes()).hexdigest() != s["nhwc"]["sha256"]: bad.append((s["sample_id"], "nhwc"))
+    if hashlib.sha256(nchw.tobytes()).hexdigest() != s["nchw"]["sha256"]: bad.append((s["sample_id"], "nchw"))
+print(json.dumps({"checked": sum(1 for s in man["samples"] if s["kind"] == "synthetic"), "bad": bad}))
+""" % os.path.join(E31_DIR, "fixture", "manifest.json")
+        rc, out, err = run([PY, "-c", probe])
+        try:
+            d = json.loads(out.strip().splitlines()[-1])
+        except Exception:
+            d = {"checked": 0, "bad": [("probe", (err or out)[-160:])]}
+        _r = rc == 0 and d["checked"] == 32 and not d["bad"]
+        results.append(Result("e31: the 32 unstored synthetic inputs regenerate bit-exactly from seed 31 "
+                              "(sha256 vs manifest)", _r, "" if _r else "%s" % d))
+
+    # --- stored real/edge inputs match their manifest hashes ---
+    if run([PY, "-c", "import numpy"])[0] != 0:
+        results.append(Result("e31: stored real/edge inputs match their manifest sha256", True,
+                              "numpy not installed", skip=True))
+    else:
+        probe2 = r"""
+import json, hashlib, os, sys
+import numpy as np
+root = %r
+man = json.load(open(os.path.join(root, "fixture", "manifest.json")))
+bad, checked = [], 0
+for s in man["samples"]:
+    if s["kind"] == "synthetic":
+        continue
+    for k in ("nhwc", "nchw"):
+        p = os.path.join(root, "fixture", s[k]["file"])
+        if not os.path.exists(p):
+            bad.append((s["sample_id"], k, "missing")); continue
+        checked += 1
+        if hashlib.sha256(np.load(p).tobytes()).hexdigest() != s[k]["sha256"]:
+            bad.append((s["sample_id"], k, "sha mismatch"))
+print(json.dumps({"checked": checked, "bad": bad}))
+""" % E31_DIR
+        rc, out, err = run([PY, "-c", probe2])
+        try:
+            d = json.loads(out.strip().splitlines()[-1])
+        except Exception:
+            d = {"checked": 0, "bad": [("probe", (err or out)[-160:])]}
+        _s2 = rc == 0 and d["checked"] == 10 and not d["bad"]
+        results.append(Result("e31: the 10 stored real/edge input arrays match their manifest sha256",
+                              _s2, "" if _s2 else "%s" % d))
+
+    # --- live: re-run both paths and re-judge, and re-run the negative control ---
+    if not (_litert_available() and run([PY, "-c", "import iree.runtime"])[0] == 0
+            and run([PY, "-c", "import numpy"])[0] == 0):
+        results.append(Result("e31: both paths re-run live and reproduce the stored verdict", True,
+                              "ai_edge_litert / iree.runtime not installed", skip=True))
+        results.append(Result("e31: the negative control re-runs live and still FAILS", True,
+                              "ai_edge_litert / iree.runtime not installed", skip=True))
+        return results
+    work = os.path.join(tmp, "e31")
+    os.makedirs(work, exist_ok=True)
+    # rebuild the full fixture (synthetic included) from the recorded recipe
+    rc, out, err = run([PY, os.path.join(HERE, "model_fixture.py"), "--out", os.path.join(work, "fx"),
+                        "--images", os.path.join(E31_DIR, "fixture", "inputs"),
+                        "--height", "224", "--width", "224", "--mean", "0", "--std", "255",
+                        "--synthetic", "32", "--seed", "31", "--edge"])
+    # NOTE: the real images are not in the repo as images (only as .npy), so the live re-run uses the
+    # stored arrays directly rather than re-preprocessing; build a manifest that points at them.
+    live_fx = os.path.join(work, "live")
+    os.makedirs(os.path.join(live_fx, "inputs"), exist_ok=True)
+    build = r"""
+import json, os, shutil, hashlib, sys
+import numpy as np
+src, dst = %r, %r
+man = json.load(open(os.path.join(src, "fixture", "manifest.json")))
+rng = np.random.default_rng(31)
+rows = []
+for s in man["samples"]:
+    sid = s["sample_id"]
+    if s["kind"] == "synthetic":
+        nhwc = rng.random((1, 224, 224, 3), dtype=np.float32)
+    else:
+        nhwc = np.load(os.path.join(src, "fixture", s["nhwc"]["file"]))
+    nchw = np.ascontiguousarray(nhwc.transpose(0, 3, 1, 2))
+    pn, pc = os.path.join(dst, "inputs", sid + ".nhwc.npy"), os.path.join(dst, "inputs", sid + ".nchw.npy")
+    np.save(pn, nhwc); np.save(pc, nchw)
+    rows.append(dict(s, nhwc=dict(s["nhwc"], file="inputs/" + sid + ".nhwc.npy"),
+                     nchw=dict(s["nchw"], file="inputs/" + sid + ".nchw.npy")))
+json.dump(dict(man, samples=rows), open(os.path.join(dst, "manifest.json"), "w"))
+print("built", len(rows))
+""" % (E31_DIR, live_fx)
+    rc, out, err = run([PY, "-c", build])
+    if rc != 0:
+        results.append(Result("e31: both paths re-run live and reproduce the stored verdict", False,
+                              "could not rebuild the fixture: %s" % (err or out)[-200:]))
+        return results
+    o_live = os.path.join(work, "oracle.json"); i_live = os.path.join(work, "iree.json")
+    c_live = os.path.join(work, "cmp.json")
+    rc1, _, e1 = run([PY, os.path.join(HERE, "tflite_oracle.py"),
+                      os.path.join(os.path.dirname(E31_DIR), "p1_smartcam_feasibility", "original", "model.tflite"),
+                      "--fixture", live_fx, "--out", o_live])
+    rc2, _, e2 = run([PY, os.path.join(HERE, "iree_runner.py"),
+                      os.path.join(os.path.dirname(E31_DIR), "p1_smartcam_feasibility", "build", "smartcam.vmfb"),
+                      "--fixture", live_fx, "--out", i_live])
+    rc3, out3, e3 = run([PY, os.path.join(HERE, "e31_compare.py"), "--oracle", o_live,
+                         "--iree", i_live, "--out", c_live])
+    if rc1 or rc2 or rc3 or not os.path.exists(c_live):
+        results.append(Result("e31: both paths re-run live and reproduce the stored verdict", False,
+                              "rc=%d/%d/%d %s" % (rc1, rc2, rc3, (e1 or e2 or e3)[-200:])))
+    else:
+        live = load(c_live)
+        _l = (live["verdict"] == "PASS" and live["totals"]["elements_failed"] == 0
+              and live["totals"]["argmax_failed"] == 0 and live["totals"]["samples"] == 37)
+        results.append(Result("e31: both paths re-run live and reproduce the stored verdict (PASS, 0 failures)",
+                              _l, "" if _l else "live totals=%s verdict=%s" % (live["totals"], live["verdict"])))
+
+    # negative control, regenerated
+    neg_fx = os.path.join(work, "neg")
+    os.makedirs(os.path.join(neg_fx, "inputs"), exist_ok=True)
+    build_neg = r"""
+import json, os, hashlib
+import numpy as np
+src, dst = %r, %r
+man = json.load(open(os.path.join(src, "manifest.json")))
+rows = []
+for s in man["samples"]:
+    sid = s["sample_id"]
+    nhwc = np.load(os.path.join(src, s["nhwc"]["file"]))
+    wrong = np.ascontiguousarray(nhwc.reshape(1, 3, 224, 224))   # RESHAPE, the mistake under test
+    np.save(os.path.join(dst, "inputs", sid + ".nhwc.npy"), nhwc)
+    np.save(os.path.join(dst, "inputs", sid + ".nchw.npy"), wrong)
+    rows.append(dict(s, nhwc=dict(s["nhwc"], file="inputs/" + sid + ".nhwc.npy"),
+                     nchw=dict(s["nchw"], file="inputs/" + sid + ".nchw.npy",
+                               sha256=hashlib.sha256(wrong.tobytes()).hexdigest())))
+json.dump(dict(man, samples=rows), open(os.path.join(dst, "manifest.json"), "w"))
+print("built", len(rows))
+""" % (live_fx, neg_fx)
+    rc, out, err = run([PY, "-c", build_neg])
+    i_neg = os.path.join(work, "iree_neg.json"); c_neg = os.path.join(work, "cmp_neg.json")
+    rc2, _, e2 = run([PY, os.path.join(HERE, "iree_runner.py"),
+                      os.path.join(os.path.dirname(E31_DIR), "p1_smartcam_feasibility", "build", "smartcam.vmfb"),
+                      "--fixture", neg_fx, "--out", i_neg]) if rc == 0 else (rc, "", err)
+    rc3, _, e3 = run([PY, os.path.join(HERE, "e31_compare.py"), "--oracle", o_live,
+                      "--iree", i_neg, "--out", c_neg]) if rc2 == 0 else (rc2, "", e2)
+    if rc3 or not os.path.exists(c_neg):
+        results.append(Result("e31: the negative control re-runs live and still FAILS", False,
+                              "rc=%s %s" % (rc3, (e2 or e3)[-200:])))
+    else:
+        ln = load(c_neg)
+        _ln = (ln["verdict"] == "FAIL" and ln["totals"]["elements_failed"] == 105
+               and ln["totals"]["argmax_failed"] == 3)
+        results.append(Result("e31: the negative control re-runs live and still FAILS (105/111 elements, "
+                              "3 argmax) -- the criteria can fail", _ln,
+                              "" if _ln else "live negative control totals=%s verdict=%s"
+                              % (ln["totals"], ln["verdict"])))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -3908,6 +4184,7 @@ def main():
         all_results += e29b_conditional_verify_cases(tmp)
         all_results += p1_smartcam_feasibility_cases(tmp)
         all_results += e30b_squeeze_extension_cases(tmp)
+        all_results += e31_semantic_equivalence_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

@@ -1,0 +1,645 @@
+{
+ "tool": "harness/iree_runner.py",
+ "runner": "pip iree.runtime (python bindings), driver=local-sync, entry=infer",
+ "artifact": {
+  "path": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+  "bytes": 8915257,
+  "sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8"
+ },
+ "fixture": {
+  "dir": "results/e31_smartcam_equivalence/fixture",
+  "total_samples": 37
+ },
+ "memory_note": "this runner deliberately reports no HAL peak: reading outputs back to the host pins their buffers in this binding (D50/E30), and memory is not this experiment's question. E26/E29 are where allocation is measured.",
+ "results": [
+  {
+   "sample_id": "img_msec_1597559030639_2",
+   "kind": "real_example",
+   "input_sha256": "ae6e459af90c371fbdfbee2cf5b44b05bcf9da0a810dac22cb49231a7729b18a",
+   "output": [
+    0.03559190779924393,
+    0.01954268291592598,
+    0.9448654651641846
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1607377664281_2",
+   "kind": "real_example",
+   "input_sha256": "0fedf9ee3ea5c3f17defb9dc311f88f6eed5cc1b9027fd8cfd00a1c096a566aa",
+   "output": [
+    0.01029055193066597,
+    0.986048698425293,
+    0.0036607387010008097
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1607639907670_2",
+   "kind": "real_example",
+   "input_sha256": "27001077ac365de09086c660cc1a37106f4f1eacd91e98cdc6da12ae458cc814",
+   "output": [
+    0.08220726996660233,
+    0.8924372792243958,
+    0.02535545825958252
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_00",
+   "kind": "synthetic",
+   "input_sha256": "d59b327126251abde7f624c4ede287401f9eb0f9ead6463d4d57a04b5f9269b2",
+   "output": [
+    0.9059847593307495,
+    0.045128677040338516,
+    0.04888656362891197
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_01",
+   "kind": "synthetic",
+   "input_sha256": "81c5e1ace42011f5bf39c3dfe55c6fe9239ba7231de1b140b5ac4710d876e585",
+   "output": [
+    0.9131876230239868,
+    0.04262031987309456,
+    0.044192124158144
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_02",
+   "kind": "synthetic",
+   "input_sha256": "05c35aaf05d768b1ef18c00365e02d62d0e41fb8aa3052e6dfab9c6a62a9b0a1",
+   "output": [
+    0.8941420912742615,
+    0.05304567888379097,
+    0.052812159061431885
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_03",
+   "kind": "synthetic",
+   "input_sha256": "cd9b508a7fe6510e2b25d268370cd4028e75e78b54f4f5aaf9fc2fc3605a0107",
+   "output": [
+    0.9234990477561951,
+    0.04644542559981346,
+    0.030055612325668335
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "synthetic_04",
+   "kind": "synthetic",
+   "input_sha256": "70a625ea7928fea4502d5ccb93cc37fef16322086548f06a194722c75b53a386",
+   "output": [
+    0.9225587248802185,
+    0.04704192280769348,
+    0.030399302020668983
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_05",
+   "kind": "synthetic",
+   "input_sha256": "3b1268a8df9aecad40ec80efe5a6172bb3122c06ea8c18c474e3d4a9fa98aa65",
+   "output": [
+    0.9012031555175781,
+    0.05698240548372269,
+    0.041814498603343964
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_06",
+   "kind": "synthetic",
+   "input_sha256": "856174781136ee8b04b1dbc9ce6ce1018bc0beadf9f6e5b53bc0a2050a0941c9",
+   "output": [
+    0.906898021697998,
+    0.05256029963493347,
+    0.04054170101881027
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_07",
+   "kind": "synthetic",
+   "input_sha256": "bfa6a364b17243d35761ad3d3362e141af43f857bff7b50125b6b33225a8ff47",
+   "output": [
+    0.9236518740653992,
+    0.04342691972851753,
+    0.03292127698659897
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "synthetic_08",
+   "kind": "synthetic",
+   "input_sha256": "47d5069be95e193d60e30701a585fd61968f9a8c70274c162f209ca22a84ed55",
+   "output": [
+    0.9253445267677307,
+    0.04032348468899727,
+    0.03433196246623993
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_09",
+   "kind": "synthetic",
+   "input_sha256": "6c190fcfe26f25c86eead05fc415d67df78515dc885d10d57d78dc760d2c6004",
+   "output": [
+    0.9091938734054565,
+    0.052934881299734116,
+    0.03787124902009964
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_10",
+   "kind": "synthetic",
+   "input_sha256": "1429ab26a1aafcd73bab07529285960c2b227aa0a624a3c2b0572329c3706b7f",
+   "output": [
+    0.9037403464317322,
+    0.05232984572649002,
+    0.04392978921532631
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_11",
+   "kind": "synthetic",
+   "input_sha256": "d90a03ff1f08aa37d10541ddfee022911cbe0a7fe1869b06490d27c5035a4362",
+   "output": [
+    0.921855628490448,
+    0.04551706835627556,
+    0.03262724727392197
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_12",
+   "kind": "synthetic",
+   "input_sha256": "14f66a58847113f04571be82b6afe4a06a0e4529c676ae5c994236be223c5c98",
+   "output": [
+    0.926005482673645,
+    0.04072054848074913,
+    0.03327399119734764
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_13",
+   "kind": "synthetic",
+   "input_sha256": "4aa7f945121f24b04473632d7075e8f459d7176ff17b384408d8c8758bc0f386",
+   "output": [
+    0.9279972314834595,
+    0.04032469913363457,
+    0.03167807310819626
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_14",
+   "kind": "synthetic",
+   "input_sha256": "a6f2decfb2751c48bb0e0e4d789b1533c7bcf7ac86cb8a241296dbec7d7f2097",
+   "output": [
+    0.9107875227928162,
+    0.04686973989009857,
+    0.042342767119407654
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_15",
+   "kind": "synthetic",
+   "input_sha256": "bd1e9d88968c611964adbfb7eb7ce3b7add7bc617de9f31c9ce0f4f337336f1d",
+   "output": [
+    0.9195061922073364,
+    0.04818212240934372,
+    0.03231169283390045
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_16",
+   "kind": "synthetic",
+   "input_sha256": "6d7841ef644731091c52ecf5877938d76767154f07a5cdfbc588a0b240b96812",
+   "output": [
+    0.9210715889930725,
+    0.046946074813604355,
+    0.03198224678635597
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999998807907104
+  },
+  {
+   "sample_id": "synthetic_17",
+   "kind": "synthetic",
+   "input_sha256": "81ff4f1e7b64ed6eb9dc4610b666f2196a80d13e4da7e6abc2b5e2445e6a8572",
+   "output": [
+    0.914467990398407,
+    0.05383855476975441,
+    0.031693533062934875
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "synthetic_18",
+   "kind": "synthetic",
+   "input_sha256": "5796e42c65bb25d92f5c24bc393c3274c0020d28d5045d9a4d35604872d87724",
+   "output": [
+    0.9350939393043518,
+    0.04068285599350929,
+    0.024223212152719498
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_19",
+   "kind": "synthetic",
+   "input_sha256": "e3a8fa27cead06f207f6f5dcf56b62b05b8309e5375c7eb8826588c7030fd4dc",
+   "output": [
+    0.9115509986877441,
+    0.0499873161315918,
+    0.03846167027950287
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_20",
+   "kind": "synthetic",
+   "input_sha256": "e6cbc37cfbcc1eb132a6b8169ceba035a13eb0535714d932487d0228b6c78bb6",
+   "output": [
+    0.9169723391532898,
+    0.046439170837402344,
+    0.03658848628401756
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_21",
+   "kind": "synthetic",
+   "input_sha256": "166bc0da2fe40cec0c24ebaaea0c41a81a7c2955d8d567396e2ba0900eb627d0",
+   "output": [
+    0.9229713678359985,
+    0.044429607689380646,
+    0.032599061727523804
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_22",
+   "kind": "synthetic",
+   "input_sha256": "f73c90c68050f4d277ce1fe0f654689c4b818de128e2a5ae7877fa53c2683791",
+   "output": [
+    0.911220371723175,
+    0.05139624699950218,
+    0.037383388727903366
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_23",
+   "kind": "synthetic",
+   "input_sha256": "ee57c9cec93554a783172e1c978de1a1954cee0b8c5e5293aba3bba59d3e4c2c",
+   "output": [
+    0.9028293490409851,
+    0.0451667420566082,
+    0.05200395733118057
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_24",
+   "kind": "synthetic",
+   "input_sha256": "b503941101e346a471364628445e761f70867e5df5e87099dea3e7a17be8afc5",
+   "output": [
+    0.9028000831604004,
+    0.05773504823446274,
+    0.03946486860513687
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_25",
+   "kind": "synthetic",
+   "input_sha256": "682237b54cd5394211e2e74fabb6aad7bca0385245568fbf008b90ae82e15ac1",
+   "output": [
+    0.9142415523529053,
+    0.04584795609116554,
+    0.03991050645709038
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_26",
+   "kind": "synthetic",
+   "input_sha256": "45214017279497eb8644791f5d5e859568530bf1a5d554b7d94befe94a0bbe5e",
+   "output": [
+    0.9217588901519775,
+    0.0474153533577919,
+    0.030825648456811905
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_27",
+   "kind": "synthetic",
+   "input_sha256": "1b361323dbfadc8f542884a3fa71c25fdf987da5cc162e3ae0f0d963108ce991",
+   "output": [
+    0.9160553216934204,
+    0.04897565767168999,
+    0.03496898338198662
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "synthetic_28",
+   "kind": "synthetic",
+   "input_sha256": "c0ff1f058635e1e395978198df694f01f0c593355da0b31e189bf952a6c297c4",
+   "output": [
+    0.9133667945861816,
+    0.05022350698709488,
+    0.03640979900956154
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "synthetic_29",
+   "kind": "synthetic",
+   "input_sha256": "f7b0b63d6a4c348f9fd9c409934d7efb5fffbe16818eba4ee50f13abda19e0ba",
+   "output": [
+    0.9145054221153259,
+    0.04740294814109802,
+    0.03809171915054321
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_30",
+   "kind": "synthetic",
+   "input_sha256": "d5a6bc2cde73ad55a1053b4a1245ba9bc88657568de3dd9ee142cb808ecfce31",
+   "output": [
+    0.9208889603614807,
+    0.040873222053050995,
+    0.03823784366250038
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "synthetic_31",
+   "kind": "synthetic",
+   "input_sha256": "a095402847b6d388a1492cfd87d913544d2f7af9c095014272f4200fca23e38c",
+   "output": [
+    0.9079145789146423,
+    0.04662802070379257,
+    0.045457419008016586
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "edge_zeros",
+   "kind": "edge",
+   "input_sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc",
+   "output": [
+    0.9326789975166321,
+    0.035210467875003815,
+    0.03211062774062157
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "edge_ones",
+   "kind": "edge",
+   "input_sha256": "fb446ff86f61c7dfadb0cc01a6ad2d5923a13392df002e8e869c9ee50ba0aafa",
+   "output": [
+    0.9252843856811523,
+    0.052132949233055115,
+    0.02258271351456642
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 0,
+   "sum": 1.0000001192092896
+  }
+ ]
+}

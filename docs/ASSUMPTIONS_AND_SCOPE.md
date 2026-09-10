@@ -114,7 +114,7 @@
 |---|---|---|
 | **P0 E29b** — §4.1 조건부 검증 `> per_call`은 `constants < per_call`에서 fail-open; §4.2 거부 전 일시 할당 | **Core** | **완료(v0.32/E29b, D54)**. 검토서 예측이 실물로 재현됐고, §4.2는 선택지 1(append 전 확정)로 닫음 |
 | **P1** — 실물 모델 provenance·import feasibility (SmartCam, WGAN, ResNet, DeepAE) | **Core** (논문의 "가장 강한 문장"의 전제) | **SmartCam 완료(v0.33/E30, `docs/EVIDENCE_v0.33_E30.md`)** — 여덟 번째 외부 분석서(`docs/reviews/ONAIR_MLIR_P1_SEQUENCE_ANALYSIS_1.md`)가 "SmartCam 한 모델로 P1을 먼저 종료"하라고 했고 그대로 했다. 판정 **TRANSFORM_REQUIRED → GO**: 원본 무수정(commit `be09ece`, sha `fd1ecbd0…`), stock tflite2onnx의 SQUEEZE 거부 재현, C1–C4 검사 변환기 확장으로 한 번의 `iree-compile`까지 완주, 계약 오버라이드 0(bounded 18,222,796 = 9,382,092 + 8,840,704), 아티팩트 전용 기준선 일치. **P2 의무**: 엔트리 입력이 NCHW라 TFLite 입력을 전치해야 하고 배치는 1로 고정된다. v0.33.1/E30b(D56): 적대적 검증이 확장의 잠재 fail-open(부분 squeeze의 조용한 전치)을 합성 사례로 재현 → C5 신설, 비행 모델 무관. ResNet·DeepAE는 E26e·E26f 반입이 이미 있고(단, P1 형식의 provenance manifest는 없음), **WGAN은 미착수**(분석서 §7: 대형 출력 사례가 필요할 때). 이전 사전 확인: `wgan_fpn50_p.tflite` 4,299,472 B(sha `5258e859e5ca968f…`); `iree-import-tflite`는 이 환경에 없어 반입 경로는 E26f/E30과 같은 `tflite2onnx → iree-import-onnx` |
-| **P2** — x86-64 구현 검증(TFLite↔IREE 출력 비교) | Core | 미착수 |
+| **P2** — x86-64 구현 검증(TFLite↔IREE 출력 비교) | Core | **완료(v0.34/E31, PASS)**: 원본 `.tflite`(LiteRT) ↔ E30의 vmfb를 같은 전처리 결과로 대조 — 37입력 111원소 전부 사전 고정 기준 통과, argmax 37/37, 최악 abs 5.364e-07. 음성 대조(전치 대신 reshape)는 FAIL 105/111. **범위**: x86-64 호스트 두 경로의 계산 동치까지이며 정확도·비행 파이프라인·AArch64/cFS/OnAIR는 아니다 |
 | **P3** — AArch64 본 실험(Native·cFS, SmartCam/WGAN/ResNet/DeepAE) | Core | 미착수. AArch64 게스트 재구축 필요(scripts/60·61·70·71·51) |
 | **P4** — LLVM IR/ELF-only 기준선 | Core (R-3 강화) | 미착수 — 순위표의 미결 축과 동일 |
 | **P5** — 논문용 통합 결과표 | Supporting | P2–P4 이후 |

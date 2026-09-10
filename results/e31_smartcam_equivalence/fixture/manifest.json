@@ -1,0 +1,1601 @@
+{
+ "tool": "harness/model_fixture.py",
+ "experiment": "E31 (P2: SmartCam semantic preservation)",
+ "preprocessing": {
+  "resize": {
+   "to": [
+    224,
+    224
+   ],
+   "resample": "BILINEAR",
+   "note": "applied ONCE here so both paths receive identical tensors; this is NOT a claim that it matches the flight software's own resizer"
+  },
+  "normalisation": {
+   "formula": "(pixel - mean) / std",
+   "mean": 0.0,
+   "std": 255.0,
+   "note": "the ORIGINAL model's own config values; the model's internal MUL/SUB completes the range, so do not normalise again outside"
+  },
+  "layout": {
+   "nhwc": "original TFLite input",
+   "nchw": "imported IREE entry input",
+   "operation": "numpy transpose(0,3,1,2)",
+   "verified": "round trip nchw.transpose(0,2,3,1) == nhwc for every sample; and transpose != reshape asserted for these shapes"
+  }
+ },
+ "source": {
+  "repo": "https://github.com/georgeslabreche/opssat-smartcam.git",
+  "commit": "be09ecee41f0a5db52afe0ee929dbd339cb68672",
+  "note": "real_example images are home/exp1000/mocks/pictures at that commit (the only public examples); synthetic samples are coverage only and are never real data"
+ },
+ "counts": {
+  "edge": 2,
+  "real_example": 3,
+  "synthetic": 32
+ },
+ "total_samples": 37,
+ "samples": [
+  {
+   "sample_id": "img_msec_1597559030639_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1597559030639_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "dfa1a4fc9306511357692bc05ccb939e627e7c788ca2833eba7cbd93423fa5b3"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1597559030639_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "ae6e459af90c371fbdfbee2cf5b44b05bcf9da0a810dac22cb49231a7729b18a"
+   },
+   "value_range": [
+    0.0,
+    1.0
+   ],
+   "detail": {
+    "original_size": [
+     2048,
+     1944
+    ],
+    "original_mode": "RGB",
+    "source_file": "/tmp/smartcam_src/home/exp1000/mocks/pictures/img_msec_1597559030639_2.png",
+    "source_sha256": "a638da7908130d6294e1673c8642ccf8ee75412070c56cb76a2d6fc8b7b094ef"
+   }
+  },
+  {
+   "sample_id": "img_msec_1607377664281_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1607377664281_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "97bec61bc0c8c851f1385369dfe2c2971fd98c20912311df565128762a4a5a37"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1607377664281_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "0fedf9ee3ea5c3f17defb9dc311f88f6eed5cc1b9027fd8cfd00a1c096a566aa"
+   },
+   "value_range": [
+    0.003921568859368563,
+    1.0
+   ],
+   "detail": {
+    "original_size": [
+     2048,
+     1944
+    ],
+    "original_mode": "RGB",
+    "source_file": "/tmp/smartcam_src/home/exp1000/mocks/pictures/img_msec_1607377664281_2.png",
+    "source_sha256": "6e057aa416d4e2c0ab22f8f2da1c35aa579e8f401fc16178752b1c347ee6dc62"
+   }
+  },
+  {
+   "sample_id": "img_msec_1607639907670_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1607639907670_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "f8c3bc5862ddd16a3f2e08b00aedebd6b06efa2e0bf60e5b9838f272284171b5"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1607639907670_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "27001077ac365de09086c660cc1a37106f4f1eacd91e98cdc6da12ae458cc814"
+   },
+   "value_range": [
+    0.0,
+    1.0
+   ],
+   "detail": {
+    "original_size": [
+     2048,
+     1944
+    ],
+    "original_mode": "RGB",
+    "source_file": "/tmp/smartcam_src/home/exp1000/mocks/pictures/img_msec_1607639907670_2.png",
+    "source_sha256": "9acd6e6acb28bc8b157a5bc0bdf1ee62bdca95e6af5de7f06fc94ba5563b5ae8"
+   }
+  },
+  {
+   "sample_id": "synthetic_00",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_00.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "4d8798205ce4e43d029343e0a57a61287989d521d1972028f03d3e1a79815ff1"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_00.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "d59b327126251abde7f624c4ede287401f9eb0f9ead6463d4d57a04b5f9269b2"
+   },
+   "value_range": [
+    6.318092346191406e-06,
+    0.9999996423721313
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 0,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_01",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_01.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "61f8f4d228b16f24a83f3ad910a7003cd2a9462443ccf1be5884412d9ae24a7b"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_01.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "81c5e1ace42011f5bf39c3dfe55c6fe9239ba7231de1b140b5ac4710d876e585"
+   },
+   "value_range": [
+    6.735324859619141e-06,
+    0.9999970197677612
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 1,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_02",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_02.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "4c94cbb2df04d8caea7bb78db519459870be6bdd4db80ea7acf3ee43da88ff6f"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_02.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "05c35aaf05d768b1ef18c00365e02d62d0e41fb8aa3052e6dfab9c6a62a9b0a1"
+   },
+   "value_range": [
+    2.086162567138672e-06,
+    0.9999975562095642
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 2,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_03",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_03.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "be52982be56d519db67181dbd649c9d6f8ec3e8b7c8813f9b459471856e47de2"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_03.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "cd9b508a7fe6510e2b25d268370cd4028e75e78b54f4f5aaf9fc2fc3605a0107"
+   },
+   "value_range": [
+    3.7550926208496094e-06,
+    0.9999850988388062
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 3,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_04",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_04.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "b3bb79ec77347d60aeb1e9e320507061e679e18b9724a80b0286b49a2c01e3b9"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_04.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "70a625ea7928fea4502d5ccb93cc37fef16322086548f06a194722c75b53a386"
+   },
+   "value_range": [
+    2.562999725341797e-06,
+    0.9999989867210388
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 4,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_05",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_05.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "bb933c6439c89bfca497f18de5bb41e18d31009cf05b84ac2146a7ec634e57c7"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_05.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "3b1268a8df9aecad40ec80efe5a6172bb3122c06ea8c18c474e3d4a9fa98aa65"
+   },
+   "value_range": [
+    7.033348083496094e-06,
+    0.9999998211860657
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 5,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_06",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_06.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "a0e3e0f52162ce8318e414b5fd1c66b8467b150e2368d0350304c6826b7c9b03"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_06.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "856174781136ee8b04b1dbc9ce6ce1018bc0beadf9f6e5b53bc0a2050a0941c9"
+   },
+   "value_range": [
+    1.1324882507324219e-06,
+    0.9999874234199524
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 6,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_07",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_07.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "7cad93a4698e51c657b1c0b6135a1a8e374ac1ef093513133cf2ae5c74976936"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_07.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "bfa6a364b17243d35761ad3d3362e141af43f857bff7b50125b6b33225a8ff47"
+   },
+   "value_range": [
+    2.682209014892578e-06,
+    0.9999862909317017
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 7,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_08",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_08.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "1e30692a4eda09b396955133a8f4e8e5895cb83b9b72ad3b98ec92ee902c08c7"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_08.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "47d5069be95e193d60e30701a585fd61968f9a8c70274c162f209ca22a84ed55"
+   },
+   "value_range": [
+    5.602836608886719e-06,
+    0.9999983906745911
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 8,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_09",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_09.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "1dd2bbfe3b706658504aa523363eb611728545b9e76ca2e566df861cb0c861e1"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_09.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "6c190fcfe26f25c86eead05fc415d67df78515dc885d10d57d78dc760d2c6004"
+   },
+   "value_range": [
+    3.814697265625e-06,
+    0.9999961256980896
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 9,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_10",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_10.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "b32beb05cd0b1342fca63a04552a75cee18588179038ef0dcd1f7a5584d0845b"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_10.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "1429ab26a1aafcd73bab07529285960c2b227aa0a624a3c2b0572329c3706b7f"
+   },
+   "value_range": [
+    1.1265277862548828e-05,
+    0.9999979734420776
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 10,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_11",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_11.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "9eae196f3cc11441e4b672ba421eaeb2c65082d1814e02a7c3830ce389d8265e"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_11.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "d90a03ff1f08aa37d10541ddfee022911cbe0a7fe1869b06490d27c5035a4362"
+   },
+   "value_range": [
+    6.258487701416016e-06,
+    0.9999992847442627
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 11,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_12",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_12.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "e23a86e033b2d790d747ee43a3fabb00f4adfcef98900ca400d8e8cf5b03ec17"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_12.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "14f66a58847113f04571be82b6afe4a06a0e4529c676ae5c994236be223c5c98"
+   },
+   "value_range": [
+    2.205371856689453e-06,
+    0.9999922513961792
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 12,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_13",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_13.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "9c23007552493c64ca60e6ac90a834c86a42dfc0f2b8cc87e0477041408fec81"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_13.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "4aa7f945121f24b04473632d7075e8f459d7176ff17b384408d8c8758bc0f386"
+   },
+   "value_range": [
+    2.6226043701171875e-06,
+    0.9999915361404419
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 13,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_14",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_14.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "f86d9ba8ed6eaf36bf6813bc7149a9042be22b7a3fb61898687b6db16a9b3d76"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_14.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "a6f2decfb2751c48bb0e0e4d789b1533c7bcf7ac86cb8a241296dbec7d7f2097"
+   },
+   "value_range": [
+    2.0205974578857422e-05,
+    0.9999988079071045
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 14,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_15",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_15.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "ae8d7d62d37383861ea826e1ee41faaea4ed15969f8000240f1cdd9e1023ef1c"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_15.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "bd1e9d88968c611964adbfb7eb7ce3b7add7bc617de9f31c9ce0f4f337336f1d"
+   },
+   "value_range": [
+    6.854534149169922e-06,
+    0.999992847442627
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 15,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_16",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_16.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "ea58e5c3934687b4b27f4784d2deb08d95f56ecc4c86288064815dd279ccf5d4"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_16.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "6d7841ef644731091c52ecf5877938d76767154f07a5cdfbc588a0b240b96812"
+   },
+   "value_range": [
+    2.205371856689453e-06,
+    0.9999997019767761
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 16,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_17",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_17.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "c7303a6b52791ac08bc7cd8a37081daabb76fb4c4b09b85ed053a4b9ea64ef2b"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_17.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "81ff4f1e7b64ed6eb9dc4610b666f2196a80d13e4da7e6abc2b5e2445e6a8572"
+   },
+   "value_range": [
+    1.436471939086914e-05,
+    0.9999917149543762
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 17,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_18",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_18.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "de9dd2cc802c2743e743bf737e8a02abb52a845f171b590438207da13add775e"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_18.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "5796e42c65bb25d92f5c24bc393c3274c0020d28d5045d9a4d35604872d87724"
+   },
+   "value_range": [
+    1.1920928955078125e-07,
+    0.9999995231628418
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 18,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_19",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_19.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "838a891951df0e49092a385c60d2f6e820bd4b685fd54ba59ce8edc55afd9226"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_19.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "e3a8fa27cead06f207f6f5dcf56b62b05b8309e5375c7eb8826588c7030fd4dc"
+   },
+   "value_range": [
+    5.7220458984375e-06,
+    0.9999644160270691
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 19,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_20",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_20.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "2829470a6198492f2b2c2445440d97492308bf78e6043677aa56f9c9cea8e9ca"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_20.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "e6cbc37cfbcc1eb132a6b8169ceba035a13eb0535714d932487d0228b6c78bb6"
+   },
+   "value_range": [
+    4.172325134277344e-07,
+    0.9999958276748657
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 20,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_21",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_21.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "457208b62e5bbd3eae7e1fb730953f7cfd056acb6a41789b6263d8658f0fa8a6"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_21.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "166bc0da2fe40cec0c24ebaaea0c41a81a7c2955d8d567396e2ba0900eb627d0"
+   },
+   "value_range": [
+    1.1980533599853516e-05,
+    0.9999995827674866
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 21,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_22",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_22.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "3bc1811a02324e974e2288c4586d01baecca259e0675fec0fef1081613d8360c"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_22.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "f73c90c68050f4d277ce1fe0f654689c4b818de128e2a5ae7877fa53c2683791"
+   },
+   "value_range": [
+    2.8014183044433594e-06,
+    0.9999949336051941
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 22,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_23",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_23.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "7d79f6831e32f1e5b7eb2c33bb1919877ca829683fee3a606e2fc71066bbccfd"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_23.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "ee57c9cec93554a783172e1c978de1a1954cee0b8c5e5293aba3bba59d3e4c2c"
+   },
+   "value_range": [
+    1.0609626770019531e-05,
+    0.9999973177909851
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 23,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_24",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_24.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "c7e2aec4a45ac5b6da4e8101d8e129a11756322d097066b2dd0c600a48909038"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_24.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "b503941101e346a471364628445e761f70867e5df5e87099dea3e7a17be8afc5"
+   },
+   "value_range": [
+    5.662441253662109e-06,
+    0.9999929666519165
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 24,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_25",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_25.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "9596b3bfff891bb360f22b1ef0e85912a911554451c2a9d2b7bfcb6a16873679"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_25.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "682237b54cd5394211e2e74fabb6aad7bca0385245568fbf008b90ae82e15ac1"
+   },
+   "value_range": [
+    7.152557373046875e-07,
+    0.9999822378158569
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 25,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_26",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_26.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "e23848bdf80ff3120df3e20b2d93b9f419b185e284a5c7167ce51e149288cbb8"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_26.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "45214017279497eb8644791f5d5e859568530bf1a5d554b7d94befe94a0bbe5e"
+   },
+   "value_range": [
+    6.616115570068359e-06,
+    0.9999980330467224
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 26,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_27",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_27.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "5cfb2734d21da02e4f58589e2300ffac5fbaf4af47bcfcf1b2f9e71e26c5b2c3"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_27.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "1b361323dbfadc8f542884a3fa71c25fdf987da5cc162e3ae0f0d963108ce991"
+   },
+   "value_range": [
+    1.8477439880371094e-06,
+    0.9999936819076538
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 27,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_28",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_28.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "027b974169ed3accd3c2066390d91c5b27c08ee96fdfc56d728e08b7019698c6"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_28.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "c0ff1f058635e1e395978198df694f01f0c593355da0b31e189bf952a6c297c4"
+   },
+   "value_range": [
+    3.6954879760742188e-06,
+    0.999999463558197
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 28,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_29",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_29.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "d236e1a98541b972eccd59d153dfd78b3fe6d03432c48ccc80c1d2110fb7fb45"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_29.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "f7b0b63d6a4c348f9fd9c409934d7efb5fffbe16818eba4ee50f13abda19e0ba"
+   },
+   "value_range": [
+    1.1920928955078125e-06,
+    0.9999993443489075
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 29,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_30",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_30.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "18b8f409a9af5c049976a6aeb9b4f403efe4a58ff7bbb5ea63df2d3d90be1b54"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_30.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "d5a6bc2cde73ad55a1053b4a1245ba9bc88657568de3dd9ee142cb808ecfce31"
+   },
+   "value_range": [
+    1.0013580322265625e-05,
+    0.9999987483024597
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 30,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "synthetic_31",
+   "kind": "synthetic",
+   "nhwc": {
+    "file": "inputs/synthetic_31.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "76173f314efe5440736330b4a20d1766c098f6e38c19d2804be3adaa22ac00eb"
+   },
+   "nchw": {
+    "file": "inputs/synthetic_31.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "a095402847b6d388a1492cfd87d913544d2f7af9c095014272f4200fca23e38c"
+   },
+   "value_range": [
+    1.6868114471435547e-05,
+    0.9999993443489075
+   ],
+   "detail": {
+    "generator": "numpy.random.default_rng(31).random, uniform [0,1)",
+    "index": 31,
+    "note": "COVERAGE ONLY -- not real data, never to be reported as such"
+   }
+  },
+  {
+   "sample_id": "edge_zeros",
+   "kind": "edge",
+   "nhwc": {
+    "file": "inputs/edge_zeros.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc"
+   },
+   "nchw": {
+    "file": "inputs/edge_zeros.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc"
+   },
+   "value_range": [
+    0.0,
+    0.0
+   ],
+   "detail": {
+    "note": "all 0.0"
+   }
+  },
+  {
+   "sample_id": "edge_ones",
+   "kind": "edge",
+   "nhwc": {
+    "file": "inputs/edge_ones.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "fb446ff86f61c7dfadb0cc01a6ad2d5923a13392df002e8e869c9ee50ba0aafa"
+   },
+   "nchw": {
+    "file": "inputs/edge_ones.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "fb446ff86f61c7dfadb0cc01a6ad2d5923a13392df002e8e869c9ee50ba0aafa"
+   },
+   "value_range": [
+    1.0,
+    1.0
+   ],
+   "detail": {
+    "note": "all 1.0 (the top of the [0,1] range this preprocessing produces)"
+   }
+  }
+ ],
+ "storage_note": "synthetic samples' .npy files are NOT stored: they are regenerated bit-exactly by harness/model_fixture.py --synthetic 32 --seed 31 and this manifest carries their sha256, which the regression test checks. real_example and edge inputs ARE stored (the real images are the evidence; the edge inputs are two arrays).",
+ "not_stored": [
+  {
+   "file": "inputs/synthetic_00.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_00.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_01.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_01.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_02.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_02.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_03.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_03.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_04.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_04.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_05.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_05.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_06.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_06.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_07.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_07.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_08.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_08.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_09.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_09.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_10.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_10.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_11.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_11.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_12.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_12.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_13.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_13.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_14.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_14.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_15.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_15.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_16.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_16.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_17.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_17.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_18.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_18.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_19.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_19.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_20.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_20.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_21.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_21.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_22.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_22.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_23.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_23.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_24.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_24.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_25.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_25.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_26.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_26.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_27.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_27.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_28.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_28.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_29.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_29.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_30.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_30.nchw.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_31.nhwc.npy",
+   "bytes": 602240
+  },
+  {
+   "file": "inputs/synthetic_31.nchw.npy",
+   "bytes": 602240
+  }
+ ]
+}

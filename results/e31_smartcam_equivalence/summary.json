@@ -1,0 +1,169 @@
+{
+ "experiment": "E31 (P2: SmartCam semantic preservation)",
+ "question": "does the imported IREE model compute the same thing as the original SmartCam model.tflite?",
+ "plan": "docs/plans/E31_smartcam_semantic_equivalence.md (criteria fixed and committed before measuring)",
+ "verdict": "PASS",
+ "criteria": {
+  "source": "docs/plans/E31_smartcam_semantic_equivalence.md SS4, committed before measurement",
+  "inherited_from": "E25 SS3.2, unchanged (ninth review SS9.3)",
+  "abs_tol": 0.0001,
+  "rel_tol": 1e-05,
+  "rule": "per element: abs_err <= abs_tol OR rel_err <= rel_tol",
+  "rel_definition": "|a-b| / max(|a|,|b|,1e-30)",
+  "argmax": "must agree on every sample, but agreeing argmax is NOT equivalence on its own",
+  "bit_identity": "not required between these two implementations, and not generalised if seen"
+ },
+ "paths": {
+  "oracle": {
+   "runner": "ai_edge_litert Interpreter (LiteRT), original flatbuffer unmodified",
+   "model_sha256": "fd1ecbd01ad2d46bd35cbac17809cfa24b1d929b8f14871fc1fb6fca5ff06aae",
+   "signature": {
+    "input_shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "input_dtype": "float32",
+    "input_quantization": [
+     0.0,
+     0
+    ],
+    "output_shape": [
+     1,
+     3
+    ],
+    "output_dtype": "float32"
+   }
+  },
+  "iree": {
+   "runner": "pip iree.runtime (python bindings), driver=local-sync, entry=infer",
+   "artifact_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8",
+   "note": "the vmfb E30 produced in ONE iree-compile invocation; not recompiled here"
+  }
+ },
+ "fixture": {
+  "total_samples": 37,
+  "counts": {
+   "edge": 2,
+   "real_example": 3,
+   "synthetic": 32
+  },
+  "preprocessing": {
+   "formula": "(pixel - mean) / std",
+   "mean": 0.0,
+   "std": 255.0,
+   "note": "the ORIGINAL model's own config values; the model's internal MUL/SUB completes the range, so do not normalise again outside"
+  },
+  "resize": {
+   "to": [
+    224,
+    224
+   ],
+   "resample": "BILINEAR",
+   "note": "applied ONCE here so both paths receive identical tensors; this is NOT a claim that it matches the flight software's own resizer"
+  },
+  "layout": {
+   "nhwc": "original TFLite input",
+   "nchw": "imported IREE entry input",
+   "operation": "numpy transpose(0,3,1,2)",
+   "verified": "round trip nchw.transpose(0,2,3,1) == nhwc for every sample; and transpose != reshape asserted for these shapes"
+  }
+ },
+ "totals": {
+  "samples": 37,
+  "elements": 111,
+  "elements_failed": 0,
+  "argmax_failed": 0,
+  "by_kind": {
+   "edge": 2,
+   "real_example": 3,
+   "synthetic": 32
+  }
+ },
+ "worst_element": {
+  "abs": 5.364418029785156e-07,
+  "rel": 5.677437880786547e-07,
+  "sample_id": "img_msec_1597559030639_2",
+  "index": 2
+ },
+ "by_kind": {
+  "real_example": {
+   "n": 3,
+   "max_abs_err": 5.364418029785156e-07,
+   "max_rel_err": 1.5726420519909745e-05,
+   "all_elements_ok": true,
+   "argmax_ok": true
+  },
+  "edge": {
+   "n": 2,
+   "max_abs_err": 1.7881393432617188e-07,
+   "max_rel_err": 4.060482157893357e-06,
+   "all_elements_ok": true,
+   "argmax_ok": true
+  },
+  "synthetic": {
+   "n": 32,
+   "max_abs_err": 5.364418029785156e-07,
+   "max_rel_err": 6.176887038990412e-06,
+   "all_elements_ok": true,
+   "argmax_ok": true
+  }
+ },
+ "criteria_value_demonstrated": {
+  "or_rule_was_load_bearing": true,
+  "detail": "the worst real_example element has rel_err 1.573e-05, ABOVE the pre-fixed rel_tol of 1e-5; it passes only because its abs_err (5.364e-07) is far below abs_tol. A rel-only criterion would have failed an honest result -- the same shape of finding E25 recorded for its own pre-fixed OR rule, now reproduced on a real flight model.",
+  "real_example_max_rel_err": 1.5726420519909745e-05,
+  "rel_tol": 1e-05
+ },
+ "negative_control": {
+  "what": "the IREE model fed NCHW built by RESHAPE instead of TRANSPOSE -- the layout mistake E30 recorded as P2's obligation",
+  "why": "a PASS only means something if the criteria can fail; this shows they do",
+  "regeneration": "deterministic from the stored fixture: reshape each stored/regenerated nhwc .npy to [1,3,224,224]; the inputs themselves are not stored (the test rebuilds them)",
+  "observed": {
+   "elements_failed": 105,
+   "of": 111,
+   "argmax_failed": 3,
+   "argmax_only_would_have_passed": 34,
+   "samples": 37
+  },
+  "lesson_argmax": "judging by argmax alone would have accepted the wrong layout on 34 of 37 samples (92%), which is why the pre-fixed criteria (plan SS4.2) forbid argmax-only equivalence",
+  "lesson_constant_inputs": "the only samples that passed under the wrong layout are the two constant edge inputs -- a constant array is invariant under any permutation, so boundary inputs alone cannot detect a layout error. Non-constant (here: real) inputs are required."
+ },
+ "original_predictions_for_the_record": [
+  {
+   "sample_id": "img_msec_1597559030639_2",
+   "output": [
+    0.03559163957834244,
+    0.019542375579476357,
+    0.9448660016059875
+   ],
+   "argmax_label": "edge"
+  },
+  {
+   "sample_id": "img_msec_1607377664281_2",
+   "output": [
+    0.01029049139469862,
+    0.9860488176345825,
+    0.003660732414573431
+   ],
+   "argmax_label": "earth"
+  },
+  {
+   "sample_id": "img_msec_1607639907670_2",
+   "output": [
+    0.08220694214105606,
+    0.8924376964569092,
+    0.025355415418744087
+   ],
+   "argmax_label": "earth"
+  }
+ ],
+ "not_claimed": [
+  "accuracy: the three example images are not an evaluation dataset (no provenance of capture, no ground-truth labels, no train/test split)",
+  "flight-pipeline equivalence: the resize here is the fixture's, not the flight resizer's",
+  "AArch64, cFS or OnAIR: this experiment compares two host x86-64 paths only (those are stages 2 and 3)",
+  "generalisation to ResNet/DeepAE (stage 4) or to other compiler versions",
+  "bit identity: not required between these two implementations, and not observed"
+ ]
+}

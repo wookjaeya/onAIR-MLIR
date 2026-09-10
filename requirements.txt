@@ -28,3 +28,8 @@ jsonschema==4.26.0
 tflite==2.18.0
 tflite2onnx==0.4.1
 onnx==1.22.0
+
+# E31/P2 오라클: 원본 .tflite를 그대로 실행해 의미 보존을 판정한다(LiteRT 인터프리터)
+ai-edge-litert==2.2.0
+# E31/P2 fixture: 원본 예제 이미지 전처리(resize) — 이미지가 없는 환경에서는 해당 시험이 SKIP된다
+pillow==12.1.0

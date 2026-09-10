@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.33**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.34**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -546,7 +546,24 @@ TFLite 의미와 비트 대조, max_abs_diff 0.0), revert 시 3건 CONVERTED로 
 실행 범위**: 반박 9묶음 완주, **2인 검증은 세션 한도로 0건 실행** — 확인 주체는 구현자 자신이다.
 **교훈**: *경계 조건을 논증으로 좁히면 논증이 틀린 만큼 틀린다 — 계산할 수 있는 것은 계산하라*. **CI 실측**(커밋 `39a4692`, run 112, 3레그 success): `full` **370/370 + 1 SKIP**(PyYAML) · `without-iree` **240/240 + 21 SKIP** · `stdlib-only` **240/240 + 21 SKIP** — 컨테이너 371/371과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 20→21은 e30b의 합성 사례 시험이 변환기 패키지 없이는 정직하게 SKIP하기 때문이다. 교훈: *형상·원소
 수·dtype 보존 ≠ 데이터 순서 보존*. 인터페이스 좁힘이 둘(레이아웃 + 배치 고정)임도 기록.
-**다음은 P2**(SmartCam TFLite↔IREE 의미 동치 + x86-64 구현 검증 — 전치 입력 필수, 배치 1) → P4 → P3.
+**v0.34에서 완료된 것 (E31, `docs/EVIDENCE_v0.34_E31.md`)**: **P2 — SmartCam 원본 의미 보존, PASS.**
+아홉 번째 외부 검토(`docs/reviews/ONAIR_MLIR_ARCHITECTURE_PLAN_20260910.md`)가 §14에서 **"지금 가장 먼저
+착수할 구현"**으로 지목한 셋(입력 fixture · 원본 출력 oracle · 전체 출력 comparator)을 만들어 §10 단계 1을
+실행했다. 원본 `model.tflite`(무수정, `ai_edge_litert` LiteRT 인터프리터)와 E30의 vmfb가 **같은 전처리
+결과**를 받았을 때 37입력 × 3출력 = **111원소 전부**가 사전 고정 기준을 만족, **argmax 37/37**, 최악 abs
+**5.364e-07**. 기준은 **측정 전 커밋**(`8f7bcde`)이고 E25에서 **변경 없이 승계**(원소별 `abs<=1e-4` OR
+`rel<=1e-5`). 전처리는 원본 `config.ini`의 값(224×224, mean 0, std 255 → `pixel/255`)이며 모델 내부
+`MUL(2.0)`·`SUB(1.0)`이 [−1,1]을 완성하므로 **이중 정규화 없음**. resize는 fixture가 한 번 수행해 두 경로에
+같은 텐서를 준다(교란 소거). 레이아웃은 **전치**이고 생성기가 왕복을 자기검사한다.
+**실측으로 드러난 둘**: (1) **사전 고정한 OR 규칙이 판정을 좌우** — 실제 이미지 최악 `rel_err` **1.573e-05**가
+`rel_tol`을 넘고 `abs_err`만이 통과시켰다(rel 단독이면 정직한 결과가 FAIL). (2) **음성 대조**(전치 대신
+reshape) → **FAIL 105/111**인데 **argmax만 봤으면 34/37(92%) 통과**였고, 통과한 것은 **상수 경계 입력 2개뿐**
+— **경계 입력만으로는 레이아웃 오류를 원리적으로 못 잡는다**(비상수 실데이터 필요). **부수**: fixture 자기검사
+첫 구현이 *값*으로 transpose≠reshape를 판정해 전부 0 입력에서 **과잉 거부**(D57 직후 같은 계열) → `arange`
+라벨로 형상만 판정. **하지 않음**: 정확도(공개 예제 3장은 평가셋 아님)·비행 파이프라인 동치·AArch64/cFS/OnAIR·
+다른 모델·메모리 측정. 회귀 14건(라이브 재실행 포함), **378/378 → 392/392**.
+**다음은 검토서 §10 단계 2**(SmartCam AArch64 cFS 실행 — 환경은 이미 존재하므로 재구축하지 않는다) →
+단계 3(공식 OnAIR 경로 갱신) → 단계 4(ResNet·DeepAE) → 단계 5(공정한 기준선).
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -893,7 +910,10 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.33_E30.md       ★ 최신. P1 — OPS-SAT SmartCam 반입 타당성: 원본 무수정, SQUEEZE 차단 재현, C1–C4 검사
+  EVIDENCE_v0.34_E31.md       ★ 최신. P2 — SmartCam 원본 의미 보존 PASS: 원본 TFLite oracle ↔ IREE, 111원소 전부
+                               사전 고정 기준 통과. OR 규칙이 판정을 좌우했고, 음성 대조가 argmax 단독 판정의 위험(92% 오통과)과
+                               경계 입력의 원리적 한계(상수는 순열 불변)를 실측으로 보였다
+  EVIDENCE_v0.33_E30.md       P1 — OPS-SAT SmartCam 반입 타당성: 원본 무수정, SQUEEZE 차단 재현, C1–C4 검사
                                변환기 확장, 한 번의 iree-compile, 계약 오버라이드 0, TRANSFORM_REQUIRED → GO, P2 의무(NCHW·배치 1)
                                (§8 적대적 검증: E30b/D56 — 부분 squeeze의 조용한 전치 → C5 신설)
   EVIDENCE_v0.32_E29b.md      D54 — E29 조건부 검증이 크기 비교라 constants<per_call에서 fail-open.
@@ -984,6 +1004,13 @@ harness/                    실험 스크립트
                                initializer·value_info를 이름순 정렬(tflite2onnx가 set()으로 내보내 실행마다 바이트가 달랐음)
   p1_smoke_pip_runtime.py     ★ E30/P1: pip iree.runtime 스모크 — 결과를 버리는 호출로 HAL 피크를 먼저 읽고(호스트 읽기가
                                버퍼를 붙듦, D50) 그 다음 출력·결정성·읽은 뒤 통계를 기록. 타당성 기록이지 판정 도구가 아니다
+  model_fixture.py            ★ E31/P2: 두 경로가 공유하는 입력 fixture — 원본 config의 전처리, NHWC→NCHW **전치**
+                               (왕복·순열 실효성 자기검사; 값이 아니라 arange 라벨로 형상만 판정), manifest에 해시·출처
+  tflite_oracle.py            ★ E31/P2: 원본 .tflite를 LiteRT로 그대로 실행해 **전체 출력** 기록(기준값)
+  iree_runner.py              ★ E31/P2: 같은 fixture로 vmfb 실행, 전체 출력 기록. **HAL 피크는 일부러 보고하지 않는다**
+                               (호스트 읽기가 버퍼를 붙드는 D50 조건에서 메모리를 함께 재면 잘못 보고하게 된다)
+  e31_compare.py              ★ E31/P2: 계획 §4를 코드로 적용 — 원소별 abs/rel OR + argmax, argmax 단독 판정 금지.
+                               FAIL도 rc=0(판정은 결과이지 도구 오류가 아니다), 샘플 집합이 다르면 판정 대신 REFUSED
   gen_tflite_squeeze_cases.py ★ E30b/D56: 합성 TFLite SQUEEZE 사례 11건 생성기(NHWC 입력 → 1x1 AvgPool → SQUEEZE) — C5를
                                정당화한 모델(부분 squeeze의 조용한 전치)의 in-tree 재현(D43). 비행 모델엔 없는 형상
   e30b_squeeze_probe.py       ★ E30b: 사례 1건을 확장에 통과시켜 CONVERTED/REFUSED/CRASH를 보고하고, --iree면 컴파일·실행해
@@ -1040,6 +1067,8 @@ results/e26_boundary_utility/  ★ E26 계열 전체: 사전 고정 기준(docs/
                              instrumentation_check/, x86_64|aarch64/{native,cfs,pip_runtime}/,
                              mlperf_tiny_{resnet,vww}_fixture/, x86_64/ext_b{2,3}_*/ (실물 워크로드
                              단일 호출 산출물 + 측정), aarch64/a5b_canonical/, comparison/, summary.json
+results/e31_smartcam_equivalence/  ★ E31/P2: 공유 fixture(manifest + 실이미지 3·경계 2의 .npy; 합성 32는 seed 31에서
+                             비트 재생성되므로 미보존, 시험이 sha256으로 대조), 두 경로의 전체 출력, 판정, 음성 대조
 results/p1_smartcam_feasibility/   ★ E30/P1: OPS-SAT SmartCam 비행 모델 원본(무수정, 8,950,028 B) + source_manifest·
                              operator_inventory·import/(import_log step 1–8, 변환 매니페스트 2, squeeze ONNX)·build/
                              (mlir.gz·vmfb·layout IR·ELF·계약·헤더·기준선·스모크·축소 dump 123)·variant_reshape/equivalence.json·
