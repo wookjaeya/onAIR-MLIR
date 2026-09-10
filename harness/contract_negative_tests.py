@@ -2927,6 +2927,121 @@ except NotImplementedError as e:
     return results
 
 
+def e30b_squeeze_extension_cases(tmp):
+    """E30b / D56: the SQUEEZE converter extension on shapes the flight model does not contain.
+
+    The adversarial review of E30 built synthetic TFLite flatbuffers and showed that a
+    TFLite-valid PARTIAL squeeze which passes C1-C4 ([1,1,7,64] dims [1] -> [1,7,64]) was
+    emitted on the NCHW-re-indexed tensor with its data silently transposed -- shape
+    inference, iree-compile and the runtime all accept it; only the numbers are wrong
+    (reshape mode: max_abs_diff 5.46 / 1.89 / 2.61 for sq_H / sq_H77 / sq_N; squeeze mode:
+    sq_H77 runs with 1.89, the non-square ones are caught downstream by a shape cast).
+    SmartCam keeps {N,C}, whose order NHWC and NCHW agree on, so the flight model was
+    never affected -- which is exactly why a synthetic set was needed (D43's rule: the
+    models that justify the fix live in harness/gen_tflite_squeeze_cases.py).
+
+    Fix: C5 -- the kept axes must keep their TFLite order under the layout permutation --
+    plus three smaller things the same review found: a missing SqueezeOptions table
+    crashed with AttributeError where a decision was owed (D24's class), duplicate axes
+    were forwarded verbatim, and the identity case (no size-1 axis) was refused as C1
+    even on a layout-free tensor.  Each case below pins one outcome; the CONVERTED ones
+    are additionally compiled with IREE and compared bit for bit with TFLite's semantics
+    when the tools are on PATH.  Revert-and-confirm-fail was done by hand (disable C5 ->
+    sq_H/sq_H77/sq_N CONVERT with the numbers above); the source-level guard here keeps
+    the check from disappearing quietly."""
+    results = []
+    root = os.path.dirname(HERE)
+    ext_src = open(os.path.join(HERE, "tflite2onnx_ext_squeeze.py"), encoding="utf-8").read()
+    results.append(Result("e30b: extension enforces C5 (kept-axis order under the layout perm) and refuses instead of emitting",
+                          ("check_kept_axis_order(" in ext_src and "if not ok5:" in ext_src
+                          and "raise SqueezeConditionError" in ext_src.split("if not ok5:")[1][:400]),
+                          "" if ("check_kept_axis_order(" in ext_src and "if not ok5:" in ext_src
+                          and "raise SqueezeConditionError" in ext_src.split("if not ok5:")[1][:400]) else "C5 check or its refusal is gone from transform()"))
+    results.append(Result("e30b: a missing SqueezeOptions table is a decision (empty dims), not a crash",
+                          ("if opt is None:" in ext_src and "raw_dims = []" in ext_src),
+                          "" if ("if opt is None:" in ext_src and "raw_dims = []" in ext_src) else "opt-None path missing in parse()"))
+    results.append(Result("e30b: squeeze dims are normalised by one pure helper (negatives, duplicates, empty == all size-1)",
+                          ("def normalize_squeeze_dims(" in ext_src and "sorted(set(" in ext_src.split("def normalize_squeeze_dims(")[1][:400]),
+                          "" if ("def normalize_squeeze_dims(" in ext_src and "sorted(set(" in ext_src.split("def normalize_squeeze_dims(")[1][:400]) else "normalize_squeeze_dims missing or no longer dedupes"))
+
+    if not _converter_available():
+        results.append(Result("e30b: synthetic SQUEEZE cases (11) give the pinned outcomes", True,
+                              "tflite/tflite2onnx/onnx not installed", skip=True))
+        return results
+    gen = os.path.join(HERE, "gen_tflite_squeeze_cases.py")
+    cases_dir = os.path.join(tmp, "e30b_cases")
+    rc, out, err = run([PY, gen, cases_dir])
+    if rc != 0:
+        results.append(Result("e30b: synthetic SQUEEZE cases (11) give the pinned outcomes", False,
+                              "generator rc=%d %s" % (rc, err.strip()[-200:])))
+        return results
+    have_iree = all(shutil.which(t) for t in ("iree-import-onnx", "iree-opt", "iree-compile")) \
+        and run([PY, "-c", "import iree.runtime"])[0] == 0
+    # name -> (expected outcome, expected ONNX axes attr in squeeze mode, refusal must mention)
+    expect = {
+        "sq_HW":       ("CONVERTED", [2, 3], None),
+        "sq_neg":      ("CONVERTED", [2, 3], None),
+        "sq_dup":      ("CONVERTED", [2, 3], None),          # duplicates collapse
+        "sq_empty":    ("CONVERTED", [0, 2, 3], None),       # empty dims == every size-1 axis, C5 holds (kept {C})
+        "sq_noopt":    ("CONVERTED", [0, 2, 3], None),       # no options table == empty dims
+        "sq_H":        ("REFUSED", None, "C5"),
+        "sq_H77":      ("REFUSED", None, "C5"),
+        "sq_N":        ("REFUSED", None, "C5"),
+        "sq_identity": ("REFUSED", None, "C5"),              # identity on a layout-tagged input needs a Transpose
+        "bad_c1":      ("REFUSED", None, "structural conditions"),
+        "bad_c4":      ("REFUSED", None, "structural conditions"),
+    }
+    probe = os.path.join(HERE, "e30b_squeeze_probe.py")
+    outcomes = {}
+    for name, (want, want_axes, must_mention) in expect.items():
+        tfl = os.path.join(cases_dir, name + ".tflite")
+        cmd = [PY, probe, tfl, "--mode", "squeeze", "--workdir", os.path.join(tmp, "e30b_" + name)]
+        if have_iree and want == "CONVERTED":
+            cmd.append("--iree")
+        rc, out, err = run(cmd)
+        try:
+            d = json.loads(out.strip().splitlines()[-1])
+        except Exception:
+            d = {"outcome": "PROBE-ERROR", "reason": (err or out)[-300:]}
+        outcomes[name] = d
+        ok = d.get("outcome") == want
+        detail = "outcome=%s" % d.get("outcome")
+        if ok and want == "CONVERTED":
+            ok = (d.get("onnx") or {}).get("axes_attr") == want_axes and (d.get("audit") or {}).get("C5_kept_axis_order_preserved") is True
+            detail += " axes=%s" % (d.get("onnx") or {}).get("axes_attr")
+            if have_iree:
+                num = d.get("numeric") or {}
+                ok = ok and num.get("ran") is True and num.get("equal_to_tflite_semantics") is True
+                detail += " iree=%s max_abs_diff=%s" % (num.get("equal_to_tflite_semantics"), num.get("max_abs_diff"))
+        elif ok and want == "REFUSED":
+            ok = must_mention in (d.get("reason") or "")
+            detail += " reason=%s" % (d.get("reason") or "")[:70].replace("\n", " ")
+        elif not ok:
+            detail += " %s" % (d.get("reason") or "")[-160:].replace("\n", " ")
+        results.append(Result("e30b: %s -> %s%s" % (name, want, "" if want != "CONVERTED" or not have_iree else " and == TFLite semantics under IREE"),
+                              ok, detail))
+    if not have_iree:
+        results.append(Result("e30b: CONVERTED cases reproduce TFLite semantics bit for bit under IREE", True,
+                              "iree tools / iree.runtime not available", skip=True))
+    # the refused partial squeezes must never have produced an ONNX file (refusal before emission)
+    results.append(Result("e30b: refused cases emit nothing (refusal happens before any ONNX is written)",
+                          (all("onnx" not in outcomes.get(n, {}) for n, (w, _, _) in expect.items() if w == "REFUSED")),
+                          "" if (all("onnx" not in outcomes.get(n, {}) for n, (w, _, _) in expect.items() if w == "REFUSED")) else "a refused case still wrote an ONNX file"))
+    # reshape mode (the analysis document's literal suggestion) must refuse the same partial squeezes:
+    # before C5 it converted, compiled and ran them with wrong numbers (5.46 / 1.89 / 2.61)
+    for name in ("sq_H", "sq_H77", "sq_N"):
+        rc, out, err = run([PY, probe, os.path.join(cases_dir, name + ".tflite"), "--mode", "reshape",
+                            "--workdir", os.path.join(tmp, "e30b_r_" + name)])
+        try:
+            d = json.loads(out.strip().splitlines()[-1])
+        except Exception:
+            d = {"outcome": "PROBE-ERROR"}
+        results.append(Result("e30b: reshape mode refuses %s too (C5 is emission-mode independent)" % name,
+                              d.get("outcome") == "REFUSED" and "C5" in (d.get("reason") or ""),
+                              "outcome=%s" % d.get("outcome")))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -3733,6 +3848,7 @@ def main():
         all_results += e27_hardened_baseline_cases()
         all_results += e29b_conditional_verify_cases(tmp)
         all_results += p1_smartcam_feasibility_cases(tmp)
+        all_results += e30b_squeeze_extension_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

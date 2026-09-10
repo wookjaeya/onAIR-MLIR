@@ -94,6 +94,16 @@
       1,
       1280
      ],
+     "identity": false,
+     "raw_squeeze_dims": [
+      1,
+      2
+     ],
+     "C5_kept_axis_order_preserved": true,
+     "kept_axes_positions_after_layout": [
+      0,
+      1
+     ],
      "layout": "NCHW(NHWC->NCHW)",
      "input_shape_onnx": [
       1,
@@ -137,7 +147,8 @@
       224,
       3
      ],
-     "layout": "NHWC"
+     "layout": "NHWC",
+     "layout_source": "TFLite CONV_2D operator convention ([batch,height,width,channels]); the flatbuffer carries no layout metadata"
     },
     "iree_entry_input": {
      "shape": [
@@ -146,12 +157,30 @@
       224,
       224
      ],
-     "layout": "NCHW"
+     "layout": "NCHW",
+     "layout_source": "tflite2onnx re-indexes activations adjacent to Conv/Pool and permutes the 52 Conv filters OHWI->OIHW; no Transpose node is emitted"
     },
     "elements": 150528,
     "dtype": "f32",
     "element_order_preserved": false,
-    "consequence": "P2 must feed the IREE entry a transposed (NHWC->NCHW) copy of the TFLite input; the cFS/native executors take a flat f32 vector of CONTRACT_INPUT_ELEMS and do not know about layout"
+    "batch": {
+     "flight_shape_signature": [
+      -1,
+      224,
+      224,
+      3
+     ],
+     "flight_executed_shape": [
+      1,
+      224,
+      224,
+      3
+     ],
+     "iree_entry_batch": 1,
+     "note": "the exporter left the batch symbolic (-1) in shape_signature; the concrete shape the flatbuffer executes with is batch 1 and the IREE entry fixes it to 1. A second narrowing besides layout; P2 compares at batch 1"
+    },
+    "consequence": "P2 must feed the IREE entry NCHW-ordered bytes (a transposed copy of the TFLite NHWC input). The two C executors allocate a contract-shaped buffer view (rank 4 {1,3,224,224}, dense row-major) and fill it in flat index order; the contract carries shape but no NHWC/NCHW semantics, so the caller supplies the order",
+    "alternative_not_taken": "bake an ONNX Transpose(perm=[0,3,1,2]) at the graph input so the entry keeps the flight NHWC shape -- a new one-invocation build whose contract would change; a P2 design choice, not done in P1"
    },
    "mlir_vmfb_feasibility": {
     "chain": "tflite2onnx(+ext) -> iree-import-onnx --opset-version 17 -> iree-opt (torch->linalg) -> ONE iree-compile",
@@ -196,6 +225,17 @@
      "B_copy": 18222796,
      "B_copy_over_B_map": 1.9423
     }
+   },
+   "third_source_reconciliation": {
+    "source": "the flight flatbuffer's own constant buffers (tflite schema package), independent of MLIR, dump and vmfb",
+    "flight_constant_bytes": 8842644,
+    "flight_constant_tensors": 108,
+    "flight_params_f32": 2210661,
+    "contract_module_resident_constant_bytes": 8840704,
+    "delta_bytes": 1940,
+    "delta_explained": "15 tensors of <= 256 B (13 bias vectors, the FC bias [3], the two preprocessing scalars 2.0/1.0) are inlined by iree-compile into the dispatch executables; their bytes appear verbatim in the embedded ELF .rodata (kernel_elf_bytes, outside the HAL boundary the contract counts)",
+    "note": "recorded by the adversarial review of E30; the contract's memory_boundary excludes the executable image by definition, so this is a reconciliation, not a discrepancy",
+    "executables_vs_functions": "40 hal.executables (dump/), 39 unique ELF functions (infer_dispatch_35 is folded onto infer_dispatch_23's code by the linker), 56 stream.cmd.dispatch sites"
    },
    "second_information_source": {
     "tool": "harness/e27_baseline_vmfb_only_hardened.py (artifact only, no MLIR, no dump)",

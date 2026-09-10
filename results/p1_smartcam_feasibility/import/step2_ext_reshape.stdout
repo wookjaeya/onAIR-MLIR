@@ -74,6 +74,16 @@
     1,
     1280
    ],
+   "identity": false,
+   "raw_squeeze_dims": [
+    1,
+    2
+   ],
+   "C5_kept_axis_order_preserved": true,
+   "kept_axes_positions_after_layout": [
+    0,
+    1
+   ],
    "layout": "NCHW(NHWC->NCHW)",
    "input_shape_onnx": [
     1,

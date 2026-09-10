@@ -2,6 +2,27 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.33.1] — E30b: 적대적 검증이 찾은 SQUEEZE 확장의 잠재 fail-open 수정 (D56, 371/371)
+
+**판정 불변, 코드 수정.** E30의 9개 주장 묶음에 대한 적대적 검증(반박 9 + finding당 2인 검증)에서
+SQUEEZE 변환기 확장(`harness/tflite2onnx_ext_squeeze.py`)의 **잠재 fail-open**이 합성 flatbuffer로
+end-to-end 재현됐다(D56): C1–C4를 통과하는 TFLite-유효 **부분 squeeze**(예: [1,1,7,64] dims [1] → [1,7,64])가
+NHWC→NCHW로 재색인된 텐서 위에서 방출돼 **데이터가 조용히 전치**된다 — 형상·원소 수·dtype은 전부 보존되고
+onnx checker·shape inference·`iree-compile`·런타임이 전부 통과하는데 숫자만 틀리다(reshape 모드, 즉 분석서의
+문자 그대로의 제안: max_abs_diff **5.46 / 1.89 / 2.61**). 비행 모델은 남는 축이 {N,C}라 두 레이아웃에서
+순서가 같아 **영향이 없었고**, 그래서 합성 사례가 필요했다(`harness/gen_tflite_squeeze_cases.py`, D43 규칙).
+
+수정: **C5 — 남는 축이 레이아웃 순열 아래에서 TFLite 순서를 유지해야 한다**(`check_kept_axis_order`, 순수
+함수), 위반은 Transpose를 끼워 넣는 대신 **명시적 거부**. 같은 검증이 찾은 셋도 함께: SqueezeOptions 테이블
+부재가 `AttributeError` **크래시**였던 것(결정을 빚진 자리의 크래시, D24 부류) → 빈 dims 결정; 중복 축을
+그대로 전달하던 것 → collapse; 항등 사례(size-1 축 없음)를 C1 위반으로 거부하던 것 → 공허참(레이아웃 태그가
+있으면 C5가 거부). revert-and-confirm-fail: C5만 끄면 sq_H/sq_H77/sq_N이 CONVERTED로 바뀌고 위 수치가
+나온다. 합성 11건 회귀: CONVERTED 5건은 IREE 출력이 TFLite 의미와 **비트 동일**(max_abs_diff 0.0), REFUSED
+6건, 크래시 0, 비행 모델 ONNX 바이트 불변. 문서 정밀화(검증 노트): 인터페이스 좁힘이 레이아웃 외에 **배치
+고정**(shape_signature −1 → 1)도 있음을 기록, "NHWC" 라벨의 출처(CONV_2D 규약)와 C 실행기 서술을 정정.
+이 컨테이너 **353/353 → 371/371**. **교훈**: *형상·원소 수·dtype이 보존된다는 것은 데이터 순서가 보존된다는
+뜻이 아니다* — 구조 조건은 레이아웃 변환을 통과한 뒤에도 성립해야 한다.
+
 ## [v0.33] — E30: OPS-SAT SmartCam 반입 타당성 (P1) — TRANSFORM_REQUIRED → GO
 
 **판정:** 여덟 번째 외부 분석서(`docs/reviews/ONAIR_MLIR_P1_SEQUENCE_ANALYSIS_1.md`)가 §9에서 못박은 범위
@@ -33,6 +54,7 @@ NHWC — 원소 수·dtype은 같고 **순서는 다르다**. 두 C 실행기는
 **주장하지 않음**: 수치 동치(P2)·정확도·AArch64/cFS 실행(P3)·soundness·일반화·`iree-compile` 바이트
 재현성(두 호출 일치는 관측). `harness/contract_negative_tests.py` **322/322 → 353/353**(이 컨테이너;
 변환기 패키지·IREE 도구 부재 시 해당 시험은 SKIP). `requirements.txt`에 `tflite`·`tflite2onnx`·`onnx` 고정.
+**CI 실측**(커밋 `5267025`, run 110, 3레그 success): `full` **352/352 + 1 SKIP**(PyYAML) · `without-iree` **237/237 + 20 SKIP** · `stdlib-only` **237/237 + 20 SKIP** — 컨테이너 353/353과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 16→20은 p1-smartcam의 변환기 의존 시험 3건 + 계약 재생성 1건이 해당 패키지·IREE 도구 없이는 정직하게 SKIP하기 때문이다.
 상세: `docs/EVIDENCE_v0.33_E30.md`.
 
 ## [v0.32.1] — 정정: E28·E29·E29b의 cFS 원자료가 저장소에 없었다 (D55)

@@ -105,6 +105,10 @@ iree-opt step3_*.torch.mlir --pass-pipeline='builtin.module(torch-onnx-to-torch-
         torch-backend-to-linalg-on-tensors-backend-pipeline)' -o step4_*.linalg.mlir   rc=0, 잔여 torch op 0
 ```
 
+`--opset-version 17`은 장식이 아니다(적대적 검증): 없이도 importer는 opset 11을 받아들이지만 그러면
+`iree-opt`가 `onnx.Softmax`(opset<13 형식, `axis=-1`)를 legalize하지 못해 rc=1로 실패한다 — 즉 이 플래그가
+체인을 성립시키며, 저장된 명령과 회귀 시험 모두 그것을 넘긴다.
+
 엔트리: `func.func @infer(%arg0: tensor<1x3x224x224xf32>) -> tensor<1x3xf32>`. **두 방출 모드의 linalg
 MLIR이 바이트 동일**하다(17,750,942 B, `f1f659fafd573825…`) — ONNX `Squeeze(axes)`와 `Reshape(정적 shape)`가
 같은 `tensor.collapse_shape`로 내려오고, 정렬 이후에는 상수 번호마저 같다. 따라서 **P1 판정은 방출 모드에
@@ -141,6 +145,16 @@ reshape 모드의 별도 호출도 **바이트 동일한 vmfb**를 냈다 — �
 vmfb만 읽는 두 번째 정보원 — 이 `status: value`로 **정확히 같은 세 값**(18,222,796 / 9,382,092 / 8,840,704)
 을 낸다. E27의 "정상 조건 (b) = (c)"가 실물 비행 모델 하나에서 더 성립했다(9/9번째 셀; 판정 변경 아님).
 
+**세 번째 정보원 — 비행 flatbuffer 자신의 상수(적대적 검증이 대조)**: `tflite` 스키마로 읽은 원본의 상수 버퍼는
+**108개 f32 텐서, 2,210,661 파라미터, 8,842,644 B**(Keras MobileNetV2 α=1.0 no-top 2,257,984 − BN 4×17,056 +
+folded bias 17,056 + Dense 1280→3 3,843 + 전처리 스칼라 2 = 정확히 일치). 계약의 `constants` 8,840,704와의 차이
+**1,940 B**는 256 B 이하 텐서 15개(bias 벡터 13 + FC bias [3] + 스칼라 2.0/1.0)로, `iree-compile`이 디스패치
+실행 파일 안으로 inline한 것이다 — 그 바이트가 embedded ELF `.rodata`에 **그대로** 있다(계약의
+`memory_boundary`가 정의상 제외하는 실행 이미지 쪽, `kernel_elf_bytes` 55,136 B에 포함). 즉 원본 → 계약의
+상수 대조가 **바이트 단위로 닫힌다**(불일치가 아니라 조정). 부수: hal.executable 40개 / ELF 고유 함수 39개
+(`infer_dispatch_35`가 링커 ICF로 `infer_dispatch_23`의 코드에 접힘; 스택 분석은 주소 기준이라 영향 없음) /
+디스패치 사이트 56.
+
 **두 분기 구조**: layout IR에 `stream.resource.try_map` 1 · `scf.if` 1 · 상수 블록 `stream.resource.alloc`
 1 — E26이 합성·MLPerf Tiny 모델에서 본 구조가 이 비행 모델에도 그대로다. `B_map = per_call` 9,382,092,
 `B_copy = bounded` 18,222,796, 비 **1.94×**. (E29의 조건부 계층이 그대로 적용 가능하다는 뜻이지 적용했다는
@@ -161,7 +175,7 @@ pip `iree.runtime`(local-sync)에서 `infer([1,3,224,224] f32) → [1,3] f32`가
 그 다음에야 출력을 읽으며, 읽은 뒤의 통계를 `hal_statistics_after_host_reads`로 **따로 남긴다**(숨기지
 않는다). E26e가 반환 버퍼 5개를 리스트에 담아 두었다가 `refutes_hypothesis`를 낼 뻔한 것과 같은 계열이다.
 
-## 6. 반입이 만든 인터페이스 변경 — P2의 의무 (숨기지 않는다)
+## 6. 반입이 만든 인터페이스 변경 둘 — P2의 의무 (숨기지 않는다)
 
 | | 비행 TFLite | IREE 엔트리 |
 |---|---|---|
@@ -169,10 +183,18 @@ pip `iree.runtime`(local-sync)에서 `infer([1,3,224,224] f32) → [1,3] f32`가
 | 원소 수 / dtype | 150,528 / f32 | 150,528 / f32 |
 | 원소 **순서** | — | **보존되지 않음** |
 
-tflite2onnx는 Transpose 노드를 넣는 대신 Conv 가중치를 재배열하고 입력을 NCHW로 선언한다. 이 저장소의 두
-C 실행기(`native_learner.c`·`ai_learner.c`)는 `CONTRACT_INPUT_ELEMS` 길이의 평면 f32 벡터를 받을 뿐
-레이아웃을 모른다. 따라서 **P2는 TFLite 입력을 NHWC→NCHW로 전치한 사본을 IREE 엔트리에 먹여야** 같은
-입력을 비교하는 것이 된다. `feasibility_summary.json`·`import_log.txt`에 같은 문장으로 적어 두었다.
+tflite2onnx는 Transpose 노드를 넣는 대신 Conv 가중치 52개를 OHWI→OIHW로 재배열하고 입력을 NCHW로 선언한다
+(적대적 검증이 52/52 필터 일치와, 같은 150,528개 float를 reshape로 넣을 때와 전치해 넣을 때 softmax가 달라짐을
+vmfb에서 직접 확인). 이 저장소의 두 C 실행기(`native_learner.c`·`ai_learner.c`)는 계약 헤더의 형상으로
+rank-4 `{1,3,224,224}` dense row-major 버퍼 뷰를 만들고 그 payload를 **평면 인덱스 순서로** 채울 뿐 —
+계약에는 형상만 있고 NHWC/NCHW 의미는 없다. 따라서 **P2는 TFLite 입력을 NHWC→NCHW로 전치한 사본을 IREE
+엔트리에 먹여야** 같은 입력을 비교하는 것이 된다. 대안(그래프 입력에 ONNX Transpose를 넣어 엔트리가 비행
+형상을 유지하게 하는 것)은 새 단일 호출 빌드와 계약 변경을 뜻하므로 P2의 설계 선택으로 남긴다.
+
+**둘째 좁힘(적대적 검증이 지적)**: 비행 flatbuffer의 `shape_signature`는 배치를 기호적으로 남겨 두었다
+(`[-1,224,224,3]`, 177개 텐서 중 69개가 -1을 가짐). 실행 형상은 배치 1이고 IREE 엔트리는 배치 1로 고정된다 —
+레이아웃 외의 두 번째 인터페이스 좁힘이며 P2는 배치 1에서 비교한다. "NHWC"라는 라벨 자체는 flatbuffer의
+메타데이터가 아니라 TFLite CONV_2D 연산자 규약에서 온 것임도 `feasibility_summary.json`에 적었다.
 
 ## 7. 판정과 산출물 (분석서 §5.4)
 
@@ -195,17 +217,65 @@ C 실행기(`native_learner.c`·`ai_learner.c`)는 `CONTRACT_INPUT_ELEMS` 길이
 기준선 일치·방출 모드 수렴·두 분기 구조·헤더 재생성, 스모크 기록, 순수 함수 위반 7건 거부, 원본에서
 ONNX(두 모드) → linalg MLIR **sha256 재생성**, 축소 fixture에서 계약 재생성 diff 0. 이 컨테이너
 **322/322 → 353/353**. 변환기 패키지(`tflite`·`tflite2onnx`·`onnx`, `requirements.txt`에 고정)나 IREE 도구가
-없는 환경에서는 해당 시험이 명시적으로 SKIP한다(D24/D25).
+없는 환경에서는 해당 시험이 명시적으로 SKIP한다(D24/D25). **CI 실측**(커밋 `5267025`, run 110, 3레그 success): `full` **352/352 + 1 SKIP**(PyYAML) · `without-iree` **237/237 + 20 SKIP** · `stdlib-only` **237/237 + 20 SKIP** — 컨테이너 353/353과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 16→20은 p1-smartcam의 변환기 의존 시험 3건 + 계약 재생성 1건이 해당 패키지·IREE 도구 없이는 정직하게 SKIP하기 때문이다.
 
-## 8. 적대적 검증 (이 세션, 9개 반박 에이전트 + finding당 2인 검증) — 진행 중
+## 8. 적대적 검증 (이 세션, 9개 반박 에이전트 + finding당 2인 검증) + E30b (D56)
 
-이 커밋 시점에 9개 주장 묶음(provenance · SQUEEZE 변환 · 결정론 · 인터페이스 변경 · 계약 수치 · 두 분기
-구조 · fixture 무결성 · 범위·주장 · 확장의 과잉 거부)에 대해 반박 에이전트가 돌고 있다. 완료된 2건
-(provenance, 결정론)은 **반박 실패**(주장 유지)이며 노트만 남겼다 — provenance: 재클론 + `cmp`로 바이트
-동일, `git hash-object` 일치, `cloned_at_utc`가 실제로는 매니페스트 기록 시각이었음(필드명 정정 반영);
-결정론: `--opset-version 17` 없이도 importer가 opset 11을 수용, 정렬은 고유 이름에 의존(ONNX checker가
-보장), 매니페스트는 경로를 담아 디렉터리 간 바이트 비결정. 나머지 결과와 확인된 finding의 반영은 **후속
-커밋에서 이 절에 덧붙인다**(작업 규율 3·5: 본문은 고쳐쓰지 않고 정오표로).
+E30의 주장을 9개 묶음(provenance · SQUEEZE 변환 · 결정론 · 인터페이스 변경 · 계약 수치 · 두 분기 구조 · fixture
+무결성 · 범위·주장 · 확장의 과잉 거부)으로 나눠 각각 독립 반박 에이전트에 맡기고, note가 아닌 finding은 2인이
+따로 재현·판정했다(E20 이후의 이 저장소 관례). 이 절은 완료된 묶음부터 적고 나머지는 후속 커밋에서 덧붙인다.
+
+### 8.1 반박 실패(주장 유지) — 다섯 묶음
+
+| 묶음 | 결과 | 독립 확인 / 노트 |
+|---|---|---|
+| provenance | 유지 | 재클론 후 `cmp` 바이트 동일, `git hash-object` 일치, 매니페스트 5곳의 sha·크기·커밋 일치, gitignore 0건. 노트: `cloned_at_utc`가 실제로는 매니페스트 기록 시각 → 필드명 정정 |
+| 결정론 | 유지 | `PYTHONHASHSEED` 0/1/random 세 실행 sha 동일; 정렬을 뺀 사본으로 옛 비결정성 재현; 정렬은 두 목록의 순열임을 확인; ONNX→torch→linalg 해시 전부 재현. 노트: `--opset-version 17` 없이도 importer는 수용하지만 그러면 `iree-opt`가 `onnx.Softmax`(opset<13 형식)에서 실패 — 플래그가 load-bearing임을 §3.4에 명시. 정렬은 고유 이름에 의존(ONNX checker가 보장) |
+| SQUEEZE 변환 | 유지(비행 모델) | perm 방향(`new_shape[i] = old_shape[perm[i]]`)·Pooling의 레이아웃 태그·shape inference·`tensor.collapse_shape [[0],[1,2,3]]`·Conv 필터 52/52가 OHWI→OIHW 순열로 바이트 일치. **그러나 비행 모델 밖에서 잠재 fail-open을 찾았다 → §8.2 (D56)** |
+| 인터페이스 변경 | 유지 | 같은 150,528 float를 reshape로/전치해 넣으면 softmax가 달라짐을 vmfb에서 직접 확인; 'P2는 전치해야'가 필요조건임을 ONNX prefix 평가로 확인. low: **배치 고정**(shape_signature −1 → 1)이 두 번째 좁힘 — §6에 반영. 노트: 'NHWC' 라벨의 출처는 CONV_2D 규약(flatbuffer에 레이아웃 메타데이터 없음), C 실행기는 rank-4 계약 형상 버퍼 뷰를 평면 순서로 채움(문구 정정) |
+| 계약 수치 | 유지 | 세 번째 정보원(flatbuffer 상수 8,842,644 B)과 **1,940 B까지 조정**(§4), io/transient/constants 각 항의 IR 근거, 재생성 diff 0, 헤더 바이트 동일, 하드닝 기준선 dict 동일. 노트: executable 40 vs ELF 함수 39(ICF alias) |
+
+### 8.2 E30b — SQUEEZE 확장의 잠재 fail-open (D56), 재현·수정
+
+반박 에이전트가 `tflite` 빌더 API로 **합성 flatbuffer**(NHWC 입력 → 1×1 AvgPool → SQUEEZE)를 만들어 보였다:
+C1–C4를 전부 통과하는 TFLite-유효 **부분 squeeze** — 예: `[1,1,7,64]`, dims `[1]` → `[1,7,64]` — 가 NHWC→NCHW로
+재색인된 텐서(`[1,64,1,7]`) 위에서 방출돼 **데이터가 조용히 전치**된다. 형상·원소 수·dtype이 전부 보존되고
+onnx checker·shape inference·`iree-compile`·런타임이 모두 통과하는데 숫자만 틀리다. 비행 모델은 남는 축이
+{N,C}라 두 레이아웃에서 순서가 같아 **영향이 없었다** — 그래서 합성 사례가 아니면 원리적으로 볼 수 없었다
+(E26a/D47과 같은 부류의 교훈).
+
+이 세션이 그 생성기를 저장소 도구로 고정하고(`harness/gen_tflite_squeeze_cases.py`, D43 규칙) **revert-and-
+confirm-fail**로 확인했다 — C5만 끄면:
+
+| 사례 (NHWC 입력, dims → TFLite 출력) | reshape 모드 | squeeze 모드 |
+|---|---|---|
+| sq_H `[1,1,7,64]`, [1] → `[1,7,64]` | CONVERTED, 실행 `[1,7,64]`, **max_abs_diff 5.464** | CONVERTED, 선언 출력 `[1,7,64]` vs 실제 `[1,64,7]` → 하류 `tensor_static_info_cast`에서 실패 |
+| sq_H77 `[1,1,7,7]`, [1] → `[1,7,7]` | CONVERTED, **1.886** | CONVERTED, 실행 `[1,7,7]`, **1.886**(정방이라 어디서도 안 잡힘) |
+| sq_N `[1,3,3,4]`, [0] → `[3,3,4]` | CONVERTED, **2.612** | 하류 cast 실패 |
+
+분석서의 문자 그대로의 제안(정적 `Reshape`)이 **셋 다 침묵**하는 쪽이다. 수정은 **C5 — 남는 축이 레이아웃
+순열 아래에서 TFLite 순서를 유지해야 한다**(`check_kept_axis_order(rank, dims, perm)`, 순수 함수: 남는 축
+k를 `perm.index(k)`로 보내 단조 증가인지). 위반은 Transpose를 끼워 넣는 대신 **명시적 거부**한다 — 분석서
+§5의 "조건이 전부 성립할 때만 자동 변환"이 요구하는 것이 정확히 그것이다. 같은 검증이 찾은 셋도 고쳤다:
+SqueezeOptions 테이블 부재가 `AttributeError` **크래시**였던 것(TFLite는 빈 squeeze_dims로 해석; 결정을 빚진
+자리의 크래시, D24 부류) → 빈 dims 결정; 중복 축을 그대로 전달하던 것 → collapse; 항등 사례(size-1 축 없음)를
+C1 위반으로 거부하던 것 → 공허참으로 허용(단, 레이아웃 태그가 있으면 C5가 거부 — 그것도 Transpose가 필요한
+경우다).
+
+수정 후 합성 11건(`harness/e30b_squeeze_probe.py`, CONVERTED는 IREE로 컴파일·실행해 `np.squeeze` 의미와 비트
+대조): **CONVERTED 5**(sq_HW·sq_neg·sq_dup·sq_empty·sq_noopt — 전부 IREE 출력 = TFLite 의미, max_abs_diff 0.0,
+`sq_noopt`는 크래시 대신 결정), **REFUSED 6**(C5: sq_H·sq_H77·sq_N·sq_identity / C1: bad_c1 / C4: bad_c4),
+크래시 0, 거부는 ONNX를 쓰기 전에 일어남, reshape 모드도 같은 셋을 거부. 비행 모델의 ONNX 바이트는 **불변**
+(`79c57abc…`, C5 감사 필드만 매니페스트에 추가). 회귀 시험 18건 신설, 이 컨테이너 **353/353 → 371/371**.
+
+**교훈**: *"형상·원소 수·dtype이 보존된다"는 데이터 순서가 보존된다는 뜻이 아니다.* 구조 조건은 레이아웃
+변환을 통과한 **뒤에도** 성립해야 하고, 그 검사는 변환기가 스스로 해야 한다 — 하류 도구는 정방 텐서에서
+아무것도 알아채지 못했다.
+
+### 8.3 남은 묶음
+
+두 분기 구조 · fixture 무결성 · 범위·주장 · 확장의 과잉 거부 네 묶음과, 위 finding들에 대한 2인 검증 표는
+워크플로우가 끝나는 대로 이 절에 **덧붙인다**(본문은 고쳐쓰지 않는다).
 
 ## 9. 주장하지 않음
 

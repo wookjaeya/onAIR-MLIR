@@ -530,8 +530,15 @@ E26의 두 분기 구조 그대로(1.94×), pip 스모크 피크 **= per_call �
 tflite2onnx가 `initializer`·`value_info`를 `set()`에 담아 **실행마다 ONNX 바이트가 달랐다**(세 번 = 세 해시;
 래퍼가 이름순 정렬로 canonical화, 이후 원본→ONNX→linalg sha256이 매번 재현) · pip 바인딩의 호스트 읽기가 HAL
 버퍼를 붙든다(D50의 새 얼굴 — 스모크는 결과를 버리는 호출로 피크를 먼저 읽는다). 이 컨테이너 **322/322 →
-353/353**(변환기 패키지 `tflite`·`tflite2onnx`·`onnx`를 `requirements.txt`에 고정; 없으면 해당 시험 SKIP).
-**다음은 P2**(SmartCam TFLite↔IREE 의미 동치 + x86-64 구현 검증 — 전치 입력 필수) → P4 → P3.
+353/353**(변환기 패키지 `tflite`·`tflite2onnx`·`onnx`를 `requirements.txt`에 고정; 없으면 해당 시험 SKIP). **CI 실측**(커밋 `5267025`, run 110, 3레그 success): `full` **352/352 + 1 SKIP**(PyYAML) · `without-iree` **237/237 + 20 SKIP** · `stdlib-only` **237/237 + 20 SKIP** — 컨테이너 353/353과 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 16→20은 p1-smartcam의 변환기 의존 시험 3건 + 계약 재생성 1건이 해당 패키지·IREE 도구 없이는 정직하게 SKIP하기 때문이다.
+**v0.33.1/E30b(D56)**: E30의 적대적 검증(반박 9 + 2인 검증)이 SQUEEZE 확장의 **잠재 fail-open**을 합성
+flatbuffer로 재현했다 — C1–C4를 통과하는 TFLite-유효 부분 squeeze([1,1,7,64] dims [1])가 NCHW 재색인 텐서 위에서
+방출돼 **데이터가 조용히 전치**(reshape 모드 max_abs_diff 5.46/1.89/2.61, 컴파일러·런타임 무경고). 비행 모델은
+남는 축 {N,C}라 무관. 수정 **C5**(남는 축의 순서가 레이아웃 순열 아래에서 보존) + 옵션 부재 크래시·중복 축·항등
+사례. 합성 11건 회귀(`harness/gen_tflite_squeeze_cases.py` + `e30b_squeeze_probe.py`; CONVERTED 5건은 IREE 출력을
+TFLite 의미와 비트 대조, max_abs_diff 0.0), revert 시 3건 CONVERTED로 전환. **353/353 → 371/371**. 교훈: *형상·원소
+수·dtype 보존 ≠ 데이터 순서 보존*. 인터페이스 좁힘이 둘(레이아웃 + 배치 고정)임도 기록.
+**다음은 P2**(SmartCam TFLite↔IREE 의미 동치 + x86-64 구현 검증 — 전치 입력 필수, 배치 1) → P4 → P3.
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -879,7 +886,8 @@ docs/
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
   EVIDENCE_v0.33_E30.md       ★ 최신. P1 — OPS-SAT SmartCam 반입 타당성: 원본 무수정, SQUEEZE 차단 재현, C1–C4 검사
-                               변환기 확장, 한 번의 iree-compile, 계약 오버라이드 0, TRANSFORM_REQUIRED → GO, P2 의무(NCHW)
+                               변환기 확장, 한 번의 iree-compile, 계약 오버라이드 0, TRANSFORM_REQUIRED → GO, P2 의무(NCHW·배치 1)
+                               (§8 적대적 검증: E30b/D56 — 부분 squeeze의 조용한 전치 → C5 신설)
   EVIDENCE_v0.32_E29b.md      D54 — E29 조건부 검증이 크기 비교라 constants<per_call에서 fail-open.
                                E29 회귀 시험이 그 비교식을 pin하고 있었다. append 전 정렬 검사 + != 0 분기 판정으로 수정
   EVIDENCE_v0.31_E29.md        조건부 계약 — try_map 분기 결정 요인 = 모듈 이미지의 64바이트
@@ -967,6 +975,10 @@ harness/                    실험 스크립트
                                initializer·value_info를 이름순 정렬(tflite2onnx가 set()으로 내보내 실행마다 바이트가 달랐음)
   p1_smoke_pip_runtime.py     ★ E30/P1: pip iree.runtime 스모크 — 결과를 버리는 호출로 HAL 피크를 먼저 읽고(호스트 읽기가
                                버퍼를 붙듦, D50) 그 다음 출력·결정성·읽은 뒤 통계를 기록. 타당성 기록이지 판정 도구가 아니다
+  gen_tflite_squeeze_cases.py ★ E30b/D56: 합성 TFLite SQUEEZE 사례 11건 생성기(NHWC 입력 → 1x1 AvgPool → SQUEEZE) — C5를
+                               정당화한 모델(부분 squeeze의 조용한 전치)의 in-tree 재현(D43). 비행 모델엔 없는 형상
+  e30b_squeeze_probe.py       ★ E30b: 사례 1건을 확장에 통과시켜 CONVERTED/REFUSED/CRASH를 보고하고, --iree면 컴파일·실행해
+                               TFLite 의미(np.squeeze)와 비트 대조. revert-and-confirm-fail용 프로브이지 게이트가 아니다
   e29_align_probe.c           ★ E29: 같은 파일 바이트를 정렬 클래스별 주소에 적재하고 append 직후 HAL
                                피크만 읽는 계측기 — 그 시점엔 입력 버퍼도 추론도 없어 상수 블록 단독이다.
                                **기준 계측기이므로 fail-closed 가드를 넣지 말 것**(E27 기준선과 같은 이유)
