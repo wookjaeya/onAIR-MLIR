@@ -155,6 +155,8 @@ D59는 그 전제(`per_call`의 io 항 = *동시에 살아 있는 입력 하나*
 
 **`stage_2_complete: true`.** E32가 `false`로 남긴 자리를 원자료로 닫았다.
 
+**CI 실측**(커밋 `78083d0`, run 146, 3레그 success): `full` **493/493 + 1 SKIP**(PyYAML) · `without-iree` **353/353 + 26 SKIP** · `stdlib-only` **353/353 + 26 SKIP** — 컨테이너 494/494와 `full`의 차이 1건은 PyYAML 유무(D34). 축소 레그가 342→353으로 **정확히 +11**이라 E36 신규 11건이 **전부 나타난다**(신규 SKIP 0): 게스트 raw log에서 만든 `summary.json` 판독과 소스 텍스트 검사라 툴체인 없이 실제로 돈다.
+
 ## 9. 하지 않은 것 (범위)
 
 - **Q3(ResNet·DeepAE의 AArch64 native·cFS)**: 미실행. §10 단계 4는 그것까지 요구하므로 **단계 4는
