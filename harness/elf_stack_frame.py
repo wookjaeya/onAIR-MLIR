@@ -489,6 +489,16 @@ A64_FP_SETUP = re.compile(r"^(mov\s+x29,\s*sp|add\s+x29,\s*sp,\s*#.*)$")
 A64_SUB_REG_FROM_SP = re.compile(r"^sub\s+(x\d+),\s*sp,\s*#(0x[0-9a-f]+|\d+)$")
 A64_AND_SP_FROM_REG = re.compile(r"^and\s+sp,\s*(x\d+),\s*#(0x[0-9a-f]+)$")
 A64_MOV_SP_FROM_REG = re.compile(r"^mov\s+sp,\s*(x\d+)$")
+# The offset form of the same restore.  When the frame record does not sit at the
+# very top of the frame the prologue sets `add x29, sp, #K` and the epilogue must
+# undo it as `sub sp, x29, #K` -- one step back to the pre-realign sp, exactly what
+# `mov sp, x29` does when K is 0.  x86-64's counterpart (`lea -N(%rbp),%rsp`) was
+# recognized from the start; this AArch64 spelling was not, so a fully static
+# over-aligned frame was classified as a dynamic alloca and refused (E32/D58).
+# ONLY accepted when K equals the prologue's own `add x29, sp, #K` -- a different
+# offset restores sp somewhere this analyzer has not accounted for, and stays refused.
+A64_SUB_SP_FROM_FP = re.compile(r"^sub\s+sp,\s*x29,\s*#(0x[0-9a-f]+|\d+)(?:,\s*lsl\s*#(\d+))?$")
+A64_FP_SETUP_OFF = re.compile(r"^add\s+x29,\s*sp,\s*#(0x[0-9a-f]+|\d+)(?:,\s*lsl\s*#(\d+))?$")
 A64_CALLS = {"bl", "blr", "blraa", "blraaz", "blrab", "blrabz"}
 A64_ARR = re.compile(r"\bv\d+\.(16b|8b|8h|4h|4s|2s|2d|1d|b|h|s|d)\b")
 A64_VREG_LANE = re.compile(r"\bv\d+\.[bhsd]\[\d+\]")
@@ -526,6 +536,8 @@ def analyze_aarch64(fn):
     realign_pending = {}
     realign_bytes = 0
     realign_restored = False
+    fp_offset = None          # K from the prologue's `mov x29, sp` (0) or `add x29, sp, #K`
+    r["realign_restore_form"] = None
     vec = dict(fmla=0, fmul=0, fadd=0, fmls=0, fsub=0, neon_vreg_operands=0)
     arrangements = set()
     compute_arr = set()  # arrangements used by the FP arithmetic instructions themselves
@@ -574,12 +586,25 @@ def analyze_aarch64(fn):
         mm = A64_MOV_SP_FROM_REG.match(t)
         if mm and realign_bytes:
             realign_restored = True
+            r["realign_restore_form"] = "mov_sp_from_reg"
             r["restore_bytes"] += realign_bytes  # `mov sp, x29` restores the realigned locals in one step
             r["epilogue"].append(t)
+        mm = A64_SUB_SP_FROM_FP.match(t)
+        if mm and realign_bytes and fp_offset is not None:
+            # `sub sp, x29, #K` is the same one-step restore as `mov sp, x29` only when K is
+            # the offset the prologue itself used; otherwise sp lands somewhere unaccounted for.
+            if (imm(mm.group(1)) << int(mm.group(2) or 0)) == fp_offset:
+                realign_restored = True
+                r["realign_restore_form"] = "sub_sp_from_fp_imm"
+                r["restore_bytes"] += realign_bytes
+                r["epilogue"].append(t)
         if A64_FRAMEREC_ST.match(t):
             fr_store = True
         if A64_FP_SETUP.match(t):
             fp_setup = True
+            if fp_offset is None:
+                om = A64_FP_SETUP_OFF.match(t)
+                fp_offset = (imm(om.group(1)) << int(om.group(2) or 0)) if om else 0
             r["prologue"].append(t)
         # sp/x29-relative loads and stores other than the frame record itself
         is_ldst = m.startswith(("ld", "st")) or m in ("prfm",)

@@ -3377,6 +3377,165 @@ print("built", len(rows))
     return results
 
 
+E32_DIR = os.path.join(os.path.dirname(HERE), "results", "e32_smartcam_aarch64")
+
+
+def e32_aarch64_realigned_frame_cases(tmp):
+    """E32 / D58: an AArch64 over-aligned dispatch frame is static, and the analyser
+    already computed its bound -- but refused to let anything use it.
+
+    LLVM gives a dispatch that needs 64 B-aligned locals this prologue/epilogue pair:
+
+        stp  d15, d14, [sp, #-160]!     ; callee saves
+        sub  x9, sp, #0x6a0             ; CONSTANT immediate
+        and  sp, x9, #0xff..c0          ; round down -> at most 63 B of extra padding
+        add  x29, sp, #0x40             ; frame record is not at the top of the frame
+        ...
+        sub  sp, x29, #0x40             ; one step back to the pre-realign sp
+        ldp  ...                        ; pop callee saves
+
+    `elf_stack_frame.py` recognised the *prologue* half from E14 on and even computed
+    the correct bound (160 + 1696 + 63 = 1919).  It recognised only `mov sp, x29` as
+    the restore, so the offset spelling left `realign_restored` false, which set
+    `dynamic_stack_alloc` -> bucket (4) -> `gen_contract_header.py` refused a header.
+    The x86-64 counterpart of exactly this restore (`lea -N(%rbp),%rsp`) had been
+    handled since E14; the AArch64 offset form had not.  SmartCam on aarch64 hit it
+    (5 of 40 dispatches), so an honest static f32 model could not be deployed --
+    the D47/D48/D49 family again, type (B) over-rejection.
+
+    The relaxation is one-directional (refused -> resolved, never the reverse) and
+    the danger it introduces is UNDER-reporting stack, so the cases below pin the
+    REFUSALS at least as hard as the acceptance."""
+    import elf_stack_frame as esf                              # noqa: PLC0415 - local module
+    results = []
+    counter = [0]
+
+    def analyze_a64(lines):
+        counter[0] += 1
+        return esf.analyze(objdump_txt=_synthetic_objdump(tmp, "a64_%d" % counter[0], lines,
+                                                          fmt="elf64-littleaarch64"))
+
+    def frame(lines):
+        a = analyze_a64(lines)
+        fns = a["functions"]
+        return fns[0] if fns else {}
+
+    # The real idiom, offset spelling: prologue `add x29, sp, #0x40`, epilogue
+    # `sub sp, x29, #0x40`.  Static and bounded -> must resolve.
+    good = [
+        "    1000:\tstp\td15, d14, [sp, #-160]!",
+        "    1004:\tsub\tx9, sp, #0x6a0",
+        "    1008:\tstp\tx29, x30, [sp, #64]",
+        "    100c:\tadd\tx29, sp, #0x40",
+        "    1010:\tand\tsp, x9, #0xffffffffffffffc0",
+        "    1014:\tstr\tq0, [sp, #16]",
+        "    1018:\tsub\tsp, x29, #0x40",
+        "    101c:\tldp\td15, d14, [sp], #160",
+        "    1020:\tret",
+    ]
+    f = frame(good)
+    _ok = (f.get("dynamic_stack_alloc") is False
+           and f.get("realign_restore_form") == "sub_sp_from_fp_imm"
+           and f.get("local_alloc_bytes") == 1696 and f.get("callee_save_bytes") == 160
+           and f.get("realign_max_pad_bytes") == 63)
+    results.append(Result("e32: `sub sp, x29, #K` restoring a realigned frame resolves (static, bounded)",
+                          _ok, "" if _ok else json.dumps({k: f.get(k) for k in (
+                              "dynamic_stack_alloc", "realign_restore_form", "local_alloc_bytes",
+                              "callee_save_bytes", "realign_max_pad_bytes")})))
+
+    # The independent arithmetic check: debits (frame_bytes) and credits
+    # (restore_bytes) are accumulated separately, so a frame that balances is not
+    # the same statement as "the pattern matched".
+    _ok = f.get("frame_balanced") is True and f.get("frame_bytes") == 1856
+    results.append(Result("e32: that frame balances -- restore_bytes equals frame_bytes (1856), computed separately",
+                          _ok, "" if _ok else "frame_bytes=%s restore=%s balanced=%s" % (
+                              f.get("frame_bytes"), f.get("restore_bytes"), f.get("frame_balanced"))))
+
+    # REFUSAL 1: the epilogue offset must be the prologue's own.  A different K
+    # lands sp somewhere this analyser has not accounted for.
+    bad_k = [ln.replace("sub\tsp, x29, #0x40", "sub\tsp, x29, #0x30") for ln in good]
+    f2 = frame(bad_k)
+    _ok = f2.get("dynamic_stack_alloc") is True and f2.get("realign_restore_form") is None
+    results.append(Result("e32: a MISMATCHED restore offset (`sub sp, x29, #0x30` vs `add x29, sp, #0x40`) stays refused",
+                          _ok, "" if _ok else json.dumps({k: f2.get(k) for k in (
+                              "dynamic_stack_alloc", "realign_restore_form")})))
+
+    # REFUSAL 2: a genuine variable-length alloca is still unbounded even when the
+    # realign pair around it is textbook.  This is the fail-open that a careless
+    # widening would introduce.
+    vla = good[:5] + ["    1013:\tsub\tsp, sp, x8"] + good[5:]
+    f3 = frame(vla)
+    _ok = f3.get("dynamic_stack_alloc") is True
+    results.append(Result("e32: a real `sub sp, sp, x8` alloca stays refused even with a well-formed realign pair",
+                          _ok, "" if _ok else json.dumps({k: f3.get(k) for k in ("dynamic_stack_alloc",)})))
+
+    # REFUSAL 3: `sub xN, sp, #imm` with no `and sp, xN, #mask` consuming it is an
+    # sp computation the analyser did not follow.
+    dangling = [ln for ln in good if "and\tsp," not in ln]
+    f4 = frame(dangling)
+    _ok = f4.get("dynamic_stack_alloc") is True
+    results.append(Result("e32: a dangling `sub x9, sp, #N` with no matching `and sp, x9, #mask` stays refused",
+                          _ok, "" if _ok else json.dumps({k: f4.get(k) for k in ("dynamic_stack_alloc",)})))
+
+    # REFUSAL 4: no frame pointer established -> no K to compare against.
+    no_fp = [ln for ln in good if "add\tx29, sp," not in ln]
+    f5 = frame(no_fp)
+    _ok = f5.get("dynamic_stack_alloc") is True and f5.get("realign_restore_form") is None
+    results.append(Result("e32: `sub sp, x29, #K` with no prologue frame-pointer setup stays refused",
+                          _ok, "" if _ok else json.dumps({k: f5.get(k) for k in (
+                              "dynamic_stack_alloc", "realign_restore_form")})))
+
+    # The stored SmartCam aarch64 analysis: the model that exposed this.
+    elf_json = os.path.join(E32_DIR, "build", "smartcam.elf.json")
+    if not os.path.exists(elf_json):
+        results.append(Result("e32: stored aarch64 SmartCam ELF analysis present", False,
+                              "missing: %s" % elf_json))
+        return results
+    d = load(elf_json)
+    _ok = (d.get("arch") == "aarch64" and d.get("any_dynamic_stack_alloc") is False
+           and d.get("max_dispatch_invocation_stack_bytes") == 1919
+           and d.get("max_dispatch_frame_bytes") == 1856
+           and d.get("total_call_insns") == 0)
+    results.append(Result("e32: SmartCam aarch64 resolves to a static 1,919 B task-stack bound (0 calls)",
+                          _ok, "" if _ok else json.dumps({k: d.get(k) for k in (
+                              "arch", "any_dynamic_stack_alloc", "max_dispatch_invocation_stack_bytes",
+                              "max_dispatch_frame_bytes", "total_call_insns")})))
+    # The classification the HEADER GATE actually reads lives in the contract, not
+    # in the ELF analysis -- pin it where it is consumed (D52's lesson: check that
+    # the gate uses the number the contract gave it).
+    con_p = os.path.join(E32_DIR, "build", "smartcam.contract.json")
+    hdr_p = os.path.join(E32_DIR, "build", "contract_gen.smartcam.h")
+    if os.path.exists(con_p):
+        con = load(con_p)
+        cls = con.get("resources", {}).get("kernel_stack_classification")
+        _ok = cls == "bucket_2_task_stack_budget"
+        results.append(Result("e32: the contract records bucket_2_task_stack_budget (what the header gate reads)",
+                              _ok, "" if _ok else "kernel_stack_classification=%r" % cls))
+        _ok = not con.get("provenance", {}).get("overrides_applied")
+        results.append(Result("e32: the aarch64 SmartCam contract needed zero overrides",
+                              _ok, "" if _ok else json.dumps(con.get("provenance", {}).get("overrides_applied"))))
+    else:
+        results.append(Result("e32: stored aarch64 SmartCam contract present", False, "missing: %s" % con_p))
+    if os.path.exists(hdr_p):
+        hdr = open(hdr_p, encoding="utf-8").read()
+        _ok = ("#define CONTRACT_KERNEL_STACK_BYTES 1919L" in hdr
+               and "#define CONTRACT_KERNEL_STACK_BYTES_KNOWN 1" in hdr
+               and "#define CONTRACT_BOUND_KNOWN 1" in hdr)
+        results.append(Result("e32: a deployable header is emitted with the 1,919 B stack reported as KNOWN",
+                              _ok, "" if _ok else "header does not carry the expected stack macros"))
+    else:
+        results.append(Result("e32: stored aarch64 SmartCam header present", False, "missing: %s" % hdr_p))
+    _ok = d.get("all_dispatch_frames_balanced") is True
+    results.append(Result("e32: every SmartCam aarch64 dispatch frame balances (the accounting closes)",
+                          _ok, "" if _ok else "all_dispatch_frames_balanced=%s" % d.get("all_dispatch_frames_balanced")))
+    forms = [f.get("realign_restore_form") for f in d.get("functions", []) if f.get("realign_restore_form")]
+    _ok = forms.count("sub_sp_from_fp_imm") == 5 and forms.count("mov_sp_from_reg") == 8
+    results.append(Result("e32: 5 dispatches use the offset restore (the refused spelling) and 8 the plain one",
+                          _ok, "" if _ok else "forms=%s" % json.dumps(sorted(set(forms)))
+                          + " counts=%d/%d" % (forms.count("sub_sp_from_fp_imm"), forms.count("mov_sp_from_reg"))))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -4185,6 +4344,7 @@ def main():
         all_results += p1_smartcam_feasibility_cases(tmp)
         all_results += e30b_squeeze_extension_cases(tmp)
         all_results += e31_semantic_equivalence_cases(tmp)
+        all_results += e32_aarch64_realigned_frame_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
