@@ -24,3 +24,7 @@ iree-base-runtime==3.11.0
 # generated contracts against contracts/contract.schema.json using this;
 # make_contract.py refuses to write a contract if it's missing (E15/D13).
 jsonschema==4.26.0
+# P1/E30 import chain (TFLite -> ONNX; schema reader for the inventory tool). Pure Python.
+tflite==2.18.0
+tflite2onnx==0.4.1
+onnx==1.22.0

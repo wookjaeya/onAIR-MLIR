@@ -1,0 +1,7 @@
+# reshape-mode build outputs (not stored: byte-identical to build/ -- see equivalence.json)
+f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4  build_reshape_variant/smartcam.mlir  17750942
+aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8  build_reshape_variant/smartcam.vmfb  8915257
+f9398d7e01da066864a7a1efa6734ab7aa5385e2b55349a5addc2d3034b47f55  build_reshape_variant/smartcam.layout_ir.txt  210468
+0b1e7b7725bb79ef8dd4670bee3fec8f99d60cff0984d6ea9d28b7828ec91100  build_reshape_variant/smartcam.elf.json  85725
+61802ae429bb7668008a199115ff2a883385d9dd3d321fa94bbfac7b2f863117  build_reshape_variant/smartcam.contract.json  35807
+e0fe5b900df423c88c71f1e31570aff9525dde4b926377b733b851fd822a1c86  build_reshape_variant/contract_gen.smartcam.h  1089

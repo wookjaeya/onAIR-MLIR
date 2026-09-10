@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.32**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.33**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -513,6 +513,26 @@ native·cFS 모두 런타임 생성 전 거부·추론 0·cFS OPERATIONAL 유지
 **미착수(명시)**: 검토서 §5–§12의 실물 모델 계획(P1–P5: OPS-SAT SmartCam·WGAN 반입, TFLite 의미
 동치, AArch64 cFS 완주, LLVM-IR/ELF-only 기준선) — `docs/ASSUMPTIONS_AND_SCOPE.md`에 등록만 했다.
 
+**v0.33에서 완료된 것 (E30, `docs/EVIDENCE_v0.33_E30.md`)**: 여덟 번째 외부 분석서
+(`docs/reviews/ONAIR_MLIR_P1_SEQUENCE_ANALYSIS_1.md`)가 §9에서 못박은 **P1 — OPS-SAT SmartCam 반입 타당성만**
+수행했다(WGAN·AArch64·cFS 일반화·정확도는 하지 않음). 비행 모델 `model.tflite`(commit `be09ece`, 8,950,028 B,
+sha `fd1ecbd0…`)를 **무수정 보존**하고 기계 판독 인벤토리(68 op / 9종 / custom 0 / 동적 형상 0, NHWC
+[1,224,224,3] f32 → [1,3] f32)를 만든 뒤, 알려진 차단점(stock tflite2onnx 0.4.1 `Unsupported TFLite OP: 43
+SQUEEZE!`)을 **재현**하고, 분석서 §5의 조건 C1–C4(제거 축 크기 1·원소 수·dtype·정적 출력 형상)를 순수 함수로
+검사해 **전부 성립할 때만** 변환하는 **변환기 확장**(`harness/tflite2onnx_ext_squeeze.py`, NHWC→NCHW 재색인
+[1,2]→[2,3] 감사, 위반은 거부)으로 넘겨 `iree-import-onnx --opset-version 17` → `iree-opt` → **한 번의
+`iree-compile`**로 완주했다. 판정 **TRANSFORM_REQUIRED → GO**: 계약 **오버라이드 0**, `bounded`
+**18,222,796** = `per_call` **9,382,092** + `constants` **8,840,704**, 디스패치 56, 커널 스택 368/439 B(38 호출
+전부 해석), 상수 `confirmed`, 구조적 추출기 일치, **E27 (b′) 아티팩트 전용 기준선이 같은 세 값**, layout IR은
+E26의 두 분기 구조 그대로(1.94×), pip 스모크 피크 **= per_call 정확히**(allocated == freed). ONNX `Squeeze`와
+분석서가 제안한 정적 `Reshape`는 **linalg MLIR부터 바이트 동일**(판정이 방출 op에 무관). **P2 의무로 기록한
+인터페이스 변경**: 엔트리 입력이 NCHW `[1,3,224,224]`라 비행 NHWC 입력을 전치해야 같은 입력이다. 부수 발견 둘:
+tflite2onnx가 `initializer`·`value_info`를 `set()`에 담아 **실행마다 ONNX 바이트가 달랐다**(세 번 = 세 해시;
+래퍼가 이름순 정렬로 canonical화, 이후 원본→ONNX→linalg sha256이 매번 재현) · pip 바인딩의 호스트 읽기가 HAL
+버퍼를 붙든다(D50의 새 얼굴 — 스모크는 결과를 버리는 호출로 피크를 먼저 읽는다). 이 컨테이너 **322/322 →
+353/353**(변환기 패키지 `tflite`·`tflite2onnx`·`onnx`를 `requirements.txt`에 고정; 없으면 해당 시험 SKIP).
+**다음은 P2**(SmartCam TFLite↔IREE 의미 동치 + x86-64 구현 검증 — 전치 입력 필수) → P4 → P3.
+
 ## 작업 규율 (반드시 지킬 것)
 
 이 저장소는 **엄격한 이력 관리**로 운영되어 왔다. Claude Code에서도 동일하게 유지한다.
@@ -828,6 +848,8 @@ docs/
     REPORT_v0_4_REVIEW.md         v0.4 외부 검토 (D3 발견, E13 제안)
     REVIEW_v0_6_E13_RESEARCH_DIRECTION.md  v0.6 외부 검토 (D5-D7 발견, 계약 결합 요구)
     REVIEW_v0_22_E25.md            v0.22/E25 외부 검토 (주장 범위 4곳·판정 도구 1곳 지적)
+    ONAIR_MLIR_P1_SEQUENCE_ANALYSIS_1.md ★ 여덟 번째 외부 분석서 — P1(SmartCam 반입)만 먼저 종료하라는 순서와
+                               SQUEEZE 처리 원칙(§5 조건 1–7). v0.33/E30이 그대로 따랐다
     BENCHMARK_PLAN_REFERENCE_BASED.md ★ 레퍼런스 기반 벤치마크 구성 지침 (B0-B4) — 전제 검증
                                결과는 docs/plans/E26_boundary_utility.md §1 참조
   STATUS.md, MVP_RESULT.md   초기 환경 구축, 첫 go/no-go
@@ -856,7 +878,9 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.32_E29b.md      ★ 최신. D54 — E29 조건부 검증이 크기 비교라 constants<per_call에서 fail-open.
+  EVIDENCE_v0.33_E30.md       ★ 최신. P1 — OPS-SAT SmartCam 반입 타당성: 원본 무수정, SQUEEZE 차단 재현, C1–C4 검사
+                               변환기 확장, 한 번의 iree-compile, 계약 오버라이드 0, TRANSFORM_REQUIRED → GO, P2 의무(NCHW)
+  EVIDENCE_v0.32_E29b.md      D54 — E29 조건부 검증이 크기 비교라 constants<per_call에서 fail-open.
                                E29 회귀 시험이 그 비교식을 pin하고 있었다. append 전 정렬 검사 + != 0 분기 판정으로 수정
   EVIDENCE_v0.31_E29.md        조건부 계약 — try_map 분기 결정 요인 = 모듈 이미지의 64바이트
                                정렬(64/64셀 위반 0). 제어 시 map 피크 = per_call 정확히, cFS 예산 172배 감소.
@@ -934,6 +958,15 @@ harness/                    실험 스크립트
                                full 169/169+1 SKIP · without-iree 85/85+9 · stdlib-only 85/85+9,
                                크래시 없음(E22+E23 D24·D25, E24 N6·D33). 이 컨테이너는 PyYAML이
                                있어 170/170
+  p1_tflite_inventory.py      ★ E30/P1: TFLite flatbuffer 기계 판독 인벤토리(tflite 스키마 패키지만; I/O·op 히스토그램·
+                               SQUEEZE 인스턴스 C1–C4·정적 형상·cFS 인터페이스 적합). 모델을 변환하지 않는다
+  tflite2onnx_ext_squeeze.py  ★ E30/P1: tflite2onnx SQUEEZE 변환기 확장 — check_squeeze_conditions()(순수 함수)가
+                               C1–C4 전부 참일 때만 변환, NHWC→NCHW 축 재색인 후 C1 재검사, 위반은 SqueezeConditionError.
+                               두 방출 모드(Squeeze / 정적 Reshape)는 linalg부터 바이트 동일
+  p1_tflite_to_onnx.py        ★ E30/P1: 위 확장을 등록해 변환하고 transform_manifest.json(해시·서명·감사)을 쓰는 래퍼.
+                               initializer·value_info를 이름순 정렬(tflite2onnx가 set()으로 내보내 실행마다 바이트가 달랐음)
+  p1_smoke_pip_runtime.py     ★ E30/P1: pip iree.runtime 스모크 — 결과를 버리는 호출로 HAL 피크를 먼저 읽고(호스트 읽기가
+                               버퍼를 붙듦, D50) 그 다음 출력·결정성·읽은 뒤 통계를 기록. 타당성 기록이지 판정 도구가 아니다
   e29_align_probe.c           ★ E29: 같은 파일 바이트를 정렬 클래스별 주소에 적재하고 append 직후 HAL
                                피크만 읽는 계측기 — 그 시점엔 입력 버퍼도 추론도 없어 상수 블록 단독이다.
                                **기준 계측기이므로 fail-closed 가드를 넣지 말 것**(E27 기준선과 같은 이유)
@@ -986,6 +1019,10 @@ results/e26_boundary_utility/  ★ E26 계열 전체: 사전 고정 기준(docs/
                              instrumentation_check/, x86_64|aarch64/{native,cfs,pip_runtime}/,
                              mlperf_tiny_{resnet,vww}_fixture/, x86_64/ext_b{2,3}_*/ (실물 워크로드
                              단일 호출 산출물 + 측정), aarch64/a5b_canonical/, comparison/, summary.json
+results/p1_smartcam_feasibility/   ★ E30/P1: OPS-SAT SmartCam 비행 모델 원본(무수정, 8,950,028 B) + source_manifest·
+                             operator_inventory·import/(import_log step 1–8, 변환 매니페스트 2, squeeze ONNX)·build/
+                             (mlir.gz·vmfb·layout IR·ELF·계약·헤더·기준선·스모크·축소 dump 123)·variant_reshape/equivalence.json·
+                             feasibility_summary.json. 38 MB. 시험이 원본에서 ONNX·linalg sha256과 계약을 매번 재생성해 대조
 results/e29b_conditional_verify/   ★ E29b/D54: constants < per_call인 유일한 보관 fixture(bigact, 단일 호출) +
                              native 5셀·cFS 3셀 수정 전/후 raw log + summary.json
 results/e29_conditional_contract/  ★ E29: 64셀 정렬 스윕(align_sweep.json), 7모델 before/after

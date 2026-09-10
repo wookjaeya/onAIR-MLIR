@@ -1,0 +1,82 @@
+# P1 (E30) import log -- OPS-SAT SmartCam model.tflite (sha256 fd1ecbd0...aae, 8,950,028 B)
+# Every step records the exact command, tool versions, rc, and the verbatim error. Nothing is edited by hand.
+
+## step 1 -- original artifact, stock tflite2onnx 0.4.1 (no extension)
+cmd : venv-p1/bin/tflite2onnx original/model.tflite step1/model.onnx
+rc  : 1
+err : NotImplementedError: Unsupported TFLite OP: 43 SQUEEZE!   (tflite2onnx/op/common.py:154 OpFactory.create)
+note: reproduces the single import blocker that docs/plans/E26_boundary_utility.md SS1.2 recorded by hand.
+      The failure is raised while PARSING the graph (before any layout/ONNX emission), so no partial ONNX exists.
+      Full traceback: step1_original_tflite2onnx.stderr
+
+## step 2 -- tflite2onnx 0.4.1 + harness/tflite2onnx_ext_squeeze.py (audited SQUEEZE extension), two emission modes
+cmd : python3 harness/p1_tflite_to_onnx.py original/model.tflite import/step2_smartcam_ext_squeeze.onnx --squeeze-as squeeze
+      python3 harness/p1_tflite_to_onnx.py original/model.tflite import/step2_smartcam_ext_reshape.onnx --squeeze-as reshape
+rc  : 0 / 0   (stdout: step2_ext_{squeeze,reshape}.stdout; stderr empty)
+out : step2_smartcam_ext_squeeze.onnx 9,301,420 B sha256 79c57abc32c1bfa75b7b3c5dd8a47d96cbc89885351fcbd2206f3a62ca436968 (kept)
+      step2_smartcam_ext_reshape.onnx 9,301,505 B sha256 3af9c7a14e1b588a6305f4df66376b3bc4cd4796c8e4e602d25c34f079cc84e7 (dropped after use; hash in dropped_intermediates.sha256)
+      step2_smartcam_ext_{squeeze,reshape}.transform_manifest.json -- per-instance C1..C4 audit, ONNX I/O signature, node histogram
+note: the ONE SQUEEZE instance (op 65, [1,1,1,1280]->[1,1280], squeeze_dims [1,2]) satisfies C1..C4; its input carries
+      tflite2onnx's NHWC->NCHW layout tag, so the axes are re-indexed [1,2]->[2,3] (input shape in ONNX is [1,1280,1,1]).
+      graph.name is set to `infer` (entry symbol this repository's executors and make_contract default to); no tensor/node touched.
+      DETERMINISM: tflite2onnx keeps `initializer` and `value_info` in Python sets of Tensor objects (graph.py:25-26), so the
+      serialized order follows object identity -- the first three runs of this step gave three different sha256s with identical
+      nodes/initializers/value_info as multisets, and the linalg MLIR downstream differed in constant numbering. The wrapper now
+      sorts both lists by name before saving; two runs give the same bytes (this fixture = canonical order).
+      INTERFACE CHANGE (P2 obligation): tflite2onnx emits the model with NCHW input [1,3,224,224]; the flight TFLite takes NHWC
+      [1,224,224,3]. Element count (150,528) and dtype (f32) are unchanged; the element ORDER is not. P2 must transpose inputs.
+
+## step 3 -- iree-import-onnx (IREE 3.11.0rc20260316 @ e4a3b04), opset upgraded to 17 by the importer
+cmd : iree-import-onnx import/step2_smartcam_ext_squeeze.onnx --opset-version 17 -o import/step3_smartcam_ext_squeeze.torch.mlir
+      (same for the reshape variant)
+rc  : 0 / 0   (stderr empty: step3_import_{squeeze,reshape}.stderr)
+out : step3_smartcam_ext_squeeze.torch.mlir 17,812,697 B sha256 fa4b7b19040f8bf1c4199930131acd6860d1cb9ca9e6d0d21f61cec44019a091; reshape 17,812,828 B sha256 a09302e7579b400d849e4da7785a0750bdfd70a6099b5f5bed5f9b082b2dc2da; 218 torch.operator each
+      (dropped; hashes in dropped_intermediates.sha256)
+
+## step 4 -- iree-opt torch -> linalg-on-tensors
+cmd : iree-opt import/step3_smartcam_ext_squeeze.torch.mlir --pass-pipeline='builtin.module(torch-onnx-to-torch-backend-pipeline,torch-backend-to-linalg-on-tensors-backend-pipeline)' -o import/step4_smartcam_ext_squeeze.linalg.mlir
+      (same for the reshape variant)
+rc  : 0 / 0   (stderr empty: step4_opt_{squeeze,reshape}.stderr)
+out : step4_smartcam_ext_{squeeze,reshape}.linalg.mlir 17,750,942 B each, residual torch ops 0,
+      entry `func.func @infer(%arg0: tensor<1x3x224x224xf32>) -> tensor<1x3xf32>`
+      sha256 f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4 -- BYTE-IDENTICAL for the two emission modes (variant_reshape/equivalence.json)
+      squeeze variant stored gzipped as build/smartcam.mlir.gz
+note: ONNX Squeeze(axes) and ONNX Reshape(static shape) both lower to the same tensor.collapse_shape here; with canonical
+      initializer order the linalg files converge to the byte (before that they differed in constant numbering only).
+
+## step 5 -- ONE iree-compile invocation (contract + IR dump + vmfb from the same call; work discipline 7)
+cmd : cd build && iree-compile smartcam.mlir -o smartcam.vmfb --iree-hal-target-device=local --iree-hal-local-target-device-backends=llvm-cpu
+        --iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu --iree-llvmcpu-target-cpu=generic
+        --mlir-print-ir-after=iree-stream-layout-slices --iree-hal-dump-executable-files-to=dump --mlir-elide-elementsattrs-if-larger=16
+        2> smartcam.layout_ir.txt
+rc  : 0
+out : smartcam.vmfb 8,915,257 B sha256 aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8; smartcam.layout_ir.txt 210,468 B; dump/ 129 files
+      (6 large LLVM intermediates -- .o/.bc/linked.ll/optimized.ll -- dropped from the stored fixture, hashes in build/dropped_dump_files.sha256;
+       the stored contract is the one regenerated from the reduced dump/, identical to the pre-reduction contract in every non-provenance field)
+      the reshape-mode invocation (separate call, byte-identical input) produced a byte-identical vmfb (True) -- an observation
+      about these two calls only; E26e saw the opposite for a threaded 16-dispatch build, so nothing is claimed about reproducibility in general.
+
+## step 6 -- ELF stack analysis + contract + header (all from the step-5 outputs only)
+cmd : python3 harness/elf_stack_frame.py --dump-dir build/dump --vmfb build/smartcam.vmfb --out build/smartcam.elf.json
+      python3 harness/make_contract.py --mlir build/smartcam.mlir --vmfb build/smartcam.vmfb --layout-ir build/smartcam.layout_ir.txt
+        --dump-dir build/dump --triple x86_64-unknown-linux-gnu --cpu generic --model-name smartcam
+        --elf-analysis build/smartcam.elf.json --out build/smartcam.contract.json
+      python3 harness/gen_contract_header.py build/smartcam.contract.json build/contract_gen.smartcam.h
+rc  : 0 / 0 / 0, overrides applied: []
+out : bounded 18,222,796 = per_call 9,382,092 (io 602,124 + transient 8,779,968) + constants 8,840,704;
+      dispatches 56; embedded ELF 55,136 B sha256 4e23c6e20bd1e859073a6fc47aaf34c27358f201b550c40de94b5b96177a20e8;
+      kernel stack: max frame 368 B, deepest resolved chain 439 B (bucket_2_task_stack_budget; 0 unresolved calls);
+      constants_confirmation_state confirmed; structural walker agrees; CONTRACT_BOUND_KNOWN 1, CONTRACT_PROVENANCE_VERIFIED 1
+      reshape variant: contract byte-identical apart from provenance paths (not stored; variant_reshape/dropped_artifacts.sha256)
+
+## step 7 -- artifact-only hardened baseline (E27 (b'), second information source; no MLIR, no dump)
+cmd : python3 harness/e27_baseline_vmfb_only_hardened.py build/smartcam.vmfb > build/smartcam.artifact_only_hardened.json
+rc  : 0, status value: bounded 18,222,796 / per_call 9,382,092 / constants 8,840,704 -- agrees with the contract exactly
+
+## step 8 -- smoke execution, pip iree.runtime (feasibility only; not P2 equivalence, not an E26 cell)
+cmd : python3 harness/p1_smoke_pip_runtime.py build/smartcam.vmfb --contract build/smartcam.contract.json --out build/smartcam.smoke_pip_runtime.json
+rc  : 0 -- infer([1,3,224,224] f32) -> [1,3] f32, finite, deterministic for the same input; outputs for the two fixed inputs
+      [0.9326789975166321, 0.035210467875003815, 0.03211062774062157] / [0.9336525797843933, 0.03952903673052788, 0.026818471029400826] (softmax, argmax 0 for both);
+      HAL peak 9,382,092 == per_call exactly (map arm in this process), allocated == freed after 10 discarded-result calls.
+note: reading a result back to the host through these bindings keeps its 12 B HAL buffer allocated for the rest of the
+      process (measured 12 B/read after del+gc); the peak is therefore read from discarded results first (D50's observer effect).

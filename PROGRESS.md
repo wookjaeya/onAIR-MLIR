@@ -1,9 +1,9 @@
 # PROGRESS — Contract-Guided MLIR Lowering for AI Deployment in NASA OnAIR/cFS
 
 **기준 버전**: v0.3.1 — 이 문서는 그 시점의 한 장 요약이며, **현재 상태의 정본이 아니다.**
-> **현재 버전은 v0.32이다.** 최신 상태는 `CLAUDE.md`(프로젝트 컨텍스트·우선순위) →
+> **현재 버전은 v0.33이다.** 최신 상태는 `CLAUDE.md`(프로젝트 컨텍스트·우선순위) →
 > `EXPERIMENT_LOG.md`(실험 레지스트리·결함 원장) → `CHANGELOG.md` 순으로 읽는다.
-> v0.4 총괄은 `REPORT_v0.4.md`, 최신 판정은 `docs/EVIDENCE_v0.32_E29b.md`(조건부 검증 논리 수정, D54)·`docs/EVIDENCE_v0.31_E29.md`(조건부 계약: try_map 분기
+> v0.4 총괄은 `REPORT_v0.4.md`, 최신 판정은 `docs/EVIDENCE_v0.33_E30.md`(P1: SmartCam 반입 타당성, TRANSFORM_REQUIRED → GO)·`docs/EVIDENCE_v0.32_E29b.md`(조건부 검증 논리 수정, D54)·`docs/EVIDENCE_v0.31_E29.md`(조건부 계약: try_map 분기
 > 결정 요인 = 모듈 이미지의 64바이트 정렬, 64/64셀 위반 0, 제어 시 map 피크 = `per_call` 정확히)와
 > `docs/EVIDENCE_v0.25_E26.md`(계약 경계의 유용성: Q1·Q3 PASS)이고 다음 계획은 `docs/plans/E26_boundary_utility.md`·
 > `docs/plans/E27_mlir_contribution.md`다.

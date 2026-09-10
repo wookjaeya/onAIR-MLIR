@@ -1,0 +1,89 @@
+{
+ "tool": "harness/p1_smoke_pip_runtime.py",
+ "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+ "vmfb_bytes": 8915257,
+ "vmfb_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8",
+ "contract_artifact_sha256_matches": true,
+ "runner": "pip iree.runtime (python bindings), one model per process",
+ "driver": "local-sync",
+ "entry": "infer",
+ "input_shape": [
+  1,
+  3,
+  224,
+  224
+ ],
+ "iters": 10,
+ "reflection": {
+  "iree.abi.declaration": "sync func @infer(%input0: tensor<1x3x224x224xf32>) -> (%output0: tensor<1x3xf32>)"
+ },
+ "hal_statistics": {
+  "host_bytes_peak": 0,
+  "host_bytes_allocated": 0,
+  "host_bytes_freed": 0,
+  "device_bytes_peak": 9382092,
+  "device_bytes_allocated": 93820920,
+  "device_bytes_freed": 93820920
+ },
+ "outputs": {
+  "zeros": {
+   "input_sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc",
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "output": [
+    0.9326789975166321,
+    0.035210467875003815,
+    0.03211062774062157
+   ],
+   "output_elems": 3,
+   "argmax": 0,
+   "sum": 1.0000001192092896,
+   "finite": true
+  },
+  "uniform01_seed0": {
+   "input_sha256": "c9781a1d7a39384d92d8515f2c438fd98d33212ba48a628a73ef946babefdaa7",
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "output": [
+    0.9336525797843933,
+    0.03952903673052788,
+    0.026818471029400826
+   ],
+   "output_elems": 3,
+   "argmax": 0,
+   "sum": 1.0000001192092896,
+   "finite": true
+  }
+ },
+ "deterministic_same_input": true,
+ "hal_statistics_after_host_reads": {
+  "host_bytes_peak": 0,
+  "host_bytes_allocated": 0,
+  "host_bytes_freed": 0,
+  "device_bytes_peak": 9382128,
+  "device_bytes_allocated": 131349288,
+  "device_bytes_freed": 131349240,
+  "host_reads": 4,
+  "note": "every host-side read of a result keeps its HAL buffer allocated in this binding; this is why phase 1 reads the peak from discarded results (D50)"
+ },
+ "contract": {
+  "per_call": 9382092,
+  "bounded": 18222796,
+  "constants": 8840704
+ },
+ "observation": {
+  "device_bytes_peak": 9382092,
+  "peak_le_bounded": true,
+  "peak_eq_per_call": true,
+  "peak_eq_bounded": false,
+  "allocated_eq_freed": true,
+  "note": "one deployment (pip iree.runtime); the arm is decided by the module image's 64-byte alignment (E29). Not an E26 cell, not a soundness claim."
+ },
+ "status": "ran"
+}

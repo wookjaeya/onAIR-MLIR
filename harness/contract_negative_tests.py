@@ -2569,6 +2569,364 @@ def e29b_conditional_verify_cases(tmp):
     return results
 
 
+P1_DIR = os.path.join(os.path.dirname(HERE), "results", "p1_smartcam_feasibility")
+
+
+def _sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _converter_available():
+    return run([PY, "-c", "import tflite, tflite2onnx, onnx"])[0] == 0
+
+
+def p1_smartcam_feasibility_cases(tmp):
+    """E30 / P1: OPS-SAT SmartCam import feasibility (docs/reviews/ONAIR_MLIR_P1_SEQUENCE_ANALYSIS_1.md).
+
+    What this group pins, and why each pin is a *claim* rather than a checksum:
+      - the flight artifact stored in-tree is the bytes the manifest says it is, and is
+        never edited (the analysis doc forbids editing the original);
+      - the ONE structurally sensitive op (SQUEEZE) satisfies C1..C4 in the flatbuffer
+        itself, and the transform's audit says the same thing about what it emitted,
+        including the NHWC->NCHW axis re-indexing ([1,2] -> [2,3]);
+      - the interface change the import introduces (NCHW entry vs NHWC flight input) is
+        RECORDED, not hidden -- P2 owes a transpose;
+      - the contract exists with zero overrides, its identity holds, the structural
+        walker and the artifact-only hardened baseline (E27 (b')) agree with it exactly,
+        and the reshape emission mode gives the same numbers (so the verdict does not
+        depend on which ONNX op the extension chose);
+      - the smoke run is a feasibility record only, but the numbers it did record are
+        pinned: peak == per_call with allocated == freed (D50 discipline);
+      - the stored contract regenerates from the reduced fixture (one-invocation rule);
+      - the pure condition checker refuses every single-condition violation, and stock
+        tflite2onnx still refuses the model (the blocker is reproduced, not remembered).
+    Anything that needs the converter packages or the IREE tools SKIPs without them
+    (D24/D25): a missing package is not a finding."""
+    results = []
+    need = ["source_manifest.json", "operator_inventory.json", "feasibility_summary.json",
+            "original/model.tflite", "original/labels.txt",
+            "import/import_log.txt", "import/step1_original_tflite2onnx.stderr",
+            "import/step2_smartcam_ext_squeeze.onnx",
+            "import/step2_smartcam_ext_squeeze.transform_manifest.json",
+            "import/step2_smartcam_ext_reshape.transform_manifest.json",
+            "import/dropped_intermediates.sha256",
+            "build/smartcam.mlir.gz", "build/smartcam.vmfb", "build/smartcam.layout_ir.txt",
+            "build/smartcam.elf.json", "build/smartcam.contract.json", "build/contract_gen.smartcam.h",
+            "build/smartcam.artifact_only_hardened.json", "build/smartcam.smoke_pip_runtime.json",
+            "build/dropped_dump_files.sha256", "build/dump",
+            "variant_reshape/equivalence.json", "variant_reshape/dropped_artifacts.sha256"]
+    missing = [n for n in need if not os.path.exists(os.path.join(P1_DIR, n))]
+    results.append(Result("p1-smartcam: fixture complete (%d files/dirs)" % len(need), not missing,
+                          "missing: %s" % missing if missing else ""))
+    if missing:
+        return results
+    src = load(os.path.join(P1_DIR, "source_manifest.json"))
+    inv = load(os.path.join(P1_DIR, "operator_inventory.json"))
+    summ = load(os.path.join(P1_DIR, "feasibility_summary.json"))["models"]["smartcam"]
+    man_s = load(os.path.join(P1_DIR, "import", "step2_smartcam_ext_squeeze.transform_manifest.json"))
+    man_r = load(os.path.join(P1_DIR, "import", "step2_smartcam_ext_reshape.transform_manifest.json"))
+    contract = load(os.path.join(P1_DIR, "build", "smartcam.contract.json"))
+    equiv = load(os.path.join(P1_DIR, "variant_reshape", "equivalence.json"))
+    hardened = load(os.path.join(P1_DIR, "build", "smartcam.artifact_only_hardened.json"))
+    smoke = load(os.path.join(P1_DIR, "build", "smartcam.smoke_pip_runtime.json"))
+    r = contract["resources"]
+
+    # --- provenance: the flight artifact is the bytes every manifest names, unmodified ---
+    tfl = os.path.join(P1_DIR, "original", "model.tflite")
+    sha = _sha256_file(tfl); nbytes = os.path.getsize(tfl)
+    oa = src["original_artifact"]
+    results.append(Result("p1-smartcam: stored flight artifact == source_manifest (sha256, bytes, modified=false)",
+                          sha == oa["sha256"] and nbytes == oa["bytes"] and oa["modified"] is False
+                          and src["source"]["commit"] == "be09ecee41f0a5db52afe0ee929dbd339cb68672",
+                          "sha=%s bytes=%d" % (sha[:16], nbytes)))
+    _ok = (inv["file"]["sha256"] == sha and man_s["input_tflite"]["sha256"] == sha
+                          and man_r["input_tflite"]["sha256"] == sha and summ["source"]["sha256"] == sha
+                          and man_s["original_modified"] is False and man_r["original_modified"] is False)
+    results.append(Result("p1-smartcam: inventory, both transform manifests and the summary name that same artifact",
+                          _ok,
+                          "" if _ok else "a manifest points at different bytes than the stored flight artifact"))
+
+    # --- inventory: what the flatbuffer IS ---
+    hist = inv["operators"]["histogram"]
+    sens = inv["sensitive_instances"]
+    results.append(Result("p1-smartcam: flatbuffer inventory -- 68 ops / 9 distinct / 0 custom / 0 dynamic tensors, "
+                          "exactly one SQUEEZE, NHWC [1,224,224,3] f32 -> [1,3] f32",
+                          inv["operators"]["total"] == 68 and inv["operators"]["distinct"] == 9
+                          and inv["operators"]["custom"] == [] and inv["static_shapes"]["dynamic_tensors"] == 0
+                          and hist.get("SQUEEZE") == 1 and len(sens) == 1
+                          and inv["inputs"][0]["shape"] == [1, 224, 224, 3] and inv["inputs"][0]["dtype"] == "FLOAT32"
+                          and inv["outputs"][0]["shape"] == [1, 3] and inv["outputs"][0]["dtype"] == "FLOAT32",
+                          "total=%s distinct=%s hist=%s" % (inv["operators"]["total"], inv["operators"]["distinct"], hist)))
+    s0 = sens[0] if sens else {}
+    results.append(Result("p1-smartcam: the SQUEEZE instance satisfies C1..C4 in the flatbuffer itself "
+                          "([1,1,1,1280] -> [1,1280], dims [1,2])",
+                          bool(s0) and s0["squeezed_axes_all_size_1"] and s0["element_count_preserved"]
+                          and s0["dtype_preserved"] and s0["output_shape_static"] and s0["expected_matches_recorded"]
+                          and s0["input"]["shape"] == [1, 1, 1, 1280] and s0["output"]["shape"] == [1, 1280]
+                          and s0["squeeze_dims"] == [1, 2],
+                          "instance=%s" % {k: s0.get(k) for k in ("squeeze_dims", "squeezed_axes_all_size_1", "element_count_preserved", "dtype_preserved", "expected_matches_recorded")}))
+    results.append(Result("p1-smartcam: cFS interface fit recorded as single f32 in/out, static, 150528 -> 3 elements",
+                          inv["cfs_interface_fit"]["single_f32_in_single_f32_out_static"] is True
+                          and inv["cfs_interface_fit"]["input_elems"] == 150528 and inv["cfs_interface_fit"]["output_elems"] == 3,
+                          "%s" % inv["cfs_interface_fit"]))
+
+    # --- the blocker is reproduced in the log, not remembered ---
+    err = open(os.path.join(P1_DIR, "import", "step1_original_tflite2onnx.stderr"), encoding="utf-8", errors="replace").read()
+    log = open(os.path.join(P1_DIR, "import", "import_log.txt"), encoding="utf-8", errors="replace").read()
+    _ok = ("NotImplementedError" in err and "SQUEEZE" in err and "rc  : 1" in log
+                          and "Unsupported TFLite OP: 43 SQUEEZE" in log)
+    results.append(Result("p1-smartcam: stock tflite2onnx's SQUEEZE refusal is preserved verbatim (stderr + import_log step 1)",
+                          _ok,
+                          "" if _ok else "blocker text missing from the preserved logs"))
+    results.append(Result("p1-smartcam: import_log records every step 1..8 with commands and rc",
+                          all(("## step %d" % k) in log for k in range(1, 9)) and log.count("rc  :") >= 8,
+                          "steps found: %s" % [k for k in range(1, 9) if ("## step %d" % k) in log]))
+
+    # --- the transform's own audit, both emission modes ---
+    for label, man in (("squeeze", man_s), ("reshape", man_r)):
+        inst = man["squeeze_instances"]
+        a0 = inst[0] if inst else {}
+        results.append(Result("p1-smartcam: %s-mode manifest -- one instance, C1..C4 true, axes re-indexed [1,2] -> [2,3] "
+                              "under NHWC->NCHW, ONNX output [1,1280]" % label,
+                              len(inst) == 1 and man["emit_mode"] == label
+                              and a0.get("C1_squeezed_axes_size_1") is True and a0.get("C2_elements_preserved") is True
+                              and a0.get("C3_dtype_preserved") is True and a0.get("C4_static_output_equals_expected") is True
+                              and a0.get("tflite_squeeze_dims") == [1, 2] and a0.get("onnx_axes") == [2, 3]
+                              and a0.get("input_shape_onnx") == [1, 1280, 1, 1] and a0.get("output_shape") == [1, 1280]
+                              and a0.get("emit_mode") == label,
+                              "%s" % {k: a0.get(k) for k in ("tflite_squeeze_dims", "onnx_axes", "input_shape_onnx", "layout", "emit_mode")}))
+    _ok = (_sha256_file(os.path.join(P1_DIR, "import", "step2_smartcam_ext_squeeze.onnx")) == man_s["output_onnx"]["sha256"]
+                          and os.path.getsize(os.path.join(P1_DIR, "import", "step2_smartcam_ext_squeeze.onnx")) == man_s["output_onnx"]["bytes"]
+                          and man_s["output_onnx"]["graph_name"] == "infer" and man_s["output_onnx"]["opset"] == [["", 11]])
+    results.append(Result("p1-smartcam: squeeze-mode ONNX in the fixture == its manifest (sha256, bytes), graph renamed to `infer`",
+                          _ok,
+                          "" if _ok else "stored ONNX differs from the manifest"))
+    dropped = open(os.path.join(P1_DIR, "import", "dropped_intermediates.sha256"), encoding="utf-8").read()
+    _ok = (man_r["output_onnx"]["sha256"] in dropped and contract["model"]["sha256"] in dropped)
+    results.append(Result("p1-smartcam: reshape-mode ONNX (dropped) is still identified by hash in dropped_intermediates.sha256",
+                          _ok,
+                          "" if _ok else "hash record incomplete"))
+    results.append(Result("p1-smartcam: the ONNX node histograms differ ONLY in Squeeze(1) vs Reshape(+1)",
+                          {k: v for k, v in man_s["onnx_node_histogram"].items() if k not in ("Squeeze", "Reshape")}
+                          == {k: v for k, v in man_r["onnx_node_histogram"].items() if k not in ("Squeeze", "Reshape")}
+                          and man_s["onnx_node_histogram"].get("Squeeze") == 1 and "Squeeze" not in man_r["onnx_node_histogram"]
+                          and man_r["onnx_node_histogram"].get("Reshape", 0) == man_s["onnx_node_histogram"].get("Reshape", 0) + 1
+                          and man_s["onnx_node_count"] == man_r["onnx_node_count"],
+                          "%s vs %s" % (man_s["onnx_node_histogram"], man_r["onnx_node_histogram"])))
+
+    # --- the interface change is recorded, not hidden ---
+    ic = summ["interface_change_recorded"]
+    _ok = (man_s["signature_onnx"]["inputs"][0]["shape"] == [1, 3, 224, 224]
+                          and contract["interface"]["input"]["shape"] == [1, 3, 224, 224]
+                          and ic["flight_tflite_input"]["shape"] == [1, 224, 224, 3]
+                          and ic["iree_entry_input"]["shape"] == [1, 3, 224, 224]
+                          and ic["element_order_preserved"] is False and ic["elements"] == 150528
+                          and summ["transform"]["condition_7_numeric_equivalence"].startswith("NOT DONE"))
+    results.append(Result("p1-smartcam: NCHW entry vs NHWC flight input is RECORDED as a P2 obligation (element order not preserved)",
+                          _ok,
+                          "" if _ok else "interface change under-recorded: %s" % ic))
+
+    # --- the contract: numbers, identity, zero overrides, agreement of every independent reader ---
+    want = {"static_io_bytes": 602124, "static_transient_bytes": 8779968, "static_per_call_bytes": 9382092,
+            "module_resident_constant_bytes": 8840704, "bounded_bytes": 18222796}
+    results.append(Result("p1-smartcam: contract numbers pinned (bounded 18,222,796 = per_call 9,382,092 + constants 8,840,704; 56 dispatches)",
+                          all(r.get(k) == v for k, v in want.items())
+                          and r["bounded_bytes"] == r["static_per_call_bytes"] + r["module_resident_constant_bytes"]
+                          and r["static_per_call_bytes"] == r["static_io_bytes"] + r["static_transient_bytes"]
+                          and r["dispatches"] == 56 and r["bound_method"] == "static_from_stream_layout",
+                          "%s" % {k: r.get(k) for k in want}))
+    results.append(Result("p1-smartcam: zero overrides, verification_grade verified, constants confirmed, structural walker agrees, "
+                          "kernel stack 368/439 B with 0 unresolved calls",
+                          contract["provenance"]["overrides_applied"] == [] and contract["provenance"]["verification_grade"] == "verified"
+                          and r["constants_confirmation_state"] == "confirmed"
+                          and contract["provenance"]["structural_walker"]["agrees_with_regex_parser"] is True
+                          and r["kernel_task_stack_bytes"] == 368 and r["kernel_task_stack_invocation_bytes"] == 439
+                          and r["kernel_external_call_insns"] == 0 and r["kernel_dynamic_stack_alloc"] is False,
+                          "overrides=%s grade=%s consts=%s stack=%s/%s" % (contract["provenance"]["overrides_applied"], contract["provenance"]["verification_grade"], r["constants_confirmation_state"], r["kernel_task_stack_bytes"], r["kernel_task_stack_invocation_bytes"])))
+    results.append(Result("p1-smartcam: artifact-only hardened baseline (E27 (b'), no MLIR, no dump) agrees with the contract exactly",
+                          hardened["status"] == "value" and hardened["bl1_bounded"] == r["bounded_bytes"]
+                          and hardened["bl1_per_call"] == r["static_per_call_bytes"]
+                          and hardened["bl1_constants"] == r["module_resident_constant_bytes"]
+                          and hardened["abi_arity"] == [1, 1],
+                          "hardened=%s" % {k: hardened.get(k) for k in ("status", "bl1_bounded", "bl1_per_call", "bl1_constants")}))
+    results.append(Result("p1-smartcam: reshape emission mode converges -- different ONNX bytes, byte-identical linalg MLIR "
+                          "(== contract.model.sha256), identical contract resources (the verdict does not depend on the emitted op)",
+                          equiv["onnx"]["squeeze"]["sha256"] == man_s["output_onnx"]["sha256"]
+                          and equiv["onnx"]["reshape"]["sha256"] == man_r["output_onnx"]["sha256"]
+                          and equiv["onnx"]["squeeze"]["sha256"] != equiv["onnx"]["reshape"]["sha256"]
+                          and equiv["linalg_mlir"]["byte_identical"] is True
+                          and equiv["linalg_mlir"]["squeeze_sha256"] == contract["model"]["sha256"]
+                          and equiv["contract"]["resources_identical"] is True
+                          and equiv["contract"]["bounded_bytes"] == r["bounded_bytes"],
+                          "equivalence record: linalg=%s resources=%s" % (equiv["linalg_mlir"].get("byte_identical"), equiv["contract"].get("resources_identical"))))
+    layout = open(os.path.join(P1_DIR, "build", "smartcam.layout_ir.txt"), encoding="utf-8", errors="replace").read()
+    results.append(Result("p1-smartcam: layout IR has E26's two-arm structure (1 try_map, 1 scf.if, 1 constant alloc) on a flight model",
+                          layout.count("stream.resource.try_map") == 1 and layout.count("scf.if") == 1
+                          and layout.count("stream.resource.alloc ") == 1,
+                          "try_map=%d scf.if=%d alloc=%d" % (layout.count("stream.resource.try_map"), layout.count("scf.if"), layout.count("stream.resource.alloc "))))
+    hdr = open(os.path.join(P1_DIR, "build", "contract_gen.smartcam.h"), encoding="utf-8").read()
+    _ok = (all(t in hdr for t in ("#define CONTRACT_BOUND_KNOWN 1", "#define CONTRACT_PROVENANCE_VERIFIED 1",
+                                                 "#define CONTRACT_DTYPES_ALL_F32 1", "#define CONTRACT_INPUT_ELEMS 150528",
+                                                 "#define CONTRACT_OUTPUT_ELEMS 3", "#define CONTRACT_KERNEL_STACK_BYTES 439L",
+                                                 "#define CONTRACT_BOUNDED_BYTES 18222796L", "#define CONTRACT_PER_CALL_BYTES 9382092L")))
+    results.append(Result("p1-smartcam: header carries BOUND_KNOWN 1 / PROVENANCE_VERIFIED 1 / ALL_F32 1 / 150528 -> 3 / stack 439",
+                          _ok,
+                          "" if _ok else "header macro missing"))
+    out_h = os.path.join(tmp, "p1_regen.h")
+    rc, _, err = run([PY, GEN_HEADER, os.path.join(P1_DIR, "build", "smartcam.contract.json"), out_h])
+    results.append(Result("p1-smartcam: header regenerates byte-identical from the stored contract",
+                          rc == 0 and os.path.exists(out_h) and open(out_h, "rb").read() == open(os.path.join(P1_DIR, "build", "contract_gen.smartcam.h"), "rb").read(),
+                          "rc=%d %s" % (rc, err.strip()[-200:])))
+
+    # --- smoke: feasibility record, D50 discipline ---
+    st = smoke["hal_statistics"]
+    results.append(Result("p1-smartcam: smoke record -- ran, [1,3] f32 finite, deterministic, peak == per_call, allocated == freed (D50)",
+                          smoke["status"] == "ran" and smoke["contract_artifact_sha256_matches"] is True
+                          and all(o["output_shape"] == [1, 3] and o["finite"] for o in smoke["outputs"].values())
+                          and smoke["deterministic_same_input"] is True
+                          and st["device_bytes_peak"] == r["static_per_call_bytes"]
+                          and st["device_bytes_allocated"] == st["device_bytes_freed"]
+                          and smoke["observation"]["peak_le_bounded"] is True,
+                          "peak=%s per_call=%s alloc=%s freed=%s" % (st.get("device_bytes_peak"), r["static_per_call_bytes"], st.get("device_bytes_allocated"), st.get("device_bytes_freed"))))
+    _ok = ("hal_statistics_after_host_reads" in smoke
+                          and smoke["hal_statistics_after_host_reads"]["device_bytes_allocated"] > smoke["hal_statistics_after_host_reads"]["device_bytes_freed"])
+    results.append(Result("p1-smartcam: the smoke record also shows the observer effect it guards against (host reads hold HAL bytes)",
+                          _ok,
+                          "" if _ok else "after_host_reads block missing or shows nothing held"))
+    results.append(Result("p1-smartcam: feasibility verdict is TRANSFORM_REQUIRED with go_with_transform=true and the non-claims listed",
+                          summ["verdict"] == "TRANSFORM_REQUIRED" and summ["go_with_transform"] is True
+                          and summ["transform"]["emission_mode_independent"] is True
+                          and summ["second_information_source"]["agrees_with_contract"] is True
+                          and any("P2" in s for s in summ["not_claimed"]) and any("AArch64" in s for s in summ["not_claimed"]),
+                          "verdict=%s" % summ.get("verdict")))
+
+    # --- the pure condition checker refuses every single-condition violation ---
+    if not _converter_available():
+        results.append(Result("p1-smartcam: check_squeeze_conditions refuses each single-condition violation",
+                              True, "tflite/tflite2onnx/onnx not installed", skip=True))
+        results.append(Result("p1-smartcam: stock tflite2onnx still refuses the flight model at SQUEEZE (blocker reproduced live)",
+                              True, "tflite/tflite2onnx/onnx not installed", skip=True))
+        results.append(Result("p1-smartcam: converter reproduces the stored squeeze-mode ONNX (sha256) and audit",
+                              True, "tflite/tflite2onnx/onnx not installed", skip=True))
+    else:
+        probe = r"""
+import json, sys
+sys.path.insert(0, %r)
+from tflite2onnx_ext_squeeze import check_squeeze_conditions as chk
+ok, _ = chk([1,1,1,1280], [1,1280], 1, 1, [1,2])
+cases = {
+  "valid": ok,
+  "C1_axis_not_size_1": chk([1,2,1,1280], [1,2,1280], 1, 1, [1,2])[0],
+  "C2_elements_changed": chk([1,1,1,1280], [1,640], 1, 1, [1,2])[0],
+  "C3_dtype_changed": chk([1,1,1,1280], [1,1280], 1, 2, [1,2])[0],
+  "C4_output_shape_mismatch": chk([1,1,1,1280], [1280,1], 1, 1, [1,2])[0],
+  "empty_dims": chk([1,1,1,1280], [1,1,1,1280], 1, 1, [])[0],
+  "axis_out_of_range": chk([1,1,1,1280], [1,1280], 1, 1, [1,7])[0],
+  "C4_nonstatic_output": chk([1,1,1,1280], [-1,1280], 1, 1, [1,2])[0],
+}
+print(json.dumps(cases))
+""" % HERE
+        rc, out, err = run([PY, "-c", probe])
+        try:
+            cases = json.loads(out.strip().splitlines()[-1])
+        except Exception:
+            cases = {}
+        bad = [k for k, v in cases.items() if (v is not True if k == "valid" else v is not False)]
+        results.append(Result("p1-smartcam: check_squeeze_conditions accepts the valid case and refuses each single-condition violation (7)",
+                              rc == 0 and len(cases) == 8 and not bad,
+                              "rc=%d wrong=%s %s" % (rc, bad, (err or "").strip()[-200:])))
+        probe2 = r"""
+import sys, tflite
+from tflite2onnx.model import Model
+buf = open(%r, "rb").read()
+try:
+    Model(tflite.Model.GetRootAsModel(buf, 0)).convert(dict())
+    print("CONVERTED")
+except NotImplementedError as e:
+    print("REFUSED:" + str(e))
+""" % tfl
+        rc, out, err = run([PY, "-c", probe2])
+        results.append(Result("p1-smartcam: stock tflite2onnx still refuses the flight model at SQUEEZE (blocker reproduced live)",
+                              rc == 0 and out.strip().startswith("REFUSED:") and "SQUEEZE" in out,
+                              "rc=%d out=%s err=%s" % (rc, out.strip()[-120:], (err or "").strip()[-160:])))
+        out_onnx = os.path.join(tmp, "p1_regen.onnx")
+        rc, out, err = run([PY, os.path.join(HERE, "p1_tflite_to_onnx.py"), tfl, out_onnx, "--squeeze-as", "squeeze"])
+        man_path = os.path.join(tmp, "p1_regen.transform_manifest.json")
+        ok = rc == 0 and os.path.exists(out_onnx) and os.path.exists(man_path)
+        detail = "rc=%d %s" % (rc, (err or "").strip()[-200:])
+        if ok:
+            m2 = load(man_path)
+            ok = (_sha256_file(out_onnx) == man_s["output_onnx"]["sha256"]
+                  and m2["squeeze_instances"] == man_s["squeeze_instances"]
+                  and m2["onnx_node_histogram"] == man_s["onnx_node_histogram"])
+            detail = "sha=%s (stored %s)" % (_sha256_file(out_onnx)[:16], man_s["output_onnx"]["sha256"][:16])
+        results.append(Result("p1-smartcam: converter reproduces the stored squeeze-mode ONNX (sha256) and audit",
+                              ok, detail))
+        out_onnx_r = os.path.join(tmp, "p1_regen_reshape.onnx")
+        rc, out, err = run([PY, os.path.join(HERE, "p1_tflite_to_onnx.py"), tfl, out_onnx_r, "--squeeze-as", "reshape"])
+        results.append(Result("p1-smartcam: converter reproduces the reshape-mode ONNX (sha256 in variant_reshape/equivalence.json)",
+                              rc == 0 and os.path.exists(out_onnx_r) and _sha256_file(out_onnx_r) == equiv["onnx"]["reshape"]["sha256"],
+                              "rc=%d sha=%s (recorded %s)" % (rc, _sha256_file(out_onnx_r)[:16] if os.path.exists(out_onnx_r) else "-", equiv["onnx"]["reshape"]["sha256"][:16])))
+        # ONNX -> torch -> linalg, both modes: the stored contract's model hash must come back from the flight artifact alone
+        if not (shutil.which("iree-import-onnx") and shutil.which("iree-opt")):
+            results.append(Result("p1-smartcam: iree-import-onnx + iree-opt regenerate the contract's linalg MLIR (sha256) from both ONNX modes",
+                                  True, "iree-import-onnx/iree-opt not on PATH", skip=True))
+        else:
+            got = {}
+            for label, src_onnx in (("squeeze", out_onnx), ("reshape", out_onnx_r)):
+                if not os.path.exists(src_onnx):
+                    got[label] = "no-onnx"; continue
+                t_mlir = os.path.join(tmp, "p1_%s.torch.mlir" % label); l_mlir = os.path.join(tmp, "p1_%s.linalg.mlir" % label)
+                rc1, _, e1 = run(["iree-import-onnx", src_onnx, "--opset-version", "17", "-o", t_mlir])
+                rc2, _, e2 = run(["iree-opt", t_mlir, "--pass-pipeline=builtin.module(torch-onnx-to-torch-backend-pipeline,"
+                                  "torch-backend-to-linalg-on-tensors-backend-pipeline)", "-o", l_mlir]) if rc1 == 0 else (rc1, "", e1)
+                got[label] = _sha256_file(l_mlir) if (rc2 == 0 and os.path.exists(l_mlir)) else "rc=%d/%d %s" % (rc1, rc2, (e2 or e1).strip()[-120:])
+            results.append(Result("p1-smartcam: iree-import-onnx + iree-opt regenerate the contract's linalg MLIR (sha256) from both ONNX modes",
+                                  all(v == contract["model"]["sha256"] for v in got.values()) and len(got) == 2,
+                                  "%s (contract %s)" % ({k: v[:16] for k, v in got.items()}, contract["model"]["sha256"][:16])))
+
+    # --- the stored contract regenerates from the reduced fixture (one-invocation rule) ---
+    if not (structural_available() and iree_tools_available()):
+        results.append(Result("p1-smartcam: contract regenerates unchanged from the reduced fixture",
+                              True, "needs iree.compiler.ir and iree-dump-module", skip=True))
+        return results
+    import gzip
+    mlir_tmp = os.path.join(tmp, "smartcam.mlir")     # the basename is part of the one-invocation check
+    with gzip.open(os.path.join(P1_DIR, "build", "smartcam.mlir.gz"), "rb") as gz, open(mlir_tmp, "wb") as fo:
+        shutil.copyfileobj(gz, fo)
+    _ok = (_sha256_file(mlir_tmp) == contract["model"]["sha256"] and os.path.getsize(mlir_tmp) == contract["model"]["bytes"])
+    results.append(Result("p1-smartcam: gzipped linalg MLIR in the fixture == contract.model.sha256",
+                          _ok,
+                          "" if _ok else "mlir.gz content does not match the contract's model hash"))
+    out = os.path.join(tmp, "p1_regen.contract.json")
+    rc, _, err = run([PY, MAKE_CONTRACT,
+                      "--mlir", mlir_tmp,
+                      "--vmfb", os.path.join(P1_DIR, "build", "smartcam.vmfb"),
+                      "--layout-ir", os.path.join(P1_DIR, "build", "smartcam.layout_ir.txt"),
+                      "--dump-dir", os.path.join(P1_DIR, "build", "dump"),
+                      "--triple", "x86_64-unknown-linux-gnu", "--cpu", "generic",
+                      "--model-name", "smartcam",
+                      "--elf-analysis", os.path.join(P1_DIR, "build", "smartcam.elf.json")]
+                     + with_structural_override() + ["--out", out])
+    if rc != 0:
+        results.append(Result("p1-smartcam: contract regenerates unchanged from the reduced fixture", False,
+                              "make_contract rc=%d: %s" % (rc, err.strip()[-300:])))
+        return results
+    old_f = dict(flatten(contract))
+    new_f = dict(flatten(load(out)))
+    ignore = IGNORE_PROVENANCE_KEYS | {"dump_dir"}
+    diffs = [(k, old_f.get(k), new_f.get(k)) for k in set(old_f) | set(new_f)
+             if k[-1] not in ignore and not (set(k) & IGNORE_PROVENANCE_SUBTREES)
+             and old_f.get(k) != new_f.get(k)]
+    results.append(Result("p1-smartcam: contract regenerates unchanged from the reduced fixture",
+                          not diffs, "" if not diffs else "%d field(s) differ, e.g. %s" % (len(diffs), diffs[:3])))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -3374,6 +3732,7 @@ def main():
         all_results += e29_conditional_contract_cases()
         all_results += e27_hardened_baseline_cases()
         all_results += e29b_conditional_verify_cases(tmp)
+        all_results += p1_smartcam_feasibility_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

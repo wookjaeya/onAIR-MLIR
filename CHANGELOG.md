@@ -2,6 +2,39 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.33] — E30: OPS-SAT SmartCam 반입 타당성 (P1) — TRANSFORM_REQUIRED → GO
+
+**판정:** 여덟 번째 외부 분석서(`docs/reviews/ONAIR_MLIR_P1_SEQUENCE_ANALYSIS_1.md`)가 §9에서 못박은 범위
+— *"P1 SmartCam import feasibility만"* — 를 그대로 수행했다. 비행 모델 `model.tflite`(commit `be09ece`,
+8,950,028 B, sha `fd1ecbd0…`)를 **한 바이트도 고치지 않고** 보존하고, 기계 판독 인벤토리(68 op / 9종 /
+custom 0 / 동적 형상 0, NHWC [1,224,224,3] f32 → [1,3] f32)를 만든 뒤, 알려진 차단점(stock tflite2onnx
+0.4.1: `NotImplementedError: Unsupported TFLite OP: 43 SQUEEZE!`)을 **재현**하고, 분석서 §5의 조건
+(C1 제거 축 크기 1 · C2 원소 수 · C3 dtype · C4 정적 출력 형상)을 순수 함수로 검사해 **전부 성립할 때만**
+변환하는 tflite2onnx **변환기 확장**(`harness/tflite2onnx_ext_squeeze.py`)으로 넘겼다 — NHWC→NCHW 레이아웃
+재색인([1,2]→[2,3]) 포함, 위반은 `SqueezeConditionError`로 거부. `iree-import-onnx --opset-version 17` →
+`iree-opt`(잔여 torch op 0) → **한 번의 `iree-compile`**로 vmfb(8,915,257 B)·layout IR·계약·헤더 완주.
+계약은 **오버라이드 0개**: `bounded` **18,222,796** = `per_call` **9,382,092**(io 602,124 + transient
+8,779,968) + `constants` **8,840,704**, 디스패치 56, 커널 스택 368/439 B(호출 38개 전부 해석), 상수 확인
+`confirmed`, 구조적 추출기 일치, 아티팩트 전용 기준선(E27 (b′))이 **같은 세 값**. layout IR은 E26의 두 분기
+구조 그대로(try_map 1 / scf.if 1, `B_copy/B_map` 1.94×). pip `iree.runtime` 스모크: `[1,3]` 유한·결정적
+출력, **피크 9,382,092 = `per_call` 정확히**, `allocated == freed`. ONNX `Squeeze`와 분석서가 제안한 정적
+`Reshape` 두 방출 모드는 **linalg MLIR부터 바이트 동일**(판정이 방출 op에 의존하지 않음).
+
+**반입이 만든 인터페이스 변경을 P2 의무로 기록**: IREE 엔트리 입력은 NCHW `[1,3,224,224]`이고 비행 TFLite는
+NHWC — 원소 수·dtype은 같고 **순서는 다르다**. 두 C 실행기는 평면 벡터만 받으므로 P2는 전치한 입력을 먹여야
+한다.
+
+**부수 발견(방법론)**: (1) tflite2onnx가 `initializer`·`value_info`를 `set()`에 담아 **실행마다 ONNX
+바이트가 다르다**(세 번 = 세 해시, 다중집합은 동일; 하류 linalg의 상수 번호가 흔들림) — 래퍼가 이름순
+정렬로 canonical화, 이후 원본에서 ONNX·linalg MLIR sha256이 매번 재현된다. (2) pip 바인딩에서 결과를
+호스트로 읽으면 12 B HAL 버퍼가 프로세스 끝까지 남는다(D50의 새 얼굴) — 스모크는 결과를 버리는 호출로
+피크를 먼저 읽고 읽은 뒤의 통계를 따로 기록한다.
+
+**주장하지 않음**: 수치 동치(P2)·정확도·AArch64/cFS 실행(P3)·soundness·일반화·`iree-compile` 바이트
+재현성(두 호출 일치는 관측). `harness/contract_negative_tests.py` **322/322 → 353/353**(이 컨테이너;
+변환기 패키지·IREE 도구 부재 시 해당 시험은 SKIP). `requirements.txt`에 `tflite`·`tflite2onnx`·`onnx` 고정.
+상세: `docs/EVIDENCE_v0.33_E30.md`.
+
 ## [v0.32.1] — 정정: E28·E29·E29b의 cFS 원자료가 저장소에 없었다 (D55)
 
 **정정:** E29b 커밋 직후 `git status --ignored results`로 확인한 결과, `.gitignore`의 `*.log`(8행)를

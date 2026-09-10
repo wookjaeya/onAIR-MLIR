@@ -1,0 +1,47 @@
+{
+ "experiment": "E30 (P1: import feasibility)",
+ "source": {
+  "repo": "https://github.com/georgeslabreche/opssat-smartcam.git",
+  "commit": "be09ecee41f0a5db52afe0ee929dbd339cb68672",
+  "commit_date": "2024-01-20T16:09:03-05:00",
+  "path": "home/exp1000/models/default/model.tflite",
+  "labels_path": "home/exp1000/models/default/labels.txt",
+  "labels": [
+   "bad",
+   "earth",
+   "edge"
+  ],
+  "clone_command": "git clone --depth 1 https://github.com/georgeslabreche/opssat-smartcam.git (HEAD == be09ece at clone time)",
+  "clone_time_utc_approx": "2026-09-10T02:24Z (mtime of the copied files; the clone itself was not timestamped)",
+  "manifest_written_at_utc": "2026-09-10T02:25:57Z"
+ },
+ "original_artifact": {
+  "stored_as": "results/p1_smartcam_feasibility/original/model.tflite",
+  "bytes": 8950028,
+  "sha256": "fd1ecbd01ad2d46bd35cbac17809cfa24b1d929b8f14871fc1fb6fca5ff06aae",
+  "modified": false,
+  "note": "byte-identical copy of the flight artifact at that commit; never edited by this repository"
+ },
+ "status_in_this_repo": "flight-artifact (docs/plans/E26_boundary_utility.md SS1.2 grade); any transformed derivative is named and hashed separately",
+ "tools": {
+  "python": "Python 3.11.15",
+  "venv_freeze": [
+   "flatbuffers==25.12.19",
+   "ml_dtypes==0.6.0",
+   "numpy==2.4.6",
+   "onnx==1.22.0",
+   "protobuf==7.36.1",
+   "tflite==2.18.0",
+   "tflite2onnx==0.4.1",
+   "typing_extensions==4.16.0"
+  ],
+  "iree_compile_version": "IREE (https://iree.dev):\n  IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25\n  LLVM version 23.0.0git\n  Optimized build",
+  "iree_import_onnx": "/usr/local/bin/iree-import-onnx"
+ },
+ "not_done_in_P1": [
+  "AArch64 guest rebuild",
+  "cFS executor generalization",
+  "full-dataset accuracy",
+  "output equivalence (P2)"
+ ]
+}
