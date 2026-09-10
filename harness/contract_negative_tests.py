@@ -4042,6 +4042,74 @@ def e35_fair_baseline_cases():
     return results
 
 
+def e33_e35_errata_cases():
+    """v0.38.1 / D60: the two errata that came out of reading the RAW DATA, pinned so neither
+    half can drift back.
+
+    D60 is the repository's own failure mode seen once more: `EVIDENCE_v0.36_E33.md` claimed the
+    OnAIR path released its output buffers every call, while the very run it cites reports leaked
+    nanobind instances at interpreter shutdown. The raw file was committed the whole time -- no
+    test had ever looked at that field, so the suite stayed green. These checks therefore pin BOTH
+    sides: the condition is really there in the raw log, AND the evidence document says so. If IREE
+    ever fixes the binding refcount the first check fails and tells us to re-examine the claim,
+    which is the point -- "released" must never become true by silence again.
+
+    The E35 pair is the same discipline applied to a softer error: agreement between two
+    information levels is not evidence of INDEPENDENCE when both levels run the same analyser."""
+    results = []
+    root = os.path.dirname(HERE)
+
+    run_json = os.path.join(E33_DIR, "p_admit", "run.json")
+    if not os.path.exists(run_json):
+        results.append(Result("d60: E33 p_admit raw run.json present", False, "missing %s" % run_json))
+    else:
+        tail = load(run_json).get("stderr_tail", "") or ""
+        _ok = "nanobind" in tail and "leaked" in tail
+        results.append(Result("d60: the raw log really does report unreleased nanobind instances "
+                              "(the condition the erratum describes, not a paraphrase)", _ok,
+                              "" if _ok else "stderr_tail no longer carries the leak report: %r" % tail[:160]))
+        _ok = "HalBufferView" in tail or "MappedMemory" in tail
+        results.append(Result("d60: and the leaked types are the IREE runtime buffer objects", _ok,
+                              "" if _ok else tail[:160]))
+
+    ev = os.path.join(root, "docs", "EVIDENCE_v0.36_E33.md")
+    txt = open(ev, encoding="utf-8", errors="replace").read() if os.path.exists(ev) else ""
+    _ok = "nanobind" in txt and "미검증" in txt and "정오표" in txt
+    results.append(Result("d60: EVIDENCE_v0.36_E33 carries the erratum -- the leak warning is "
+                          "recorded and the status is stated as not-verified", _ok,
+                          "" if _ok else "the evidence document does not record the raw-data contradiction"))
+
+    claude = os.path.join(root, "CLAUDE.md")
+    ctxt = open(claude, encoding="utf-8", errors="replace").read() if os.path.exists(claude) else ""
+    _ok = "출력 버퍼 해제를 검증했다" in ctxt and "오류가 독립" in ctxt
+    results.append(Result("d60: the claim guardrails forbid both retracted claims (OnAIR release "
+                          "verified; the two sources' errors are independent)", _ok,
+                          "" if _ok else "CLAUDE.md guardrails do not carry the v0.38.1 retractions"))
+
+    summ = os.path.join(E35_DIR, "summary.json")
+    if not os.path.exists(summ):
+        results.append(Result("e35 errata: summary present", False, "missing %s" % summ))
+    else:
+        names = list(load(summ)["models"].keys())
+        base = {n.replace("_x86_64", "").replace("_aarch64", "") for n in names}
+        _ok = len(names) == 4 and len(base) == 3
+        results.append(Result("e35 errata: the matrix is 4 model-TARGET configurations over 3 "
+                              "distinct models (SmartCam is counted twice)", _ok,
+                              "" if _ok else "%s -> %s" % (names, sorted(base))))
+
+    ev35 = os.path.join(root, "docs", "EVIDENCE_v0.38_E35.md")
+    t35 = open(ev35, encoding="utf-8", errors="replace").read() if os.path.exists(ev35) else ""
+    collector = os.path.join(HERE, "e35_baseline_policy_matrix.py")
+    ctext = open(collector, encoding="utf-8", errors="replace").read() if os.path.exists(collector) else ""
+    shares_analyser = "elf_stack_frame.py" in ctext
+    _ok = shares_analyser and "정보원 독립성의 증거가 아니다" in t35
+    results.append(Result("e35 errata: the shared analyser is a fact of the collector AND the "
+                          "evidence says the stack agreement is not an independence result", _ok,
+                          "" if _ok else "collector_uses_elf_stack_frame=%s; erratum_present=%s"
+                          % (shares_analyser, "정보원 독립성의 증거가 아니다" in t35)))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -4856,6 +4924,7 @@ def main():
         all_results += e34_two_models_cases()
         all_results += e34_comparator_generalisation_cases(tmp)
         all_results += e35_fair_baseline_cases()
+        all_results += e33_e35_errata_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

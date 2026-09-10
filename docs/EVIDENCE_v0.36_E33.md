@@ -133,3 +133,38 @@ onair/src/run_scripts/execution_engine.py → sim.py → reasoning/agent.py
 - **다른 모델**(단계 4), **공정한 기준선**(단계 5), **모델 hot-swap**(검토서 §6.2가 필수에서 제외).
 - **메모리 실측**: 이 경로에서 HAL 피크를 재지 않았다. pip 바인딩의 호스트 읽기가 버퍼를 붙드는
   D50 조건이 그대로 적용되므로, 메모리는 E26·E29·E32가 재는 자리다.
+
+## 10. 정오표 (v0.38.1 — D60)
+
+**철회**: §8 판정표 Q4 행의 *"매 호출 출력 소비·**해제**"* 중 **"해제"**를 철회한다.
+
+같은 셀의 원자료 `results/e33_onair_official/p_admit/run.json`의 `stderr_tail`이 프로세스 종료 시
+아래를 남기고 있었고, **이 EVIDENCE는 그것을 한 줄도 기록하지 않았다**(저장소 전체에서
+`nanobind|leak|누수` grep 0건):
+
+```
+nanobind: leaked 10 instances!
+ - leaked instance ... of type "iree._runtime_libs._runtime.HalBufferView"
+ - leaked instance ... of type "iree._runtime_libs._runtime.MappedMemory"
+ ...
+nanobind: leaked 5 keep_alive records!
+nanobind: this is likely caused by a reference counting issue in the binding code.
+```
+
+**정정 후 상태: 메모리 해제 미검증.** 양방향으로 못박는다.
+
+- *"매 호출 출력 버퍼를 해제했다"*고 **쓸 수 없다** — 원자료가 종료 시점의 미해제 인스턴스를 보고한다.
+- *"OnAIR 경로에 메모리 누수가 있다"*고도 **쓸 수 없다** — 경고 본문 자신이 원인을 IREE 바인딩의
+  참조 계수 문제로 지목하고, 이 경로에서 HAL 피크를 재지 않았으며(§9), 장기 RSS 추이도 측정하지 않았다.
+
+Q4의 나머지 근거(고정 크기 지연 링, 신선하지 않은 호출에서 추론하지 않음)는 코드와 레코드로 확인되므로
+**Q4 자체를 FAIL로 바꾸지 않는다.** 바뀌는 것은 그 PASS가 **무엇을 뜻하는가**다 — 호출 규약 수명주기는
+확인됐고, **런타임 객체 해제는 미검증**이다.
+
+**주장 범위**: OnAIR를 *기존 생태계 호환성의 보조 증거*로 쓰는 범위에서는 E33으로 충분하다.
+OnAIR 경로까지 **계약의 메모리 준수 대상**으로 주장하려면 반복 실행·HAL 피크·객체 수명 검증이
+따로 필요하다(**미실행**).
+
+**발견 경로**: 외부 검토 문서가 `run.json`을 직접 읽어 지적했고 이 세션이 저장소 원자료로 재확인했다.
+그 검토 문서는 근거 위치를 "§9"로 인용했으나 §9에는 없다 — **없다는 것이 바로 결함**이었다.
+D55(요약만 커밋되고 원자료 누락)·D45(`both_sound` 오귀속)와 같은 계열이다.
