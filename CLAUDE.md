@@ -508,7 +508,7 @@ constants 14,016, 단일 호출, 오버라이드 0)로 재현: 조건부 승인(
 `hal_peak_after_append != 0 → 거부`(map 분기의 append 피크는 정확히 0, E29 32/32). 수정 후 shim 셀은
 native·cFS 모두 런타임 생성 전 거부·추론 0·cFS OPERATIONAL 유지, 정렬 셀은 예산 = per_call에서
 **정확히 45,444**로 완주(과잉 거부 0). revert-and-confirm-fail: 비교식만 되돌리면 2건 FAIL.
-이 컨테이너 **310/310 → 320/320**, 보관 14개 계약 diff 0. **교훈**: D53을 E29 자신이 어겼다 —
+이 컨테이너 **310/310 → 320/320**(v0.32.1: **D55** — E28·E29·E29b의 cFS raw log 9건이 `.gitignore` `*.log` 때문에 저장소에 없었음을 발견, `!results/**/*.log`로 교체·커밋하고 summary.json이 인용한 로그의 존재·추적을 검사하는 가드 신설 → **322/322**), 보관 14개 계약 diff 0. **교훈**: D53을 E29 자신이 어겼다 —
 승인은 분기를 전제했는데 검증은 크기를 비교했다. 그리고 ***"시험이 무엇을 pin하는지 읽어라"***.
 **미착수(명시)**: 검토서 §5–§12의 실물 모델 계획(P1–P5: OPS-SAT SmartCam·WGAN 반입, TFLite 의미
 동치, AArch64 cFS 완주, LLVM-IR/ELF-only 기준선) — `docs/ASSUMPTIONS_AND_SCOPE.md`에 등록만 했다.
@@ -1059,6 +1059,7 @@ cd $HOME/onair-mlir-bench/ext/cFS/build-native_std/exe/cpu1 && ./core-cpu1   # A
 | CMake `target_link_libraries` plain/keyword 혼용 에러 | cFS의 `add_cfe_app`이 plain 시그니처 사용 | 앱 CMakeLists도 plain 시그니처로 통일 |
 | 재컴파일한 vmfb의 해시가 이전과 다름 | **입력 MLIR 파일명이 vmfb 심볼명에 들어감** | 계약·덤프·배치 아티팩트는 한 번의 컴파일 호출에서 생성 |
 | 파일명·플래그를 똑같이 맞췄는데도 vmfb 해시가 매번 다름 | `iree-compile`이 스레딩 기본값에서 **바이트 재현적이지 않다**(E26e: 16-dispatch 모델 3회 = 3개 해시, `--mlir-disable-threading` 2회 = 동일). 계약 수치는 동일하고 아티팩트 동일성만 흔들린다 | 측정에 쓴 vmfb를 저장소에 **보존**한다(레시피만으로는 되돌아오지 않음). 재현성이 필요하면 `--mlir-disable-threading` |
+| EVIDENCE가 인용한 `results/**/*.log`가 저장소에 없음(시험은 green) | `.gitignore`의 `*.log`를 실험별 allowlist로만 되살려 새 실험 디렉터리의 로그가 조용히 무시됨(D55: E28·E29·E29b 9건) | `!results/**/*.log`(v0.32.1) + `cited_raw_logs_tracked_cases()`가 summary.json 인용 로그의 존재·추적을 검사. 새 실험을 커밋하기 전 `git status --short --ignored results`를 볼 것 |
 | HAL `device_bytes_peak`가 계약값보다 조금 큼(분류기가 `refutes_hypothesis`) | 반환된 출력 버퍼를 붙들고 있어 이전 호출분이 해제되지 않음(D50, E26e: per_call + 4×40 B) | 호출마다 결과를 놓아주고 `allocated == freed`인 상태에서 피크를 읽는다 |
 
 ## 이 컨테이너(claude.ai)에서 검증됐던 사실과의 관계

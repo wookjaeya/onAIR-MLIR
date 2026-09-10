@@ -156,3 +156,10 @@ cd native && bash build.sh ../results/e29b_conditional_verify/bigact.contract.js
 LD_PRELOAD=/tmp/e29_nopm.so ONAIR_CONDITIONAL_MAP=1 ./native_learner_bigact ../results/e29b_conditional_verify/bigact.vmfb 45444 3   # rc=10, UNMET
 ONAIR_CONDITIONAL_MAP=1 ./native_learner_bigact ../results/e29b_conditional_verify/bigact.vmfb 45444 3                             # 45,444, ok
 ```
+
+
+---
+
+## 7. 정오표 (v0.32.1 / D55)
+
+§1.2·§2.3이 인용한 cFS raw log 3건(`cfs/*.log`)은 이 문서의 첫 커밋(`0e09535`)에 **들어가지 않았다** — `.gitignore`의 `*.log`가 무시했다. 같은 세션에서 발견해 v0.32.1로 커밋했고, `cited_raw_logs_tracked_cases()`가 재발을 막는다. 수치·판정은 그대로다.

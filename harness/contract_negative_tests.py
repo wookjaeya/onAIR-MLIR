@@ -22,6 +22,7 @@ Exit 0 iff every negative case was refused AND the regression check passed.
 import argparse
 import copy
 import hashlib
+import glob
 import json
 import os
 import re
@@ -2407,6 +2408,67 @@ EXT_B3_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utilit
 E27_SUMMARY = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "summary.json")
 
 
+RESULTS_DIR = os.path.join(os.path.dirname(HERE), "results")
+
+
+def cited_raw_logs_tracked_cases():
+    """D55 (v0.32.1): a summary.json may cite a raw log that is not in the repository.
+
+    `.gitignore` ignored `*.log` and un-ignored it per experiment by hand. E28, E29
+    and E29b each wrote cFS raw logs under results/, cited them from summary.json
+    and from their EVIDENCE documents as the primary record, and committed -- and
+    none of those nine files ever entered the repository, while every test kept
+    passing because the tests read summary.json, not the logs. That is the E22
+    `dump/` trap again (evidence the tests silently do not require), one level up.
+
+    This check walks every results/**/summary.json, resolves each `"log"` field
+    (repo-relative when it starts with `results/`, else relative to the summary's
+    own directory -- both conventions exist in tree) and requires the file to
+    exist and, in a git checkout, to be tracked. A missing or untracked citation
+    is a FAIL: the record says "here is the raw log" and there is none."""
+    results = []
+    cited = []
+    for sp in sorted(glob.glob(os.path.join(RESULTS_DIR, "**", "summary.json"), recursive=True)):
+        try:
+            doc = load(sp)
+        except Exception as e:
+            results.append(Result("d55: %s parses" % os.path.relpath(sp, os.path.dirname(HERE)), False, repr(e)))
+            continue
+        def walk(o):
+            if isinstance(o, dict):
+                for k, v in o.items():
+                    if k == "log" and isinstance(v, str):
+                        yield v
+                    else:
+                        yield from walk(v)
+            elif isinstance(o, list):
+                for x in o:
+                    yield from walk(x)
+        for rel in walk(doc):
+            full = (os.path.join(os.path.dirname(HERE), rel) if rel.startswith("results/")
+                    else os.path.join(os.path.dirname(sp), rel))
+            cited.append((sp, rel, full))
+    missing = [(sp, rel) for sp, rel, full in cited if not os.path.exists(full)]
+    results.append(Result("d55: every raw log cited by a results/**/summary.json exists (%d citations)" % len(cited),
+                          not missing, "missing=%s" % [(os.path.relpath(a, RESULTS_DIR), b) for a, b in missing][:6]))
+    git_dir = os.path.join(os.path.dirname(HERE), ".git")
+    if not (os.path.isdir(git_dir) and shutil.which("git")):
+        results.append(Result("d55: every cited raw log is tracked by git", True,
+                              "not a git checkout (or git missing) -- tracked-ness cannot be checked here", skip=True))
+        return results
+    untracked = []
+    for sp, rel, full in cited:
+        if not os.path.exists(full):
+            continue
+        rc = subprocess.run(["git", "-C", os.path.dirname(HERE), "ls-files", "--error-unmatch", full],
+                            capture_output=True).returncode
+        if rc != 0:
+            untracked.append((os.path.relpath(sp, RESULTS_DIR), rel))
+    results.append(Result("d55: every cited raw log is tracked by git (not silently .gitignored)",
+                          not untracked, "untracked=%s" % untracked[:9]))
+    return results
+
+
 E29B_DIR = os.path.join(os.path.dirname(HERE), "results", "e29b_conditional_verify")
 
 
@@ -3312,6 +3374,7 @@ def main():
         all_results += e29_conditional_contract_cases()
         all_results += e27_hardened_baseline_cases()
         all_results += e29b_conditional_verify_cases(tmp)
+        all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

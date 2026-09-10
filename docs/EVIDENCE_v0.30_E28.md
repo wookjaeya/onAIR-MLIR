@@ -119,3 +119,10 @@ OPS-SAT급 계약(`CONTRACT_INPUT_ELEMS = 150528`, 즉 224×224×3)으로 실제
   아티팩트다. 실제 SmartCam MobileNetV2 반입은 별개이며 미착수다.
 - **AArch64 cFS에서도 같다** — 미실행이다.
 - **게이트가 이제 완전하다** — D52는 재현된 한 경로를 닫았다.
+
+
+---
+
+## 정오표 (v0.32.1 / D55)
+
+이 문서가 인용한 raw log 2건(`results/e28_stack_failopen/opssat_probe_{before,after}_fix.log`)은 v0.32.1까지 **저장소에 없었다** — `.gitignore`의 `*.log`가 무시했고 summary.json만 커밋돼 있었다. 파일은 디스크에 남아 있었고 v0.32.1에서 커밋됐다. 수치·판정은 그대로다(`CHANGELOG.md` [v0.32.1], `EXPERIMENT_LOG.md` D55).

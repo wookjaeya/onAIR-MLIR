@@ -243,3 +243,8 @@ python3 harness/contract_negative_tests.py     # 304/304 (이 컨테이너)
 따라서 이 결함을 검출할 수 없는 입력 집합 위에서 수행된 것이다. 수정(append 전 정렬 검사 +
 `hal_peak_after_append != 0` 분기 판정)과 재실측은 `docs/EVIDENCE_v0.32_E29b.md`. §2·§3·§6의 판정
 (결정 요인·이분성·7/7 양방향 불변식)은 바뀌지 않는다.
+
+
+### 9.1 원자료 부재 (v0.32.1 / D55)
+
+§3.2가 "원자료: `results/e29_conditional_contract/cfs/*.log`"라고 적은 4건은 v0.32.1까지 **저장소에 없었다**(`.gitignore` `*.log`). 디스크에 남아 있던 파일을 v0.32.1에서 커밋했고 수치·판정은 그대로다.

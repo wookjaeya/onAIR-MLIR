@@ -2,6 +2,22 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.32.1] — 정정: E28·E29·E29b의 cFS 원자료가 저장소에 없었다 (D55)
+
+**정정:** E29b 커밋 직후 `git status --ignored results`로 확인한 결과, `.gitignore`의 `*.log`(8행)를
+실험별 allowlist(e14·e25·e26)로만 되살리고 있어 **E28(2건)·E29(4건)·E29b(3건)의 cFS raw log가
+저장소에 들어간 적이 없었다.** `docs/EVIDENCE_v0.30_E28.md`·`_v0.31_E29.md`·`_v0.32_E29b.md`가
+"원자료"로 인용한 파일들이다. summary.json은 커밋돼 있어 시험은 내내 green이었다 — E22의 `dump/`
+함정(시험이 조용히 요구하지 않는 증거)이 한 단계 위에서 재발한 것이다. 9건 전부 디스크에는
+남아 있었고(E14·E26 로그는 allowlist 덕에 처음부터 추적됨), 수치·판정은 바뀌지 않는다.
+
+조치: allowlist를 `!results/**/*.log`로 교체하고 9건을 커밋. `cited_raw_logs_tracked_cases()`
+신설 — 모든 `results/**/summary.json`의 `"log"` 인용(21건)이 존재하고 **git에 추적되는지** 검사한다.
+스테이징 전 FAIL(untracked 9건)·후 PASS를 실측했다. **320/320 → 322/322**(이 컨테이너).
+
+**교훈**: *"summary가 아니라 원자료가 추적되는지 시험이 직접 물어라"* — 요약만 커밋되면 요약이
+곧 증거로 둔갑한다.
+
 ## [v0.32] — E29b: 조건부 계약의 검증 논리 수정 — 시험이 결함을 고정하고 있었다 (D54)
 
 **판정:** 일곱 번째 외부 검토(`docs/reviews/ONAIR_MLIR_RESEARCH_CONSOLIDATED_REVIEW_20260909.md`)

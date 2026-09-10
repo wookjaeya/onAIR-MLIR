@@ -7,9 +7,12 @@ native/native_learner_*
 *.o
 *.log
 !native/results/*.log
-!results/e14_aarch64_qemu/**/*.log
-!results/e25_equivalence/**/*.log
-!results/e26_boundary_utility/**/*.log
+# D55 (v0.32.1): the per-experiment allowlist that used to follow here silently excluded the
+# cFS raw logs of E28, E29 and E29b -- their EVIDENCE docs cited files that were never in the
+# repository while summary.json kept the tests green. Raw logs under results/ are evidence:
+# allow them all, and let harness/contract_negative_tests.py::cited_raw_logs_tracked_cases()
+# fail when a summary.json cites a log that is missing or untracked.
+!results/**/*.log
 # F9 (external review v0.15, EVIDENCE_v0.16_E22): these dumps used to be excluded here
 # ("intermediate executable dumps ... copied next to them" -- true of the ELF/codegen.ll,
 # not true of dump/ itself) -- but harness/contract_negative_tests.py's regression and
