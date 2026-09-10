@@ -47,6 +47,7 @@ OnAIR 체크아웃에서 `python driver.py <ini>`를 서브프로세스로 돌�
 **하지 않음**: SBN·cFS 연계(**단독 CSV OnAIR 실행을 cFS 연계라고 부르지 않는다**)·정확도·지연 성능
 주장·AArch64 OnAIR·다른 모델(단계 4)·공정한 기준선(단계 5)·메모리 실측(D50 조건 그대로).
 이 컨테이너 **422/422 → 453/453**.
+**CI 실측**(커밋 `8186a72`, run 128, 3레그 success): `full` **452/452 + 1 SKIP**(PyYAML) · `without-iree` **312/312 + 26 SKIP** · `stdlib-only` **312/312 + 26 SKIP** — 컨테이너 453/453과 `full`의 차이 1건은 PyYAML 유무(D34). 축소 레그가 281→312로 **정확히 +31**이라 E33 신규 31건이 **전부 나타난다**(신규 SKIP 0): 보관 JSON 판독과 `admission_policy` 순수 단위 시험이라 툴체인 없이 실제로 돈다.
 
 ## [v0.35] — E32: SmartCam AArch64 cFS 실행 (단계 2) — Q1·Q2·Q4 PASS, Q3 조건부 계층 미달
 

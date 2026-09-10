@@ -120,6 +120,8 @@ onair/src/run_scripts/execution_engine.py → sim.py → reasoning/agent.py
 
 **단계 3 완료.**
 
+**CI 실측**(커밋 `8186a72`, run 128, 3레그 success): `full` **452/452 + 1 SKIP**(PyYAML) · `without-iree` **312/312 + 26 SKIP** · `stdlib-only` **312/312 + 26 SKIP** — 컨테이너 453/453과 `full`의 차이 1건은 PyYAML 유무(D34). 축소 레그가 281→312로 **정확히 +31**이라 E33 신규 31건이 **전부 나타난다**(신규 SKIP 0): 보관 JSON 판독과 `admission_policy` 순수 단위 시험이라 툴체인 없이 실제로 돈다.
+
 ## 9. 하지 않은 것 (범위)
 
 - **SBN·cFS 연계**: 하지 않았다. **단독 CSV OnAIR 실행을 cFS 연계라고 부르지 않는다**(검토서 §2.3).
