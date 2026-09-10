@@ -81,10 +81,19 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
     ap.add_argument("--images", nargs="*", default=[], help="image files, or directories to scan")
-    ap.add_argument("--height", type=int, required=True)
-    ap.add_argument("--width", type=int, required=True)
-    ap.add_argument("--mean", type=float, required=True)
-    ap.add_argument("--std", type=float, required=True)
+    ap.add_argument("--height", type=int, default=0)
+    ap.add_argument("--width", type=int, default=0)
+    ap.add_argument("--channels", type=int, default=3)
+    ap.add_argument("--mean", type=float, default=0.0)
+    ap.add_argument("--std", type=float, default=1.0)
+    # E34 (stage 4): the model convention is DATA, not a branch. `nhwc_to_nchw` is the
+    # image case E31 built; `none` is a model whose entry takes the original tensor
+    # unchanged (a rank-2 autoencoder has no layout to convert). Adding a third mode
+    # must stay a value here rather than an `if model == ...` anywhere downstream.
+    ap.add_argument("--layout", choices=["nhwc_to_nchw", "none"], default="nhwc_to_nchw")
+    ap.add_argument("--shape", type=int, nargs="*", default=None,
+                    help="full input shape for --layout none (e.g. 1 640)")
+    ap.add_argument("--experiment", default="E31 (P2: SmartCam semantic preservation)")
     ap.add_argument("--resample", default="BILINEAR")
     ap.add_argument("--synthetic", type=int, default=0, help="count of uniform[0,1) samples (coverage only)")
     ap.add_argument("--seed", type=int, default=31)
@@ -93,6 +102,20 @@ def main():
     ap.add_argument("--source-repo", default="")
     ap.add_argument("--source-commit", default="")
     a = ap.parse_args()
+
+    if a.layout == "none":
+        if not a.shape:
+            print("model_fixture: --layout none needs --shape", file=sys.stderr)
+            return 2
+        if a.images:
+            print("model_fixture: --layout none does not preprocess images", file=sys.stderr)
+            return 2
+        sample_shape = tuple(int(v) for v in a.shape)
+    else:
+        if not (a.height and a.width):
+            print("model_fixture: --layout nhwc_to_nchw needs --height and --width", file=sys.stderr)
+            return 2
+        sample_shape = (1, a.height, a.width, a.channels)
 
     files = []
     for item in a.images:
@@ -125,16 +148,16 @@ def main():
     if a.synthetic:
         rng = np.random.default_rng(a.seed)
         for k in range(a.synthetic):
-            nhwc = rng.random((1, a.height, a.width, 3), dtype=np.float32)
+            nhwc = rng.random(sample_shape, dtype=np.float32)
             samples.append(("synthetic_%02d" % k, "synthetic", nhwc,
                             {"generator": "numpy.random.default_rng(%d).random, uniform [0,1)" % a.seed,
                              "index": k,
                              "note": "COVERAGE ONLY -- not real data, never to be reported as such"}))
 
     if a.edge:
-        samples.append(("edge_zeros", "edge", np.zeros((1, a.height, a.width, 3), np.float32),
+        samples.append(("edge_zeros", "edge", np.zeros(sample_shape, np.float32),
                         {"note": "all 0.0"}))
-        samples.append(("edge_ones", "edge", np.ones((1, a.height, a.width, 3), np.float32),
+        samples.append(("edge_ones", "edge", np.ones(sample_shape, np.float32),
                         {"note": "all 1.0 (the top of the [0,1] range this preprocessing produces)"}))
 
     if not samples:
@@ -143,10 +166,19 @@ def main():
 
     rows = []
     for sid, kind, nhwc, meta in samples:
-        nchw = to_nchw(nhwc)                       # raises if the transpose is not a real transpose
-        p_nhwc = os.path.join(in_dir, sid + ".nhwc.npy")
-        p_nchw = os.path.join(in_dir, sid + ".nchw.npy")
-        np.save(p_nhwc, nhwc); np.save(p_nchw, nchw)
+        if a.layout == "nhwc_to_nchw":
+            nchw = to_nchw(nhwc)                   # raises if the transpose is not a real transpose
+            p_nhwc = os.path.join(in_dir, sid + ".nhwc.npy")
+            p_nchw = os.path.join(in_dir, sid + ".nchw.npy")
+            np.save(p_nhwc, nhwc); np.save(p_nchw, nchw)
+        else:
+            # No layout conversion: the original tensor IS the entry tensor. Both manifest
+            # entries name the SAME file, so downstream tools keep reading `nhwc` for the
+            # oracle and `nchw` for the entry with no model-specific branch, and the two
+            # hashes are equal because it is one array (E34/stage 4).
+            nchw = nhwc
+            p_nhwc = p_nchw = os.path.join(in_dir, sid + ".nchw.npy")
+            np.save(p_nchw, nchw)
         rows.append({
             "sample_id": sid, "kind": kind,
             "nhwc": {"file": os.path.relpath(p_nhwc, a.out), "shape": list(nhwc.shape),
@@ -159,8 +191,9 @@ def main():
 
     manifest = {
         "tool": "harness/model_fixture.py",
-        "experiment": "E31 (P2: SmartCam semantic preservation)",
-        "preprocessing": {
+        "experiment": a.experiment,
+        "input_shape": list(sample_shape),
+        "preprocessing": ({
             "resize": {"to": [a.width, a.height], "resample": a.resample,
                        "note": "applied ONCE here so both paths receive identical tensors; this is NOT a "
                                "claim that it matches the flight software's own resizer"},
@@ -171,7 +204,20 @@ def main():
                        "operation": "numpy transpose(0,3,1,2)",
                        "verified": "round trip nchw.transpose(0,2,3,1) == nhwc for every sample; "
                                    "and transpose != reshape asserted for these shapes"},
-        },
+        } if files else {
+            "resize": None,
+            "normalisation": None,
+            "normalisation_note": "no image was preprocessed in this fixture, so no normalisation "
+                                  "is claimed; the samples are generated directly in the value range "
+                                  "the entry expects",
+            "layout": ({"nhwc": "original TFLite input", "nchw": "imported IREE entry input",
+                        "operation": "numpy transpose(0,3,1,2)",
+                        "verified": "round trip and transpose != reshape asserted for these shapes"}
+                       if a.layout == "nhwc_to_nchw" else
+                       {"operation": "none",
+                        "note": "the entry takes the original tensor unchanged (no layout to convert), "
+                                "so both manifest entries name the same file and the same sha256"}),
+        }),
         "source": {"repo": a.source_repo, "commit": a.source_commit, "note": a.source_note},
         "counts": {k: sum(1 for r in rows if r["kind"] == k) for k in sorted({r["kind"] for r in rows})},
         "total_samples": len(rows),

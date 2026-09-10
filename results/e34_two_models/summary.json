@@ -1,0 +1,151 @@
+{
+ "experiment": "E34",
+ "title": "Two public embedded models through the stage-1..3 tooling (stage 4)",
+ "plan": "docs/plans/E34_two_public_models.md (committed before measurement, 34b5a86)",
+ "what_is_under_test": "the TOOLS, not the models: the completion criterion is that no new per-model harness is written and no per-model branch is added (review SS10 stage 4)",
+ "originals_preserved": {
+  "repo": "https://github.com/mlcommons/tiny",
+  "commit": "4addd0fa08d216e20637637874e084895f289da4",
+  "license": "Apache-2.0",
+  "note": "originals preserved in-tree (D43): a claim justified by a real model needs that model reproducible from the repository, and until now only the provenance was recorded, so semantic comparison required re-fetching.",
+  "files": [
+   {
+    "file": "pretrainedResnet.tflite",
+    "bytes": 318144,
+    "sha256": "b5c0046d6e0328b4956afd6baa29555a29b1f1c65bdd45aaed75b7cd484d9f79",
+    "source_path": "benchmark/training/image_classification/trained_models/pretrainedResnet.tflite",
+    "matches_recorded_provenance": true
+   },
+   {
+    "file": "ad01_fp32.tflite",
+    "bytes": 1067648,
+    "sha256": "c66636f4d7f8af8b10518e7be750a22c9d8d46ec97326b40b0d94c097e0aad9b",
+    "source_path": "benchmark/training/anomaly_detection/trained_models/ad01_fp32.tflite",
+    "matches_recorded_provenance": true
+   }
+  ]
+ },
+ "cells": {
+  "b2_resnet": {
+   "verdict": "PASS",
+   "samples": 34,
+   "elements": 340,
+   "elements_failed": 0,
+   "argmax_mode": "require",
+   "argmax_failed": 0,
+   "argmax_distinct_values_over_all_samples": [
+    0,
+    4
+   ],
+   "worst_element": {
+    "abs": 1.9669532775878906e-06,
+    "rel": 7.0606426832325035e-06,
+    "sample_id": "edge_ones",
+    "index": 4
+   },
+   "input_shape": [
+    1,
+    32,
+    32,
+    3
+   ],
+   "layout": "numpy transpose(0,3,1,2)",
+   "sample_kinds": {
+    "edge": 2,
+    "synthetic": 32
+   },
+   "semantic_grade": "SYNTHETIC-ONLY -- no real evaluation data for this model in this environment, so no accuracy is claimed and this cell is a weaker grade of semantic evidence than SmartCam's (which included 3 real images)",
+   "oracle_runner": "ai_edge_litert Interpreter (LiteRT), original flatbuffer unmodified",
+   "iree_artifact": "961f02c2c0ab0179",
+   "comparison": "results/e34_two_models/b2_resnet/comparison.json"
+  },
+  "b3_deepae": {
+   "verdict": "PASS",
+   "samples": 34,
+   "elements": 21760,
+   "elements_failed": 0,
+   "argmax_mode": "not-applicable",
+   "argmax_failed": 0,
+   "argmax_distinct_values_over_all_samples": [
+    261
+   ],
+   "worst_element": {
+    "abs": 4.38690185546875e-05,
+    "rel": 6.595610434857916e-06,
+    "sample_id": "synthetic_31",
+    "index": 130
+   },
+   "input_shape": [
+    1,
+    640
+   ],
+   "layout": "none",
+   "sample_kinds": {
+    "edge": 2,
+    "synthetic": 32
+   },
+   "semantic_grade": "SYNTHETIC-ONLY -- no real evaluation data for this model in this environment, so no accuracy is claimed and this cell is a weaker grade of semantic evidence than SmartCam's (which included 3 real images)",
+   "oracle_runner": "ai_edge_litert Interpreter (LiteRT), original flatbuffer unmodified",
+   "iree_artifact": "8361791ddcf381b3",
+   "comparison": "results/e34_two_models/b3_deepae/comparison.json"
+  }
+ },
+ "argmax_observation": {
+  "b2_resnet_distinct_argmax": [
+   0,
+   4
+  ],
+  "b3_deepae_distinct_argmax": [
+   261
+  ],
+  "measured": "DeepAE's argmax is the SAME index on every one of the 34 inputs, so it carries no discriminating information at all -- it agreed 34/34 when required, and that agreement is evidence of nothing. ResNet's argmax genuinely varies. This is the measured justification for the review's SS9.3 rule, and it is NOT the over-rejection the plan predicted: requiring argmax did not refuse DeepAE. The prediction was not confirmed and is recorded as such.",
+  "b3_argmax_required_run_verdict": "PASS (argmax_failed 0) -- the predicted type (B) refusal did not occur"
+ },
+ "negative_control": {
+  "what": "ResNet fed the NHWC tensor RESHAPED instead of transposed (deliberately wrong layout)",
+  "verdict": "FAIL",
+  "elements_failed": 258,
+  "elements": 340,
+  "samples_with_failures": 32,
+  "argmax_failed": 0,
+  "argmax_would_have_passed": "34/34",
+  "samples_the_element_rule_could_not_catch": [
+   "edge_ones",
+   "edge_zeros"
+  ],
+  "lesson": "argmax alone would have accepted the wrong layout on ALL 34 samples (E31 measured 92% on SmartCam; here it is 100%), and the only samples the element rule could not catch are the two CONSTANT edge inputs -- a constant array is unchanged by any permutation. Both of E31's lessons replicate on a different model, the second one exactly.",
+  "comparison": "results/e34_two_models/b2_resnet/negative_control_reshape.comparison.json"
+ },
+ "tooling": {
+  "reused_unchanged": [
+   "harness/tflite_oracle.py",
+   "harness/iree_runner.py"
+  ],
+  "generalised_no_model_branch": {
+   "harness/model_fixture.py": "--layout {nhwc_to_nchw,none} + --shape/--channels/--experiment; the model convention is a VALUE, not an `if model ==` anywhere",
+   "harness/e31_compare.py": "--argmax {require,not-applicable} (a declared model property, never a forgiven mismatch) and --detail {all,failures} (derived rows only; every element stays recomputable from the two runner JSONs)"
+  },
+  "new_per_model_harnesses": 0,
+  "artifacts_recompiled": 0,
+  "note": "vmfb and contract come from E26-ext unchanged (work discipline 7)"
+ },
+ "regression": {
+  "e31_smartcam_reproduced": true,
+  "detail": "re-running the generalised comparator on E31's stored runs reproduces the stored verdict, totals and worst element exactly"
+ },
+ "verdicts": {
+  "Q1_numeric": "PASS",
+  "Q1b_argmax_resnet_only": "PASS",
+  "Q2_tool_reuse": "PASS",
+  "Q3_smartcam_regression": "PASS",
+  "Q4_originals_preserved": "PASS",
+  "stage_4_complete": true
+ },
+ "not_claimed": [
+  "accuracy for either model (synthetic inputs; no evaluation set in this environment)",
+  "real-data semantic verification -- left INCOMPLETE per review SS10 stage 4",
+  "AArch64, cFS or OnAIR execution of these two models (not run in this experiment)",
+  "latency or throughput",
+  "any change to the E26-ext memory results (nothing recompiled)"
+ ]
+}

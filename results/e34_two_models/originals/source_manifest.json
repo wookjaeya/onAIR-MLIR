@@ -1,0 +1,22 @@
+{
+ "repo": "https://github.com/mlcommons/tiny",
+ "commit": "4addd0fa08d216e20637637874e084895f289da4",
+ "license": "Apache-2.0",
+ "note": "originals preserved in-tree (D43): a claim justified by a real model needs that model reproducible from the repository, and until now only the provenance was recorded, so semantic comparison required re-fetching.",
+ "files": [
+  {
+   "file": "pretrainedResnet.tflite",
+   "bytes": 318144,
+   "sha256": "b5c0046d6e0328b4956afd6baa29555a29b1f1c65bdd45aaed75b7cd484d9f79",
+   "source_path": "benchmark/training/image_classification/trained_models/pretrainedResnet.tflite",
+   "matches_recorded_provenance": true
+  },
+  {
+   "file": "ad01_fp32.tflite",
+   "bytes": 1067648,
+   "sha256": "c66636f4d7f8af8b10518e7be750a22c9d8d46ec97326b40b0d94c097e0aad9b",
+   "source_path": "benchmark/training/anomaly_detection/trained_models/ad01_fp32.tflite",
+   "matches_recorded_provenance": true
+  }
+ ]
+}

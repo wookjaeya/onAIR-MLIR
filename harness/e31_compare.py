@@ -41,6 +41,22 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--abs-tol", type=float, default=ABS_TOL)
     ap.add_argument("--rel-tol", type=float, default=REL_TOL)
+    # E34 / stage 4: argmax is a CLASSIFIER's check, not a universal one. A 640-output
+    # autoencoder has no meaningful argmax, and the ninth review SS9.3 says so explicitly
+    # ("DeepAE has no classification argmax criterion applied"). Requiring it there would
+    # refuse an honest model -- a type (B) over-rejection. This switch turns the check OFF
+    # for non-classifiers; it never turns a MISMATCH into a pass, and `require` stays the
+    # default so no existing comparison silently loses a check.
+    ap.add_argument("--argmax", choices=["require", "not-applicable"], default="require",
+                    help="`not-applicable` for models whose output is not a class score vector; "
+                         "the verdict then rests on the per-element criterion alone")
+    # A 640-output model produces 21,760 per-element rows; keeping every PASSING row makes a
+    # 4 MB file whose content is fully recomputable from the two runner JSONs this comparison
+    # reads. `failures` keeps every FAILING element (the part that is not recomputable at a
+    # glance) plus each sample's element counts and max abs/rel, so the verdict stays checkable.
+    ap.add_argument("--detail", choices=["all", "failures"], default="all",
+                    help="which per-element rows to store; `failures` still stores every failing "
+                         "element and every per-sample maximum")
     ap.add_argument("--subset", default=None,
                     help="JSON file naming the sample ids this comparison is DECLARED to cover "
                          "(E32: a cell whose scope was fixed in the plan before measuring). Both "
@@ -84,6 +100,7 @@ def main():
         print(json.dumps(rec, indent=1))
         return 0
 
+    argmax_required = (a.argmax == "require")
     rows, elems_total, elems_failed, argmax_failed = [], 0, 0, 0
     worst = {"abs": 0.0, "rel": 0.0, "sample_id": None, "index": None}
     for sid in sorted(o_by):
@@ -104,16 +121,21 @@ def main():
                 elems_failed += 1
             if d > worst["abs"]:
                 worst = {"abs": d, "rel": rel, "sample_id": sid, "index": k}
-        am_ok = o["argmax"] == i["argmax"]
-        if not am_ok:
-            argmax_failed += 1
+        if argmax_required:
+            am_ok = o["argmax"] == i["argmax"]
+            if not am_ok:
+                argmax_failed += 1
+        else:
+            am_ok = None       # not applicable, NOT "passed"
         rows.append({"sample_id": sid, "kind": o["kind"],
                      "elements_ok": sum(1 for p in per if p["ok"]), "elements": len(per),
                      "argmax_oracle": o["argmax"], "argmax_iree": i["argmax"], "argmax_ok": am_ok,
                      "max_abs_err": max((p["abs_err"] for p in per), default=0.0),
                      "max_rel_err": max((p["rel_err"] for p in per), default=0.0),
-                     "ok": all(p["ok"] for p in per) and am_ok,
-                     "elements_detail": per})
+                     "ok": all(p["ok"] for p in per) and (am_ok is not False),
+                     "elements_detail": (per if a.detail == "all"
+                                         else [q for q in per if not q["ok"]]),
+                     "elements_detail_mode": a.detail})
 
     verdict = "PASS" if (elems_failed == 0 and argmax_failed == 0 and rows) else "FAIL"
     rec = {
@@ -125,7 +147,18 @@ def main():
             "abs_tol": a.abs_tol, "rel_tol": a.rel_tol,
             "rule": "per element: abs_err <= abs_tol OR rel_err <= rel_tol",
             "rel_definition": "|a-b| / max(|a|,|b|,1e-30)",
-            "argmax": "must agree on every sample, but agreeing argmax is NOT equivalence on its own",
+            "argmax": ("must agree on every sample, but agreeing argmax is NOT equivalence on its own"
+                       if argmax_required else
+                       "NOT APPLICABLE to this model: its output is not a class score vector, so the "
+                       "verdict rests on the per-element criterion over EVERY output. This is a "
+                       "declared model property (ninth review SS9.3), not a relaxed threshold -- the "
+                       "element rule is unchanged and no mismatch is forgiven"),
+            "argmax_mode": a.argmax,
+            "detail_mode": a.detail,
+            "detail_note": ("every per-element row stored" if a.detail == "all" else
+                            "only FAILING element rows are stored; per-sample counts and maxima are "
+                            "kept, and every element is recomputable from the two runner JSONs this "
+                            "comparison names"),
             "bit_identity": "not required between these two implementations, and not generalised if seen",
         },
         "paths": {"oracle": {"file": a.oracle, "runner": orc.get("runner"),

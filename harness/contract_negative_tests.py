@@ -3819,6 +3819,150 @@ def admission_policy_unit_cases():
     return out
 
 
+E34_DIR = os.path.join(os.path.dirname(HERE), "results", "e34_two_models")
+
+
+def e34_two_models_cases():
+    """E34 / stage 4: the same tools, two more public models -- and the argmax measurement
+    that turns the review's SS9.3 instruction into a fact.
+
+    What is pinned:
+      * both verdicts and their FULL element counts (DeepAE's 21,760 outputs are all compared);
+      * that argmax stays a CLASSIFIER's check: DeepAE's argmax is the same index on every one
+        of 34 inputs, so its 34/34 agreement is evidence of nothing. The plan predicted this
+        would show up as an over-rejection; it did not, and the record says so;
+      * the negative control, because a PASS means nothing if the criteria cannot fail -- and
+        it replicates BOTH of E31's lessons on a different model, the second one exactly;
+      * that the originals are in-tree and hash as their recorded provenance (D43);
+      * that generalising the tools did not move E31's stored verdict."""
+    results = []
+    p = os.path.join(E34_DIR, "summary.json")
+    if not os.path.exists(p):
+        results.append(Result("e34: stage-4 summary present", False, "missing %s" % p))
+        return results
+    d = load(p)
+
+    b2, b3 = d["cells"]["b2_resnet"], d["cells"]["b3_deepae"]
+    _ok = (b2["verdict"] == "PASS" and b2["elements"] == 340 and b2["elements_failed"] == 0
+           and b2["argmax_mode"] == "require" and b2["argmax_failed"] == 0)
+    results.append(Result("e34: ResNet PASS on 340 elements with argmax required",
+                          _ok, "" if _ok else json.dumps(b2)[:220]))
+    _ok = (b3["verdict"] == "PASS" and b3["elements"] == 21760 and b3["elements_failed"] == 0
+           and b3["argmax_mode"] == "not-applicable")
+    results.append(Result("e34: DeepAE PASS on all 21,760 outputs, argmax declared not applicable",
+                          _ok, "" if _ok else json.dumps(b3)[:220]))
+
+    a = d["argmax_observation"]
+    _ok = a["b3_deepae_distinct_argmax"] == [261] and len(a["b2_resnet_distinct_argmax"]) > 1
+    results.append(Result("e34: DeepAE's argmax is ONE index across all inputs (no discriminating "
+                          "power) while ResNet's varies", _ok,
+                          "" if _ok else json.dumps({k: a[k] for k in
+                                                     ("b2_resnet_distinct_argmax",
+                                                      "b3_deepae_distinct_argmax")})))
+    _ok = "not confirmed" in a["measured"] and "PASS" in a["b3_argmax_required_run_verdict"]
+    results.append(Result("e34: the plan's predicted over-rejection is recorded as NOT confirmed",
+                          _ok, "" if _ok else a.get("b3_argmax_required_run_verdict", "")[:160]))
+
+    n = d["negative_control"]
+    _ok = (n["verdict"] == "FAIL" and n["elements_failed"] == 258 and n["elements"] == 340)
+    results.append(Result("e34: the wrong-layout control FAILS (258/340 elements)",
+                          _ok, "" if _ok else json.dumps(n)[:220]))
+    _ok = n["argmax_would_have_passed"] == "34/34" and n["argmax_failed"] == 0
+    results.append(Result("e34: and argmax alone would have accepted that wrong layout on ALL 34 "
+                          "samples (E31 measured 92% on another model)", _ok,
+                          "" if _ok else str(n.get("argmax_would_have_passed"))))
+    _ok = (sorted(n["samples_the_element_rule_could_not_catch"]) == ["edge_ones", "edge_zeros"])
+    results.append(Result("e34: the only samples it could not catch are the two CONSTANT edge "
+                          "inputs -- E31's limit replicates exactly", _ok,
+                          "" if _ok else json.dumps(n.get("samples_the_element_rule_could_not_catch"))))
+
+    t = d["tooling"]
+    _ok = t["new_per_model_harnesses"] == 0 and t["artifacts_recompiled"] == 0
+    results.append(Result("e34: no new per-model harness and no recompilation (stage 4's actual criterion)",
+                          _ok, "" if _ok else json.dumps(t)[:200]))
+    _ok = d["regression"]["e31_smartcam_reproduced"] is True
+    results.append(Result("e34: generalising the tools reproduced E31's stored verdict unchanged",
+                          _ok, "" if _ok else json.dumps(d["regression"])[:200]))
+
+    # the originals must actually be in the tree and hash as recorded (D43)
+    orig = d["originals_preserved"]
+    for f in orig["files"]:
+        fp = os.path.join(E34_DIR, "originals", f["file"])
+        if not os.path.exists(fp):
+            results.append(Result("e34: original %s preserved in-tree" % f["file"], False,
+                                  "missing %s" % fp))
+            continue
+        got = hashlib.sha256(open(fp, "rb").read()).hexdigest()
+        _ok = got == f["sha256"] and os.path.getsize(fp) == f["bytes"]
+        results.append(Result("e34: original %s matches its recorded provenance hash" % f["file"],
+                              _ok, "" if _ok else "sha256 %s vs %s" % (got[:16], f["sha256"][:16])))
+
+    _ok = all("SYNTHETIC-ONLY" in c["semantic_grade"] for c in (b2, b3))
+    results.append(Result("e34: both cells are graded SYNTHETIC-ONLY (no accuracy claimed, weaker "
+                          "than SmartCam's real-image grade)", _ok,
+                          "" if _ok else json.dumps([b2["semantic_grade"], b3["semantic_grade"]])[:200]))
+    return results
+
+
+def e34_comparator_generalisation_cases(tmp):
+    """The comparator's two new switches must narrow what is CHECKED, never what is FORGIVEN.
+
+    `--argmax not-applicable` is a declared model property; if it ever let a genuine element
+    mismatch pass, or turned an argmax MISMATCH into a pass, the E34 verdicts would be worthless."""
+    results = []
+    cmp_py = os.path.join(HERE, "e31_compare.py")
+
+    def run_cmp(oracle, iree, extra=()):
+        o = os.path.join(tmp, "o.json")
+        i = os.path.join(tmp, "i.json")
+        out = os.path.join(tmp, "c.json")
+        json.dump(oracle, open(o, "w"))
+        json.dump(iree, open(i, "w"))
+        rc, so, se = run([PY, cmp_py, "--oracle", o, "--iree", i, "--out", out] + list(extra))
+        try:
+            return rc, load(out)
+        except Exception:
+            return rc, {"verdict": "TOOL_ERROR", "stderr": se[-200:]}
+
+    def doc(outs, argmaxes):
+        return {"results": [{"sample_id": "s%d" % k, "kind": "synthetic", "output": o,
+                             "argmax": am} for k, (o, am) in enumerate(zip(outs, argmaxes))]}
+
+    # an element mismatch must FAIL even with argmax declared not-applicable
+    orc = doc([[1.0, 2.0, 3.0]], [2])
+    bad = doc([[1.0, 2.0, 3.5]], [2])
+    rc, c = run_cmp(orc, bad, ["--argmax", "not-applicable"])
+    _ok = c["verdict"] == "FAIL" and c["totals"]["elements_failed"] == 1
+    results.append(Result("e34/cmp: --argmax not-applicable still FAILS on an element mismatch",
+                          _ok, "" if _ok else json.dumps(c.get("totals", c))[:200]))
+
+    # an argmax mismatch with matching elements: `require` fails, `not-applicable` passes on the
+    # elements alone -- and the record must say the check was not applied, never that it passed
+    orc = doc([[1.0, 2.0]], [1])
+    swapped = doc([[1.0, 2.0]], [0])          # same numbers, contradictory argmax label
+    rc, c = run_cmp(orc, swapped)
+    _ok = c["verdict"] == "FAIL" and c["totals"]["argmax_failed"] == 1
+    results.append(Result("e34/cmp: the default still requires argmax and fails on a mismatch",
+                          _ok, "" if _ok else json.dumps(c.get("totals", c))[:200]))
+    rc, c = run_cmp(orc, swapped, ["--argmax", "not-applicable"])
+    _ok = (c["verdict"] == "PASS" and c["samples"][0]["argmax_ok"] is None
+           and "NOT APPLICABLE" in c["criteria"]["argmax"])
+    results.append(Result("e34/cmp: with the check declared not applicable, argmax_ok is null "
+                          "(not true) and the criteria say so", _ok,
+                          "" if _ok else json.dumps(c.get("samples", [{}])[0])[:200]))
+
+    # --detail failures must keep every FAILING row
+    orc = doc([[1.0, 2.0, 3.0]], [2])
+    bad = doc([[1.0, 9.0, 3.0]], [2])
+    rc, c = run_cmp(orc, bad, ["--detail", "failures"])
+    rows = c["samples"][0]["elements_detail"]
+    _ok = (c["verdict"] == "FAIL" and len(rows) == 1 and rows[0]["index"] == 1
+           and c["samples"][0]["elements"] == 3)
+    results.append(Result("e34/cmp: --detail failures keeps every failing row and the full element count",
+                          _ok, "" if _ok else json.dumps(c["samples"][0])[:240]))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -4630,6 +4774,8 @@ def main():
         all_results += e32_aarch64_realigned_frame_cases(tmp)
         all_results += e32_admitted_budget_cases()
         all_results += e33_official_onair_cases(tmp)
+        all_results += e34_two_models_cases()
+        all_results += e34_comparator_generalisation_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
