@@ -13,7 +13,7 @@
 
 조치: allowlist를 `!results/**/*.log`로 교체하고 9건을 커밋. `cited_raw_logs_tracked_cases()`
 신설 — 모든 `results/**/summary.json`의 `"log"` 인용(21건)이 존재하고 **git에 추적되는지** 검사한다.
-스테이징 전 FAIL(untracked 9건)·후 PASS를 실측했다. **320/320 → 322/322**(이 컨테이너).
+스테이징 전 FAIL(untracked 9건)·후 PASS를 실측했다. **320/320 → 322/322**(이 컨테이너). **CI 실측**(커밋 `56f02b2`, run 104, 3레그 success): `full` **321/321 + 1 SKIP**(PyYAML) · `without-iree` **213/213 + 16 SKIP** · `stdlib-only` **213/213 + 16 SKIP** — 컨테이너 322/322와 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 15→16은 E29b의 단일 호출 재생성 시험이 iree 도구 없이는 정직하게 SKIP하기 때문이다.
 
 **교훈**: *"summary가 아니라 원자료가 추적되는지 시험이 직접 물어라"* — 요약만 커밋되면 요약이
 곧 증거로 둔갑한다.

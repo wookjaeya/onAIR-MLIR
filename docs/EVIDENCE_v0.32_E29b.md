@@ -120,7 +120,7 @@ FAIL했고, 그것이 정확한 신호였다 — **시험이 지키던 것은 �
 
 E29b 그룹 10건 신설(fixture 성질·D54 산술·양방향 원자료·소스 수준 두 검사×두 파일·단일 호출
 재생성 diff 0). revert-and-confirm-fail: `native_learner.c`의 비교식만 되돌리면 **2건 FAIL**
-(E29 그룹 1 + E29b 그룹 1), 복원하면 전부 PASS. 이 컨테이너 **320/320**.
+(E29 그룹 1 + E29b 그룹 1), 복원하면 전부 PASS. 이 컨테이너 **320/320**(v0.32.1 D55 가드 포함 322/322). **CI 실측**(커밋 `56f02b2`, run 104, 3레그 success): `full` **321/321 + 1 SKIP**(PyYAML) · `without-iree` **213/213 + 16 SKIP** · `stdlib-only` **213/213 + 16 SKIP** — 컨테이너 322/322와 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 15→16은 E29b의 단일 호출 재생성 시험이 iree 도구 없이는 정직하게 SKIP하기 때문이다.
 
 ---
 

@@ -508,7 +508,7 @@ constants 14,016, 단일 호출, 오버라이드 0)로 재현: 조건부 승인(
 `hal_peak_after_append != 0 → 거부`(map 분기의 append 피크는 정확히 0, E29 32/32). 수정 후 shim 셀은
 native·cFS 모두 런타임 생성 전 거부·추론 0·cFS OPERATIONAL 유지, 정렬 셀은 예산 = per_call에서
 **정확히 45,444**로 완주(과잉 거부 0). revert-and-confirm-fail: 비교식만 되돌리면 2건 FAIL.
-이 컨테이너 **310/310 → 320/320**(v0.32.1: **D55** — E28·E29·E29b의 cFS raw log 9건이 `.gitignore` `*.log` 때문에 저장소에 없었음을 발견, `!results/**/*.log`로 교체·커밋하고 summary.json이 인용한 로그의 존재·추적을 검사하는 가드 신설 → **322/322**), 보관 14개 계약 diff 0. **교훈**: D53을 E29 자신이 어겼다 —
+이 컨테이너 **310/310 → 320/320**(v0.32.1: **D55** — E28·E29·E29b의 cFS raw log 9건이 `.gitignore` `*.log` 때문에 저장소에 없었음을 발견, `!results/**/*.log`로 교체·커밋하고 summary.json이 인용한 로그의 존재·추적을 검사하는 가드 신설 → **322/322**; **CI 실측**(커밋 `56f02b2`, run 104, 3레그 success): `full` **321/321 + 1 SKIP**(PyYAML) · `without-iree` **213/213 + 16 SKIP** · `stdlib-only` **213/213 + 16 SKIP** — 컨테이너 322/322와 `full`의 차이 1건은 PyYAML 유무(D34), SKIP 15→16은 E29b의 단일 호출 재생성 시험이 iree 도구 없이는 정직하게 SKIP하기 때문이다.), 보관 14개 계약 diff 0. **교훈**: D53을 E29 자신이 어겼다 —
 승인은 분기를 전제했는데 검증은 크기를 비교했다. 그리고 ***"시험이 무엇을 pin하는지 읽어라"***.
 **미착수(명시)**: 검토서 §5–§12의 실물 모델 계획(P1–P5: OPS-SAT SmartCam·WGAN 반입, TFLite 의미
 동치, AArch64 cFS 완주, LLVM-IR/ELF-only 기준선) — `docs/ASSUMPTIONS_AND_SCOPE.md`에 등록만 했다.
