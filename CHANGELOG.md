@@ -2,6 +2,42 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.40] — E36b: ResNet·DeepAE의 AArch64 확장 (단계 4의 잔여 셀) — Q3 전부 PASS, stage_4_complete: true
+
+**판정.** 사전 고정 기준(`docs/plans/E36_aarch64_cfs_completion.md` **§3.3**, 측정 전 커밋 `f3ac80c`)대로
+실행했다. §10 단계 4의 작업 항목은 *"ResNet과 DeepAE에 같은 fixture·계약·**AArch64 cFS 평가 절차**를
+적용한다"*였고, E34가 계획서에서 범위 밖으로 선언한 그 절반이다.
+
+**계약 — ISA 독립성이 두 실물 모델에서도 성립.** 모델당 **한 번의 `iree-compile`**(규율 7)로 AArch64
+계약·헤더를 만들었고 **오버라이드 0개**: ResNet `618,856 = 309,416 + 309,440`, DeepAE
+`1,069,632 = 6,208 + 1,063,424` — **x86-64와 정확히 동일**. 다른 것은 커널 스택뿐이다
+(ResNet 1,232 B vs 439 B, DeepAE 16 B vs 32 B). E32의 SmartCam과 같은 패턴이며 일반화하지 않는다.
+
+**의미 — 두 경로 × 두 모델, 실패 0.** 기준은 E25→E31→E32→E34에서 무변경 승계, 기준값은 E34가 보존한
+원본 `.tflite`(LiteRT), 입력은 E34 fixture를 sha256 대조로 그대로 썼다. ResNet **340원소**(argmax 34/34,
+최악 abs 1.937e-06) · DeepAE **21,760원소**(최악 abs 3.815e-05)가 **native(qemu-user)와 cFS 게스트
+양쪽에서** 전부 통과. cFS 경로는 로그가 `{"stage":"e25_mode","active":true}`로 그 모드였음을 증언한다.
+
+**예산·메모리 (cFS 게스트 실측).** ResNet `B`→ADMIT(45회, 피크 **309,416**) / `B−1`→NOT_ADMITTED,
+DeepAE `B`→ADMIT(35회, 피크 **6,208**) / `B−1`→NOT_ADMITTED. 거부 셀은 **E36의 런타임 오버라이드를
+그대로** 쓴다(새 배선 0). **피크가 `bounded`가 아니라 `per_call`이다** — E29b가 앱이 자기 blob을 64바이트
+정렬하게 고쳤기 때문이며, E26f가 x86-64 소스빌드 런타임에서 DeepAE를 1,069,632(copy 분기)로 잰 것과
+대비된다. 배포가 분기 전제를 제어하고 있고, soundness는 어느 쪽이든 성립한다.
+
+**D62 — "새 하네스 0개"에 대한 정직한 답.** 새로 만든 하네스는 **0개**지만, 기존 두 개가 SmartCam의 출력
+arity를 **리터럴 3**으로 들고 있었다. `e32_native_aarch64.py`는 **10출력 ResNet을 앞 3개로 조용히
+잘랐고**(fail-open), `e32_cfs_outputs.py`는 나눗셈 검사가 있어 **거부**했을 것이다(fail-closed) —
+**같은 하드코딩이 한쪽은 fail-open, 다른 쪽은 fail-closed**. 잘린 출력으로 비교기를 돌리면
+**340/340 실패 · `worst_abs 0.0`**이라는 서로 모순되는 판정이 나온다(E35의 커널 스택 0/4와 같은 신호).
+**계산은 처음부터 맞았다** — 잘린 3개가 이미 oracle과 1e-6 수준으로 일치했다. 수정은 E34가
+`model_fixture.py`·`e31_compare.py`에 한 것과 같은 방식이다: 모델 규약을 분기가 아니라 **값**으로
+받아 `--contract`의 `interface.outputs[0].shape`에서 arity를 읽고, 나누어떨어지지 않으면
+*"모델이 갖지 않은 모양으로 자르기를 거부한다"*고 명시 실패한다.
+
+**하지 않음**: 정확도(합성 입력, **E34 §5의 등급 그대로** — AArch64에서 돌았다고 등급이 오르지 않는다)·
+이 두 모델의 OnAIR·지연·조건부 계층(무조건 계층만). 시험 15건 신설, revert 시 FAIL 확인.
+이 컨테이너 **494/494 → 508/508**.
+
 ## [v0.39] — E36: AArch64 cFS 증거 완성 (단계 2의 잔여 셀) — Q1·Q2·Q4 PASS, stage_2_complete: true
 
 **판정.** 사전 고정 기준(`docs/plans/E36_aarch64_cfs_completion.md`, **측정 전 커밋** `f3ac80c`)대로 실행했다.

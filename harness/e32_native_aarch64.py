@@ -96,6 +96,13 @@ def main():
     ap.add_argument("--iters", type=int, default=3,
                     help="measured inference calls AFTER the equivalence pass (peak covers both)")
     ap.add_argument("--fixture", default=DEF_FIXTURE)
+    # E36b: the output arity used to be the literal 3 -- SmartCam's -- so this runner
+    # silently truncated a 10-output classifier to its first three values and the
+    # comparator then called a CORRECT computation a total failure.  The shape is a
+    # property of the model, so it is read from the contract, never guessed.
+    ap.add_argument("--contract", default=None,
+                    help="contract JSON of the SAME invocation as --vmfb; its interface fixes the "
+                         "output shape. Omit only for the SmartCam default (kept for reproducing E32).")
     ap.add_argument("--qemu", default="qemu-aarch64")
     ap.add_argument("--workdir", default=None)
     ap.add_argument("--out", required=True)
@@ -129,11 +136,29 @@ def main():
             except ValueError:
                 pass
 
+    out_shape = [1, 3]
+    if a.contract:
+        con = json.load(open(a.contract, encoding="utf-8"))
+        outs = con["interface"].get("outputs") or [con["interface"]["output"]]
+        if len(outs) != 1:
+            raise SystemExit("REFUSED: this runner pushes one output; contract declares %d" % len(outs))
+        out_shape = list(outs[0]["shape"])
+        if outs[0].get("dtype") != "f32":
+            raise SystemExit("REFUSED: contract output dtype is %r, not f32" % outs[0].get("dtype"))
+    per = 1
+    for d in out_shape:
+        per *= int(d)
+    if per <= 0:
+        raise SystemExit("REFUSED: output element count resolved to %d" % per)
+
     results = []
     n_out = 0
     if os.path.exists(out_bin):
         raw = np.fromfile(out_bin, dtype=np.float32)
-        per = 3
+        if raw.size % per:
+            raise SystemExit("REFUSED: %d floats written is not a multiple of the contract's %d "
+                             "output elements -- refusing to slice a shape the model does not have"
+                             % (raw.size, per))
         n_out = raw.size // per
         for i in range(min(n_out, len(samples))):
             sid, kind, arr = samples[i]
@@ -142,7 +167,7 @@ def main():
                 "sample_id": sid, "kind": kind,
                 "input_sha256": sha256_bytes(arr.tobytes()),
                 "output": [float(v) for v in y],
-                "output_shape": [1, 3], "output_dtype": "float32",
+                "output_shape": out_shape, "output_dtype": "float32",
                 "argmax": int(np.argmax(y)), "sum": float(np.sum(y)),
             })
 

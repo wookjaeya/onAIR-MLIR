@@ -25,7 +25,11 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 DEF_FIXTURE = os.path.join(ROOT, "results", "e31_smartcam_equivalence", "fixture")
 
-OUT_ELEMS = 3
+# E36b: SmartCam's output arity used to be a module constant here too.  Unlike the
+# native runner (which silently sliced a 10-output model into 3), this one already
+# refused when the byte count did not divide -- fail-closed, so it could not lie, but
+# it also could not run another model.  The shape is read from the contract instead.
+DEFAULT_OUT_ELEMS = 3
 
 
 def main():
@@ -38,6 +42,9 @@ def main():
                     help="which of the app's two modes produced this file (plan SS3.4: never mixed)")
     ap.add_argument("--runner", default="native/cfs_app AI_LEARNER in cFS on the AArch64 QEMU guest, "
                                         "IREE C runtime (local-sync, embedded ELF loader)")
+    ap.add_argument("--contract", default=None,
+                    help="contract JSON of the SAME invocation as --vmfb; its interface fixes the "
+                         "output arity (omit only to reproduce E32's SmartCam runs)")
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
 
@@ -55,6 +62,18 @@ def main():
                              % (rec["sample_id"], by_id[rec["sample_id"]][0], rec["kind"]))
 
     raw = np.fromfile(a.raw, dtype=np.float32)
+    out_elems = DEFAULT_OUT_ELEMS
+    if a.contract:
+        con = json.load(open(a.contract, encoding="utf-8"))
+        outs = con["interface"].get("outputs") or [con["interface"]["output"]]
+        if len(outs) != 1:
+            raise SystemExit("REFUSED: this app pushes one output; contract declares %d" % len(outs))
+        if outs[0].get("dtype") != "f32":
+            raise SystemExit("REFUSED: contract output dtype is %r, not f32" % outs[0].get("dtype"))
+        out_elems = 1
+        for d in outs[0]["shape"]:
+            out_elems *= int(d)
+    OUT_ELEMS = out_elems
     n = raw.size // OUT_ELEMS
     if raw.size % OUT_ELEMS or n != len(order):
         raise SystemExit("REFUSED: %s holds %d f32 (%d samples of %d), replay order has %d"

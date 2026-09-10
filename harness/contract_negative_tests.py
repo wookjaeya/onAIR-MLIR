@@ -2500,6 +2500,76 @@ def e36_aarch64_cfs_cases():
     return results
 
 
+E36B_DIR = os.path.join(os.path.dirname(HERE), "results", "e36b_aarch64_models")
+
+
+def e36b_aarch64_models_cases():
+    """E36b / stage 4's remaining half: the two public models on AArch64.
+
+    The interesting pin is D62. Two runners carried SmartCam's output arity as a literal
+    3; one of them sliced a 10-output classifier down to three values and the comparator
+    then reported 340/340 elements failed with worst_abs 0.0 -- a verdict and an error
+    that contradict each other, which is the shape of a TOOL defect, not a finding. So the
+    pins are on the generalisation as much as on the results: the arity must come from the
+    contract, and refusing to slice a shape the model does not have must stay an explicit
+    refusal rather than a silent truncation."""
+    results = []
+    p = os.path.join(E36B_DIR, "summary.json")
+    if not os.path.exists(p):
+        results.append(Result("e36b: summary present", False, "missing %s" % p))
+        return results
+    d = load(p)
+    for name, m in sorted(d["models"].items()):
+        _ok = m["contract_identical_to_x86_64"] and not m.get("overrides_applied")
+        results.append(Result("e36b %s: the AArch64 contract's three figures equal the x86-64 ones "
+                              "with zero overrides" % name, _ok,
+                              "" if _ok else json.dumps(m["contract"])[:200]))
+        for path in ("semantics_native_aarch64", "semantics_cfs_aarch64"):
+            t = m[path]
+            _ok = t["verdict"] == "PASS" and t["elements_failed"] == 0 and t["elements"] > 0
+            results.append(Result("e36b %s: %s -- every output element meets the criterion inherited "
+                                  "unchanged from E25" % (name, path.replace("semantics_", "")), _ok,
+                                  "" if _ok else json.dumps(t)[:200]))
+        a, n = m["cfs_admit"], m["cfs_deny_B_minus_1"]
+        _ok = (a["verdict"] == "ADMIT" and a["peak_within_admitted_budget"] is True
+               and a["inferences"] > 0 and n["verdict"] == "NOT_ADMITTED"
+               and n["budget"] == a["budget"] - 1 and n["budget_source"] == "override")
+        results.append(Result("e36b %s: the cFS budget boundary holds on AArch64 (B admits and stays "
+                              "inside, B-1 refuses via the E36 runtime override)" % name, _ok,
+                              "" if _ok else json.dumps({"admit": a, "deny": n})[:260]))
+        _ok = a["hal_peak"] == m["contract"]["static_per_call_bytes"]
+        results.append(Result("e36b %s: the deployed peak is exactly per_call -- the app aligns its "
+                              "own blob, so the map arm is what runs (E29b)" % name, _ok,
+                              "" if _ok else "peak=%s per_call=%s" % (a["hal_peak"], m["contract"]["static_per_call_bytes"])))
+
+    h = d["harness_reuse"]
+    _ok = h["new_model_specific_harnesses"] == 0 and h["model_specific_branches"] == 0 and h["generalised"]
+    results.append(Result("e36b: stage 4's reuse criterion is recorded honestly -- zero new harnesses, "
+                          "and the two that had to be generalised are named", _ok,
+                          "" if _ok else json.dumps(h)[:220]))
+
+    # D62: neither runner may go back to a literal output arity
+    # the literal must be gone as an EFFECTIVE value; `DEFAULT_OUT_ELEMS = 3` is fine
+    # (it only reproduces E32's SmartCam runs when no contract is given), so match the
+    # bare assignment at line start rather than the substring
+    for tool, const in (("e32_native_aarch64.py", r"^\s*per = 3\s*$"),
+                        ("e32_cfs_outputs.py", r"^OUT_ELEMS = 3\s*$")):
+        f = os.path.join(HERE, tool)
+        txt = open(f, encoding="utf-8", errors="replace").read() if os.path.exists(f) else ""
+        _ok = ("--contract" in txt and not re.search(const, txt, re.M)
+               and 'interface"].get("outputs")' in txt.replace("'", '"'))
+        results.append(Result("e36b D62: %s takes the output arity from the contract, not from a "
+                              "literal that only fits SmartCam" % tool, _ok,
+                              "" if _ok else "the SmartCam arity is back as a literal in %s" % tool))
+    f = os.path.join(HERE, "e32_native_aarch64.py")
+    txt = open(f, encoding="utf-8", errors="replace").read() if os.path.exists(f) else ""
+    _ok = "refusing to slice a shape the model does not have" in txt
+    results.append(Result("e36b D62: and a byte count that does not divide by that arity is an "
+                          "explicit refusal, never a silent truncation", _ok,
+                          "" if _ok else "the native runner no longer refuses a non-dividing output blob"))
+    return results
+
+
 def cited_raw_logs_tracked_cases():
     """D55 (v0.32.1): a summary.json may cite a raw log that is not in the repository.
 
@@ -5015,6 +5085,7 @@ def main():
         all_results += e35_fair_baseline_cases()
         all_results += e33_e35_errata_cases()
         all_results += e36_aarch64_cfs_cases()
+        all_results += e36b_aarch64_models_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
