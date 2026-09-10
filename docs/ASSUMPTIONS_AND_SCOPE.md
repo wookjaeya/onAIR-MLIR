@@ -105,6 +105,27 @@
 | **robust VMFB-only 기준선** | **닫힘 — v0.31 정정**(`docs/EVIDENCE_v0.29_E27.md` §7). E27의 침묵은 **출하한 구현**의 성질이었다. 굳힌 변종은 드리프트를 `C4_DISASM`으로 거부하고 정직한 7개를 정확히 맞힌다(과잉 거부 0). E27 결론은 존속하되 **가용성**으로 좁혀졌다 |
 | **LLVM IR/ELF-only 기준선** | **미결.** 이 세션에서 재검증하지 않았다. 알려진 것: `try_map` 두 분기 구조는 **디바이스 ELF에 없다**(vmfb가 싣는 것은 VM 바이트코드다). 그것이 호스트 프로그램 층위에 남는지, 그리고 그 층위에 닿으려면 컴파일러와 소스가 필요한지(=배포 아티팩트 수준이 아닌지)를 확인하는 것이 다음 질문이다. **E29가 이 축의 실용적 부분은 이미 답했다** — 분기는 정적 층위에 "있는" 것이 아니라 런타임 HAL의 정렬 검사가 정하며, 그래서 앱이 측정해서 검증한다 |
 
+#### 일곱 번째 외부 검토(2026-09-09, 종합 검토)의 분류 (v0.32)
+
+`docs/reviews/ONAIR_MLIR_RESEARCH_CONSOLIDATED_REVIEW_20260909.md`. Core / Supporting / Out-of-scope로
+먼저 분류한다(E24 계열 규율).
+
+| 항목 | 분류 | 상태 |
+|---|---|---|
+| **P0 E29b** — §4.1 조건부 검증 `> per_call`은 `constants < per_call`에서 fail-open; §4.2 거부 전 일시 할당 | **Core** | **완료(v0.32/E29b, D54)**. 검토서 예측이 실물로 재현됐고, §4.2는 선택지 1(append 전 확정)로 닫음 |
+| **P1** — 실물 모델 provenance·import feasibility (SmartCam, WGAN, ResNet, DeepAE) | **Core** (논문의 "가장 강한 문장"의 전제) | **미착수 — 사전 확인만**: 두 OPS-SAT 저장소 `git clone` 가능(이 세션 확인). SmartCam `model.tflite` 8,950,028 B(sha `fd1ecbd01ad2d46b…`), `wgan_fpn50_p.tflite` 4,299,472 B(sha `5258e859e5ca968f…`), autoencoder 10종·dncnn 1종·wgan 10종. `iree-import-tflite`는 이 환경에 **없다**(E26c 정정과 동일) → 반입 경로는 E26f와 같은 `tflite2onnx → iree-import-onnx`가 될 것. 검토서 §6.2의 "직접 TFLite→TOSA 우선"은 이 환경에선 선택지가 아니다. op 목록은 미확인(`ai_edge_litert` 미설치) |
+| **P2** — x86-64 구현 검증(TFLite↔IREE 출력 비교) | Core | 미착수 |
+| **P3** — AArch64 본 실험(Native·cFS, SmartCam/WGAN/ResNet/DeepAE) | Core | 미착수. AArch64 게스트 재구축 필요(scripts/60·61·70·71·51) |
+| **P4** — LLVM IR/ELF-only 기준선 | Core (R-3 강화) | 미착수 — 순위표의 미결 축과 동일 |
+| **P5** — 논문용 통합 결과표 | Supporting | P2–P4 이후 |
+| §11 cFS 앱 일반화(다중 출력·큰 출력·SB 패킷 대신 파일 공급) | Supporting (P3의 전제) | 미착수. 단, §11-1(입력 tensor를 stack 밖으로)은 **E28/D52로 이미 완료**(static) |
+| §5.3 제외 후보(OrbitAI RF, RaVAEn, PhiSat, 임의 축소 CNN) | Out-of-scope | 검토서 판단 그대로 채택 |
+| §9.3 QEMU latency/jitter/WCET/전력 | Out-of-scope | 기존 규율(R-5)과 동일 |
+
+**하지 않을 것(재확인)**: P1–P3를 한 세션에 몰아서 시작하지 않는다. 검토서 자신이 §12에서 P0 → P1 →
+P2 → P3 순서를 지정했고, P1의 op 목록·치환 규칙(§6.2 SQUEEZE 등)이 확정되기 전에 cFS 앱 일반화(§11)를
+손대는 것은 드리프트다.
+
 **남은 표의 나머지 축**(matched-version 재분류, admission utility 정량화, 실물 모델의 cFS 셀,
 의미 보존, 재현성 핀, 검토서 수치 대조)은 순위표의 등급 그대로다. 특히 **AArch64 게스트
 cFS 셀**(E26-ext 두 실물 모델 + E29의 조건부 셀)은 여전히 미실행이다.

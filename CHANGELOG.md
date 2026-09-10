@@ -2,6 +2,30 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.32] — E29b: 조건부 계약의 검증 논리 수정 — 시험이 결함을 고정하고 있었다 (D54)
+
+**판정:** 일곱 번째 외부 검토(`docs/reviews/ONAIR_MLIR_RESEARCH_CONSOLIDATED_REVIEW_20260909.md`)
+§4.1이 **코드를 읽고 예측한** fail-open을 실물로 재현했다. E29의 조건부 admission 사후 검증
+`hal_peak_after_append > CONTRACT_PER_CALL_BYTES`는 copy 분기가 정확히 `constants`를 할당하므로
+**`constants < per_call`인 모든 모델을 통과**시킨다. 보관 계약 21개가 전부 `constants > per_call`
+(b2_resnet 24 B 차이)이라 E29의 7모델 양방향 실측이 이 조건을 못 밟았고, **E29 회귀 시험 자신이
+그 비교식을 pin**하고 있었다.
+
+`bigact`(합성, per_call 45,444 / constants 14,016, 단일 호출, 오버라이드 0): 조건부 승인(예산 45,444)
+→ 앱이 `arm=copy`라고 기록하고도 통과 → native 3/3·cFS 5/5 완주, 피크 **59,460(예산의 131%)**,
+`peak_within_bounded=true`. 수정은 둘 — (1) **append 전** `module_ptr_mod64 != 0`이면 런타임 생성
+전에 거부(E29 D2로 분기를 미리 확정; 검토서 §4.2 선택지 1 — copy 분기 할당 자체가 일어나지 않는다),
+(2) append 후 `hal_peak_after_append != 0 → 거부`(map 분기의 append 피크는 정확히 0). 수정 후 shim
+셀은 native·cFS 모두 런타임 생성 전 거부·추론 0·cFS OPERATIONAL 유지, 정렬 셀은 예산 = per_call에서
+**정확히 45,444**로 완주(과잉 거부 0). revert-and-confirm-fail: 비교식만 되돌리면 2건 FAIL.
+
+**교훈**: D53(*"어느 숫자로 승인했는지와 어느 숫자로 검증하는지가 같은지"*)을 E29 자신이 어겼다 —
+승인은 분기를 전제했는데 검증은 크기를 비교했다. 그리고 ***"시험이 무엇을 pin하는지 읽어라"*** —
+결함의 문자열을 pin한 시험은 결함을 지킨다.
+
+회귀 시험 **310/310 → 320/320**(이 컨테이너 실측), 보관 14개 계약 diff 0. 검토서 §5–§12의 실물 모델
+계획(P1–P5)은 착수 순위표에 등록만 하고 미착수 — `docs/ASSUMPTIONS_AND_SCOPE.md`.
+
 ## [v0.31.1] — 정정: E27의 "정직성" 결론을 가용성으로 좁힘 (`docs/EVIDENCE_v0.29_E27.md` §7)
 
 **정정:** 착수 순위표가 최우선으로 지목한 "robust VMFB-only 기준선"을 실제로 만들어

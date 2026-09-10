@@ -1,0 +1,159 @@
+{
+ "cfs_x86_64": {
+  "AFTER_fix_aligned_condmap_budget_percall": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "completed": 5,
+   "end_peak": 45444,
+   "exit_app": false,
+   "inference_reports": 1,
+   "log": "cfs/bigact_after_fix_condmap_aligned_ADMIT.log",
+   "map_branch": {
+    "admission_mode": "conditional_map",
+    "arm": "map",
+    "hal_peak_after_append": 0,
+    "module_ptr_mod64": 0
+   },
+   "reached_operational": true,
+   "verdicts": []
+  },
+  "AFTER_fix_copy_condmap_budget_percall": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "completed": 0,
+   "end_peak": null,
+   "exit_app": true,
+   "inference_reports": 0,
+   "log": "cfs/bigact_after_fix_condmap_shim_REFUSED.log",
+   "map_branch": null,
+   "reached_operational": true,
+   "verdicts": [
+    "MAP_PRECONDITION_UNMET"
+   ]
+  },
+  "BEFORE_fix_copy_condmap_budget_percall": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "completed": 5,
+   "end_peak": 59460,
+   "exit_app": false,
+   "inference_reports": 1,
+   "log": "cfs/bigact_before_fix_condmap_shim_FAILOPEN.log",
+   "map_branch": {
+    "admission_mode": "conditional_map",
+    "arm": "copy",
+    "hal_peak_after_append": 14016,
+    "module_ptr_mod64": 32
+   },
+   "reached_operational": true,
+   "verdicts": []
+  }
+ },
+ "claim_source": "docs/reviews/ONAIR_MLIR_RESEARCH_CONSOLIDATED_REVIEW_20260909.md SS4.1 (predicted), SS4.2 (transient)",
+ "d54_arithmetic": {
+  "admitted_budget": 45444,
+  "copy_arm_append_peak": 14016,
+  "end_peak_on_copy_arm": 59460,
+  "new_check": "pre-append: module_ptr_mod64 != 0 -> MAP_PRECONDITION_UNMET (before runtime creation); post-append: hal_peak_after_append != 0 -> MAP_PRECONDITION_FAILED",
+  "old_check": "hal_peak_after_append > CONTRACT_PER_CALL_BYTES",
+  "over_budget_bytes": 14016,
+  "over_budget_ratio": 1.3084,
+  "passes_old_check": true,
+  "peak_within_bounded_reported": true
+ },
+ "defect": "D54",
+ "experiment": "E29b",
+ "fixture": {
+  "bounded": 59460,
+  "constants": 14016,
+  "constants_lt_per_call": true,
+  "model": "bigact",
+  "per_call": 45444,
+  "why_needed": "all 21 contracts archived before E29b have constants > per_call (closest: b2_resnet by 24 B); E29's revert-and-confirm-fail therefore never exercised a copy arm whose append peak is below per_call"
+ },
+ "invariants_observed": {
+  "after_fix_no_over_rejection_on_map_arm": true,
+  "after_fix_refuses_before_runtime_creation": true,
+  "before_fix_ran_on_copy_arm_over_admitted_budget": true,
+  "cfs_stayed_operational_after_refusal": true
+ },
+ "native_x86_64": {
+  "AFTER_fix_aligned_condmap_budget_percall": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "completed": 203,
+   "end_peak": 45444,
+   "exit_reason": "ok",
+   "log": "native/native_after_fix_aligned_condmap.jsonl",
+   "map_branch": {
+    "admission_mode": "conditional_map",
+    "arm": "map",
+    "hal_peak_after_append": 0,
+    "module_ptr_mod64": 0
+   },
+   "verdicts": []
+  },
+  "AFTER_fix_copy_condmap_budget_percall": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "completed": 0,
+   "end_peak": null,
+   "exit_reason": "map precondition unmet; refused before any runtime allocation",
+   "log": "native/native_after_fix_D54_copy_condmap.jsonl",
+   "map_branch": null,
+   "verdicts": [
+    "MAP_PRECONDITION_UNMET"
+   ]
+  },
+  "BEFORE_fix_copy_condmap_budget_percall": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "completed": 203,
+   "end_peak": 59460,
+   "exit_reason": "ok",
+   "log": "native/native_before_fix_D54_copy_condmap_budget_percall.jsonl",
+   "map_branch": {
+    "admission_mode": "conditional_map",
+    "arm": "copy",
+    "hal_peak_after_append": 14016,
+    "module_ptr_mod64": 32
+   },
+   "verdicts": []
+  },
+  "aligned_unconditional_B": {
+   "admission": "ADMIT",
+   "completed": 203,
+   "end_peak": 45444,
+   "exit_reason": "ok",
+   "log": "native/native_before_fix_aligned_B.jsonl",
+   "map_branch": {
+    "admission_mode": "unconditional",
+    "arm": "map",
+    "hal_peak_after_append": 0,
+    "module_ptr_mod64": 0
+   },
+   "verdicts": []
+  },
+  "copy_unconditional_B": {
+   "admission": "ADMIT",
+   "completed": 203,
+   "end_peak": 59460,
+   "exit_reason": "ok",
+   "log": "native/native_before_fix_copy_B.jsonl",
+   "map_branch": {
+    "admission_mode": "unconditional",
+    "arm": "copy",
+    "hal_peak_after_append": 14016,
+    "module_ptr_mod64": 32
+   },
+   "verdicts": []
+  }
+ },
+ "not_claimed": [
+  "that the post-append check ever fired on an aligned image -- map <=> aligned held 64/64 in E29, so the pre-append check now takes every observed copy case; the post-append check is defense in depth whose trigger was not observable here",
+  "AArch64 guest cFS cells (not run)",
+  "any latency figure (FUNCTIONAL_ONLY)"
+ ],
+ "stack_fields_in_contract": {
+  "kernel_dynamic_stack_alloc": false,
+  "kernel_stack_classification": "bucket_2_task_stack_budget",
+  "kernel_stack_note": "bucket (2) TASK-STACK: each dispatch function reserves at most 304 B of stack (callee-saved + 256 B explicit locals with 20 sp-relative load/store(s) (spills/locals)), 0 call instructions -> call depth 1 below the runtime; per-invocation stack = 375 B incl. return address. Not HAL memory (not in bounded_bytes); add it explicitly to the task/thread stack budget.",
+  "kernel_task_stack_bytes": 304,
+  "kernel_task_stack_bytes_source": "elf_stack_frame.py max_dispatch_frame_bytes (max over dispatch functions; callee-saved + locals)",
+  "kernel_task_stack_invocation_bytes": 375
+ }
+}

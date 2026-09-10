@@ -1,0 +1,32 @@
+{
+ "purpose": "E29b / D54: the ONLY archived model with constants < per_call. Every earlier contract (21 in tree) has constants > per_call, which is why E29's revert-and-confirm-fail could not exercise the conditional tier's post-append check on a copy arm whose constant block is smaller than per_call. Seventh external review SS4.1 predicted the fail-open; this fixture reproduces it.",
+ "generator": "harness/gen_model_conv2d.py --out gen --in-hw 32 --c1 8 --c2 4 --n-out 1 --seed 3  (model.mlir copied to bigact.mlir)",
+ "compile_argv": [
+  "iree-compile",
+  "bigact.mlir",
+  "-o",
+  "bigact.vmfb",
+  "--iree-hal-target-device=local",
+  "--iree-hal-local-target-device-backends=llvm-cpu",
+  "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+  "--iree-llvmcpu-target-cpu=host",
+  "--mlir-print-ir-after=iree-stream-layout-slices",
+  "--iree-hal-dump-executable-files-to=dump",
+  "--mlir-elide-elementsattrs-if-larger=16"
+ ],
+ "compiler_version_raw": "IREE (https://iree.dev):\n  IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25\n  LLVM version 23.0.0git\n  Optimized build",
+ "contract": {
+  "per_call": 45444,
+  "constants": 14016,
+  "bounded": 59460,
+  "overrides": []
+ },
+ "note_on_dump_dir": "dump/ is REDUCED like results/e24c_manyconst31 and e26c_multiout: .o/.bc/linked.ll/optimized.ll dropped; dispatch .mlir, the embedded .so and codegen.ll kept. make_contract.py regenerates the same numeric contract from it (checked by contract_negative_tests.py).",
+ "sha256": {
+  "bigact.mlir": "be5fe49769fd29ea75d6a10c0ecabdbff83aeaaa94dccfd5f556ae593f1125d7",
+  "bigact.vmfb": "263e961b8a1d9a3a77e074784c660b58b3ac58efbf798e2f45733e1f9892159f",
+  "bigact.layout_ir.txt": "7454feaf6407c45f9b8df102cc103297a82a69ece4d91c2841e4124dbade4647",
+  "bigact.elf.json": "f581c8cd56770adefb5684ee8df72466a962ccc14cc1a93490fc99b291999090",
+  "bigact.contract.json": "2352fb141e072597414ca756e7a56d36faaa1e61c14b021f0c459505729bf8ac"
+ }
+}

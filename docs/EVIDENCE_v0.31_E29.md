@@ -228,3 +228,18 @@ MODEL_VMFB=$PWD/results/.../b3_deepae.vmfb AI_LEARNER_BUDGET_BYTES=6208 \
 
 python3 harness/contract_negative_tests.py     # 304/304 (이 컨테이너)
 ```
+
+
+---
+
+## 9. 정오표 (v0.32 / E29b — D54)
+
+§4 3항의 *"append 직후 HAL 피크를 읽어 `> per_call`이면 추론 한 건도 하기 전에 거부한다"*는
+**결함이 있는 검증**이었다. copy 분기의 append 직후 피크는 §2.2가 측정한 대로 **정확히 `constants`**이므로,
+`constants < per_call`인 모델에서는 그 비교가 거짓이 되어 copy 분기가 통과한다 — 앱은 그 분기를
+`copy`라고 기록해 놓고도 실행해 `per_call + constants`에서 완주한다(일곱 번째 외부 검토 §4.1이 코드에서
+예측, `bigact`로 native·cFS 양방향 재현: 예산 45,444에 피크 59,460). §3의 7모델은 전부
+`constants > per_call`이라 이 조건을 한 번도 밟지 않았고, 이 문서의 §5 revert-and-confirm-fail은
+따라서 이 결함을 검출할 수 없는 입력 집합 위에서 수행된 것이다. 수정(append 전 정렬 검사 +
+`hal_peak_after_append != 0` 분기 판정)과 재실측은 `docs/EVIDENCE_v0.32_E29b.md`. §2·§3·§6의 판정
+(결정 요인·이분성·7/7 양방향 불변식)은 바뀌지 않는다.

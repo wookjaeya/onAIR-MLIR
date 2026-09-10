@@ -230,6 +230,21 @@ int main(int argc, char** argv) {
     return 5;
   }
 
+  /* E29b (D54, seventh external review SS4.1-4.2): in the conditional tier the
+   * map precondition is decided by the alignment of the image just allocated
+   * (E29: map <=> 64-byte aligned, 64/64 cells), so it is checkable BEFORE the
+   * runtime exists. Refusing here means the copy arm's constant-block
+   * allocation never happens -- no transient above B_map at all, instead of
+   * "allocate B_copy, then refuse". This is the review's option (1): decide
+   * map-ability before append. */
+  if (g.conditional_map && g.module_ptr_mod64 != 0) {
+    printf("{\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_UNMET\",\"module_ptr_mod64\":%d,"
+           "\"reason\":\"module image not 64-byte aligned; refused before runtime creation\"}\n", g.module_ptr_mod64);
+    cleanup();
+    printf("{\"stage\":\"exit\",\"reason\":\"map precondition unmet; refused before any runtime allocation\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
+    return 10;
+  }
+
   long rss0 = rss_kb();
   /* ---- runtime bring-up (every failure is reported and cleaned up; no abort) ---- */
   iree_status_t st;
@@ -260,7 +275,17 @@ int main(int argc, char** argv) {
            CONTRACT_MODEL_NAME, g.module_ptr_mod64, g.hal_peak_after_append,
            (long)CONTRACT_CONST_BYTES, (long)CONTRACT_PER_CALL_BYTES, arm,
            g.conditional_map ? "conditional_map" : "unconditional");
-    if (g.conditional_map && g.hal_peak_after_append > (long)CONTRACT_PER_CALL_BYTES) {
+    /* E29b (D54): the E29 check here was `> CONTRACT_PER_CALL_BYTES`. A copy arm
+     * allocates exactly `constants` at append, so for any model with
+     * constants < per_call it passed -- the app had already labelled the arm
+     * "copy" above and still ran, ending at per_call + constants over the budget
+     * it was admitted on (bigact: 59,460 on a 45,444 budget, reproduced in
+     * results/e29b_conditional_verify/). Every model archived before E29b had
+     * constants > per_call, which is why the E29 revert-and-confirm-fail never
+     * saw it. The admitted bound is B_map = per_call, and B_map holds only on the
+     * map arm, whose append peak is exactly 0 (E29: 32/32 map cells). So the
+     * verification is "map arm, or refuse" -- not a size comparison. */
+    if (g.conditional_map && g.hal_peak_after_append != 0) {
       printf("{\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_FAILED\",\"hal_peak_after_append\":%ld,"
              "\"contract_per_call_bytes\":%ld}\n", g.hal_peak_after_append, (long)CONTRACT_PER_CALL_BYTES);
       cleanup();

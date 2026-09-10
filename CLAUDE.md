@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.31**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.32**(git tag는 환경 제약으로 보류 — 커밋 이력·CHANGELOG로 확인).
 중심 주장은 **정오표 반영 개정판**을 그대로 쓴다 — 지어내지 말 것(`docs/EVIDENCE_v0.9_E14_stage1.md`
 §11.8이 정본, 아래는 그 요약):
 
@@ -483,14 +483,35 @@ native·cFS 셀이 전부 copy 분기**였다. `posix_memalign(…,64,…)` 한 
 바뀐 것은 tightness의 *원인*이다. **조건부 admission은 계약 스키마 변경 0** —
 `B_map = CONTRACT_PER_CALL_BYTES`, `B_copy = CONTRACT_BOUNDED_BYTES`가 이미 헤더에 있다.
 opt-in 기본 off(기존 배포 판정 무변경), 전제조건을 **구성으로 강제**하고 append 직후
-**측정으로 검증**해 copy 분기면 추론 0건에서 거부. `bounded ≤ budget`이면 진입조차 않으므로
-**유형 (B) 위험 0**. cFS 실측: 예산 6,208 B에서 `NOT_ADMITTED`이던 b3_deepae가 opt-in 시 같은
+**측정으로 검증**해 copy 분기면 추론 0건에서 거부(**정정 v0.32/D54**: E29가 출하한 그 검증은 크기
+비교라 `constants < per_call`이면 뚫렸다 — E29b가 append 전 정렬 검사 + `!= 0` 분기 판정으로 고침).
+`bounded ≤ budget`이면 진입조차 않으므로 **유형 (B) 위험 0**. cFS 실측: 예산 6,208 B에서 `NOT_ADMITTED`이던 b3_deepae가 opt-in 시 같은
 예산에서 5/5 완주, 피크 정확히 6,208(배치 예산 172배 감소). **D53**: 검증 블록만 빼면 6,208
 예산으로 **1,069,632(172배 초과)** 완주인데 `peak_within_bounded`는 `true` — 그 필드는
 `bounded`와 비교하지 **승인 근거 예산**과 비교하지 않는다. **교훈**: D52가 *"계약이 준 숫자를
 게이트가 실제로 쓰는지 확인하라"*였다면 이것은 ***"어느 숫자로 승인했는지와 어느 숫자로
 검증하는지가 같은지 확인하라"***다. 이 컨테이너 **310/310**(E27 §7 정오표 6건 포함), **CI 실측**(커밋 `58757b3`, run 96): `full` **309/309 + 1 SKIP**(PyYAML 미설치) · `without-iree` **202/202 + 15 SKIP** · `stdlib-only` **202/202 + 15 SKIP** — 이 컨테이너와 `full`의 차이 1건은 PyYAML 유무다(D34: 추정하지 않고 조건과 함께 병기). 보관 14개 계약 diff 0, 보관 14개 계약 diff 0.
 **미실행(명시)**: AArch64 게스트 cFS 셀.
+
+
+**v0.32에서 완료된 것 (E29b, `docs/EVIDENCE_v0.32_E29b.md`)**: 일곱 번째 외부 검토
+(`docs/reviews/ONAIR_MLIR_RESEARCH_CONSOLIDATED_REVIEW_20260909.md`) §4.1이 **코드를 읽고 예측한**
+fail-open(D54)을 실물로 재현·수정했다. E29의 조건부 admission 사후 검증
+`hal_peak_after_append > CONTRACT_PER_CALL_BYTES`는 copy 분기가 정확히 `constants`를 할당하므로
+**`constants < per_call`인 모든 모델을 통과**시킨다. 보관 계약 21개가 전부 `constants > per_call`
+(b2_resnet 24 B 차이)이라 E29의 7모델 양방향 실측이 이 조건을 못 밟았고, **E29 회귀 시험 자신이
+그 비교식의 존재를 pin**하고 있었다(결함을 고정하는 시험). `bigact`(합성, per_call 45,444 /
+constants 14,016, 단일 호출, 오버라이드 0)로 재현: 조건부 승인(예산 45,444) → 앱이 `arm=copy`라고
+기록하고도 통과 → native 3/3·cFS 5/5 완주, 피크 **59,460(예산의 131%)**, `peak_within_bounded=true`.
+수정 둘: (1) **append 전** `module_ptr_mod64 != 0`이면 런타임 생성 전에 거부(E29 D2로 분기를 미리
+확정 — 검토서 §4.2 선택지 1, copy 분기 할당 자체가 일어나지 않음), (2) append 후
+`hal_peak_after_append != 0 → 거부`(map 분기의 append 피크는 정확히 0, E29 32/32). 수정 후 shim 셀은
+native·cFS 모두 런타임 생성 전 거부·추론 0·cFS OPERATIONAL 유지, 정렬 셀은 예산 = per_call에서
+**정확히 45,444**로 완주(과잉 거부 0). revert-and-confirm-fail: 비교식만 되돌리면 2건 FAIL.
+이 컨테이너 **310/310 → 320/320**, 보관 14개 계약 diff 0. **교훈**: D53을 E29 자신이 어겼다 —
+승인은 분기를 전제했는데 검증은 크기를 비교했다. 그리고 ***"시험이 무엇을 pin하는지 읽어라"***.
+**미착수(명시)**: 검토서 §5–§12의 실물 모델 계획(P1–P5: OPS-SAT SmartCam·WGAN 반입, TFLite 의미
+동치, AArch64 cFS 완주, LLVM-IR/ELF-only 기준선) — `docs/ASSUMPTIONS_AND_SCOPE.md`에 등록만 했다.
 
 ## 작업 규율 (반드시 지킬 것)
 
@@ -735,7 +756,8 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
 - 계약이 **무조건 tight하다** → 무조건 계약(`bounded`)은 배포에 따라 1.00×~172.3× 보수적이다.
   E29 이후 정확히 말하면: **조건부 값(`per_call`)은 전제조건이 성립할 때 tight하고(7/7 1.00×),
   무조건 값(`bounded`)은 두 분기의 최댓값이라 항상 sound하되 map 분기에서 느슨하다.**
-  전제조건을 검증 없이 가정하면 그것이 곧 fail-open이다(D53)
+  전제조건을 검증 없이 가정하면 그것이 곧 fail-open이고(D53), 검증이 승인 근거와 다른 양을 재도
+  fail-open이다(D54 — 승인은 분기, 검증은 크기 비교)
 - **모든** 배포에서 map 분기를 보장한다 → 이 앱이 자기 blob의 정렬을 보장할 뿐이고, 다른 IREE
   버전·드라이버에서 copy 분기의 원인이 정렬뿐이라고는 주장하지 않는다. 그래서 앱이 분기를 측정한다
 - 관측한 모델·배포·컴파일러 버전 **밖으로의 일반화** → E26의 분기 결정 요인은 미확정이고,
@@ -834,7 +856,9 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.31_E29.md       ★ 최신. 조건부 계약 — try_map 분기 결정 요인 = 모듈 이미지의 64바이트
+  EVIDENCE_v0.32_E29b.md      ★ 최신. D54 — E29 조건부 검증이 크기 비교라 constants<per_call에서 fail-open.
+                               E29 회귀 시험이 그 비교식을 pin하고 있었다. append 전 정렬 검사 + != 0 분기 판정으로 수정
+  EVIDENCE_v0.31_E29.md        조건부 계약 — try_map 분기 결정 요인 = 모듈 이미지의 64바이트
                                정렬(64/64셀 위반 0). 제어 시 map 피크 = per_call 정확히, cFS 예산 172배 감소.
                                D53(승인 근거 예산과 검증 기준이 달라 생기는 fail-open)을 출하 전 차단
   EVIDENCE_v0.30_E28.md        D52 — admission 게이트 자신의 fail-open(게이트가 통과시킨 뒤
@@ -962,6 +986,8 @@ results/e26_boundary_utility/  ★ E26 계열 전체: 사전 고정 기준(docs/
                              instrumentation_check/, x86_64|aarch64/{native,cfs,pip_runtime}/,
                              mlperf_tiny_{resnet,vww}_fixture/, x86_64/ext_b{2,3}_*/ (실물 워크로드
                              단일 호출 산출물 + 측정), aarch64/a5b_canonical/, comparison/, summary.json
+results/e29b_conditional_verify/   ★ E29b/D54: constants < per_call인 유일한 보관 fixture(bigact, 단일 호출) +
+                             native 5셀·cFS 3셀 수정 전/후 raw log + summary.json
 results/e29_conditional_contract/  ★ E29: 64셀 정렬 스윕(align_sweep.json), 7모델 before/after
                              (native_sweep.jsonl), cFS 4셀 raw log(cfs/), revert 기록, summary.json
 results/e27_baselines/      ★ E27: iree310_mlp16k/(버전 드리프트 실물 근거)와 summary.json

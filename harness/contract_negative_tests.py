@@ -2407,6 +2407,106 @@ EXT_B3_DIR = os.path.join(os.path.dirname(HERE), "results", "e26_boundary_utilit
 E27_SUMMARY = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "summary.json")
 
 
+E29B_DIR = os.path.join(os.path.dirname(HERE), "results", "e29b_conditional_verify")
+
+
+def e29b_conditional_verify_cases(tmp):
+    """E29b / D54: the conditional tier's post-append check was a size comparison
+    and let a copy arm through whenever constants < per_call.
+
+    E29 verified the map precondition after append with
+    `hal_peak_after_append > CONTRACT_PER_CALL_BYTES`. A copy arm allocates
+    exactly `constants` at append, so the check passed for any model whose
+    constant block is smaller than its per-call term -- the app had itself just
+    labelled the arm "copy" and still ran, ending at per_call + constants over
+    the budget it was admitted on. The seventh external review (SS4.1) predicted
+    this from the code; every model archived before E29b has constants >
+    per_call (closest: b2_resnet by 24 B), which is exactly why E29's
+    revert-and-confirm-fail never saw it. `bigact` (per_call 45,444 / constants
+    14,016, one iree-compile invocation) is the first fixture on the other side
+    of that line, and it reproduced the fail-open in native AND in cFS: admitted
+    on 45,444, ran 3/3 and 5/5, peaked at 59,460 with peak_within_bounded=true.
+
+    The fix is two checks, both pinned here. Pre-append: the map arm is decided
+    by the image's 64-byte alignment (E29, 64/64 cells), so an unaligned image
+    is refused BEFORE the runtime exists -- no copy-arm allocation ever happens
+    (the review's SS4.2 option 1). Post-append: B_map holds only on the map arm,
+    whose append peak is exactly 0 (E29, 32/32), so the verification is
+    `hal_peak_after_append != 0 -> refuse`, not a size comparison. A revert of
+    either half must fail here; the aligned cells pin that neither over-rejects."""
+    results = []
+    summ_p = os.path.join(E29B_DIR, "summary.json")
+    if not os.path.exists(summ_p):
+        results.append(Result("e29b: fixture preserved", False, "missing %s" % summ_p))
+        return results
+    d = load(summ_p)
+    fx, ar = d["fixture"], d["d54_arithmetic"]
+    results.append(Result("e29b: fixture is the first archived model with constants < per_call",
+                          fx["constants_lt_per_call"] and fx["constants"] < fx["per_call"],
+                          "per_call=%s constants=%s" % (fx["per_call"], fx["constants"])))
+    results.append(Result("e29b: the copy arm's append peak passes E29's size comparison",
+                          ar["passes_old_check"] and ar["copy_arm_append_peak"] == fx["constants"]
+                          and ar["copy_arm_append_peak"] <= fx["per_call"],
+                          "append peak %s vs per_call %s" % (ar["copy_arm_append_peak"], fx["per_call"])))
+    results.append(Result("e29b: before the fix the app ran on the copy arm above the budget it was "
+                          "admitted on, in native and in cFS, with peak_within_bounded=true",
+                          d["invariants_observed"]["before_fix_ran_on_copy_arm_over_admitted_budget"]
+                          and ar["end_peak_on_copy_arm"] == fx["per_call"] + fx["constants"]
+                          and ar["peak_within_bounded_reported"] is True,
+                          "end=%s admitted=%s" % (ar["end_peak_on_copy_arm"], ar["admitted_budget"])))
+    results.append(Result("e29b: after the fix the same cells refuse BEFORE runtime creation "
+                          "(native + cFS), 0 inferences, cFS stays OPERATIONAL",
+                          d["invariants_observed"]["after_fix_refuses_before_runtime_creation"]
+                          and d["invariants_observed"]["cfs_stayed_operational_after_refusal"],
+                          "cfs=%s" % d["cfs_x86_64"]["AFTER_fix_copy_condmap_budget_percall"]))
+    results.append(Result("e29b: the fix does not over-reject -- aligned conditional cells still "
+                          "run at exactly per_call (native + cFS)",
+                          d["invariants_observed"]["after_fix_no_over_rejection_on_map_arm"],
+                          "native=%s cfs=%s" % (d["native_x86_64"]["AFTER_fix_aligned_condmap_budget_percall"]["end_peak"],
+                                                d["cfs_x86_64"]["AFTER_fix_aligned_condmap_budget_percall"]["end_peak"])))
+
+    # --- source level: both halves of the fix, in both C paths (revert must fail) ---
+    root = os.path.dirname(HERE)
+    for label, path in (("native_learner.c", os.path.join(root, "native", "native_learner.c")),
+                        ("ai_learner.c", os.path.join(root, "native", "cfs_app", "fsw", "src", "ai_learner.c"))):
+        src = open(path, encoding="utf-8", errors="replace").read()
+        results.append(Result("e29b: %s post-append verification is 'map arm or refuse', not a size comparison" % label,
+                              "hal_peak_after_append != 0" in src
+                              and "hal_peak_after_append > (long)CONTRACT_PER_CALL_BYTES" not in src,
+                              "E29's `> CONTRACT_PER_CALL_BYTES` comparison is back, or `!= 0` is gone, in %s" % label))
+        results.append(Result("e29b: %s refuses an unaligned image BEFORE runtime creation in the conditional tier" % label,
+                              "MAP_PRECONDITION_UNMET" in src and "g.conditional_map && g.module_ptr_mod64 != 0" in src,
+                              "pre-append alignment check missing in %s" % label))
+
+    # --- the fixture regenerates from its reduced dump (one-invocation rule) ---
+    if not (shutil.which("iree-compile") and shutil.which("iree-dump-module")):
+        results.append(Result("e29b: contract regenerates from the preserved single-invocation artifacts",
+                              True, "iree-compile/iree-dump-module not on PATH", skip=True))
+        return results
+    out = os.path.join(tmp, "e29b_regen.contract.json")
+    cmd = [sys.executable, os.path.join(HERE, "make_contract.py"),
+           "--mlir", os.path.join(E29B_DIR, "bigact.mlir"), "--vmfb", os.path.join(E29B_DIR, "bigact.vmfb"),
+           "--layout-ir", os.path.join(E29B_DIR, "bigact.layout_ir.txt"), "--dump-dir", os.path.join(E29B_DIR, "dump"),
+           "--triple", "x86_64-unknown-linux-gnu", "--cpu", "host", "--model-name", "bigact",
+           "--elf-analysis", os.path.join(E29B_DIR, "bigact.elf.json"), "--out", out]
+    try:
+        pr = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    except Exception as e:  # tool crash is a result, not a skip (D24/D25)
+        results.append(Result("e29b: contract regenerates from the preserved single-invocation artifacts", False, repr(e)))
+        return results
+    if pr.returncode != 0 or not os.path.exists(out):
+        results.append(Result("e29b: contract regenerates from the preserved single-invocation artifacts", False,
+                              "rc=%d %s" % (pr.returncode, (pr.stderr or pr.stdout)[-300:])))
+        return results
+    a, b = load(out), load(os.path.join(E29B_DIR, "bigact.contract.json"))
+    ma = a["resources"].get("memory", a["resources"]); mb = b["resources"].get("memory", b["resources"])
+    keys = ("static_per_call_bytes", "module_resident_constant_bytes", "bounded_bytes")
+    same = all(ma.get(k) == mb.get(k) for k in keys)
+    results.append(Result("e29b: contract regenerates from the preserved single-invocation artifacts (numeric diff 0)",
+                          same, "regen=%s stored=%s" % ({k: ma.get(k) for k in keys}, {k: mb.get(k) for k in keys})))
+    return results
+
+
 E27_HARDENED_DIR = os.path.join(os.path.dirname(HERE), "results", "e27_baselines", "hardened")
 
 
@@ -2556,9 +2656,14 @@ def e29_conditional_contract_cases():
         results.append(Result("e29: %s measures the arm actually taken after append" % label,
                               "hal_peak_after_append" in src and "iree_hal_allocator_query_statistics" in src,
                               "no post-append allocator query in %s" % label))
+        # E29b/D54: this line originally pinned `hal_peak_after_append >
+        # (long)CONTRACT_PER_CALL_BYTES` -- i.e. it pinned the defect. A copy arm
+        # allocates exactly `constants` at append, so that comparison passed for
+        # every model with constants < per_call (results/e29b_conditional_verify).
+        # The verification is now "map arm (append peak == 0) or refuse".
         results.append(Result("e29: %s conditional tier verifies the precondition instead of assuming it" % label,
                               "MAP_PRECONDITION_FAILED" in src
-                              and "hal_peak_after_append > (long)CONTRACT_PER_CALL_BYTES" in src,
+                              and "hal_peak_after_append != 0" in src,
                               "conditional tier in %s does not refuse on a copy arm" % label))
 
     cm = open(os.path.join(root, "native", "cfs_app", "CMakeLists.txt"), encoding="utf-8").read()
@@ -3206,6 +3311,7 @@ def main():
         all_results += e28_stack_failopen_cases()
         all_results += e29_conditional_contract_cases()
         all_results += e27_hardened_baseline_cases()
+        all_results += e29b_conditional_verify_cases(tmp)
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
             all_results += regression_check(a.root, tmp)

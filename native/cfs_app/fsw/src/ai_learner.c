@@ -349,6 +349,21 @@ static int32 AI_LEARNER_Init(void) {
     AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
 
+  /* E29b (D54, seventh external review SS4.1-4.2): in the conditional tier the
+   * map precondition is decided by the alignment of the image just allocated
+   * (E29: map <=> 64-byte aligned, 64/64 cells), so it is checkable BEFORE the
+   * runtime exists. Refusing here means the copy arm's constant-block
+   * allocation never happens -- no transient above B_map at all. */
+  if (g.conditional_map && g.module_ptr_mod64 != 0) {
+    CFE_EVS_SendEvent(EID_MAP_PRECONDITION, CFE_EVS_EventType_CRITICAL,
+      "AI_LEARNER MAP_PRECONDITION_UNMET: admitted on per_call=%ld but module image is %d mod 64; "
+      "refused before runtime creation", (long)CONTRACT_PER_CALL_BYTES, g.module_ptr_mod64);
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_UNMET\","
+                    "\"module_ptr_mod64\":%d,\"contract_per_call_bytes\":%ld}\n", g.module_ptr_mod64, (long)CONTRACT_PER_CALL_BYTES);
+    AI_LEARNER_Cleanup();
+    return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
+
   /* ---- runtime bring-up: every failure is an ERROR event + cleanup (no abort) ---- */
   g.rss_kb_init0 = rss_kb();
   iree_status_t st;
@@ -389,7 +404,14 @@ static int32 AI_LEARNER_Init(void) {
                     CONTRACT_MODEL_NAME, g.module_ptr_mod64, g.hal_peak_after_append,
                     (long)CONTRACT_CONST_BYTES, (long)CONTRACT_PER_CALL_BYTES, arm,
                     g.conditional_map ? "conditional_map" : "unconditional");
-    if (g.conditional_map && g.hal_peak_after_append > (long)CONTRACT_PER_CALL_BYTES) {
+    /* E29b (D54): E29 compared `> CONTRACT_PER_CALL_BYTES` here. A copy arm
+     * allocates exactly `constants` at append, so for any model with
+     * constants < per_call the check passed and the app ran on the copy arm it
+     * had itself just labelled -- ending at per_call + constants over the budget
+     * it was admitted on (bigact: 59,460 on 45,444). B_map holds only on the
+     * map arm, whose append peak is exactly 0 (E29: 32/32 map cells), so the
+     * verification is "map arm, or refuse", not a size comparison. */
+    if (g.conditional_map && g.hal_peak_after_append != 0) {
       CFE_EVS_SendEvent(EID_MAP_PRECONDITION, CFE_EVS_EventType_CRITICAL,
         "AI_LEARNER MAP_PRECONDITION_FAILED: admitted on per_call=%ld but append peak=%ld (arm=%s, ptr%%64=%d); "
         "app will not start", (long)CONTRACT_PER_CALL_BYTES, g.hal_peak_after_append, arm, g.module_ptr_mod64);

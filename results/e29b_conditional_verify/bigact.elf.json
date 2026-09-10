@@ -1,0 +1,362 @@
+{
+  "tool": "harness/elf_stack_frame.py",
+  "elf": "dump/module_bigact_linked_embedded_elf_x86_64.so",
+  "arch": "x86_64",
+  "elf_bytes": 6448,
+  "elf_sha256": "1b927f4881f824c7a6799f8408db4a91dd143939297ae1f28edda0df87d77a3c",
+  "objdump": {
+    "tool": "objdump",
+    "file_format": "elf64-x86-64"
+  },
+  "elf_type": "ET_DYN",
+  "sections": {
+    ".dynsym": 48,
+    ".hash": 24,
+    ".dynstr": 35,
+    ".rela.dyn": 528,
+    ".rodata": 496,
+    ".eh_frame": 168,
+    ".text": 1153,
+    ".data.rel.ro": 352,
+    ".dynamic": 192,
+    ".relro_padding": 592
+  },
+  "text_bytes": 1153,
+  "rodata_bytes": 496,
+  "symbols": [
+    {
+      "name": "iree_hal_executable_library_query",
+      "addr": "0x1b70"
+    }
+  ],
+  "undefined_symbols": [],
+  "relocations": {
+    "count": 22,
+    "types": {
+      "R_X86_64_RELATIVE": 22
+    },
+    "non_relative": 0
+  },
+  "exports": [
+    {
+      "ordinal": 0,
+      "name": "infer_dispatch_0_conv_30x30x8x3x3_f32",
+      "addr": "0x1700"
+    },
+    {
+      "ordinal": 1,
+      "name": "infer_dispatch_1_conv_28x28x4x3x3x8_f32",
+      "addr": "0x1870"
+    },
+    {
+      "ordinal": 2,
+      "name": "infer_dispatch_2_matmul_1x1x3136_f32",
+      "addr": "0x1a00"
+    }
+  ],
+  "function_split_method": "symtab+export_table(.rela.dyn)",
+  "functions": [
+    {
+      "name": "infer_dispatch_0_conv_30x30x8x3x3_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x1700",
+      "insns": 84,
+      "padding_insns_after": 6,
+      "code_bytes": 368,
+      "callee_save_bytes": 48,
+      "local_alloc_bytes": 256,
+      "restore_bytes": 48,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 8,
+      "sp_relative_mem_op_list": [
+        "1727: mov    %rsi,0x38(%rsp)",
+        "1735: vmovaps %ymm0,0x80(%rsp)",
+        "175a: add    0x38(%rsp),%r9",
+        "1780: vmovss 0x80(%rsp,%rsi,4),%xmm2",
+        "1789: vmovss %xmm2,0x40(%rsp,%rsi,4)",
+        "17e6: vfmadd213ss 0x40(%rsp,%rsi,4),%xmm2,%xmm3",
+        "17ed: vmovss %xmm3,0x40(%rsp,%rsi,4)",
+        "1816: vaddps 0x40(%rsp),%ymm1,%ymm2"
+      ],
+      "prologue": [
+        "push   %rbp",
+        "mov    %rsp,%rbp",
+        "push   %r15",
+        "push   %r14",
+        "push   %r13",
+        "push   %r12",
+        "push   %rbx",
+        "and    $0xffffffffffffffc0,%rsp",
+        "sub    $0x100,%rsp"
+      ],
+      "epilogue": [
+        "lea    -0x28(%rbp),%rsp",
+        "pop    %rbx",
+        "pop    %r12",
+        "pop    %r13",
+        "pop    %r14",
+        "pop    %r15",
+        "pop    %rbp"
+      ],
+      "realign_max_pad_bytes": 63,
+      "push_insns_total": 6,
+      "pop_insns_total": 6,
+      "sp_relative_lea": 1,
+      "lea_rbp_rsp_epilogue": true,
+      "frame_bytes": 304,
+      "frame_balanced": null,
+      "return_address_bytes": 8,
+      "vector_insns": {
+        "vfmadd": 1,
+        "mulss": 0,
+        "addss": 0,
+        "zmm_refs": 0,
+        "ymm_refs": 9,
+        "xmm_refs": 10,
+        "v_prefixed_insns": 13,
+        "avx512_broadcast_or_mask": 1
+      },
+      "neon_or_avx_width_hint": "AVX/AVX2 (256-bit ymm)",
+      "invocation_stack_bytes": 375
+    },
+    {
+      "name": "infer_dispatch_1_conv_28x28x4x3x3x8_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x1870",
+      "insns": 96,
+      "padding_insns_after": 14,
+      "code_bytes": 400,
+      "callee_save_bytes": 48,
+      "local_alloc_bytes": 192,
+      "restore_bytes": 48,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 12,
+      "sp_relative_mem_op_list": [
+        "189e: mov    %rsi,0x38(%rsp)",
+        "18b3: mov    %rdx,0x30(%rsp)",
+        "18bb: mov    %rsi,0x28(%rsp)",
+        "18c0: vmovaps %xmm0,0x40(%rsp)",
+        "18d7: or     0x30(%rsp),%rax",
+        "18e3: add    0x38(%rsp),%r9",
+        "18e8: add    0x28(%rsp),%r8",
+        "1900: vmovss 0x40(%rsp,%rax,4),%xmm1",
+        "1906: vmovss %xmm1,(%rsp,%rax,4)",
+        "1940: vmovss (%rsp,%rsi,4),%xmm1",
+        "1966: vmovss %xmm1,(%rsp,%rsi,4)",
+        "199f: vmovaps (%rsp),%xmm1"
+      ],
+      "prologue": [
+        "push   %rbp",
+        "mov    %rsp,%rbp",
+        "push   %r15",
+        "push   %r14",
+        "push   %r13",
+        "push   %r12",
+        "push   %rbx",
+        "and    $0xffffffffffffffc0,%rsp",
+        "sub    $0xc0,%rsp"
+      ],
+      "epilogue": [
+        "lea    -0x28(%rbp),%rsp",
+        "pop    %rbx",
+        "pop    %r12",
+        "pop    %r13",
+        "pop    %r14",
+        "pop    %r15",
+        "pop    %rbp"
+      ],
+      "realign_max_pad_bytes": 63,
+      "push_insns_total": 6,
+      "pop_insns_total": 6,
+      "sp_relative_lea": 1,
+      "lea_rbp_rsp_epilogue": true,
+      "frame_bytes": 240,
+      "frame_balanced": null,
+      "return_address_bytes": 8,
+      "vector_insns": {
+        "vfmadd": 1,
+        "mulss": 0,
+        "addss": 0,
+        "zmm_refs": 0,
+        "ymm_refs": 0,
+        "xmm_refs": 17,
+        "v_prefixed_insns": 12,
+        "avx512_broadcast_or_mask": 1
+      },
+      "neon_or_avx_width_hint": "AVX-512VL-encoded 128-bit xmm ({1toN} broadcast / mask / xmm16-31)",
+      "invocation_stack_bytes": 311
+    },
+    {
+      "name": "infer_dispatch_2_matmul_1x1x3136_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x1a00",
+      "insns": 49,
+      "padding_insns_after": 3,
+      "code_bytes": 368,
+      "callee_save_bytes": 8,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 8,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "push   %rbp",
+        "mov    %rsp,%rbp"
+      ],
+      "epilogue": [
+        "pop    %rbp"
+      ],
+      "realign_max_pad_bytes": 0,
+      "push_insns_total": 1,
+      "pop_insns_total": 1,
+      "sp_relative_lea": 0,
+      "lea_rbp_rsp_epilogue": false,
+      "frame_bytes": 8,
+      "frame_balanced": true,
+      "return_address_bytes": 8,
+      "vector_insns": {
+        "vfmadd": 16,
+        "mulss": 0,
+        "addss": 0,
+        "zmm_refs": 0,
+        "ymm_refs": 0,
+        "xmm_refs": 54,
+        "v_prefixed_insns": 35,
+        "avx512_broadcast_or_mask": 0
+      },
+      "neon_or_avx_width_hint": "AVX-encoded 128-bit xmm",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "iree_hal_executable_library_query",
+      "name_source": "symtab",
+      "addr": "0x1b70",
+      "insns": 5,
+      "padding_insns_after": 0,
+      "code_bytes": null,
+      "callee_save_bytes": 0,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 0,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": false,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [],
+      "epilogue": [],
+      "realign_max_pad_bytes": 0,
+      "push_insns_total": 0,
+      "pop_insns_total": 0,
+      "sp_relative_lea": 0,
+      "lea_rbp_rsp_epilogue": false,
+      "frame_bytes": 0,
+      "frame_balanced": true,
+      "return_address_bytes": 8,
+      "vector_insns": {
+        "vfmadd": 0,
+        "mulss": 0,
+        "addss": 0,
+        "zmm_refs": 0,
+        "ymm_refs": 0,
+        "xmm_refs": 0,
+        "v_prefixed_insns": 0,
+        "avx512_broadcast_or_mask": 0
+      },
+      "neon_or_avx_width_hint": "no vector registers",
+      "invocation_stack_bytes": 8
+    }
+  ],
+  "dispatch_functions": [
+    "infer_dispatch_0_conv_30x30x8x3x3_f32",
+    "infer_dispatch_1_conv_28x28x4x3x3x8_f32",
+    "infer_dispatch_2_matmul_1x1x3136_f32"
+  ],
+  "max_dispatch_frame_bytes": 304,
+  "sum_dispatch_frame_bytes": 552,
+  "max_dispatch_invocation_stack_bytes": 375,
+  "max_dispatch_local_alloc_bytes": 256,
+  "total_call_insns": 0,
+  "total_insns": 257,
+  "total_padding_insns": 23,
+  "total_code_insns": 234,
+  "dispatch_insns": 229,
+  "vector_insns_total": {
+    "vfmadd": 18,
+    "mulss": 0,
+    "addss": 0,
+    "zmm_refs": 0,
+    "ymm_refs": 9,
+    "xmm_refs": 81,
+    "v_prefixed_insns": 60,
+    "avx512_broadcast_or_mask": 2
+  },
+  "any_dynamic_stack_alloc": false,
+  "any_sp_relative_mem_ops": true,
+  "all_dispatch_frames_balanced": true,
+  "call_resolution": {
+    "total_call_insns": 0,
+    "unresolved_call_insns": 0,
+    "resolved": true,
+    "reason": "no call instructions",
+    "distinct_targets": [],
+    "callees": [],
+    "max_chain_stack_bytes": 0
+  },
+  "unresolved_call_insns": 0,
+  "max_dispatch_invocation_stack_bytes_with_calls": 375,
+  "classification_note": "bucket (2) TASK-STACK: each dispatch function reserves at most 304 B of stack (callee-saved + 256 B explicit locals with 20 sp-relative load/store(s) (spills/locals)), 0 call instructions -> call depth 1 below the runtime; per-invocation stack = 375 B incl. return address. Not HAL memory (not in bounded_bytes); add it explicitly to the task/thread stack budget.",
+  "source": {
+    "dump_dir": "dump",
+    "dump_dir_elf_files": [
+      {
+        "path": "dump/module_bigact_linked_embedded_elf_x86_64.o",
+        "bytes": 26224,
+        "arch": "x86_64",
+        "e_type": 1,
+        "sha256": "2a598e08017b95926f70877060bb2764509c87424d8d1740b66608467f7f1d75"
+      },
+      {
+        "path": "dump/module_bigact_linked_embedded_elf_x86_64.so",
+        "bytes": 6448,
+        "arch": "x86_64",
+        "e_type": 3,
+        "sha256": "1b927f4881f824c7a6799f8408db4a91dd143939297ae1f28edda0df87d77a3c"
+      }
+    ],
+    "selected": "dump/module_bigact_linked_embedded_elf_x86_64.so",
+    "vmfb": "bigact.vmfb",
+    "vmfb_bytes": 28423,
+    "vmfb_sha256": "263e961b8a1d9a3a77e074784c660b58b3ac58efbf798e2f45733e1f9892159f",
+    "vmfb_embedded_elfs": [
+      {
+        "offset": 21600,
+        "size": 6448,
+        "arch": "x86_64",
+        "e_type": 3,
+        "zip_entry": {
+          "name": "bigact_linked_embedded_elf_x86_64.so",
+          "uncompressed_size": 6448,
+          "compressed_size": 6448,
+          "method": 0
+        },
+        "size_confirmed_by_zip_entry": true,
+        "sha256": "1b927f4881f824c7a6799f8408db4a91dd143939297ae1f28edda0df87d77a3c"
+      }
+    ],
+    "vmfb_embedded_elf_matches_elf": true
+  }
+}
