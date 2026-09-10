@@ -70,7 +70,7 @@
   "device_bytes_allocated": 131349288,
   "device_bytes_freed": 131349240,
   "host_reads": 4,
-  "note": "every host-side read of a result keeps its HAL buffer allocated in this binding; this is why phase 1 reads the peak from discarded results (D50)"
+  "note": "every host-side read of a result pins its HAL buffer for the process lifetime in this binding (merely holding one without reading is releasable); this is why phase 1 reads the peak from discarded results (D50)"
  },
  "contract": {
   "per_call": 9382092,
@@ -83,7 +83,7 @@
   "peak_eq_per_call": true,
   "peak_eq_bounded": false,
   "allocated_eq_freed": true,
-  "note": "one deployment (pip iree.runtime); the arm is decided by the module image's 64-byte alignment (E29). Not an E26 cell, not a soundness claim."
+  "note": "one deployment (pip iree.runtime). The arm is decided by the module image's 64-byte alignment (E29), and THIS binding enforces that precondition itself -- copy_buffer makes an aligned copy and wrap_buffer refuses an unaligned image -- so only the map arm is reachable here and B_copy is not observable. Not an E26 cell, not a soundness claim."
  },
  "status": "ran"
 }

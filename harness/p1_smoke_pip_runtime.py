@@ -53,11 +53,12 @@ def main():
     fn = ctx.modules.module[a.entry]
     rec["reflection"] = dict(getattr(fn, "vm_function", fn).reflection) if hasattr(getattr(fn, "vm_function", fn), "reflection") else None
 
-    # Phase 1 -- HAL statistics with every result DISCARDED. Reading a result back to
-    # the host through these bindings (np.asarray / to_host / map) keeps its HAL buffer
-    # alive for the rest of the process (nanobind keep_alive; measured: 12 B per read
-    # still "allocated" after del + gc.collect()), which is D50's observer effect in a
-    # new guise. So the peak is read first, from calls whose results are never touched,
+    # Phase 1 -- HAL statistics with every result DISCARDED. Two distinct observer
+    # effects (D50's, in a new guise), both measured: merely HOLDING a returned
+    # DeviceArray raises the peak by 12 B per held output, and that one is releasable
+    # (del + gc.collect() brings held bytes back to 0); READING one back to the host
+    # (np.asarray / to_host() / _map_to_host()) pins its 12 B for the rest of the
+    # process even after del + gc. Discarding results closes both. So the peak is read first, from calls whose results are never touched,
     # and only then are outputs read -- and the statistics are re-read afterwards so
     # the held bytes are visible in the record rather than hidden in the peak.
     rng = np.random.default_rng(0)
@@ -88,8 +89,9 @@ def main():
     rec["deterministic_same_input"] = (call_copy(x).tobytes() == call_copy(x).tobytes())
     st2 = {k: int(v) for k, v in dict(cfg.device.allocator.statistics).items()}
     rec["hal_statistics_after_host_reads"] = dict(st2, host_reads=len(inputs) + 2,
-        note="every host-side read of a result keeps its HAL buffer allocated in this binding; "
-             "this is why phase 1 reads the peak from discarded results (D50)")
+        note="every host-side read of a result pins its HAL buffer for the process lifetime in this "
+             "binding (merely holding one without reading is releasable); this is why phase 1 reads "
+             "the peak from discarded results (D50)")
     rec["contract"] = {"per_call": mem["static_per_call_bytes"], "bounded": mem["bounded_bytes"],
                        "constants": mem["module_resident_constant_bytes"]}
     peak = st.get("device_bytes_peak")
@@ -99,8 +101,10 @@ def main():
         "peak_eq_per_call": peak == mem["static_per_call_bytes"],
         "peak_eq_bounded": peak == mem["bounded_bytes"],
         "allocated_eq_freed": st.get("device_bytes_allocated") == st.get("device_bytes_freed"),
-        "note": "one deployment (pip iree.runtime); the arm is decided by the module image's "
-                "64-byte alignment (E29). Not an E26 cell, not a soundness claim.",
+        "note": "one deployment (pip iree.runtime). The arm is decided by the module image's 64-byte "
+                "alignment (E29), and THIS binding enforces that precondition itself -- copy_buffer "
+                "makes an aligned copy and wrap_buffer refuses an unaligned image -- so only the map "
+                "arm is reachable here and B_copy is not observable. Not an E26 cell, not a soundness claim.",
     }
     rec["status"] = "ran"
     with open(a.out, "w") as fh:
