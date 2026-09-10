@@ -1,0 +1,192 @@
+{
+  "criteria": {
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05,
+    "rule": "abs<=abs_tol OR rel<=rel_tol, per element",
+    "iree_vs_iree": {
+      "same_vmfb": "bit-identical",
+      "cross_vmfb": "abs<=abs_tol OR rel<=rel_tol per element, and equal argmax",
+      "selected_by": "artifact sha256 given per path via --vmfb"
+    },
+    "argmax": "must agree everywhere"
+  },
+  "vmfb_sha256": {
+    "cfs_aarch64": "4e5b2972c0bd970479eb5b8cb855d6ee83ff3dd2d9b86f4bf7773e780cadfba1",
+    "cfs_x86": "0e250c2f16e704dbfd9a272073abb72935d5165c584c3c8d73fcd2790d2baebd",
+    "ireepy": "0e250c2f16e704dbfd9a272073abb72935d5165c584c3c8d73fcd2790d2baebd",
+    "nativec": "0e250c2f16e704dbfd9a272073abb72935d5165c584c3c8d73fcd2790d2baebd"
+  },
+  "model_manifest_sha256": {
+    "model_canonical.mlir": "b9a2fe52e85718938d65bb6773ca82f94dfc88db8452560655533622ba10df30",
+    "weights.npz": "dd078298d59c60315dcac92d5f218a0f29a49001ac6d36555822547a23ad0224",
+    "inputs.npy": "71e541a69fb7ff23cfe4f21853d81b672dce4e67c8d0701e2ffdfb988a396d78"
+  },
+  "n_out": 2,
+  "vs_reference": {
+    "cfs_aarch64": {
+      "normalized": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 2.956390380859375e-05,
+        "rel_max": 2.4077380658127367e-05,
+        "would_pass_abs_only": 64,
+        "would_pass_rel_only": 59,
+        "output_abs_max": 12.11511516571045
+      },
+      "telemetry": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 3712.0,
+        "rel_max": 2.885821459130966e-06,
+        "would_pass_abs_only": 1,
+        "would_pass_rel_only": 64,
+        "output_abs_max": 1286287872.0
+      },
+      "all_passed": true
+    },
+    "cfs_x86": {
+      "normalized": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 2.956390380859375e-05,
+        "rel_max": 2.4077380658127367e-05,
+        "would_pass_abs_only": 64,
+        "would_pass_rel_only": 59,
+        "output_abs_max": 12.11511516571045
+      },
+      "telemetry": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 3712.0,
+        "rel_max": 2.885821459130966e-06,
+        "would_pass_abs_only": 1,
+        "would_pass_rel_only": 64,
+        "output_abs_max": 1286287872.0
+      },
+      "all_passed": true
+    },
+    "ireepy": {
+      "normalized": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 2.956390380859375e-05,
+        "rel_max": 2.4077380658127367e-05,
+        "would_pass_abs_only": 64,
+        "would_pass_rel_only": 59,
+        "output_abs_max": 12.11511516571045
+      },
+      "telemetry": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 3712.0,
+        "rel_max": 2.885821459130966e-06,
+        "would_pass_abs_only": 1,
+        "would_pass_rel_only": 64,
+        "output_abs_max": 1286287872.0
+      },
+      "all_passed": true
+    },
+    "nativec": {
+      "normalized": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 2.956390380859375e-05,
+        "rel_max": 2.4077380658127367e-05,
+        "would_pass_abs_only": 64,
+        "would_pass_rel_only": 59,
+        "output_abs_max": 12.11511516571045
+      },
+      "telemetry": {
+        "elements": 64,
+        "passed": 64,
+        "abs_max": 3712.0,
+        "rel_max": 2.885821459130966e-06,
+        "would_pass_abs_only": 1,
+        "would_pass_rel_only": 64,
+        "output_abs_max": 1286287872.0
+      },
+      "all_passed": true
+    }
+  },
+  "iree_vs_iree": {
+    "cfs_aarch64__vs__cfs_x86": {
+      "rule": "cross_vmfb",
+      "vmfb_same": false,
+      "bit_identical": true,
+      "differing_elements": 0,
+      "elements": 128,
+      "elements_passed": 128,
+      "abs_max": 0.0,
+      "rel_max": 0.0,
+      "argmax_agree": 64,
+      "argmax_total": 64,
+      "passed": true
+    },
+    "cfs_aarch64__vs__ireepy": {
+      "rule": "cross_vmfb",
+      "vmfb_same": false,
+      "bit_identical": true,
+      "differing_elements": 0,
+      "elements": 128,
+      "elements_passed": 128,
+      "abs_max": 0.0,
+      "rel_max": 0.0,
+      "argmax_agree": 64,
+      "argmax_total": 64,
+      "passed": true
+    },
+    "cfs_aarch64__vs__nativec": {
+      "rule": "cross_vmfb",
+      "vmfb_same": false,
+      "bit_identical": true,
+      "differing_elements": 0,
+      "elements": 128,
+      "elements_passed": 128,
+      "abs_max": 0.0,
+      "rel_max": 0.0,
+      "argmax_agree": 64,
+      "argmax_total": 64,
+      "passed": true
+    },
+    "cfs_x86__vs__ireepy": {
+      "rule": "same_vmfb",
+      "vmfb_same": true,
+      "bit_identical": true,
+      "differing_elements": 0,
+      "passed": true
+    },
+    "cfs_x86__vs__nativec": {
+      "rule": "same_vmfb",
+      "vmfb_same": true,
+      "bit_identical": true,
+      "differing_elements": 0,
+      "passed": true
+    },
+    "ireepy__vs__nativec": {
+      "rule": "same_vmfb",
+      "vmfb_same": true,
+      "bit_identical": true,
+      "differing_elements": 0,
+      "passed": true
+    }
+  },
+  "argmax": {
+    "cfs_aarch64": {
+      "agree_with_reference": 64,
+      "total": 64
+    },
+    "cfs_x86": {
+      "agree_with_reference": 64,
+      "total": 64
+    },
+    "ireepy": {
+      "agree_with_reference": 64,
+      "total": 64
+    },
+    "nativec": {
+      "agree_with_reference": 64,
+      "total": 64
+    }
+  },
+  "pass": true
+}

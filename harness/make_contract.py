@@ -32,6 +32,22 @@ What is parsed from where
                                        bytes/sha256 (must equal the ELF embedded
                                        in V)
   --elf-analysis JSON                  kernel stack frame / call / alloca facts
+  mlir_alloc_walk.parse_alloc_ir_structural(IR)
+                                       E19: a SECOND, independent reader of the
+                                       same layout IR, via IREE's own MLIR
+                                       Python API (iree.compiler.ir) instead of
+                                       regex (EVIDENCE_v0.13/E18). Used as a
+                                       MANDATORY cross-check against
+                                       static_mem_bound.parse_alloc_ir: if it
+                                       disagrees or cannot parse the IR, the
+                                       contract is refused (see
+                                       --allow-structural-mismatch); if the
+                                       package is not installed at all, the
+                                       contract is ALSO refused by default
+                                       (F3, external review 2026-09 -- a
+                                       missing checker is not a passing one;
+                                       see --allow-missing-structural-checker
+                                       for the explicit opt-out).
 
 Caveat recorded in provenance (found while writing this): with the default
 multi-threaded pass manager, --mlir-print-ir-after prints EVERY function
@@ -47,6 +63,7 @@ Exit codes: 0 ok; 2 input problem; 3 contract written but schema validation fail
 """
 import argparse
 import hashlib
+import itertools
 import json
 import os
 import re
@@ -61,6 +78,10 @@ try:
     import elf_stack_frame as esf  # noqa: E402  optional: locate ELFs inside the vmfb
 except Exception:  # pragma: no cover
     esf = None
+try:
+    import mlir_alloc_walk as maw  # noqa: E402  optional: structural (iree.compiler.ir) cross-check, E19
+except Exception:  # pragma: no cover
+    maw = None
 
 MEMORY_BOUNDARY = "per_call_plus_module_constants"
 BOUND_METHOD_STATIC = "static_from_stream_layout"
@@ -194,19 +215,105 @@ def packed_constant_buffers(ir):
     return best
 
 
-def subset_sum_match(total, segs, max_segments=24):
-    """True if `total` equals the sum of some non-empty subset of `segs`."""
-    if total <= 0 or not segs:
-        return False
-    segs = list(segs)[:max_segments]
-    reach = {0}
+# R4 (external review v0.19-reframe, E24b): the enumeration budget is now on the
+# TOTAL, not on the number of segments. The old `max_segments=24` truncation was
+# the reachable half of R4: a single honest `iree-compile` with the stock flag
+# --iree-stream-resource-max-allocation-size=1024 yields more data segments than
+# that cap, and the old code then silently dropped segments 25.. and reported
+# "NOT matched" about a total that DOES match -- a factually false assertion in a
+# shipped contract, copied onward by cross_target_compare.py.
+#
+# E24c/F4 (external review v0.20) pointed out that this claim was pinned only by a
+# synthesised integer array, with no real artifact preserved. It now is:
+# results/e24c_manyconst31/ is ONE invocation of that exact flag on a 31-constant
+# model (harness/gen_model_manyconst.py), and this repo's own
+# artifact_rodata_segments() counts 33 data segments there (32 embedded 1024 B
+# constant slabs + 1 external) against a constant total of 33792 B. Measured on
+# that bundle: this implementation returns True in ~0.1 ms; the pre-E24b
+# truncation returns False, because the first 24 segments sum to 24576 B < 33792 B.
+# Both verdicts are pinned by preserved_manyconst31_cases() in
+# harness/contract_negative_tests.py. The cap below only bounds the bitset width.
+SUBSET_SUM_MAX_TOTAL = 1 << 28   # 256 MiB of module-resident constants
+# F3/E24c: above the total budget, fall back to combination enumeration when the
+# segment count is small. 20 segments is 1,048,575 subsets worst case (~0.2 s
+# measured); beyond that the answer is genuinely unevaluable and stays None.
+SUBSET_SUM_MAX_COMBINATION_SEGMENTS = 20
+
+
+def subset_sum_match(total, segs, max_total=SUBSET_SUM_MAX_TOTAL):
+    """Tri-state (R4, E24b):
+
+      True  -- some non-empty subset of `segs` sums to `total`
+      False -- enumerated EXHAUSTIVELY and nothing sums to `total` (a contradiction)
+      None  -- unevaluable: nothing to confirm (`total <= 0`), no observation at all
+               (`segs` empty/None), or `total` exceeds the enumeration budget
+
+    This is the fix EVIDENCE_v0.19 §7 recorded as out of scope: previously a plain
+    `False` meant all three, so the N1 gate had to re-separate them at the call
+    site with carve-outs. `False` now means only "contradicted", which is what a
+    fail-closed gate should refuse on.
+
+    Exhaustive, not truncating: a bitset DP pruned to `total` (segments larger than
+    `total` cannot participate, so they are skipped rather than dropped by
+    position). Bit i of `reach` means "some subset sums to i".
+    """
+    if segs is None or not segs:
+        return None
+    if total is None or total <= 0:
+        return None
+    # F3 (external review v0.20, E24c): the budget bail-out below returns None,
+    # and the N1 call site refuses only rodata_unavailable and an outright False,
+    # so a budget-exceeded None used to leave a bound-known contract with the
+    # independent constant confirmation silently NOT MADE -- the same shape as
+    # D25 (an artifact-side check not performed, with a deployable header
+    # indistinguishable from the confirmed case).
+    #
+    # Refusing on the budget alone would be a type-(B) over-rejection: an honest
+    # >256 MiB model whose total IS exactly one segment would lose its contract
+    # for no reason. So decide cheaply FIRST, and only fall through to None when
+    # the cheap procedures are inconclusive. Both are O(n) or bounded and cost
+    # nothing on the in-budget path, where the DP below decides anyway.
+    cand = [x for x in segs if isinstance(x, int) and not isinstance(x, bool) and 0 < x <= total]
+    if total in cand:
+        return True                      # a single segment IS the total
+    if total > max_total:
+        if len(cand) <= SUBSET_SUM_MAX_COMBINATION_SEGMENTS:
+            # cost depends on the segment COUNT, not on `total`, so this stays
+            # affordable exactly where the bitset DP would not be.
+            for k in range(2, len(cand) + 1):
+                for combo in itertools.combinations(cand, k):
+                    if sum(combo) == total:
+                        return True
+            return False                 # enumerated exhaustively -> contradicted
+        return None                      # genuinely unevaluable, never "contradicted"
+    mask = (1 << (total + 1)) - 1
+    reach = 1                            # bit 0: the empty subset
     for s in segs:
-        reach |= {r + s for r in reach}
-    return total in reach
+        if not isinstance(s, int) or s <= 0 or s > total:
+            continue                     # cannot participate in a subset summing to `total`
+        reach |= (reach << s) & mask
+        if (reach >> total) & 1:
+            return True                  # early exit
+    return bool((reach >> total) & 1)
 
 
 def iree_dump_module(vmfb):
-    r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    """`iree-dump-module <vmfb>` -> (stdout, None) or (None, error).
+
+    D25 (E23): the binary being ABSENT (a checkout without iree-base-compiler
+    installed) used to raise FileNotFoundError out of this function and kill
+    the caller before it could report anything -- the same crash class as D24,
+    at a different point, and one a local `sys.meta_path` import block cannot
+    reproduce because it only hides the Python module, not the console script.
+    Real CI (the without-deps leg of .github/workflows/contract-negative-tests.yml)
+    is what caught it. A missing binary is now the same degrade path as a
+    failing one: the two fields it feeds (executable_format_in_artifact,
+    vm_bytecode_bytes) are informational -- no gate reads them -- and their
+    absence is recorded in provenance.notes rather than guessed."""
+    try:
+        r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    except OSError as e:
+        return None, "iree-dump-module not runnable: %s" % e
     if r.returncode != 0:
         return None, r.stderr[-500:]
     return r.stdout, None
@@ -233,9 +340,60 @@ def sig_equal(a, b):
     return [tensor_json(t) for t in a] == [tensor_json(t) for t in b]
 
 
+# F3 (external review v0.20, E24c): `constants_independently_confirmed_in_artifact`
+# is True/False/None, and the four distinct reasons behind `None` lived only in
+# the free-text `constants_check_note`. A machine-readable discriminator is what
+# the review actually asked for -- prose cannot be consumed by a gate, by
+# cross_target_compare.py, or by a reader of a stored contract. The states are
+# exactly the ones the note names, so the two can never disagree.
+CONSTANTS_CONFIRMATION_STATES = (
+    "confirmed",                      # a subset of the observed .rodata segments sums to the IR total
+    "contradicted",                   # enumerated exhaustively; nothing sums to it
+    "nothing_to_confirm",             # the model has no module-resident constants
+    "not_observed",                   # iree-dump-module could not run at all (D25)
+    "unevaluable_budget_exceeded",    # total over budget AND too many segments to enumerate
+)
+
+
+def constants_confirmation_state(const_b, consts_confirmed, rodata_unavailable):
+    if rodata_unavailable:
+        return "not_observed"
+    if not (isinstance(const_b, int) and not isinstance(const_b, bool) and const_b > 0):
+        return "nothing_to_confirm"
+    if consts_confirmed is True:
+        return "confirmed"
+    if consts_confirmed is False:
+        return "contradicted"
+    return "unevaluable_budget_exceeded"
+
+
 # ----------------------------------------------------------------------------
 def build_contract(a, extra_args):
     notes = []
+    # R5 (external review v0.19-reframe, E24b): every --allow-* escape hatch below
+    # suppresses a refusal and leaves NO trace in the contract it then writes.
+    # An overridden contract and a fully verified one were byte-comparable
+    # except for the free-text `notes` list, which no downstream consumer
+    # parses -- gen_contract_header.py reads none of it, so a header built from
+    # a contract whose ABI/triple/ELF/one-invocation checks were all waived is
+    # indistinguishable from one whose checks all passed.
+    #
+    # `waive()` wraps the flag ACCESS rather than the refusal site: a purely
+    # mechanical patch (append next to each `hard_fail_errors.append`) misses the
+    # two combined-form gates (`if <cond> and not a.allow_...`), and a contract
+    # that then reports overrides_applied=[] / verification_grade="verified"
+    # WHILE an override was applied is strictly worse than recording nothing at
+    # all. Short-circuit evaluation gives the combined form the right semantics
+    # for free: `waive()` is only reached when the error condition holds, i.e.
+    # only when the flag actually suppresses something.
+    overrides_applied = []
+
+    def waive(flag, enabled):
+        """Return `enabled`; record `flag` when it actually suppresses a refusal."""
+        if enabled and flag not in overrides_applied:
+            overrides_applied.append(flag)
+        return bool(enabled)
+
     # D13/EVIDENCE_v0.9 SS11.9, R3 (external review): a mismatch here used to
     # only go into `notes` -- the contract was still written with a bound
     # that assumed the ABI/triple/ELF the reader trusts. Each check below
@@ -265,12 +423,21 @@ def build_contract(a, extra_args):
     abi = abi_declaration(ir, a.entry)
     abi_matches = (abi is not None and sig_equal(abi["inputs"], sig["inputs"])
                    and sig_equal(abi["outputs"], sig["outputs"]))
+    # F2 (external review, 2026-09): a MISSING iree.abi.declaration used to only
+    # go into `notes` -- unlike a declaration that disagrees with the source
+    # (handled below), an absent one skipped the compiler's own reflection
+    # cross-check entirely and still let the contract trust the source
+    # signature alone. Missing is not the same as agreeing; treat it the same
+    # as a mismatch (hard fail unless explicitly overridden).
     if abi is None:
-        notes.append("no iree.abi.declaration for @%s in the layout IR" % a.entry)
+        msg = "no iree.abi.declaration for @%s in the layout IR" % a.entry
+        notes.append(msg)
+        if not waive("--allow-missing-abi-declaration", a.allow_missing_abi_declaration):
+            hard_fail_errors.append(msg + " (pass --allow-missing-abi-declaration to override)")
     elif not abi_matches:
         msg = "iree.abi.declaration disagrees with the MLIR source signature"
         notes.append(msg)
-        if not a.allow_abi_mismatch:
+        if not waive("--allow-abi-mismatch", a.allow_abi_mismatch):
             hard_fail_errors.append(msg + " (pass --allow-abi-mismatch to override)")
 
     # ---- allocation schedule (entry) ---------------------------------------
@@ -319,15 +486,122 @@ def build_contract(a, extra_args):
         notes.append("packed constant buffers (%d B) smaller than the dense constant sum (%d B): "
                      "some constants were inlined into executables or deduplicated" % (packed_sum, dense_sum))
 
+    # ---- structural (non-regex) cross-check (E19, CLAUDE.md priority 3 stage 2) --
+    # E18 (EVIDENCE_v0.13) built harness/mlir_alloc_walk.py, a second, independently
+    # implemented reader of the SAME layout IR: it walks IREE's real Operation/Value
+    # graph (iree.compiler.ir) instead of matching regexes against the printed text,
+    # and EVIDENCE_v0.13 SS3 validated it against all 14 stored contracts (exact
+    # agreement on inputs/outputs/transient_slabs, constants by sum, entry_found,
+    # and unresolved-presence). Wiring it in here as a MANDATORY cross-check (not a
+    # replacement -- EVIDENCE_v0.13 SS4 explicitly scoped replacement out as needing
+    # further stream.resource.pack coverage and multi-compiler-version testing)
+    # means a silent misparse in either implementation alone can no longer pass
+    # unnoticed: two independent readers of the same IR must agree before a
+    # contract is written. It also gives CLAUDE.md priority 3's still-unmet
+    # evaluation criterion ("compiler 버전 변경 시 명시적 실패") a real enforcement
+    # point -- if a future IREE version changes the layout IR in a way the
+    # structural parser can't handle, ir.Module.parse() raises and THIS hard-fails
+    # the contract, instead of the regex path silently keeping its own number with
+    # nothing to check it against.
+    structural = None
+    structural_error = None
+    structural_available = maw is not None and getattr(maw, "ir", None) is not None
+    if structural_available:
+        try:
+            structural = maw.parse_alloc_ir_structural(ir, a.entry)
+        except Exception as e:
+            structural_error = str(e)[:500]
+    elif maw is not None:
+        structural_error = "iree.compiler.ir not importable (%s)" % getattr(maw, "_IMPORT_ERROR", "?")
+
+    # E19 code review (2026-09) found two false-hard-fail bugs in the first
+    # version of this block, both confirmed by real reproduction:
+    #   (1) it compared `structural` against `whole` (smb.parse_alloc_ir on the
+    #       WHOLE file, which -- per static_mem_bound.py's own "take the LAST
+    #       occurrence" comment -- assumes the entry function's last print in
+    #       the file is its most-lowered one). The contract's actual numbers
+    #       come from `p` (chosen just above by lowering_score, NOT file
+    #       order) precisely because that assumption can be wrong -- this
+    #       module's own docstring says the print order depends on thread
+    #       scheduling. Comparing against `whole` instead of `p` meant a
+    #       structurally-correct extraction could be hard-refused merely
+    #       because the file happened to print the lowered chunk first.
+    #   (2) it compared structural's constants sum against `dense_sum` (the
+    #       raw per-tensor sum). structural's constants sum is actually the
+    #       PACKED stream.resource.alloc size (see mlir_alloc_walk.py's
+    #       _extract_constants), i.e. it tracks packed_sum, not dense_sum --
+    #       the same distinction this file already carries as const_b
+    #       (packed_sum when nonzero, else dense_sum; see above). Any model
+    #       with nonzero constant-packing padding/dedup (padding != 0) would
+    #       false-hard-fail forever, even though const_b -- what the contract
+    #       actually reports -- was correct.
+    # Both are fixed by comparing against what the contract actually signs
+    # (p, const_b) instead of the legacy/reference-only values (whole,
+    # dense_sum); the diff logic itself now lives once, in
+    # mlir_alloc_walk.diff_against_regex, so make_contract.py and
+    # mlir_alloc_walk.py's own --cross-check CLI cannot independently drift
+    # into the same bug again.
+    structural_diffs = (maw.diff_against_regex(structural, p, constants_reference=const_b)
+                        if structural is not None else [])
+
+    if not structural_available:
+        structural_note = ("structural (iree.compiler.ir) cross-check unavailable%s: this project calls it "
+                           "a MANDATORY cross-check, so a genuinely missing checker is refused by default "
+                           "the same as an active disagreement (F3, external review 2026-09) -- pass "
+                           "--allow-missing-structural-checker to proceed with the regex parser alone"
+                           % ((" (%s)" % structural_error) if structural_error else ""))
+    elif structural is None:
+        structural_note = "structural (iree.compiler.ir) cross-check could not parse the layout IR: %s" % structural_error
+    elif structural_diffs:
+        structural_note = "structural (iree.compiler.ir) extractor DISAGREES with the regex parser on %s" % structural_diffs
+    else:
+        structural_note = "structural (iree.compiler.ir) extractor agrees with the regex parser"
+    structural_prov = {
+        "available": structural_available,
+        "parse_error": structural_error,
+        "agrees_with_regex_parser": (not structural_diffs) if structural is not None else None,
+        "diffs": structural_diffs,
+        "dispatches": structural.get("dispatches") if structural is not None else None,
+        "note": structural_note,
+    }
+    # only note the "agrees" case in structural_prov (above), not in the
+    # top-level notes list -- matches pre-existing behaviour for every other
+    # silently-passing check in this function, and keeps the 14 stored
+    # contracts' provenance.notes list byte-for-byte unchanged (regression
+    # check, harness/contract_negative_tests.py).
+    if structural_available and (structural is None or structural_diffs):
+        notes.append(structural_note)
+        if not waive("--allow-structural-mismatch", a.allow_structural_mismatch):
+            hard_fail_errors.append(structural_note + " (pass --allow-structural-mismatch to override)")
+    elif not structural_available:
+        notes.append(structural_note)
+        if not waive("--allow-missing-structural-checker", a.allow_missing_structural_checker):
+            hard_fail_errors.append(structural_note)
+
     # ---- artifact ---------------------------------------------------------
     dump_txt, dump_err = iree_dump_module(a.vmfb)
     rod = smb.artifact_rodata_segments(a.vmfb)
-    if isinstance(rod, tuple) and len(rod) == 2:
-        ext_segs, data_segs = list(rod[0]), list(rod[1])
-    else:  # older static_mem_bound returned one list
-        ext_segs, data_segs = list(rod), list(rod)
-    consts_confirmed = subset_sum_match(const_b, data_segs)
-    consts_confirmed_dense = subset_sum_match(dense_sum, data_segs)
+    if rod == (None, None):
+        # D25 (E23): iree-dump-module is not runnable, so the INDEPENDENT
+        # (non-IR) confirmation of the module constant total cannot be made at
+        # all. Record null -- never False, which would read as "checked and
+        # contradicted" -- and refuse by default, the same treatment F1 gave
+        # an unevaluable one-invocation cross-check (same override flag: a
+        # contract whose independent checks could not run is exactly what
+        # --allow-unverified-invocation is for).
+        ext_segs, data_segs = None, None
+        consts_confirmed = consts_confirmed_dense = None
+        rodata_unavailable = ("iree-dump-module is not runnable: the independent artifact-side confirmation of "
+                              "module_resident_constant_bytes (.rodata segments) could not be evaluated")
+        notes.append(rodata_unavailable)
+    else:
+        rodata_unavailable = None
+        if isinstance(rod, tuple) and len(rod) == 2:
+            ext_segs, data_segs = list(rod[0]), list(rod[1])
+        else:  # older static_mem_bound returned one list
+            ext_segs, data_segs = list(rod), list(rod)
+        consts_confirmed = subset_sum_match(const_b, data_segs)
+        consts_confirmed_dense = subset_sum_match(dense_sum, data_segs)
     exec_fmt = None
     bytecode_bytes = None
     if dump_txt:
@@ -368,7 +642,7 @@ def build_contract(a, extra_args):
     if ll_triple and ll_triple.split("-")[0] != a.triple.split("-")[0]:
         msg = "codegen.ll target triple %s does not match --triple %s" % (ll_triple, a.triple)
         notes.append(msg)
-        if not a.allow_triple_mismatch:
+        if not waive("--allow-triple-mismatch", a.allow_triple_mismatch):
             hard_fail_errors.append(msg + " (pass --allow-triple-mismatch to override)")
     dump_elf_in_vmfb = (dump_elf["sha256"] in embedded_shas) if (dump_elf and embedded) else None
 
@@ -411,7 +685,73 @@ def build_contract(a, extra_args):
     layout_dispatches_in_dump = (all(any(dn in fname for fname in dump_names) for dn in layout_dispatch_names)
                                  if (layout_dispatch_names and dump_files) else None)
 
+    # F1 (external review, 2026-09): the three one-invocation signals above
+    # (dump_elf_in_vmfb, stem_in_dump, layout_dispatches_in_dump) are each
+    # tri-state -- True (verified same-invocation), False (verified NOT the
+    # same, e.g. D10/D14), or None ("could not evaluate", e.g. --dump-dir was
+    # empty). The checks below only ever caught the False case; a --dump-dir
+    # with zero files makes every signal None, invocation_errors stays empty,
+    # and the contract is written with single_invocation=false and NOT ONE
+    # note explaining why -- "did not find a mismatch" silently became
+    # equivalent to "confirmed the same invocation". Reproduced directly:
+    # --dump-dir pointed at an empty directory writes a fully "valid"
+    # contract. Fail closed on "could not verify" the same as on "verified
+    # mismatch", with the same --allow-* escape hatch pattern.
     invocation_errors = []
+    if rodata_unavailable and not waive("--allow-unverified-invocation", a.allow_unverified_invocation):
+        invocation_errors.append(rodata_unavailable + " (pass --allow-unverified-invocation to override)")
+
+    # N1 (external review v0.18-followup, 2026-09): D25 above refuses "could not
+    # observe the artifact-side constant total". But the STRICTLY STRONGER negative
+    # evidence -- observed it and it CONTRADICTS the IR total -- was only written
+    # into constants_check_note and never refused. Reproduced: a dump reporting
+    # .rodata [1, 6344] against an IR total of 2176 B still wrote a contract whose
+    # header was byte-identical to the healthy one.
+    #
+    # R4 (E24b) simplified this gate. subset_sum_match() is now genuinely
+    # tri-state, so `False` means ONLY "enumerated exhaustively and contradicted"
+    # -- the two carve-outs that used to re-separate the states at this call site
+    # ("nothing to confirm" for const_b == 0, and ">24 segments, gave up") are now
+    # answered by `None` inside the function itself, which the D25 branch above
+    # already treats as unevaluable. One carve-out remains and must stay:
+    #   the dense sum IS confirmed and const_b >= dense_sum -- constant-buffer
+    #   alignment padding (D17/E20), a sound over-approximation that E20 fixed AS
+    #   an over-rejection defect. Refusing it would re-open D17 (measured: the E20
+    #   regression fixture fails without this carve-out).
+    _consts_pad_ok = bool(consts_confirmed_dense) and dense_sum > 0 and const_b >= dense_sum
+    if consts_confirmed is False and not _consts_pad_ok:
+        msg = ("module_resident_constant_bytes %d B is CONTRADICTED by the independent artifact-side "
+               "observation: no subset of the flatbuffer .rodata segments %s sums to it, and the dense "
+               "constant sum %d B is not confirmed either (iree-dump-module)" % (const_b, data_segs, dense_sum))
+        notes.append(msg)
+        if not waive("--allow-unconfirmed-constants", a.allow_unconfirmed_constants):
+            invocation_errors.append(msg + " (pass --allow-unconfirmed-constants to override)")
+    # F3 (external review v0.20, E24c): a budget-exceeded confirmation is
+    # "could not evaluate", which D25 already refuses when the cause is a missing
+    # iree-dump-module. The same evidential state must get the same treatment
+    # whatever caused it -- otherwise a contract can ship bound-known with the
+    # independent constant check silently not made. Reachable only when the total
+    # exceeds SUBSET_SUM_MAX_TOTAL *and* the cheap decision procedures above were
+    # inconclusive (>20 candidate segments), so no artifact in this repo is
+    # affected: the largest constant total here is 720,896 B, 372x below budget.
+    if (constants_confirmation_state(const_b, consts_confirmed, rodata_unavailable)
+            == "unevaluable_budget_exceeded"):
+        msg = ("module_resident_constant_bytes %d B could not be confirmed against the artifact: the total "
+               "exceeds the subset-sum enumeration budget (%d B) and there are too many .rodata segments "
+               "(%d) to enumerate exhaustively. 'Could not evaluate' is not 'confirmed'"
+               % (const_b, SUBSET_SUM_MAX_TOTAL, len(data_segs or [])))
+        notes.append(msg)
+        if not waive("--allow-unverified-invocation", a.allow_unverified_invocation):
+            invocation_errors.append(msg + " (pass --allow-unverified-invocation to override)")
+    if not dump_files:
+        msg = ("--dump-dir '%s' contains no files: none of the one-invocation cross-checks "
+              "(embedded-ELF match, mlir-basename match, layout-ir dispatch match) could be "
+              "evaluated -- this looks like --iree-hal-dump-executable-files-to was not passed "
+              "to the compile, or --dump-dir points at the wrong directory, not like a verified "
+              "same-invocation compile" % a.dump_dir)
+        notes.append(msg)
+        if not waive("--allow-unverified-invocation", a.allow_unverified_invocation):
+            invocation_errors.append(msg + " (pass --allow-unverified-invocation to override)")
     if dump_elf is not None and embedded and dump_elf_in_vmfb is False:
         invocation_errors.append(
             "--dump-dir's linked executable (%s, sha256 %s) is NOT embedded in --vmfb: "
@@ -425,10 +765,49 @@ def build_contract(a, extra_args):
         invocation_errors.append(
             "--layout-ir references dispatch(es) %s that have no file under --dump-dir: "
             "--layout-ir looks like it belongs to a different compile than --dump-dir" % missing)
+
+    # N2 (external review v0.18-followup, 2026-09): F1 above closed only the
+    # *empty* --dump-dir case. A NON-empty dump dir that is merely missing the
+    # linked executable (.so/.elf) leaves dump_elf_in_vmfb None -- no branch above
+    # fires, and the contract was written with single_invocation=false, an empty
+    # notes list, and a byte-identical deployable header. Reproduced by deleting
+    # one .so from a copy of the archived conv2d dump dir (exit 0, no override
+    # flag), and escalated: that same dump dir paired with a DIFFERENT model's
+    # vmfb also produced a contract, which is the D10 hole re-opened through the
+    # None path. It is reachable without hand-editing anything -- compiling with
+    # --iree-hal-dump-executable-sources-to/-intermediates-to instead of the meta
+    # flag --iree-hal-dump-executable-files-to yields exactly this dump dir.
+    #
+    # This catch-all deliberately covers ONLY the None ("could not evaluate")
+    # state: each False state already has an unconditional, non-overridable
+    # branch above, and folding those in here would both duplicate the diagnostic
+    # and wrongly advertise a verified mismatch as --allow-* overridable.
+    unverifiable = []
+    if dump_elf_in_vmfb is None:
+        unverifiable.append(
+            "dump_elf_sha256_in_vmfb=None (linked executable found under --dump-dir: %s): the vmfb<->dump-dir "
+            "binding could not be established -- pass --iree-hal-dump-executable-files-to (the meta flag), "
+            "not only the component --iree-hal-dump-executable-{sources,intermediates}-to flags"
+            % (dump_elf["name"] if dump_elf else "none"))
+    if stem_in_dump is None:
+        unverifiable.append("mlir_basename_in_dump_dir_files=None (--mlir stem %r could not be checked)" % mlir_stem)
+    if layout_dispatches_in_dump is None:
+        unverifiable.append("layout_dispatches_in_dump=None (layout-ir dispatch names %s could not be checked)"
+                            % (layout_dispatch_names or "[]"))
+    for m in unverifiable:
+        notes.append("one-invocation signal not verified: " + m)   # never silent again
+    if unverifiable and not waive("--allow-unverified-invocation", a.allow_unverified_invocation):
+        invocation_errors.append("one-invocation cross-check(s) could not be evaluated: " + "; ".join(unverifiable)
+                                 + " (pass --allow-unverified-invocation to override)")
+
     if invocation_errors or hard_fail_errors:
         raise SystemExit("one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):\n  - "
                          + "\n  - ".join(invocation_errors + hard_fail_errors))
-    single_invocation = bool(dump_elf_in_vmfb) and (stem_in_dump is not False) and (layout_dispatches_in_dump is not False)
+    # N2: every signal must be positively True. The previous form accepted None
+    # for two of the three (`is not False`), i.e. "did not find a mismatch" was
+    # recorded as "confirmed same invocation".
+    single_invocation = (dump_elf_in_vmfb is True and stem_in_dump is True
+                         and layout_dispatches_in_dump is True)
 
     # ---- ELF analysis (harness/elf_stack_frame.py) --------------------------
     elf = None
@@ -442,25 +821,64 @@ def build_contract(a, extra_args):
         if embedded and elf.get("elf_sha256") not in embedded_shas:
             msg = "ELF analysed by elf_stack_frame.py is NOT the ELF embedded in the vmfb"
             notes.append(msg)
-            if not a.allow_elf_analysis_mismatch:
+            if not waive("--allow-elf-analysis-mismatch", a.allow_elf_analysis_mismatch):
                 raise SystemExit("one-invocation / provenance check FAILED (not writing a contract for mismatched "
                                  "inputs):\n  - %s (pass --allow-elf-analysis-mismatch to override)" % msg)
     if elf is not None:
         stack_b = elf.get("max_dispatch_frame_bytes")
-        calls = elf.get("total_call_insns")
+        stack_inv = elf.get("max_dispatch_invocation_stack_bytes")
+        total_calls = elf.get("total_call_insns")
+        # E26a: the field below has always been NAMED kernel_external_call_insns but was
+        # filled with the count of ALL call instructions, internal ones included -- and the
+        # header generator's stack-trust gate (E21/D22) reads it as "calls whose callee stack
+        # we cannot see". For every model this repo had measured that distinction was empty
+        # (total_call_insns == 0 in all 14 stored analyses and in E25's canonical model), so
+        # the two readings never diverged. A real CNN diverges immediately: MLPerf Tiny's
+        # ResNet softmax dispatch calls a compiler-generated float helper inside the same
+        # ELF 80 times, which is not an external call and does have a visible, static frame.
+        # Use the resolver's verdict, and fall back to the total when the analysis file is
+        # older than the resolver -- absent evidence keeps the conservative reading.
+        # Only the VERDICT goes into the contract (this count, the classification and the
+        # note that explains it); the per-callee detail stays in the ELF analysis JSON,
+        # which is where the analysis lives. That also keeps the 14 stored contracts
+        # byte-identical: they all have total_call_insns == 0, so both readings give 0.
+        unresolved_calls = elf.get("unresolved_call_insns")
+        calls = total_calls if unresolved_calls is None else unresolved_calls
+        # the task-stack figure must include the resolved chain, not just the dispatch frame
+        stack_inv_chain = elf.get("max_dispatch_invocation_stack_bytes_with_calls")
+        if not (isinstance(stack_inv_chain, int) and not isinstance(stack_inv_chain, bool)):
+            stack_inv_chain = stack_inv
         alloca = (elf.get("llvm_ir") or {}).get("alloca_count")
         dyn = bool(elf.get("any_dynamic_stack_alloc"))
+        # R1 (external review v0.19-reframe, E24b): these two numbers were copied
+        # out of the --elf-analysis JSON with no sanity check, so a stale,
+        # hand-written or third-party analysis file could put a NEGATIVE task
+        # stack into a schema-valid contract -- and from there into a header
+        # whose C gate becomes a tautology (see gen_contract_header.py's R1
+        # comment). make_contract.py hashes the analysis file and matches its
+        # elf_sha256 against the vmfb, but never questioned its numbers. Refuse
+        # here so the bad value cannot enter a contract at all; the header-side
+        # guard is the second layer.
+        for _name, _v in (("max_dispatch_frame_bytes", stack_b),
+                          ("max_dispatch_invocation_stack_bytes", stack_inv),
+                          ("max_dispatch_invocation_stack_bytes_with_calls", stack_inv_chain)):
+            if isinstance(_v, int) and not isinstance(_v, bool) and _v < 0:
+                raise SystemExit("--elf-analysis reports a negative %s (%r): a task stack figure cannot be "
+                                 "negative; refusing to write it into a contract" % (_name, _v))
         if dyn:
             cls = "bucket_4_unaccounted_dynamic_stack"
         elif calls:
             cls = "bucket_3_or_4_unresolved_calls"
-        elif stack_b:
+        elif stack_b is not None and stack_b > 0:
+            # R1: was `elif stack_b:` -- truthiness promoted ANY non-zero figure,
+            # negative included, into the "trusted" bucket_2 that the header
+            # generator's stack-trust gate (E21/D22, E24/D29) accepts.
             cls = "bucket_2_task_stack_budget"
         else:
             cls = "none"
         kernel = {
             "kernel_task_stack_bytes": stack_b,
-            "kernel_task_stack_invocation_bytes": elf.get("max_dispatch_invocation_stack_bytes"),
+            "kernel_task_stack_invocation_bytes": stack_inv_chain,
             "kernel_task_stack_bytes_source": "elf_stack_frame.py max_dispatch_frame_bytes (max over dispatch functions; callee-saved + locals)",
             "kernel_external_call_insns": calls,
             "llvm_alloca_count": alloca,
@@ -535,12 +953,36 @@ def build_contract(a, extra_args):
         "artifact_rodata_data_segments": data_segs,
         "constants_independently_confirmed_in_artifact": consts_confirmed,
         "constants_dense_sum_confirmed_in_artifact": consts_confirmed_dense,
-        "constants_check_note": ("module constant total %d B equals a subset-sum of the flatbuffer .rodata segments %s (iree-dump-module)"
-                                 % (const_b, data_segs) if consts_confirmed else
-                                 "module constant total %d B NOT matched by artifact .rodata segments %s" % (const_b, data_segs)),
+        # F3/E24c: the machine-readable twin of constants_check_note below.
+        "constants_confirmation_state": constants_confirmation_state(
+            const_b, consts_confirmed, rodata_unavailable),
+        "constants_check_note": (
+            # D25 (E23): three states, not two -- "not evaluated" must never be
+            # printed as "NOT matched" (checked and contradicted).
+            # R4 (E24b): `None` now also covers "nothing to confirm" (const_b == 0)
+            # and "over the enumeration budget". The old text said
+            # "0 B NOT matched by artifact .rodata segments [7440]" for the two
+            # `dynamic` models -- a FALSE statement about a model that has no
+            # constants to match. Name each unevaluable state instead of writing
+            # a bare null.
+            (rodata_unavailable if rodata_unavailable else
+             "no module-resident constants to confirm (module_resident_constant_bytes = %r)" % (const_b,)
+             if not (isinstance(const_b, int) and const_b > 0) else
+             "module constant total %d B exceeds the subset-sum enumeration budget (%d B): not evaluated"
+             % (const_b, SUBSET_SUM_MAX_TOTAL) if const_b > SUBSET_SUM_MAX_TOTAL else
+             "artifact .rodata segments were not observed: not evaluated")
+            if consts_confirmed is None else
+            "module constant total %d B equals a subset-sum of the flatbuffer .rodata segments %s (iree-dump-module)"
+            % (const_b, data_segs) if consts_confirmed else
+            "module constant total %d B NOT matched by artifact .rodata segments %s" % (const_b, data_segs)),
         "scope": "program-allocated buffers only; excludes IREE runtime context (VM, HAL device, module tables) and the task stack",
     }
     resources.update(kernel)
+
+    # --no-validate is the eleventh override. It is not a `waive()` call site
+    # because it is consumed in main() AFTER this function returns; passing it
+    # always suppresses the schema check, so record it unconditionally here.
+    waive("--no-validate", bool(getattr(a, "no_validate", False)))
 
     contract = {
         "model": {
@@ -618,7 +1060,21 @@ def build_contract(a, extra_args):
             "dump_dir_files": dump_files,
             "dump_elf": dump_elf,
             "dump_elf_sha256_in_vmfb": dump_elf_in_vmfb,
+            # N2 (v0.19/E24): the third one-invocation signal was computed since D14
+            # and then discarded -- single_invocation was recorded as a single bool
+            # with no way to tell WHICH cross-check carried it. Persist the signal
+            # and the dispatch names it was derived from so the provenance is
+            # reviewable rather than merely asserted.
+            "layout_dispatch_names": layout_dispatch_names,
+            "layout_dispatches_in_dump": layout_dispatches_in_dump,
             "elf_analysis": elf_prov,
+            "structural_walker": structural_prov,
+            # R5 (E24b): which escape hatches were actually used, and a single
+            # machine-readable grade for consumers that will not parse the list.
+            # "verified" means every check this tool knows how to make ran and
+            # passed; it does NOT mean the contract is correct.
+            "overrides_applied": list(overrides_applied),
+            "verification_grade": "overridden" if overrides_applied else "verified",
             "notes": notes,
         },
     }
@@ -673,6 +1129,19 @@ def parse_args(argv):
     ap.add_argument("--allow-abi-mismatch", action="store_true",
                     help="do not hard-fail when iree.abi.declaration disagrees with the MLIR source signature "
                          "(D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract)")
+    ap.add_argument("--allow-missing-abi-declaration", action="store_true",
+                    help="do not hard-fail when iree.abi.declaration is absent from the layout IR entirely "
+                         "(F2, external review 2026-09; the compiler's own reflection cross-check of the "
+                         "source signature is then skipped -- default is to refuse writing the contract)")
+    ap.add_argument("--allow-unverified-invocation", action="store_true",
+                    help="do not hard-fail when --dump-dir is empty and the one-invocation cross-checks "
+                         "(embedded-ELF match, mlir-basename match, layout-ir dispatch match) could not be "
+                         "evaluated at all (F1, external review 2026-09; default is to refuse writing the "
+                         "contract -- 'could not verify' is not the same as 'verified')")
+    ap.add_argument("--allow-unconfirmed-constants", action="store_true",
+                    help="N1 (v0.19/E24): write the contract even though the artifact-side .rodata observation "
+                         "CONTRADICTS module_resident_constant_bytes. Deliberately NOT --allow-unverified-invocation: "
+                         "that flag means 'could not evaluate', this one means 'evaluated and it disagrees'")
     ap.add_argument("--allow-triple-mismatch", action="store_true",
                     help="do not hard-fail when codegen.ll's target triple arch differs from --triple "
                          "(D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract)")
@@ -680,6 +1149,17 @@ def parse_args(argv):
                     help="do not hard-fail when --elf-analysis analysed a different ELF than the one embedded "
                          "in --vmfb (D13/EVIDENCE_v0.9 SS11.9; default is to refuse writing the contract, since "
                          "kernel_task_stack_bytes would then describe the wrong binary)")
+    ap.add_argument("--allow-structural-mismatch", action="store_true",
+                    help="do not hard-fail when the structural (iree.compiler.ir) extractor "
+                         "(harness/mlir_alloc_walk.py, E18/E19) disagrees with, or cannot parse what, "
+                         "the regex parser read from the same layout IR (default is to refuse writing "
+                         "the contract; does not cover iree.compiler.ir being entirely uninstalled -- "
+                         "see --allow-missing-structural-checker for that, F3 external review 2026-09)")
+    ap.add_argument("--allow-missing-structural-checker", action="store_true",
+                    help="do not hard-fail when iree.compiler.ir is not installed at all, so the structural "
+                         "cross-check never ran (F3, external review 2026-09; default is to refuse writing "
+                         "the contract with the regex parser alone, since this project calls the structural "
+                         "cross-check MANDATORY -- a missing checker should not silently mean 'skip')")
     ap.add_argument("--extra-args", nargs="*", default=[], help="extra iree-compile flags of the invocation (must be LAST)")
     a = ap.parse_args(rest)
     a.extra_args = extra

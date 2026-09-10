@@ -1,0 +1,35 @@
+# F9 (external review v0.15, EVIDENCE_v0.16_E22): dependency versions this
+# repository's harness/ was last verified against. Install with:
+#   pip install -r requirements.txt
+#
+# iree-base-compiler provides both the `iree-compile` CLI and the
+# `iree.compiler.ir` Python bindings harness/mlir_alloc_walk.py needs (E18+).
+# Without it, harness/make_contract.py's structural cross-check is
+# unavailable and refuses to write a contract by default (E21/F3) --
+# harness/contract_negative_tests.py degrades gracefully (SKIP, not FAIL)
+# for the tests that specifically need it, but a full end-to-end run of the
+# tools themselves (make_contract.py, mlir_alloc_walk.py) needs it installed.
+#
+# The exact compiler COMMIT this repository's stored artifacts/contracts
+# were produced with is documented in CLAUDE.md ("환경 구축" section) --
+# `e4a3b0405d7d23554da26403658d0e8c3c5ecf25` (IREE 3.11.0rc20260316) at the
+# time of writing. Pip's version string below is the package version, which
+# is coarser than that commit; if `iree-compile --version` disagrees with
+# CLAUDE.md's documented commit, treat any new vmfb/contract you generate as
+# NOT directly comparable to the stored ones (one-invocation rule).
+iree-base-compiler==3.11.0
+iree-base-runtime==3.11.0
+
+# harness/make_contract.py and harness/gen_contract_header.py validate
+# generated contracts against contracts/contract.schema.json using this;
+# make_contract.py refuses to write a contract if it's missing (E15/D13).
+jsonschema==4.26.0
+# P1/E30 import chain (TFLite -> ONNX; schema reader for the inventory tool). Pure Python.
+tflite==2.18.0
+tflite2onnx==0.4.1
+onnx==1.22.0
+
+# E31/P2 오라클: 원본 .tflite를 그대로 실행해 의미 보존을 판정한다(LiteRT 인터프리터)
+ai-edge-litert==2.2.0
+# E31/P2 fixture: 원본 예제 이미지 전처리(resize) — 이미지가 없는 환경에서는 해당 시험이 SKIP된다
+pillow==12.1.0

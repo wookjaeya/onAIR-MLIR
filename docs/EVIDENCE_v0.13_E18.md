@@ -102,3 +102,50 @@ CLAUDE.md 우선순위 3번의 5개 평가지표 중 셋을 이 범위에서 충
 python3 harness/mlir_alloc_walk.py results/e14_aarch64_qemu/aarch64/layout_ir/mlp16k.layout_ir.txt --cross-check
 python3 harness/contract_negative_tests.py   # structural: ... 15건 포함, 66/66
 ```
+
+## 7. 정오표 (외부 검토 F4, v0.18/E23 반영, 철회 아님 — §0–6 판정 자체는 그대로 유지)
+
+`docs/reviews/REVIEW_v0_15_LATEST.md`의 F4가 이 문서(그리고 CLAUDE.md)의 표현 두 가지를 지적했다.
+둘 다 대조해 **사실로 확인**했다 — §3의 14/14 일치·§5의 판정 등 이 실험이 실제로 측정한 수치는
+전혀 바뀌지 않지만, 그 결과를 부르는 이름과 구현 서술이 부정확했다.
+
+1. **"`Operation.walk()`" 서술이 실제 코드와 다름** (§2:37 "자원 op 열거: `Operation.walk()`로
+   얻은 진짜 `op.name`"). `harness/mlir_alloc_walk.py:98-103`을 확인하면 실제로는 **자체 구현한
+   재귀 제너레이터** `_walk(op)`다:
+   ```python
+   def _walk(op):
+       for region in op.regions:
+           for block in region.blocks:
+               for o in block.operations:
+                   yield o
+                   yield from _walk(o)
+   ```
+   `iree.compiler.ir`의 `Operation` 객체가 제공하는 네이티브 `walk(callback)` 메서드를 쓴 것이
+   아니다. 순회 결과(어떤 op를 몇 개 방문하는가)는 두 방식이 동일하므로 **§3의 14/14 일치·화이트
+   리스트 음성 시험 결과에는 영향이 없다** — 잘못된 것은 결과가 아니라 "무엇을 호출했는가"의 서술
+   뿐이다. CLAUDE.md의 해당 서술은 이번 정정에서 직접 고쳤다(살아있는 현황 문단이라 CLAUDE.md
+   자체 규율상 직접 수정이 허용됨). 이 EVIDENCE 문서의 §2:37 본문은 저장소 규율 5("기존 EVIDENCE
+   파일을 고쳐쓰지 않는다")에 따라 **고치지 않고 이 정오표로만 정정**한다.
+
+2. **"정규 MLIR pass"라는 명칭이 과장** — 이 문서 제목과 CLAUDE.md 우선순위 3번이 이 작업 전체를
+   "정규 MLIR/IREE pass"라 불러왔다. 실제 구현은:
+   - `--mlir-print-ir-after`가 만든 **텍스트 덤프**를 다시 읽어 들이는 후처리 도구이지, IREE/MLIR의
+     `PassManager`에 등록되어 컴파일 도중 in-memory module 위에서 실행되는 `Pass` 서브클래스가
+     아니다.
+   - 조각난 함수별 덤프를 합치기 위해 `util.global.load`/`store` 줄을 (여전히) 정규식으로 읽어
+     선언을 합성하는 좁은 전처리가 있다(§2:32-34에 이미 명시돼 있었음 — 이 부분 자체는 처음부터
+     숨겨진 사실이 아니었다).
+   - 계약이나 manifest를 컴파일러 호출의 직접 산출물로 내보내지 않는다 — 별도 서브프로세스로
+     실행되는 독립 검증 도구다(§4가 이미 "make_contract.py로의 통합"을 범위 밖으로 명시).
+
+   리뷰가 제안한 정확한 명칭은 **"MLIR API 기반 구조적 post-processing verifier"**다. 이 정정은
+   그 명칭을 채택한다 — 진짜 "pass 단계"(전체 module에 대해 컴파일러 파이프라인 안에서 실행돼
+   계약을 직접 emit하는 IREE/MLIR pass 또는 instrumentation)는 여전히 미착수 상태이며, CLAUDE.md
+   우선순위 3번의 "정규 MLIR/IREE pass"라는 항목명은 그 미착수 목표를 가리키는 것으로 재해석한다
+   (이 실험 E18과 후속 E19/E20은 그 목표를 향한 **1·2단계**였을 뿐, 목표 자체의 완료가 아니었다는
+   점은 §0의 범위 문장과도 이미 일치한다). 기존 판정(§5: 5개 평가지표 중 3개 충족, 나머지는 범위
+   밖)은 이 명칭 정정으로 달라지지 않는다.
+
+재현: `sed -n '98,103p' harness/mlir_alloc_walk.py`로 실제 순회 구현을, `grep -n
+"PassManager\|runOnOperation" harness/mlir_alloc_walk.py`(결과 없음)로 컴파일러 pass 등록이
+없음을 확인할 수 있다.

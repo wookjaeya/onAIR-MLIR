@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/tmp/p1_probe/./venv-p1/bin/tflite2onnx", line 8, in <module>
+    sys.exit(cmd_convert())
+             ^^^^^^^^^^^^^
+  File "/tmp/p1_probe/venv-p1/lib/python3.11/site-packages/tflite2onnx/convert.py", line 58, in cmd_convert
+    convert(args.tflite_path, args.onnx_path)
+  File "/tmp/p1_probe/venv-p1/lib/python3.11/site-packages/tflite2onnx/convert.py", line 44, in convert
+    model.convert(explicit_layouts)
+  File "/tmp/p1_probe/venv-p1/lib/python3.11/site-packages/tflite2onnx/model.py", line 39, in convert
+    self.parse()
+  File "/tmp/p1_probe/venv-p1/lib/python3.11/site-packages/tflite2onnx/model.py", line 31, in parse
+    g.parse()
+  File "/tmp/p1_probe/venv-p1/lib/python3.11/site-packages/tflite2onnx/graph.py", line 63, in parse
+    op = self.OPCFactory.create(i)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/p1_probe/venv-p1/lib/python3.11/site-packages/tflite2onnx/op/common.py", line 154, in create
+    raise NotImplementedError("Unsupported TFLite OP: {} {}!".format(opcode, name))
+NotImplementedError: Unsupported TFLite OP: 43 SQUEEZE!

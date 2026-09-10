@@ -1,0 +1,142 @@
+{
+ "tool": "harness/p1_tflite_inventory.py",
+ "schema_package": {
+  "tflite": "2.18.0"
+ },
+ "file": {
+  "path": "results/p1_smartcam_feasibility/original/model.tflite",
+  "bytes": 8950028,
+  "sha256": "fd1ecbd01ad2d46bd35cbac17809cfa24b1d929b8f14871fc1fb6fca5ff06aae"
+ },
+ "schema_version": 3,
+ "description": "MLIR Converted.",
+ "subgraphs": 1,
+ "inventory_complete": true,
+ "inputs": [
+  {
+   "index": 0,
+   "name": "input_1",
+   "shape": [
+    1,
+    224,
+    224,
+    3
+   ],
+   "shape_signature": [
+    -1,
+    224,
+    224,
+    3
+   ],
+   "dtype": "FLOAT32"
+  }
+ ],
+ "outputs": [
+  {
+   "index": 176,
+   "name": "Identity",
+   "shape": [
+    1,
+    3
+   ],
+   "shape_signature": [
+    -1,
+    3
+   ],
+   "dtype": "FLOAT32"
+  }
+ ],
+ "operators": {
+  "total": 68,
+  "distinct": 9,
+  "histogram": {
+   "CONV_2D": 35,
+   "DEPTHWISE_CONV_2D": 17,
+   "ADD": 10,
+   "MUL": 1,
+   "SUB": 1,
+   "AVERAGE_POOL_2D": 1,
+   "SQUEEZE": 1,
+   "FULLY_CONNECTED": 1,
+   "SOFTMAX": 1
+  },
+  "custom": []
+ },
+ "sensitive_instances": [
+  {
+   "tflite_squeeze_dims": [
+    1,
+    2
+   ],
+   "input_shape_tflite": [
+    1,
+    1,
+    1,
+    1280
+   ],
+   "output_shape": [
+    1,
+    1280
+   ],
+   "input_dtype": 0,
+   "output_dtype": 0,
+   "C1_squeezed_axes_size_1": true,
+   "C2_elements_preserved": true,
+   "C3_dtype_preserved": true,
+   "C4_static_output_equals_expected": true,
+   "expected_output_shape": [
+    1,
+    1280
+   ],
+   "identity": false,
+   "op_index": 65,
+   "op": "SQUEEZE",
+   "raw_squeeze_dims": [
+    1,
+    2
+   ],
+   "input": {
+    "index": 173,
+    "name": "predict/MobilenetV2/Logits/AvgPool;StatefulPartitionedCall/sequential/keras_layer/StatefulPartitionedCall/StatefulPartitionedCall/StatefulPartitionedCall/predict/MobilenetV2/Logits/AvgPool",
+    "shape": [
+     1,
+     1,
+     1,
+     1280
+    ],
+    "shape_signature": [
+     -1,
+     1,
+     1,
+     1280
+    ],
+    "dtype": "FLOAT32"
+   },
+   "output": {
+    "index": 174,
+    "name": "predict/feature_vector/SpatialSqueeze;StatefulPartitionedCall/sequential/keras_layer/StatefulPartitionedCall/StatefulPartitionedCall/StatefulPartitionedCall/predict/feature_vector/SpatialSqueeze",
+    "shape": [
+     1,
+     1280
+    ],
+    "shape_signature": [
+     -1,
+     1280
+    ],
+    "dtype": "FLOAT32"
+   },
+   "conditions_1_to_4_satisfied": true
+  }
+ ],
+ "static_shapes": {
+  "tensors": 177,
+  "dynamic_tensors": 0,
+  "examples": [],
+  "note": "shape (concrete) is what the flatbuffer executes with; shape_signature may carry -1 for a batch the exporter left symbolic"
+ },
+ "cfs_interface_fit": {
+  "single_f32_in_single_f32_out_static": true,
+  "input_elems": 150528,
+  "output_elems": 3
+ }
+}

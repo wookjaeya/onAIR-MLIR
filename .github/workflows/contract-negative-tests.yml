@@ -1,0 +1,60 @@
+name: contract-negative-tests
+
+# F9 (external review v0.15, EVIDENCE_v0.16_E22): a fresh-clone CI run is the
+# only thing that actually confirms the claim harness/contract_negative_tests.py
+# makes about itself -- until this workflow existed, "X/X, no environment setup
+# needed" was verified only in the author's own working environment (which had
+# stale local state a real fresh clone does not), and a genuinely fresh clone
+# without iree.compiler.ir installed used to crash with an uncaught exception
+# before printing any summary at all (fixed in the same experiment, E22).
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Three legs, named for what they actually install (N6, external review
+        # v0.18-followup / E24 -- the middle leg used to be called "without-deps"
+        # while installing jsonschema, and the repo's prose called its numbers a
+        # "genuinely dependency-free checkout", which was wrong):
+        #   full         requirements.txt (IREE compiler+runtime, jsonschema)
+        #   without-iree jsonschema only -- iree.compiler.ir AND the console
+        #                scripts absent (the D24/D25 degradation path)
+        #   stdlib-only  nothing at all -- this is the leg that is genuinely
+        #                dependency-free, and the one that covers a jsonschema
+        #                regression. Before E24 no leg exercised its absence, and
+        #                a checkout bootstrapped by scripts/99 hit exactly that
+        #                condition: 15 FAILs for a reason unrelated to any test.
+        deps: ["full", "without-iree", "stdlib-only"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (full leg)
+        if: matrix.deps == 'full'
+        run: pip install -r requirements.txt
+
+      - name: Install jsonschema only (without-iree leg keeps iree.compiler.ir absent)
+        if: matrix.deps == 'without-iree'
+        run: pip install jsonschema==4.26.0
+
+      - name: Install nothing (stdlib-only leg)
+        if: matrix.deps == 'stdlib-only'
+        # No ": " inside this plain scalar -- a colon+space there is a YAML mapping
+        # separator, which is exactly how the first version of this step broke the
+        # whole workflow file (E24; the run failed instantly with the file path as
+        # its name, the signature of a parse error rather than a test failure).
+        run: python3 --version
+
+      - name: Run contract_negative_tests.py
+        run: python3 harness/contract_negative_tests.py

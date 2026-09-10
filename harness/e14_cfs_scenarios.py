@@ -20,9 +20,15 @@ QEMU wall-clock figures (mean_us etc.) are captured but are NOT evidence
 Scenario file (JSON list), one entry per run:
   {"id": "A1_mlp_admit", "model": "mlp16k", "so": "variants/mlp16k_1MiB/ai_learner.so",
    "startup": "variants/mlp16k_1MiB/cfe_es_startup.scr",
-   "vmfb": "models/mlp16k.vmfb" | null | {"corrupt_of": "models/mlp16k.vmfb", "flip_offset": 400000},
+   "vmfb": "models/mlp16k.vmfb" | null
+         | {"corrupt_of": "models/mlp16k.vmfb", "corrupt_method": "flip", "flip_offset": 400000}
+         | {"corrupt_of": "models/mlp16k.vmfb", "corrupt_method": "flatbuffer_root_uoffset"},
    "seconds": 150, "commands": [[60, "es-restart-app", "AI_LEARNER"], ...],
    "expect": {"admission": "ADMIT", "binding": "MATCH", "min_completed": 20, "cfs_operational": true, ...}}
+
+A corrupted-vmfb entry MUST name corrupt_method explicitly (harness/corrupt_vmfb.py; external review
+F8, docs/reviews/REVIEW_v0_15_LATEST.md, v0.18/E23) -- _corruption_step() below fails closed
+(ValueError) on a missing or unrecognized value rather than defaulting to either method.
 """
 import argparse, json, os, pathlib, re, subprocess, sys, time
 
@@ -84,6 +90,11 @@ def parse_log(text):
         "stack": last("stack"),
         "runtime_load_failed": stages.get("runtime_load_failed"),
         "last_run": last("run"), "last_mem": last("mem"),
+        # E26: the init-time allocator snapshot (before any inference) and the explicit
+        # statement of whether the E25 equivalence mode fired. A memory measurement must
+        # be able to PROVE the mode was off -- with it on, 64 inferences run during Init
+        # and the run loop's first `mem` record no longer separates init from steady.
+        "mem_init": last("mem_init"), "e25_mode": last("e25_mode"),
         "cleanup": stages.get("cleanup", []),
         "init_count": len(stages.get("admission", [])),
         "cfs_operational": "CFE_ES_Main entering OPERATIONAL state" in text,
@@ -127,7 +138,53 @@ def check_expect(res, exp):
             if s.get("kernel_stack_accounted") != v: fails.append(f"kernel_stack_accounted {s.get('kernel_stack_accounted')} != {v}")
         elif k == "runtime_load_failed" and bool(res.get("runtime_load_failed")) != v: fails.append(f"runtime_load_failed != {v}")
         elif k == "min_cleanup" and sum(1 for c in res["cleanup"]) < v: fails.append(f"cleanup lines {len(res['cleanup'])} < {v}")
+        elif k == "e25_mode_active":
+            # ABSENT is not "false" (D29's lesson): an app build without the E26 record
+            # cannot testify that the mode was off, so it fails this expectation rather
+            # than passing by silence.
+            m = res.get("e25_mode")
+            if m is None: fails.append("e25_mode record absent (app too old to testify); expected active=%r" % (v,))
+            elif m.get("active") != v: fails.append(f"e25_mode active {m.get('active')} != {v}")
+        elif k == "mem_init_present":
+            if v and res.get("mem_init") is None: fails.append("mem_init record absent")
     return fails
+
+
+CORRUPT_METHODS = ("flip", "flatbuffer_root_uoffset")
+_corrupt_vmfb_staged = set()  # remote_root values that already have corrupt_vmfb.py scp'd this run
+
+
+def _corruption_step(v, tree, remote_root, dry):
+    """Build the shell step(s) that turn `{corrupt_of}` into a corrupted
+    `{tree}/cf/model.vmfb` on the guest, per v["corrupt_method"].
+
+    Fails closed (raises ValueError) if corrupt_method is missing or
+    unrecognized -- external review F8 (docs/reviews/REVIEW_v0_15_LATEST.md)
+    found that A5a and A5b previously shared the same unstructured "flip"
+    corruption with no method field distinguishing them at all, so a typo'd
+    or omitted corrupt_of/method silently fell back to A5a's mechanism even
+    for a scenario meant to exercise A5b's structural corruption path.
+    """
+    method = v.get("corrupt_method")
+    if method not in CORRUPT_METHODS:
+        raise ValueError(f"vmfb.corrupt_method={method!r} not in {CORRUPT_METHODS} "
+                          f"(scenario vmfb={v!r}) -- refusing to guess a corruption mechanism")
+    if method == "flip":
+        off = v.get("flip_offset", 4096)
+        return [f"cp {v['corrupt_of']} {tree}/cf/model.vmfb && python3 -c \"import sys;p='{tree}/cf/model.vmfb';b=bytearray(open(p,'rb').read());b[{off}]^=0xFF;open(p,'wb').write(bytes(b))\""]
+    # flatbuffer_root_uoffset: structural corruption (docs/EVIDENCE_v0.12_E17.md §2.1) --
+    # done by harness/corrupt_vmfb.py itself (module.fb-aware ZIP surgery), staged onto
+    # the guest once per remote_root rather than reimplemented as a one-liner.
+    if remote_root not in _corrupt_vmfb_staged and not dry:
+        scp_to(HERE / "corrupt_vmfb.py", f"{remote_root}/corrupt_vmfb.py")
+        _corrupt_vmfb_staged.add(remote_root)
+    entry = v.get("corrupt_entry", "module.fb")
+    # `corrupt_vmfb.py` is referenced RELATIVE to the cwd (the chain has already
+    # `cd {remote_root}`-ed -- see the NOTE in run_scenario: a remote_root-prefixed
+    # path here would resolve to remote_root/remote_root/... and fail the chain).
+    return [f"cp {v['corrupt_of']} {tree}/cf/model.vmfb.src && "
+            f"python3 corrupt_vmfb.py --method flatbuffer_root_uoffset --entry {entry} "
+            f"--in {tree}/cf/model.vmfb.src --out {tree}/cf/model.vmfb"]
 
 
 def run_scenario(sc, remote_root, out_dir, dry=False):
@@ -144,8 +201,7 @@ def run_scenario(sc, remote_root, out_dir, dry=False):
     if isinstance(v, str):
         steps.append(f"cp {v} {tree}/cf/model.vmfb")
     elif isinstance(v, dict):
-        off = v.get("flip_offset", 4096)
-        steps.append(f"cp {v['corrupt_of']} {tree}/cf/model.vmfb && python3 -c \"import sys;p='{tree}/cf/model.vmfb';b=bytearray(open(p,'rb').read());b[{off}]^=0xFF;open(p,'wb').write(bytes(b))\"")
+        steps.extend(_corruption_step(v, tree, remote_root, dry))
     secs = int(sc.get("seconds", 120))
     steps.append(f"cd {tree} && rm -f {sid}.log && (MALLOC_CHECK_=3 timeout -s INT -k 15 {secs} ./core-cpu1 > {sid}.log 2>&1; echo EXIT=$? >> {sid}.log)")
     cmd = " && ".join(steps[:-1]) + " && " + steps[-1]

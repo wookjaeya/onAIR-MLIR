@@ -10,7 +10,8 @@
  *      as telemetry only, never enforced) -- it runs first because it costs
  *      nothing to acquire (CFE_ES_GetAppInfo, no allocation) and is the one
  *      check native_learner.c cannot exercise at all (it has no ES task).
- *   2. admission: contract bounded_bytes vs AI_LEARNER_BUDGET_BYTES, still
+ *   2. admission: contract bounded_bytes vs the app budget (AI_LEARNER_BUDGET_BYTES,
+ *      or AI_LEARNER_BUDGET_OVERRIDE at init -- E36 SS3.1), still
  *      before the IREE runtime is created and before the artifact is even
  *      opened. A contract without a static bound (CONTRACT_BOUND_KNOWN == 0)
  *      is refused as UNKNOWN_BOUND at the same point. A bound-known contract
@@ -51,7 +52,9 @@
 #include "sha256.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -59,7 +62,7 @@
 #if !defined(CONTRACT_BOUND_KNOWN) || !defined(CONTRACT_INPUT_RANK) || !defined(CONTRACT_INPUT_SHAPE) || \
     !defined(CONTRACT_OUTPUT_ELEMS) || !defined(CONTRACT_ENTRY) || !defined(CONTRACT_KERNEL_STACK_BYTES) || \
     !defined(CONTRACT_MODEL_NAME) || !defined(CONTRACT_TARGET_TRIPLE) || !defined(CONTRACT_DRIVER) || \
-    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS)
+    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS) || !defined(CONTRACT_DTYPES_ALL_F32)
 #error "contract_gen.h is missing Stage 1 macros: regenerate it with harness/gen_contract_header.py"
 #endif
 /* A contract whose shapes are not all static cannot carry a static bound; refuse it as
@@ -79,23 +82,74 @@
 #endif
 #define AI_LEARNER_PIPE_DEPTH 8
 #define AI_LEARNER_MODEL_FILE "/cf/model.vmfb"
+#define AI_LEARNER_E25_INPUTS  "/cf/e25_inputs.bin"   /* E25: optional equivalence input set */
+#define AI_LEARNER_E25_OUTPUTS "/cf/e25_outputs.bin"
 #define AI_LEARNER_HDR_BYTES 16   /* CCSDS primary + telemetry secondary header skipped before features */
 
 enum {
   EID_NOT_ADMITTED = 1, EID_NO_FILE = 2, EID_INIT_OK = 3, EID_REPORT = 4, EID_MISMATCH = 5,
   EID_UNKNOWN_BOUND = 6, EID_LOAD_FAILED = 7, EID_STACK = 8, EID_INIT_FAIL = 9, EID_INFER_FAIL = 10,
-  EID_STACK_REJECT = 11, EID_INTERFACE_MISMATCH = 12
+  EID_STACK_REJECT = 11, EID_INTERFACE_MISMATCH = 12, EID_MAP_PRECONDITION = 13
 };
 
 static struct {
   CFE_SB_PipeId_t pipe; bool pipe_created;
   iree_runtime_instance_t* instance; iree_hal_device_t* device; iree_runtime_session_t* session;
   void* blob; long blob_len; iree_hal_buffer_view_t* x;
+  int module_ptr_mod64; long hal_peak_after_append; int conditional_map;
   uint32 n_attempt, n_infer, n_fail_input, n_fail_invoke, n_fail_output, n_cleanup;
   bool first_fail_reported;
   double lat_sum_us, lat_max_us, lat_last_us; float out[CONTRACT_OUTPUT_ELEMS];
-  long rss_kb_init0, rss_kb_init1;
+  long rss_kb_init0, rss_kb_init1, rss_kb_after_session;
+  long budget_bytes; const char* budget_source;
 } g;
+
+/* E36 Q1: the app budget as a RUNTIME value.
+ *
+ * It used to be the compile-time macro alone, and that made one cell of the
+ * pre-registered matrix unreachable: with a constant budget the compiler folds
+ * `CONTRACT_BOUNDED_BYTES > budget` statically, deletes the post-admission code
+ * (including the contract sha256 string the build verifies), and the BUILD then
+ * refuses -- so `budget = bounded - 1` never reached a running app.  Reading the
+ * budget at init keeps that code live and lets the real refusal path execute.
+ *
+ * The knob is itself a place a defect could live, so the rules are fixed (plan
+ * SS3.1, committed before measuring):
+ *   - unset            -> the macro, byte-for-byte the previous behaviour;
+ *   - set and parsable -> that value;
+ *   - set and NOT parsable, negative or zero -> REFUSE to initialise.
+ * The last line is the D29 lesson: a malformed signal is not the same as an
+ * absent one, and silently falling back to the macro would let an integrator
+ * believe a budget was applied when it was not.  Every admission record carries
+ * `budget_source`, so a measurement can always prove which budget it judged on
+ * (the E25-mode lesson: instrumentation must be able to testify). */
+static int AI_LEARNER_ResolveBudget(void) {
+  const char* e = getenv("AI_LEARNER_BUDGET_OVERRIDE");
+  if (e == NULL) {
+    /* NOTE: spell the macro through a local. An earlier edit of this file did a
+     * blanket rename of `(long)AI_LEARNER_BUDGET_BYTES` -> `g.budget_bytes` and
+     * turned this very line into a self-assignment, so the compiled-in budget
+     * silently became 0 and every unset-override run reported NOT_ADMITTED with
+     * `"budget":0`. It was caught immediately -- not by a test, but because the
+     * plan (SS3.1) required every admission record to carry `budget_source` and
+     * `budget`, so the measurement could testify which budget it judged on.
+     * The `> 0` below turns that class of mistake into an explicit refusal
+     * instead of a denial that merely looks principled. */
+    const long compiled_in = (long)AI_LEARNER_BUDGET_BYTES;
+    g.budget_bytes = compiled_in; g.budget_source = "macro";
+    return g.budget_bytes > 0;
+  }
+  while (*e == ' ' || *e == '\t') e++;
+  if (*e == '\0') return 0;                       /* set but empty: malformed, not absent */
+  char* end = NULL; errno = 0;
+  long v = strtol(e, &end, 10);
+  if (errno != 0 || end == e) return 0;
+  while (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r') end++;
+  if (*end != '\0') return 0;                     /* trailing garbage: refuse, do not guess */
+  if (v <= 0) return 0;
+  g.budget_bytes = v; g.budget_source = "override";
+  return 1;
+}
 
 static long rss_kb(void) {
   FILE* f = fopen("/proc/self/status", "r"); char line[256]; long v = -1;
@@ -169,15 +223,77 @@ static int32 AI_LEARNER_LoadFailed(const char* step, iree_status_t st) {
 }
 
 static void AI_LEARNER_AdmissionJson(const char* verdict) {
+  /* F11 (external review, 2026-09; not a code defect -- CLAUDE.md priority 5
+   * already documents this scope, and resources.scope/bound_assumptions in
+   * the contract JSON already say it): this verdict compares CONTRACT_BOUNDED_BYTES
+   * against this app's own budget only -- a per-app local budget, not a
+   * check that the whole onboard computer can fit this model alongside
+   * everything else running on it. "scope" here propagates that same
+   * disclosure into the runtime telemetry, not just the offline contract. */
   AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"admission\",\"verdict\":\"%s\",\"model\":\"%s\",\"target\":\"%s\","
-                  "\"bounded\":%ld,\"budget\":%ld,\"per_call\":%ld,\"constants\":%ld,\"kernel_stack_bytes\":%ld,\"bound_known\":%s}\n",
-                  verdict, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, (long)CONTRACT_BOUNDED_BYTES, (long)AI_LEARNER_BUDGET_BYTES,
+                  "\"bounded\":%ld,\"budget\":%ld,\"budget_source\":\"%s\",\"per_call\":%ld,\"constants\":%ld,\"kernel_stack_bytes\":%ld,\"bound_known\":%s,"
+                  "\"scope\":\"per_app_local_budget\"}\n",
+                  verdict, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, (long)CONTRACT_BOUNDED_BYTES, g.budget_bytes, g.budget_source ? g.budget_source : "unresolved",
                   (long)CONTRACT_PER_CALL_BYTES, (long)CONTRACT_CONST_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES,
                   GATE_BOUND_KNOWN ? "true" : "false");
 }
 
+/* ---- E29 (docs/EVIDENCE_v0.31_E29.md): module image alignment ----------------
+ * IREE emits module-resident constants as `stream.resource.try_map` + an
+ * `scf.if(%did_map)`: the map arm allocates nothing on the HAL device, the copy
+ * arm allocates the whole constant block.  `CONTRACT_BOUNDED_BYTES` is the max
+ * over both arms, so admission on it stays sound whichever arm runs -- E26
+ * measured up to 172.30x between them for the SAME vmfb and left the
+ * determinant undetermined.
+ *
+ * E29 identified it: iree_hal_heap_buffer_wrap() (runtime/src/iree/hal/
+ * buffer_heap.c) returns OUT_OF_RANGE unless the imported span is aligned to
+ * IREE_HAL_HEAP_BUFFER_ALIGNMENT (64, runtime/src/iree/base/config.h), and the
+ * map arm is exactly that import.  harness/e29_collect.py measured 64/64 cells
+ * (8 models x 8 alignment classes): map <=> 64-byte aligned, and the peak was
+ * always either 0 or exactly the contract's constant block -- never a third
+ * value.  plain malloc() gave this app a 16 mod 64 pointer, which is why every
+ * cFS cell in E26/E26e/E26f landed on the copy arm.
+ *
+ * Allocating the image aligned therefore lowers the observed peak to the
+ * contract's per-call term without touching admission: the bound does not
+ * change, only which arm the deployment lands on.  A failed posix_memalign
+ * falls back to malloc -- correct, merely less tight -- and the arm actually
+ * taken is measured after append rather than assumed. */
+static void* AI_LEARNER_AllocModuleImage(size_t n, int* out_mod64) {
+  void* p = NULL;
+  if (posix_memalign(&p, 64, n) != 0) p = NULL;
+  if (!p) p = malloc(n);                    /* correct, only less tight */
+  *out_mod64 = p ? (int)(((uintptr_t)p) % 64) : -1;
+  return p;
+}
+
+/* Opt-in conditional admission (E29).  Default 0: every existing deployment
+ * keeps the unconditional decision on CONTRACT_BOUNDED_BYTES byte for byte.
+ * Set to 1 only for an integrator that accepts the map precondition; the app
+ * then admits a budget that covers CONTRACT_PER_CALL_BYTES but not
+ * CONTRACT_BOUNDED_BYTES, enforces the precondition by construction (aligned
+ * image above) and VERIFIES it right after append, refusing before a single
+ * inference if the copy arm ran instead.  The transient that a failed
+ * verification has already paid is bounded by CONTRACT_BOUNDED_BYTES, which is
+ * why the conditional tier is never allowed to skip that check. */
+#ifndef AI_LEARNER_ALLOW_CONDITIONAL_MAP
+#define AI_LEARNER_ALLOW_CONDITIONAL_MAP 0
+#endif
+
 static int32 AI_LEARNER_Init(void) {
   CFE_EVS_Register(NULL, 0, CFE_EVS_EventFilter_BINARY);
+
+  /* Budget first: every gate below reports against it, so it must exist before
+   * anything can be judged -- and a malformed override must stop the app before
+   * it acquires anything (same ordering rule as the stack gate, D15). */
+  if (!AI_LEARNER_ResolveBudget()) {
+    CFE_EVS_SendEvent(EID_NOT_ADMITTED, CFE_EVS_EventType_CRITICAL,
+      "AI_LEARNER BUDGET_INVALID: budget did not resolve to a positive integer (source=%s value=%ld); "
+      "app will not start (a malformed override is NOT silently replaced by the compiled-in budget)",
+      g.budget_source ? g.budget_source : "override", g.budget_bytes);
+    return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
 
   /* ---- task-stack gate: ES-reported task stack vs base + kernel dispatch frame.
    * Runs FIRST -- before admission, before the artifact, before any IREE call --
@@ -212,24 +328,37 @@ static int32 AI_LEARNER_Init(void) {
     AI_LEARNER_Cleanup();
     return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
-  if ((long)CONTRACT_BOUNDED_BYTES > (long)AI_LEARNER_BUDGET_BYTES) {
-    CFE_EVS_SendEvent(EID_NOT_ADMITTED, CFE_EVS_EventType_CRITICAL,
-      "AI_LEARNER NOT_ADMITTED: contract bounded=%ld > budget=%ld; app will not start",
-      (long)CONTRACT_BOUNDED_BYTES, (long)AI_LEARNER_BUDGET_BYTES);
-    AI_LEARNER_AdmissionJson("NOT_ADMITTED");
-    AI_LEARNER_Cleanup();
-    return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  if ((long)CONTRACT_BOUNDED_BYTES > g.budget_bytes) {
+    /* E29: the conditional tier, when the integrator opted in, admits on the
+     * map arm's bound (per-call only).  It is not a weaker check -- it is the
+     * same contract read under a precondition this app enforces and then
+     * verifies after append (below), refusing before any inference if the arm
+     * it got was the copy arm. */
+    if (AI_LEARNER_ALLOW_CONDITIONAL_MAP && (long)CONTRACT_PER_CALL_BYTES <= g.budget_bytes) {
+      g.conditional_map = 1;
+    } else {
+      CFE_EVS_SendEvent(EID_NOT_ADMITTED, CFE_EVS_EventType_CRITICAL,
+        "AI_LEARNER NOT_ADMITTED: contract bounded=%ld > budget=%ld; app will not start",
+        (long)CONTRACT_BOUNDED_BYTES, g.budget_bytes);
+      AI_LEARNER_AdmissionJson("NOT_ADMITTED");
+      AI_LEARNER_Cleanup();
+      return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+    }
   }
-  AI_LEARNER_AdmissionJson("ADMIT");
+  AI_LEARNER_AdmissionJson(g.conditional_map ? "ADMIT_CONDITIONAL_MAP" : "ADMIT");
   /* EVIDENCE_v0.10 Phase 3 (R3 defense-in-depth): this app pushes exactly one
    * f32 input and pops exactly one f32 output (AI_LEARNER_Infer below).
    * gen_contract_header.py already refuses to emit a bound-known header whose
    * interface is not that shape (E15), so this should be unreachable for any
    * header it produced -- it only catches a stale or hand-edited contract_gen.h. */
-  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1) {
+  /* F7 (external review, 2026-09): the message above already claimed to check
+   * "single-f32" while the condition only ever checked input/output COUNT --
+   * there was no macro carrying dtype for C to test. CONTRACT_DTYPES_ALL_F32
+   * (gen_contract_header.py) closes that: now the condition matches the name. */
+  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1 || !CONTRACT_DTYPES_ALL_F32) {
     CFE_EVS_SendEvent(EID_INTERFACE_MISMATCH, CFE_EVS_EventType_CRITICAL,
-      "AI_LEARNER: bound known but interface is not single-f32-in/single-f32-out (num_inputs=%d num_outputs=%d); app will not start",
-      (int)CONTRACT_NUM_INPUTS, (int)CONTRACT_NUM_OUTPUTS);
+      "AI_LEARNER: bound known but interface is not single-f32-in/single-f32-out (num_inputs=%d num_outputs=%d dtypes_all_f32=%d); app will not start",
+      (int)CONTRACT_NUM_INPUTS, (int)CONTRACT_NUM_OUTPUTS, (int)CONTRACT_DTYPES_ALL_F32);
     AI_LEARNER_Cleanup();
     return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
@@ -264,7 +393,7 @@ static int32 AI_LEARNER_Init(void) {
                     g.blob_len, (long)CONTRACT_ARTIFACT_BYTES);
     AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
-  g.blob = malloc((size_t)g.blob_len);
+  g.blob = AI_LEARNER_AllocModuleImage((size_t)g.blob_len, &g.module_ptr_mod64);
   if (!g.blob || fread(g.blob, 1, (size_t)g.blob_len, f) != (size_t)g.blob_len) {
     fclose(f);
     CFE_EVS_SendEvent(EID_NO_FILE, CFE_EVS_EventType_ERROR, "AI_LEARNER: cannot read %s (%ld B)", AI_LEARNER_MODEL_FILE, g.blob_len);
@@ -281,6 +410,21 @@ static int32 AI_LEARNER_Init(void) {
     AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
 
+  /* E29b (D54, seventh external review SS4.1-4.2): in the conditional tier the
+   * map precondition is decided by the alignment of the image just allocated
+   * (E29: map <=> 64-byte aligned, 64/64 cells), so it is checkable BEFORE the
+   * runtime exists. Refusing here means the copy arm's constant-block
+   * allocation never happens -- no transient above B_map at all. */
+  if (g.conditional_map && g.module_ptr_mod64 != 0) {
+    CFE_EVS_SendEvent(EID_MAP_PRECONDITION, CFE_EVS_EventType_CRITICAL,
+      "AI_LEARNER MAP_PRECONDITION_UNMET: admitted on per_call=%ld but module image is %d mod 64; "
+      "refused before runtime creation", (long)CONTRACT_PER_CALL_BYTES, g.module_ptr_mod64);
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_UNMET\","
+                    "\"module_ptr_mod64\":%d,\"contract_per_call_bytes\":%ld}\n", g.module_ptr_mod64, (long)CONTRACT_PER_CALL_BYTES);
+    AI_LEARNER_Cleanup();
+    return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
+
   /* ---- runtime bring-up: every failure is an ERROR event + cleanup (no abort) ---- */
   g.rss_kb_init0 = rss_kb();
   iree_status_t st;
@@ -293,10 +437,52 @@ static int32 AI_LEARNER_Init(void) {
   iree_runtime_session_options_t so; iree_runtime_session_options_initialize(&so);
   st = iree_runtime_session_create_with_device(g.instance, &so, g.device, iree_runtime_instance_host_allocator(g.instance), &g.session);
   if (!iree_status_is_ok(st)) return AI_LEARNER_LoadFailed("session_create", st);
+  /* E26: the runtime context (instance+device+session) is OUTSIDE the memory contract --
+   * the contract covers per-call buffers + module-resident constants only. Probing here
+   * lets E26 attribute that bucket separately instead of folding it into one number
+   * (docs/plans/E25_closeout_E26_E27.md, review SS8.2 "separate accounting"). */
+  g.rss_kb_after_session = rss_kb();
 
   /* ---- module load: the SAME verified bytes (zero-copy; blob freed after session release) ---- */
   st = iree_runtime_session_append_bytecode_module_from_memory(g.session, iree_make_const_byte_span(g.blob, (size_t)g.blob_len), iree_allocator_null());
   if (!iree_status_is_ok(st)) return AI_LEARNER_LoadFailed("append_bytecode_module", st);
+  /* E29: the try_map arm is decided here and nowhere else -- constants are
+   * either wrapped in place or copied during append, before any input buffer or
+   * inference exists, so this peak is the constant block alone.  Reported for
+   * every run (not only the conditional tier) so the arm a deployment landed on
+   * is in the record instead of inferred from the end-of-run peak. */
+  {
+    iree_hal_allocator_statistics_t s0;
+    iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &s0);
+    g.hal_peak_after_append = (long)s0.device_bytes_peak;
+  }
+  {
+    const char* arm = (g.hal_peak_after_append == 0) ? "map"
+                    : ((g.hal_peak_after_append == (long)CONTRACT_CONST_BYTES) ? "copy" : "other");
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"map_branch\",\"model\":\"%s\",\"module_ptr_mod64\":%d,"
+                    "\"hal_peak_after_append\":%ld,\"contract_const_bytes\":%ld,\"contract_per_call_bytes\":%ld,"
+                    "\"arm\":\"%s\",\"admission_mode\":\"%s\"}\n",
+                    CONTRACT_MODEL_NAME, g.module_ptr_mod64, g.hal_peak_after_append,
+                    (long)CONTRACT_CONST_BYTES, (long)CONTRACT_PER_CALL_BYTES, arm,
+                    g.conditional_map ? "conditional_map" : "unconditional");
+    /* E29b (D54): E29 compared `> CONTRACT_PER_CALL_BYTES` here. A copy arm
+     * allocates exactly `constants` at append, so for any model with
+     * constants < per_call the check passed and the app ran on the copy arm it
+     * had itself just labelled -- ending at per_call + constants over the budget
+     * it was admitted on (bigact: 59,460 on 45,444). B_map holds only on the
+     * map arm, whose append peak is exactly 0 (E29: 32/32 map cells), so the
+     * verification is "map arm, or refuse", not a size comparison. */
+    if (g.conditional_map && g.hal_peak_after_append != 0) {
+      CFE_EVS_SendEvent(EID_MAP_PRECONDITION, CFE_EVS_EventType_CRITICAL,
+        "AI_LEARNER MAP_PRECONDITION_FAILED: admitted on per_call=%ld but append peak=%ld (arm=%s, ptr%%64=%d); "
+        "app will not start", (long)CONTRACT_PER_CALL_BYTES, g.hal_peak_after_append, arm, g.module_ptr_mod64);
+      AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_FAILED\","
+                      "\"hal_peak_after_append\":%ld,\"contract_per_call_bytes\":%ld}\n",
+                      g.hal_peak_after_append, (long)CONTRACT_PER_CALL_BYTES);
+      AI_LEARNER_Cleanup();
+      return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+    }
+  }
 
   /* ---- input buffer (contract shape, f32), allocated once and rewritten per packet ---- */
   static const iree_hal_dim_t in_shape[CONTRACT_INPUT_RANK] = CONTRACT_INPUT_SHAPE;
@@ -308,6 +494,85 @@ static int32 AI_LEARNER_Init(void) {
       iree_make_const_byte_span(zeros, sizeof zeros), &g.x);
   if (!iree_status_is_ok(st)) return AI_LEARNER_LoadFailed("input_buffer_allocate", st);
   g.rss_kb_init1 = rss_kb();
+
+  /* E26: allocator state at the END of initialisation and BEFORE any inference has run.
+   * Until E26 the only HAL statistics the app emitted came from the run loop (every
+   * AI_LEARNER_REPORT_EVERY inferences), so "what did merely loading the module and
+   * allocating the input buffer cost" was not observable at all -- and with E25 mode
+   * enabled it was not even observable indirectly, because 64 inferences ran first.
+   * This record is the init/first-call/steady split E26 measures against. */
+  {
+    iree_hal_allocator_statistics_t st0;
+    iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &st0);
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"mem_init\",\"model\":\"%s\",\"target\":\"%s\","
+                    "\"hal_peak\":%ld,\"hal_allocated\":%ld,\"bounded\":%ld,\"peak_within_bounded\":%s,"
+                    "\"inferences_so_far\":0,\"process_rss_kb\":%ld,\"rss_kb_before_runtime\":%ld,"
+                    "\"rss_kb_after_session\":%ld,\"rss_kb_after_init\":%ld}\n",
+                    CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE,
+                    (long)st0.device_bytes_peak, (long)st0.device_bytes_allocated,
+                    (long)CONTRACT_BOUNDED_BYTES,
+                    ((long)st0.device_bytes_peak <= (long)CONTRACT_BOUNDED_BYTES) ? "true" : "false",
+                    rss_kb(), g.rss_kb_init0, g.rss_kb_after_session, g.rss_kb_init1);
+  }
+
+  /* ---- E25 equivalence mode (optional) ------------------------------------
+   * If /cf/e25_inputs.bin exists, run one inference per f32 vector in it and write
+   * the outputs to /cf/e25_outputs.bin, then continue normal startup. Placed AFTER
+   * every gate above (stack, admission, interface, artifact size + sha256) so the
+   * numbers come from the same fully-gated deployment path the app normally uses.
+   * Absent the file nothing changes. (E25, docs/plans/E25_same_model_equivalence.md) */
+  {
+    bool e25_active = false;
+    char e25_in[OS_MAX_LOCAL_PATH_LEN], e25_out[OS_MAX_LOCAL_PATH_LEN];
+    if (OS_TranslatePath(AI_LEARNER_E25_INPUTS, e25_in) == OS_SUCCESS &&
+        OS_TranslatePath(AI_LEARNER_E25_OUTPUTS, e25_out) == OS_SUCCESS) {
+      FILE* fi = fopen(e25_in, "rb");
+      if (fi) {
+        e25_active = true;
+        fseek(fi, 0, SEEK_END); long ib = ftell(fi); fseek(fi, 0, SEEK_SET);
+        long nvec = ib / (long)(CONTRACT_INPUT_ELEMS * sizeof(float));
+        float* xin = (nvec > 0) ? (float*)malloc((size_t)ib) : NULL;
+        long done = 0;
+        if (xin && fread(xin, 1, (size_t)ib, fi) == (size_t)ib) {
+          FILE* fo = fopen(e25_out, "wb");
+          if (fo) {
+            for (long v = 0; v < nvec; ++v) {
+              float yv[CONTRACT_OUTPUT_ELEMS];
+              iree_status_t s2 = iree_hal_buffer_map_write(iree_hal_buffer_view_buffer(g.x), 0,
+                  xin + v * CONTRACT_INPUT_ELEMS, CONTRACT_INPUT_ELEMS * sizeof(float));
+              if (!iree_status_is_ok(s2)) { iree_status_free(s2); break; }
+              iree_runtime_call_t c2; iree_hal_buffer_view_t* r2 = NULL;
+              s2 = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &c2);
+              if (!iree_status_is_ok(s2)) { iree_status_free(s2); break; }
+              s2 = iree_runtime_call_inputs_push_back_buffer_view(&c2, g.x);
+              if (iree_status_is_ok(s2)) s2 = iree_runtime_call_invoke(&c2, 0);
+              if (iree_status_is_ok(s2)) s2 = iree_runtime_call_outputs_pop_front_buffer_view(&c2, &r2);
+              if (iree_status_is_ok(s2)) s2 = iree_hal_buffer_map_read(iree_hal_buffer_view_buffer(r2), 0, yv, sizeof yv);
+              if (iree_status_is_ok(s2)) { fwrite(yv, sizeof yv, 1, fo); done++; }
+              else iree_status_free(s2);
+              if (r2) iree_hal_buffer_view_release(r2);
+              iree_runtime_call_deinitialize(&c2);
+            }
+            fclose(fo);
+          }
+        }
+        if (xin) free(xin);
+        fclose(fi);
+        AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"e25_equivalence\",\"inputs\":%ld,\"completed\":%ld,"
+                        "\"model\":\"%s\",\"target\":\"%s\",\"artifact_sha256\":\"%.16s...\"}\n",
+                        nvec, done, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, CONTRACT_ARTIFACT_SHA256);
+        CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_INFORMATION,
+                          "AI_LEARNER: E25 equivalence %ld/%ld inferences written", done, nvec);
+      }
+    }
+    /* E26 hygiene, always emitted: a memory measurement run must be able to PROVE that
+     * the equivalence mode did not fire, not merely assume the file was absent. With it
+     * enabled the first `mem` record of the run loop already reflects 64 inferences, so
+     * init / first-call / steady would silently blur together (review SS6, "measurement
+     * prerequisite"). Harness expect key: "e25_mode_active": false. */
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"e25_mode\",\"active\":%s,\"inputs_path\":\"%s\"}\n",
+                    e25_active ? "true" : "false", AI_LEARNER_E25_INPUTS);
+  }
 
   int32 sb = CFE_SB_CreatePipe(&g.pipe, AI_LEARNER_PIPE_DEPTH, "AI_LEARNER_PIPE");
   if (sb != CFE_SUCCESS) {
@@ -339,7 +604,18 @@ static void AI_LEARNER_NoteFail(const char* step, iree_status_t st) {
 }
 
 static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
-  const uint8* raw = (const uint8*)buf; float feat[CONTRACT_INPUT_ELEMS];
+  /* D52: these three buffers are sized by the CONTRACT and used to be automatic, i.e. on the
+   * task stack, while the stack gate at :203 counts only AI_LEARNER_STACK_BASE_BYTES +
+   * CONTRACT_KERNEL_STACK_BYTES. The gate therefore certified stack sufficiency for inputs it
+   * could not fit: an OPS-SAT-sized contract (CONTRACT_INPUT_ELEMS=150528) needs 602,112 B for
+   * feat[] alone against a 262,144 B base, and the app reported kernel_stack_accounted=true and
+   * then died in the first inference. Made static -- the same thing zeros[] at :322 already is
+   * -- so the gate's formula becomes true instead of the gate being taught a new number. This
+   * app runs one inference task at a time (zeros[] already depends on that), and changing the
+   * gate's arithmetic instead would DENY every model that runs today (measured: 4/4).
+   * These bytes leave the task-stack bucket and land in BSS; neither is HAL memory, so
+   * bounded_bytes is unaffected. The mem_init/last_mem records report the figure. */
+  const uint8* raw = (const uint8*)buf; static float feat[CONTRACT_INPUT_ELEMS];
   CFE_MSG_Size_t sz = 0;
   g.n_attempt++;
   /* features: payload bytes after the 16-byte header, wrapped to fill the contract input */
@@ -356,7 +632,7 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   if (!iree_status_is_ok(s)) { g.n_fail_input++; AI_LEARNER_NoteFail("inputs_push_back", s); iree_runtime_call_deinitialize(&call); return; }
   double t0 = now_us();
   iree_status_t st = iree_runtime_call_invoke(&call, 0);
-  iree_hal_buffer_view_t* ret = NULL; float out[CONTRACT_OUTPUT_ELEMS]; int ok = 0;
+  iree_hal_buffer_view_t* ret = NULL; static float out[CONTRACT_OUTPUT_ELEMS]; int ok = 0;  /* D52: was automatic */
   if (!iree_status_is_ok(st)) { g.n_fail_invoke++; AI_LEARNER_NoteFail("invoke", st); }
   else {
     s = iree_runtime_call_outputs_pop_front_buffer_view(&call, &ret);
@@ -372,7 +648,22 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   if (g.n_infer % AI_LEARNER_REPORT_EVERY == 0) {
     iree_hal_allocator_statistics_t stats; iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &stats);
     int within = (long)stats.device_bytes_peak <= (long)CONTRACT_BOUNDED_BYTES;
-    char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8]; AI_LEARNER_FormatOut(outs, sizeof outs);
+    /* E32 / D59: `within` says the UNCONDITIONAL contract held. It does not say this
+     * deployment stayed inside the budget it was ADMITTED on, and in the conditional
+     * tier those are different numbers (per_call vs bounded). Reporting only `within`
+     * lets a conditional app run over its approved budget and still log "true" --
+     * D53's rule ("compare the number you admitted on") applied to the post-hoc check.
+     * Both are kept: one is about contract soundness, the other about this deployment. */
+    long admitted_budget = g.conditional_map ? (long)CONTRACT_PER_CALL_BYTES
+                                             : g.budget_bytes;
+    int within_budget = (long)stats.device_bytes_peak <= admitted_budget;
+    if (!within_budget) {
+      CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_ERROR,
+                        "AI_LEARNER budget overrun: hal_peak=%ld > admitted=%ld (mode=%s)",
+                        (long)stats.device_bytes_peak, admitted_budget,
+                        g.conditional_map ? "conditional_map" : "unconditional");
+    }
+    static char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8]; AI_LEARNER_FormatOut(outs, sizeof outs);  /* D52: was automatic, 16 B per output element */
     CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_INFORMATION, "AI_LEARNER completed=%u/%u mean=%.1fus max=%.1fus hal_peak=%ld within_bounded=%d",
                       (unsigned)g.n_infer, (unsigned)g.n_attempt, g.lat_sum_us / g.n_infer, g.lat_max_us, (long)stats.device_bytes_peak, within);
     AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"%s\",\"target\":\"%s\",\"attempted\":%u,\"completed\":%u,\"fail_input\":%u,\"fail_invoke\":%u,\"fail_output\":%u,"
@@ -381,9 +672,12 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
                     (unsigned)g.n_attempt, (unsigned)g.n_infer, (unsigned)g.n_fail_input, (unsigned)g.n_fail_invoke, (unsigned)g.n_fail_output,
                     g.lat_sum_us / g.n_infer, g.lat_max_us, g.lat_last_us, g.out[0], outs);
     AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"mem\",\"model\":\"%s\",\"target\":\"%s\",\"completed\":%u,\"hal_peak\":%ld,\"peak_within_bounded\":%s,"
+                    "\"admitted_budget_bytes\":%ld,\"peak_within_admitted_budget\":%s,\"admission_mode\":\"%s\","
                     "\"hal_bytes_per_call_amortized\":%.1f,\"process_rss_kb\":%ld,\"process_rss_delta_init_kb\":%ld}\n",
                     CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE,
                     (unsigned)g.n_infer, (long)stats.device_bytes_peak, within ? "true" : "false",
+                    admitted_budget, within_budget ? "true" : "false",
+                    g.conditional_map ? "conditional_map" : "unconditional",
                     (double)stats.device_bytes_allocated / g.n_infer, rss_kb(), g.rss_kb_init1 - g.rss_kb_init0);
   }
 }

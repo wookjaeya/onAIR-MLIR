@@ -1,0 +1,700 @@
+{
+  "model": {
+    "name": "vww96_mlperf_tiny",
+    "sha256": "2c23bd2ffefcaeb5b2a6ca07bd5798ffd7cd6bd3145515ed46c59ddb50b4b8c5",
+    "file": "vww.mlir",
+    "bytes": 1721355,
+    "entry": "infer"
+  },
+  "interface": {
+    "input": {
+      "shape": [
+        1,
+        3,
+        96,
+        96
+      ],
+      "dtype": "f32"
+    },
+    "output": {
+      "shape": [
+        1,
+        2
+      ],
+      "dtype": "f32"
+    },
+    "inputs": [
+      {
+        "shape": [
+          1,
+          3,
+          96,
+          96
+        ],
+        "dtype": "f32"
+      }
+    ],
+    "outputs": [
+      {
+        "shape": [
+          1,
+          2
+        ],
+        "dtype": "f32"
+      }
+    ],
+    "all_static": true,
+    "source_arg_shapes_static": [
+      [
+        1,
+        3,
+        96,
+        96
+      ]
+    ],
+    "source_result_shapes_static": [
+      [
+        1,
+        2
+      ]
+    ],
+    "abi_declaration": "sync func @infer(%input0: tensor<1x3x96x96xf32>) -> (%output0: tensor<1x2xf32>)",
+    "abi_declaration_matches_source": true
+  },
+  "target": {
+    "triple": "x86_64-unknown-linux-gnu",
+    "cpu": "generic",
+    "profile": "generic",
+    "driver": "local-sync",
+    "backend": "llvm-cpu",
+    "executable_format": "embedded-elf",
+    "executable_format_in_artifact": "embedded-elf-x86_64",
+    "codegen_ll_target_triple": "x86_64-unknown-unknown-eabi-elf",
+    "extra_args": []
+  },
+  "resources": {
+    "memory_boundary": "per_call_plus_module_constants",
+    "static_external_input_bytes": 110592,
+    "static_external_output_bytes": 8,
+    "static_io_bytes": 110600,
+    "static_transient_bytes": 346624,
+    "transient_slabs_post_layout": [
+      346624
+    ],
+    "transient_slice_sum_diagnostic": 0,
+    "static_per_call_bytes": 457224,
+    "module_resident_constant_bytes": 841728,
+    "module_resident_constant_method": "packed_constant_buffers(#util.composite)",
+    "module_resident_constant_dense_sum_bytes": 841664,
+    "module_resident_constant_buffers_packed": [
+      841728
+    ],
+    "module_resident_constant_packing_padding_bytes": 64,
+    "bounded_bytes": 1298952,
+    "bound_method": "static_from_stream_layout",
+    "bound_source": "post-layout stream.resource.alloca sizes of the entry function after iree-stream-layout-slices (alignment and lifetime reuse resolved by the compiler) + packed module constants",
+    "unresolved_sizes": [],
+    "resolved_partial_sums_when_unbounded": null,
+    "bound_assumptions": [
+      "static shapes",
+      "single in-flight call (no concurrency)",
+      "local-sync driver",
+      "entry function @infer only"
+    ],
+    "entry_function_found": true,
+    "dispatches": 31,
+    "binary_size_bytes": 891028,
+    "vm_bytecode_bytes": 6104,
+    "artifact_rodata_external_segments": [
+      841728,
+      35712
+    ],
+    "artifact_rodata_data_segments": [
+      841728,
+      35712
+    ],
+    "constants_independently_confirmed_in_artifact": true,
+    "constants_dense_sum_confirmed_in_artifact": false,
+    "constants_confirmation_state": "confirmed",
+    "constants_check_note": "module constant total 841728 B equals a subset-sum of the flatbuffer .rodata segments [841728, 35712] (iree-dump-module)",
+    "scope": "program-allocated buffers only; excludes IREE runtime context (VM, HAL device, module tables) and the task stack",
+    "kernel_task_stack_bytes": 432,
+    "kernel_task_stack_invocation_bytes": 503,
+    "kernel_task_stack_bytes_source": "elf_stack_frame.py max_dispatch_frame_bytes (max over dispatch functions; callee-saved + locals)",
+    "kernel_external_call_insns": 0,
+    "llvm_alloca_count": null,
+    "llvm_external_calls": null,
+    "kernel_dynamic_stack_alloc": false,
+    "kernel_stack_classification": "bucket_2_task_stack_budget",
+    "kernel_stack_note": "bucket (2) TASK-STACK with resolved calls: 36 call instruction(s) target 2 address(es) inside this same ELF; every callee has a static frame and no indirect or outbound control flow, so the deepest per-invocation chain is 503 B (vs 503 B for the calling dispatch alone). Not HAL memory (not in bounded_bytes); add the chain figure to the task/thread stack budget.",
+    "kernel_elf_bytes": 35712,
+    "kernel_elf_sha256": "8adc8ce6cbc403ca1cf65be0e9c8feee0600b64c907f8df807ff6f7a755c2a2b",
+    "kernel_elf_arch": "x86_64",
+    "kernel_dispatch_functions": [
+      "infer_dispatch_0_slow_memcpy",
+      "infer_dispatch_1_conv_8x48x48x3x3x3_f32",
+      "infer_dispatch_2_conv_48x48x8x3x3_f32",
+      "infer_dispatch_3_matmul_like_16x48x48x8_f32",
+      "infer_dispatch_4_conv_24x24x16x3x3_f32",
+      "infer_dispatch_5_matmul_like_32x24x24x16_f32",
+      "infer_dispatch_6_conv_24x24x32x3x3_f32",
+      "infer_dispatch_7_matmul_like_32x24x24x32_f32",
+      "infer_dispatch_8_conv_12x12x32x3x3_f32",
+      "infer_dispatch_9_matmul_like_64x12x12x32_f32",
+      "infer_dispatch_10_conv_12x12x64x3x3_f32",
+      "infer_dispatch_11_matmul_like_64x12x12x64_f32",
+      "infer_dispatch_12_conv_6x6x64x3x3_f32",
+      "infer_dispatch_13_matmul_like_128x6x6x64_f32",
+      "infer_dispatch_14_conv_6x6x128x3x3_f32",
+      "infer_dispatch_15_matmul_like_128x6x6x128_f32",
+      "infer_dispatch_23_matmul_like_128x6x6x128_f32",
+      "infer_dispatch_24_conv_3x3x128x3x3_f32",
+      "infer_dispatch_25_matmul_like_256x3x3x128_f32",
+      "infer_dispatch_26_conv_3x3x256x3x3_f32",
+      "infer_dispatch_27_matmul_like_256x9x256_f32",
+      "infer_dispatch_28_reduction_256x9_f32",
+      "infer_dispatch_29_matmul_1x2x256_f32",
+      "infer_dispatch_30_softmax_2xf32_dispatch_tensor_store"
+    ],
+    "kernel_total_insns": 2993,
+    "kernel_vector_insns": {
+      "vfmadd": 0,
+      "mulss": 54,
+      "addss": 84,
+      "zmm_refs": 0,
+      "ymm_refs": 0,
+      "xmm_refs": 1110,
+      "v_prefixed_insns": 0,
+      "avx512_broadcast_or_mask": 0
+    }
+  },
+  "timing": {
+    "boundary": "L1_kernel",
+    "execution_bound_us": null,
+    "bound_method": null,
+    "sample_count": null,
+    "platform_timing_grade": "FUNCTIONAL_ONLY",
+    "note": "no execution bound: latency is never evidence on a FUNCTIONAL_ONLY platform (harness/platform_check.py)"
+  },
+  "artifact": {
+    "file": "vww.vmfb",
+    "sha256": "2f1470bf3ee202a5cf81876650179321c8a949a723ca64c745720db71e5d4878",
+    "bytes": 891028,
+    "embedded_executables": [
+      {
+        "offset": 854944,
+        "bytes": 35712,
+        "arch": "x86_64",
+        "sha256": "8adc8ce6cbc403ca1cf65be0e9c8feee0600b64c907f8df807ff6f7a755c2a2b"
+      }
+    ],
+    "produced_by": "single iree-compile invocation that also emitted the layout IR (--mlir-print-ir-after=iree-stream-layout-slices) and the executable dumps (--iree-hal-dump-executable-files-to); this contract was parsed from those outputs"
+  },
+  "validity": {
+    "entry": "infer",
+    "input": {
+      "shape": [
+        1,
+        3,
+        96,
+        96
+      ],
+      "dtype": "f32"
+    },
+    "output": {
+      "shape": [
+        1,
+        2
+      ],
+      "dtype": "f32"
+    },
+    "driver": "local-sync",
+    "profile": "generic",
+    "compiler": "IREE 3.11.0rc20260316 e4a3b04",
+    "compiler_version_raw": "IREE (https://iree.dev):\n  IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25\n  LLVM version 23.0.0git\n  Optimized build",
+    "compiler_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+    "runtime_commit": "e4a3b04",
+    "assumptions": [
+      "static shapes",
+      "single in-flight call (no concurrency)",
+      "local-sync driver",
+      "entry function @infer only"
+    ],
+    "binding_rule": "the gate must hash the exact bytes handed to the IREE session and compare with artifact.sha256 before any runtime allocation"
+  },
+  "provenance": {
+    "single_invocation": true,
+    "mlir_basename_in_dump_dir_files": true,
+    "tool": "harness/make_contract.py",
+    "mlir_file": "vww.mlir",
+    "mlir_sha256": "2c23bd2ffefcaeb5b2a6ca07bd5798ffd7cd6bd3145515ed46c59ddb50b4b8c5",
+    "layout_ir_file": "vww.layout_ir.txt",
+    "layout_ir_sha256": "dfc59112ec249e4ba8a732c7b3ebe7666d146d848add231f09945b0d957d733e",
+    "layout_ir_bytes": 102859,
+    "layout_ir_dump_count": 4,
+    "layout_ir_note": "per-function dumps in thread-dependent order (multi-threaded pass manager); the entry function is printed once per pipeline phase -- the most-lowered print is used",
+    "dump_dir": "dump_vww",
+    "dump_dir_files": [
+      {
+        "name": "configured_module_infer_dispatch_0.mlir",
+        "bytes": 2466,
+        "sha256": "e5cbc76a1f91613de84ac278559c57605f9594b4ef80cea292f97389b02b057d"
+      },
+      {
+        "name": "configured_module_infer_dispatch_1.mlir",
+        "bytes": 4879,
+        "sha256": "0645ce4d216541e3976080f38fc6d43223242554ad9967a5491790ae3869ea2f"
+      },
+      {
+        "name": "configured_module_infer_dispatch_10.mlir",
+        "bytes": 4772,
+        "sha256": "7c8b9237a3a6d827d1e52dd3dcc7a1f2e3d87383e4eaab0a392f0ae86e979969"
+      },
+      {
+        "name": "configured_module_infer_dispatch_11.mlir",
+        "bytes": 4839,
+        "sha256": "5d923f81b39a8fa20727625cd6c5160ca16d55231da5317bf215921fd83e18fd"
+      },
+      {
+        "name": "configured_module_infer_dispatch_12.mlir",
+        "bytes": 4742,
+        "sha256": "0d8de758b0b395512e4a4bf7c90f3637c008b75ce0fc304d44935ce554d34cee"
+      },
+      {
+        "name": "configured_module_infer_dispatch_13.mlir",
+        "bytes": 5317,
+        "sha256": "324c99aafc13ff3ae43c80807ba5b27c40f516eeea60c075ca964ba0d691dc39"
+      },
+      {
+        "name": "configured_module_infer_dispatch_14.mlir",
+        "bytes": 7400,
+        "sha256": "1ee369c9294c9219fe4eee77939aff8664a93c7077569be90c14e69cd7ef09e4"
+      },
+      {
+        "name": "configured_module_infer_dispatch_15.mlir",
+        "bytes": 7315,
+        "sha256": "0cbf87b9b368b405e330c8a074895d584f38cf8194c21ab3cb1ba9f5d30d980c"
+      },
+      {
+        "name": "configured_module_infer_dispatch_2.mlir",
+        "bytes": 4821,
+        "sha256": "93ace45120ebd5bd5f6138fdfd1728a75ba3ae65a2eddeb7a729676f82bb3af7"
+      },
+      {
+        "name": "configured_module_infer_dispatch_23.mlir",
+        "bytes": 5332,
+        "sha256": "3b010c79bfec462e36af1b371011c6e2261460fb27bffe2b3dd243e54291100e"
+      },
+      {
+        "name": "configured_module_infer_dispatch_24.mlir",
+        "bytes": 5268,
+        "sha256": "0639d16324cd377296955e98532241a434193e17c2b731e3a81e32af84887e4c"
+      },
+      {
+        "name": "configured_module_infer_dispatch_25.mlir",
+        "bytes": 5329,
+        "sha256": "f554b750df9db44640e4cc34ac193d84456a43ef547bb99532ef311af1e85b76"
+      },
+      {
+        "name": "configured_module_infer_dispatch_26.mlir",
+        "bytes": 5269,
+        "sha256": "4714e5ecdb2bf75577ba838e7de4a3ec207328bf1ef2012825ec9db2ffee962b"
+      },
+      {
+        "name": "configured_module_infer_dispatch_27.mlir",
+        "bytes": 3910,
+        "sha256": "fdc28aa783062393aa529cde2bef32d93caf371f9efdf141aa9b2a145c875577"
+      },
+      {
+        "name": "configured_module_infer_dispatch_28.mlir",
+        "bytes": 4335,
+        "sha256": "f5892228104fbc336164099529ac63ac6b4def4a6c860908f3ffe31eb8290ed2"
+      },
+      {
+        "name": "configured_module_infer_dispatch_29.mlir",
+        "bytes": 4295,
+        "sha256": "6f9391cf60311daec6d98ad1a302c01d5ebfd5ff8891408dc1b176afc06ff253"
+      },
+      {
+        "name": "configured_module_infer_dispatch_3.mlir",
+        "bytes": 4816,
+        "sha256": "09e3641afe2f723aa930873ef0663caaea68fd6cb30397ffc1e3b73188075191"
+      },
+      {
+        "name": "configured_module_infer_dispatch_30.mlir",
+        "bytes": 4016,
+        "sha256": "791ae0847a41a981f9a5c7ed68cf956b7afb6bbeea1cf18cff7a39d0d1733e1d"
+      },
+      {
+        "name": "configured_module_infer_dispatch_4.mlir",
+        "bytes": 4768,
+        "sha256": "d2e00be1d7a2279a3ebd5592f74c3da6fd9ad1e72d82093845834f4d30c416ec"
+      },
+      {
+        "name": "configured_module_infer_dispatch_5.mlir",
+        "bytes": 4821,
+        "sha256": "1dfe6ad1c136ed2d8d7eb4f697b340ed27e23351aa435fb4d9c4415afd3ffbd9"
+      },
+      {
+        "name": "configured_module_infer_dispatch_6.mlir",
+        "bytes": 4772,
+        "sha256": "495dbcdc3799ae8f17e827ef35b0331752d4831b7227e349a441a92c518a8a63"
+      },
+      {
+        "name": "configured_module_infer_dispatch_7.mlir",
+        "bytes": 4839,
+        "sha256": "7ea322fb0b863768a477b980e3103f1c94673c91cbff9619eb002e37ab0d10d3"
+      },
+      {
+        "name": "configured_module_infer_dispatch_8.mlir",
+        "bytes": 4768,
+        "sha256": "f5ecf5f95187ff5af40bca70b5b0fe99d9a70ad33d7345cc6ab1362135cdbaaf"
+      },
+      {
+        "name": "configured_module_infer_dispatch_9.mlir",
+        "bytes": 4821,
+        "sha256": "0cecd94130c2f8b98f0e9a4bb2b2f97b1b0ee579023c8d7682cfc7f741f195f0"
+      },
+      {
+        "name": "module_infer_dispatch_0.mlir",
+        "bytes": 2070,
+        "sha256": "43f8d3480aa1479231da6521a1cb1e9a9b0e562fc9b4663fadbc70300315b7ac"
+      },
+      {
+        "name": "module_infer_dispatch_0_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 6308,
+        "sha256": "456ee82372b3d529051cca4940f8e1cbba305a76ab66bf511282dbacb50ca9dc"
+      },
+      {
+        "name": "module_infer_dispatch_1.mlir",
+        "bytes": 4433,
+        "sha256": "6871991b84f70020aa3d7189144eb5db95519221dc9fc11c6dace12db0bd5641"
+      },
+      {
+        "name": "module_infer_dispatch_10.mlir",
+        "bytes": 4335,
+        "sha256": "4312f7d49b57ff621a170b6efca83827afa912ee8af67176aa7d83425438f789"
+      },
+      {
+        "name": "module_infer_dispatch_10_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8938,
+        "sha256": "086a5ac55b45235fd31a731841f5cbc75a04f29d3828b6526c93b00d569cff10"
+      },
+      {
+        "name": "module_infer_dispatch_11.mlir",
+        "bytes": 4299,
+        "sha256": "3847141605a565172ecf2f37a8ceab03924fee6aaec21d888b9bcd260eaed5b0"
+      },
+      {
+        "name": "module_infer_dispatch_11_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9065,
+        "sha256": "14bdeae8978ccfbe059c28fa6f09a959126e086caedaeaccc2f33423ec46933d"
+      },
+      {
+        "name": "module_infer_dispatch_12.mlir",
+        "bytes": 4306,
+        "sha256": "8a12b6a3615dc36d29c0623cbb15ea82602e7dc6ca174e5dc5f23f52f4f947a2"
+      },
+      {
+        "name": "module_infer_dispatch_12_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8888,
+        "sha256": "4afa7b1abf9c6a0c2899f1479a4d0034fc5c944f33771a71986085485283b9e2"
+      },
+      {
+        "name": "module_infer_dispatch_13.mlir",
+        "bytes": 4777,
+        "sha256": "b27c33b5359393272fdcd98e39e08ec391d9b0999cbec779e2b3226276e76d7f"
+      },
+      {
+        "name": "module_infer_dispatch_13_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9537,
+        "sha256": "96b8e243270e23ed000e5d4f76bd176d0615b5e5e74fece99be46bdc58b0dc8b"
+      },
+      {
+        "name": "module_infer_dispatch_14.mlir",
+        "bytes": 6964,
+        "sha256": "e89a7ff2c5c5df959c4cbb6139dbe219ee91629a0f31de1e72bd4b24b53428d6"
+      },
+      {
+        "name": "module_infer_dispatch_14_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 11818,
+        "sha256": "fa173749d157b64893d697a4ffcb537e495b45e83e220cc89551d4731ceca47c"
+      },
+      {
+        "name": "module_infer_dispatch_15.mlir",
+        "bytes": 6775,
+        "sha256": "43edf7e9e371cbb55d5646bf5d89a9410d5822510114758b1ae7a56d8ba5dab3"
+      },
+      {
+        "name": "module_infer_dispatch_15_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 11803,
+        "sha256": "e5422d94ed58ac1d3014c0443660585e4538b7437c74f08aa46bb3f5d4205241"
+      },
+      {
+        "name": "module_infer_dispatch_1_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9034,
+        "sha256": "c0231fd7c7234b40429420b847f5b48795d1f948a92f8918d97bc35a81e03188"
+      },
+      {
+        "name": "module_infer_dispatch_2.mlir",
+        "bytes": 4385,
+        "sha256": "e108319d9d5b6d7cc7680f652e12ac58aeacf9cacf12bb111a8eedb9dff9997d"
+      },
+      {
+        "name": "module_infer_dispatch_23.mlir",
+        "bytes": 4792,
+        "sha256": "3668b8a0a7ab7f0ad93357df890352e04e28aea9af5cc6bb34c721dd13cd5a31"
+      },
+      {
+        "name": "module_infer_dispatch_23_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9562,
+        "sha256": "1d3b858dbc4bdb7b78a81f3c32cfad68d9176fcf256b33f2a29a8c952d8fdf6a"
+      },
+      {
+        "name": "module_infer_dispatch_24.mlir",
+        "bytes": 4832,
+        "sha256": "6b3502210fe6f7e29a5eb783d7a0b2741971e873bceaf04fb4d97417e62b8f04"
+      },
+      {
+        "name": "module_infer_dispatch_24_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9428,
+        "sha256": "1615a2d24278da3903f8fc9c2a1d68e36d999c199c3608b1b890e710ae6b6e03"
+      },
+      {
+        "name": "module_infer_dispatch_25.mlir",
+        "bytes": 4789,
+        "sha256": "1f4c664c6311ecd8317a1fd7dd9fa9256959c90f7df2513c507f2bb8874062b5"
+      },
+      {
+        "name": "module_infer_dispatch_25_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9559,
+        "sha256": "e8298c373e1481f0de7d3548d0b088bdb1ae394db84df0b3c7a8a66c74b64992"
+      },
+      {
+        "name": "module_infer_dispatch_26.mlir",
+        "bytes": 4833,
+        "sha256": "ab7484e56c5a26b75bbe83ac2b300461b2c02c01114519222dafedfaa6827ac6"
+      },
+      {
+        "name": "module_infer_dispatch_26_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9429,
+        "sha256": "255120067a4e3375dfcaa44f6a4964e2591986d273ae32f634fa3d011fc029b9"
+      },
+      {
+        "name": "module_infer_dispatch_27.mlir",
+        "bytes": 3508,
+        "sha256": "7796d03a5fb34c7bba28c63afa5b6e3b6e330fc6fe58e952a8f29f0621901919"
+      },
+      {
+        "name": "module_infer_dispatch_27_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8098,
+        "sha256": "a87daff37ca2459deaac788f87071f8f6af986a3ec6f06d6560a10051475974e"
+      },
+      {
+        "name": "module_infer_dispatch_28.mlir",
+        "bytes": 3938,
+        "sha256": "e7f6b6fd5e4e3aebbbfcd776e077f2eb651e7902b4085e4aa50523f59558fccc"
+      },
+      {
+        "name": "module_infer_dispatch_28_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8481,
+        "sha256": "e3ab14664cd0f2e1f00219202eaf5207ad3fb4605d34a5f3295e95767a62bd5a"
+      },
+      {
+        "name": "module_infer_dispatch_29.mlir",
+        "bytes": 3792,
+        "sha256": "2606cfeeca53eb7fc027a2e4bdc9db94cf4f392a31d9fb19373e44dc20a048d4"
+      },
+      {
+        "name": "module_infer_dispatch_29_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8417,
+        "sha256": "8853ea766add195d04242733a2b7b3c1c97b77a8130436c6ef66b68ccec2159d"
+      },
+      {
+        "name": "module_infer_dispatch_2_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8956,
+        "sha256": "1d0db7e981cb51a7a4f8ec6aa9d2a4ccc0db46f8e9d36256a3da4488ae64155e"
+      },
+      {
+        "name": "module_infer_dispatch_3.mlir",
+        "bytes": 4272,
+        "sha256": "66f974765fd5e5699a73d59def411a386471b2cbe94e7f95bbdd73c700d416d8"
+      },
+      {
+        "name": "module_infer_dispatch_30.mlir",
+        "bytes": 2196,
+        "sha256": "c5dedbd2ff28fb9e2b942c59a40162b0ed011ea953ab44a325a29b58407919fd"
+      },
+      {
+        "name": "module_infer_dispatch_30_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8118,
+        "sha256": "6c8853b2848910857e428082af3f8d6f79e531fbe36f79ec7e49805c43c94d26"
+      },
+      {
+        "name": "module_infer_dispatch_3_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9011,
+        "sha256": "fe3389d06774fc8053c937bf6faf802112b75e30e9e298a51812952ee4e191d6"
+      },
+      {
+        "name": "module_infer_dispatch_4.mlir",
+        "bytes": 4331,
+        "sha256": "308c018707129af9c4b880b3b621f086e9746da3b44bc05a95610645cb1f671c"
+      },
+      {
+        "name": "module_infer_dispatch_4_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8913,
+        "sha256": "8c518280b59fd4b6497aac036c3d69baf48036ce11e141fb0cd802540b5e44ac"
+      },
+      {
+        "name": "module_infer_dispatch_5.mlir",
+        "bytes": 4281,
+        "sha256": "0bf2b7c84880430df27664647b3431a2acc200baa33dd1b58c4c22a0306edfd3"
+      },
+      {
+        "name": "module_infer_dispatch_5_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9026,
+        "sha256": "283874393e6625d6c83e4c6ce00a79a57fffb9d249f7c0521523705138e4b281"
+      },
+      {
+        "name": "module_infer_dispatch_6.mlir",
+        "bytes": 4335,
+        "sha256": "1819e47e32b36fa1b2ef899e6d70c15f73f8cc026646921107d52b3d3e21392e"
+      },
+      {
+        "name": "module_infer_dispatch_6_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8917,
+        "sha256": "a4590ef644f3e6c62aa9525d5a52961f04940a49af7f18c935eec371f7ad76ab"
+      },
+      {
+        "name": "module_infer_dispatch_7.mlir",
+        "bytes": 4299,
+        "sha256": "0f0af12c9551b6b5820542ea8c967906f51855a9b0fb72d9d7d6a1377580ffab"
+      },
+      {
+        "name": "module_infer_dispatch_7_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9044,
+        "sha256": "e129604effec54e79e490e005564f0400da57cc46731d3c3f9469e77c85bb516"
+      },
+      {
+        "name": "module_infer_dispatch_8.mlir",
+        "bytes": 4331,
+        "sha256": "b16269b439ef2959302f786985eaab6d5dcfec4dc6cee9b6ebd5d3226c7f3eef"
+      },
+      {
+        "name": "module_infer_dispatch_8_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 8913,
+        "sha256": "b25012a5da2eafb98484ebad46f8220f2f3e4a41ebdb41fa97394c2e1f260d3c"
+      },
+      {
+        "name": "module_infer_dispatch_9.mlir",
+        "bytes": 4281,
+        "sha256": "1bf90596a11feace87f4f97f92c559368ce23b0d71572ac3ff3e41743de5b6c1"
+      },
+      {
+        "name": "module_infer_dispatch_9_embedded_elf_x86_64_benchmark.mlir",
+        "bytes": 9026,
+        "sha256": "ec55677ad1293187424cbfc96e79e6b103036f9c13ff3ae8e51aef2f5c6a1d73"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.codegen.bc",
+        "bytes": 55204,
+        "sha256": "62fdfaf1bdfe8743034de057e4c61b53168d47644715eee0accc4c6489d80340"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.codegen.ll",
+        "bytes": 237714,
+        "sha256": "5134e557c34582d6422939d600665c0e78b6ffbe9cf19cfd39d4e78236dc76de"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.linked.bc",
+        "bytes": 65760,
+        "sha256": "b3cbf9cfd0ae1b1ac053697ffaa5f60501ed3b9f074fff9792072cb84d26422d"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.linked.ll",
+        "bytes": 289916,
+        "sha256": "cceee265aebe3b74b1dfbfee10fd32af72057f75f8a374c34340e40f1cf2a634"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.o",
+        "bytes": 85568,
+        "sha256": "6c61ca169268a91759cc587b0716da36029fdba73d56aab1000f190aaa525e49"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.optimized.bc",
+        "bytes": 62544,
+        "sha256": "a5f000199eacc81d41c32f930f863f2506d4135c3d3566d3123c0d7464ffb2b5"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.optimized.ll",
+        "bytes": 274801,
+        "sha256": "26ed0c1ccf5375ffc9ee620795f26523daa740cad57a036a0eca8a4d60188de1"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.s",
+        "bytes": 188226,
+        "sha256": "4d4161edca539b349a9802cfe8ed17af918567f8a706a81dbedb20ad1c6dd388"
+      },
+      {
+        "name": "module_vww_linked_embedded_elf_x86_64.so",
+        "bytes": 35712,
+        "sha256": "8adc8ce6cbc403ca1cf65be0e9c8feee0600b64c907f8df807ff6f7a755c2a2b"
+      }
+    ],
+    "dump_elf": {
+      "name": "module_vww_linked_embedded_elf_x86_64.so",
+      "bytes": 35712,
+      "sha256": "8adc8ce6cbc403ca1cf65be0e9c8feee0600b64c907f8df807ff6f7a755c2a2b"
+    },
+    "dump_elf_sha256_in_vmfb": true,
+    "layout_dispatch_names": [
+      "infer_dispatch_0",
+      "infer_dispatch_1",
+      "infer_dispatch_10",
+      "infer_dispatch_11",
+      "infer_dispatch_12",
+      "infer_dispatch_13",
+      "infer_dispatch_14",
+      "infer_dispatch_15",
+      "infer_dispatch_2",
+      "infer_dispatch_23",
+      "infer_dispatch_24",
+      "infer_dispatch_25",
+      "infer_dispatch_26",
+      "infer_dispatch_27",
+      "infer_dispatch_28",
+      "infer_dispatch_29",
+      "infer_dispatch_3",
+      "infer_dispatch_30",
+      "infer_dispatch_4",
+      "infer_dispatch_5",
+      "infer_dispatch_6",
+      "infer_dispatch_7",
+      "infer_dispatch_8",
+      "infer_dispatch_9"
+    ],
+    "layout_dispatches_in_dump": true,
+    "elf_analysis": {
+      "file": "vww.elf.json",
+      "sha256": "8598b14cdae465ad97aaa7eb0b4126929cb6b45ca51623197bbca2b58c23a58c",
+      "elf_sha256_in_vmfb": true
+    },
+    "structural_walker": {
+      "available": true,
+      "parse_error": null,
+      "agrees_with_regex_parser": true,
+      "diffs": [],
+      "dispatches": 31,
+      "note": "structural (iree.compiler.ir) extractor agrees with the regex parser"
+    },
+    "overrides_applied": [],
+    "verification_grade": "verified",
+    "notes": [],
+    "entry_prints_in_dump": 2,
+    "entry_print_states_differ": true,
+    "entry_print_used_chunk_index": 3,
+    "entry_print_used_sha256": "8a5d6c92ea3434e957d77fa5849e16d7796b001bb3a12947c6b454b211f05ef1",
+    "entry_print_used_is_last": true,
+    "agrees_with_parse_alloc_ir_last_print": true
+  }
+}

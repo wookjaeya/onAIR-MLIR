@@ -1,0 +1,22 @@
+E29 revert-and-confirm-fail (x86-64 native, b3_deepae, budget = per_call = 6,208 B,
+ONAIR_CONDITIONAL_MAP=1, alignment defeated with harness/e29_no_posix_memalign.c)
+
+--- with the post-append verification (shipped) -------------------------------
+"verdict":"ADMIT_CONDITIONAL_MAP"
+"stage":"map_branch" ... "module_ptr_mod64":16 "hal_peak_after_append":1063424 "arm":"copy"
+"stage":"map_branch","verdict":"MAP_PRECONDITION_FAILED","hal_peak_after_append":1063424,"contract_per_call_bytes":6208
+"reason":"map precondition failed; refused before any inference"   rc=10, 0 inferences
+
+--- with ONLY the verification block removed (everything else identical) ------
+"verdict":"ADMIT_CONDITIONAL_MAP"
+"arm":"copy"
+"hal_device_bytes_peak":1069632
+"peak_within_bounded":true
+"reason":"ok"                                                       rc=0, 3 inferences
+
+The reverted run peaks at 1,069,632 B on a budget of 6,208 B -- 172x over -- and
+nothing in the existing telemetry says so: `peak_within_bounded` is TRUE, because
+that field compares the peak against CONTRACT_BOUNDED_BYTES, not against the
+budget the app was actually admitted on.  The conditional tier is only sound
+because it verifies the arm it was admitted under; without that check it is a
+fail-open, and one the repository's pre-E29 fields could not have detected.

@@ -1,0 +1,100 @@
+{
+ "model": "b3_deepae (MLPerf Tiny Deep AutoEncoder, ToyADMOS 계열)",
+ "layer": "E26-ext",
+ "source": {
+  "repo": "mlcommons/tiny",
+  "commit": "4addd0fa08d216e20637637874e084895f289da4",
+  "file": "benchmark/training/anomaly_detection/trained_models/ad01_fp32.tflite",
+  "bytes": 1067648,
+  "sha256": "c66636f4d7f8af8b10518e7be750a22c9d8d46ec97326b40b0d94c097e0aad9b"
+ },
+ "import_path": "tflite2onnx -> graph.name=infer -> iree-import-onnx --opset-version 17 -> iree-opt (torch->linalg) -> ONE iree-compile",
+ "contract": {
+  "bounded_bytes": 1069632,
+  "static_per_call_bytes": 6208,
+  "module_resident_constant_bytes": 1063424,
+  "static_transient_bytes": 1088,
+  "static_io_bytes": 5120,
+  "dispatches": 10,
+  "kernel_task_stack_bytes": 24,
+  "artifact_bytes": 1080064,
+  "artifact_sha256": "8361791ddcf381b3e9a78012d1e5f0192f1cd6bd8595349b0a7a7ee743f75429",
+  "constants_to_per_call_ratio": 171.3
+ },
+ "cells": [
+  {
+   "runner": "pip_runtime",
+   "budget": null,
+   "admitted": true,
+   "hal_device_bytes_peak": 6208,
+   "branch": "mapped",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 172.299
+  },
+  {
+   "runner": "native_c",
+   "budget": 1069631,
+   "admitted": false,
+   "exit_reason": "not admitted",
+   "hal_device_bytes_peak": null,
+   "branch": null,
+   "peak_within_bounded": null,
+   "tightness_bounded_over_peak": null
+  },
+  {
+   "runner": "native_c",
+   "budget": 1069632,
+   "admitted": true,
+   "exit_reason": "ok",
+   "hal_device_bytes_peak": 1069632,
+   "branch": "allocated",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 1.0
+  },
+  {
+   "runner": "native_c",
+   "budget": 1069633,
+   "admitted": true,
+   "exit_reason": "ok",
+   "hal_device_bytes_peak": 1069632,
+   "branch": "allocated",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 1.0
+  },
+  {
+   "runner": "native_c",
+   "budget": 2097152,
+   "admitted": true,
+   "exit_reason": "ok",
+   "hal_device_bytes_peak": 1069632,
+   "branch": "allocated",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 1.0
+  },
+  {
+   "runner": "cfs_x86_64",
+   "budget": 1069632,
+   "admitted": true,
+   "exit_reason": "ok",
+   "hal_device_bytes_peak": 1069632,
+   "branch": "allocated",
+   "peak_within_bounded": true,
+   "tightness_bounded_over_peak": 1.0,
+   "completed": "5/5",
+   "log": "results/e26_boundary_utility/x86_64/cfs/b3_deepae_B.log",
+   "added_by": "E28 (검토서 4.3이 P0로 지목한 cFS 셀 — 코드 수정 없이 실행됨)"
+  }
+ ],
+ "q1_peak_within_bounded_all": true,
+ "q2_branches": [
+  "allocated",
+  "mapped"
+ ],
+ "q2_hypothesis_refuted": [],
+ "q2_tightness_range": [
+  1.0,
+  172.299
+ ],
+ "q3_deny_at_bound_minus_1": true,
+ "q3_admit_at_bound_and_above": true
+}

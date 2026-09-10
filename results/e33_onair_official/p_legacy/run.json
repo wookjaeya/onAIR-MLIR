@@ -1,0 +1,50 @@
+{
+ "tool": "harness/onair_integration_check.py",
+ "deployment": "legacy_mlp",
+ "onair": {
+  "path": "/root/onair-mlir-bench/ext/OnAIR",
+  "head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+  "core_unmodified": true,
+  "untracked_unchanged": true,
+  "tracked_dirty_before": "",
+  "tracked_dirty_after": "",
+  "status_before": "?? csv_out_252_06_15.csv",
+  "status_after": "?? csv_out_252_06_15.csv",
+  "check_note": "OnAIR core must be untouched: no TRACKED file may be modified before or after the run. Untracked files left by OnAIR's own example runs are reported separately and are not a modification"
+ },
+ "invocation": {
+  "cmd": [
+   "/usr/local/bin/python3",
+   "driver.py",
+   "onair.ini"
+  ],
+  "cwd": "/root/onair-mlir-bench/ext/OnAIR",
+  "env_var": "ONAIR_MLIR_DEPLOYMENT_CONFIG",
+  "ini": "/home/user/onAIR-MLIR/results/e33_onair_official/p_legacy/onair.ini",
+  "deployment_config": "/home/user/onAIR-MLIR/results/e33_onair_official/p_legacy/deployment.json"
+ },
+ "returncode": 0,
+ "plugin_constructed": true,
+ "plugin_init": {
+  "event": "init",
+  "active": true,
+  "inactive_reason": null,
+  "input_mode": "telemetry",
+  "admission": {
+   "verdict": "NOT_EVALUATED",
+   "admitted_budget_bytes": null,
+   "reason": "no budget_bytes configured for this deployment"
+  },
+  "binding": {
+   "verdict": "MATCH",
+   "artifact_bytes": 10642,
+   "artifact_sha256": "63635f0a72d52aa987a1adc032c40aa18a7ecb31966b8128e318e86f9a2ee3a3"
+  },
+  "entry": "infer",
+  "deployment_source": "/home/user/onAIR-MLIR/results/e33_onair_official/p_legacy/deployment.json[legacy_mlp]"
+ },
+ "inferences": 4,
+ "stdout_tail": "\u001b[95m\u001b[1m\n***************************************************\n************    SIMULATION STARTED     ************\n***************************************************\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 1 ---------------------\n\u001b[0m\nCURRENT DATA: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 2 ---------------------\n\u001b[0m\nCURRENT DATA: [1.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 3 ---------------------\n\u001b[0m\nCURRENT DATA: [2.0, 0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4, 2.7]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 4 ---------------------\n\u001b[0m\nCURRENT DATA: [3.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8, 3.2, 3.6]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n",
+ "stderr_tail": "nanobind: leaked 8 instances!\n - leaked instance 0x7fce2cf19f38 of type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked instance 0x7fce2c57fc48 of type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked instance 0x7fce2cf18818 of type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked instance 0x7fce2c479e98 of type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked instance 0x7fce2c57f0a8 of type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked instance 0x7fce2c57fcc8 of type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked instance 0x7fce2c57f048 of type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked instance 0x7fce2c47a848 of type \"iree._runtime_libs._runtime.MappedMemory\"\nnanobind: leaked 4 keep_alive records!\nnanobind: leaked 2 types!\n - leaked type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked type \"iree._runtime_libs._runtime.HalBufferView\"\nnanobind: leaked 13 functions!\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"__eq__\"\n - leaked function \"__iree_vm_type__\"\n - leaked function \"\"\n - leaked function \"asarray\"\n - leaked function \"\"\n - leaked function \"__repr__\"\n - leaked function \"get_buffer\"\n - leaked function \"map\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"__iree_vm_cast__\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\nSee https://nanobind.readthedocs.io/en/latest/refleaks.html",
+ "records_file": "/home/user/onAIR-MLIR/results/e33_onair_official/p_legacy/plugin_records.jsonl"
+}

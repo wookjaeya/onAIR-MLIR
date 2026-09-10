@@ -1,0 +1,22 @@
+{
+ "model": "b3_deepae_mlperf_tiny",
+ "layer": "ext",
+ "runner": "pip_runtime",
+ "driver": "local-sync",
+ "runs": 5,
+ "hal_device_bytes_peak": 6208,
+ "hal_device_bytes_allocated": 31040,
+ "hal_device_bytes_freed": 31040,
+ "all_freed_at_measurement": true,
+ "bounded_bytes": 1069632,
+ "static_per_call_bytes": 6208,
+ "module_resident_constant_bytes": 1063424,
+ "peak_within_bounded": true,
+ "tightness_bounded_over_peak": 172.299,
+ "branch": "mapped",
+ "out_shape": [
+  1,
+  640
+ ],
+ "out_finite": true
+}

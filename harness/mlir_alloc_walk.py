@@ -52,7 +52,7 @@ GLOBAL_STORE_RE = re.compile(r'util\.global\.store\s+%[\w.#]+,\s*@([\w.$]+)\s*:\
 # unresolved (D13 fail-closed policy: unknown -> refuse, never ignore).
 KNOWN_ENTRY_OPS = {"stream.tensor.import", "stream.tensor.export",
                    "stream.resource.alloca", "stream.resource.dealloca",
-                   "stream.resource.pack"}
+                   "stream.resource.pack", "stream.resource.subview"}
 
 
 def _require_bindings():
@@ -166,12 +166,39 @@ def _extract_from_entry(entry_op):
             # not skipped. (Not exercised by the current model corpus -- none
             # of the 14 stored layout IRs use stream.resource.pack in the
             # entry body -- but must not be silently ignored if one does.)
+            # F5 (external review, 2026-09): this branch used to only append on
+            # ok=True -- a non-constant index operand (e.g. a runtime-computed
+            # slice size) was silently dropped instead of going to unresolved,
+            # contradicting the comment above and the sibling branches
+            # (stream.tensor.import / stream.resource.alloca) two cases up,
+            # which both use the symmetric (bucket if ok else unresolved)
+            # pattern. Reproduced directly with a synthesized
+            # stream.resource.pack whose size operand is an arith.addi result.
             for opd in o.operands:
                 if str(opd.type) != "index":
                     continue
                 v, ok = _resolve_index_value(opd)
-                if ok:
-                    result["transient_slices"].append(v)
+                (result["transient_slices"] if ok else result["unresolved"]).append(
+                    v if ok else "pack_slice:%s" % v)
+        elif name == "stream.resource.subview":
+            # E26c/D49: a subview allocates nothing -- it is a window into an
+            # operand resource that some other op already allocated. Operand
+            # order, read off the real op with the MLIR API on a stock
+            # two-output model, is [source, source_size, offset, result_size].
+            # The containment claim is CHECKED, not trusted: a subview whose
+            # index operands are not constants, or whose window leaves its
+            # source, is unresolved so no bound can be stated.
+            if len(o.operands) < 4:
+                result["unresolved"].append("subview_arity:%d" % len(o.operands))
+            else:
+                src_size, ok_src = _resolve_index_value(o.operands[1])
+                off, ok_off = _resolve_index_value(o.operands[2])
+                res_size, ok_res = _resolve_index_value(o.operands[3])
+                if not (ok_src and ok_off and ok_res):
+                    result["unresolved"].append("subview_size:%s" % src_size)
+                elif off + res_size > src_size:
+                    result["unresolved"].append(
+                        "subview_out_of_range:[%d for %d] of %d" % (off, res_size, src_size))
         # stream.tensor.export / stream.resource.dealloca: consume an
         # already-counted resource, allocate nothing new -- intentionally
         # not sized (matches static_mem_bound.py's KNOWN_ENTRY_OPS treatment).
@@ -234,6 +261,40 @@ def parse_alloc_ir_structural(ir_text, entry="infer"):
     return best[1]
 
 
+def diff_against_regex(structural, regex_based, constants_reference=None):
+    """Compare a structural extraction (parse_alloc_ir_structural) against a
+    regex-based one (static_mem_bound.parse_alloc_ir) -- both have the SAME
+    return shape -- and return the list of field names that disagree. This is
+    the ONE place this comparison is implemented; both this module's own
+    --cross-check CLI below and harness/make_contract.py's mandatory
+    cross-check (E19) call it, so the disagreement rule cannot drift between
+    the two the way it did before this function existed (E19 code review,
+    2026-09: both call sites independently reimplemented this logic and both
+    had the same constants(sum) bug -- see constants_reference below).
+
+    constants_reference overrides what "constants(sum)" is compared against.
+    Default (None) uses regex_based's own constants sum, appropriate for a
+    standalone diagnostic run with no other context (this module's --cross-check
+    CLI). make_contract.py instead passes const_b (module_resident_constant_bytes
+    -- packed_sum when nonzero, else dense_sum): structural's constants sum is
+    the packed stream.resource.alloc size (see _extract_constants above), which
+    is NOT always equal to regex_based's raw per-tensor dense sum whenever
+    constant packing pads or deduplicates (make_contract.py already tracks this
+    distinction as packed_sum vs dense_sum, with a note when they differ) --
+    comparing against the wrong one false-hard-fails a contract whose bound is
+    actually correct."""
+    exact_keys = ("inputs", "outputs", "transient_slabs")
+    diffs = [k for k in exact_keys if sorted(structural.get(k, [])) != sorted(regex_based.get(k, []))]
+    target = sum(regex_based.get("constants", [])) if constants_reference is None else constants_reference
+    if sum(structural.get("constants", [])) != target:
+        diffs.append("constants(sum)")
+    if structural.get("entry_found") != regex_based.get("entry_found"):
+        diffs.append("entry_found")
+    if bool(structural.get("unresolved")) != bool(regex_based.get("unresolved")):
+        diffs.append("unresolved(presence)")
+    return diffs
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("layout_ir", help="stderr of --mlir-print-ir-after=iree-stream-layout-slices")
@@ -254,23 +315,22 @@ def main():
         # compared by SUM only: the regex path lists one entry per `dense`
         # declaration in the initializer, this walker lists one entry per
         # stream.resource.alloc (the packed allocation covering all of
-        # them) -- different granularity, same total, and the total (not the
-        # per-tensor breakdown) is what bounded_bytes actually uses
-        # (make_contract.py's packed_constant_buffers/dense_sum). dispatches
-        # is informational only in both tools (does not gate bound_method),
-        # so a difference there is reported but does not fail the check.
-        # "unresolved" only compared by presence: the two tools report
-        # DIFFERENT diagnostic strings for the same condition by design
-        # (SSA operand name vs. op name) -- what matters is whether either
-        # found a reason to refuse a static bound, not the message text.
-        exact_keys = ("inputs", "outputs", "transient_slabs")
-        diffs = [k for k in exact_keys if sorted(structural.get(k, [])) != sorted(regex_based.get(k, []))]
-        if sum(structural.get("constants", [])) != sum(regex_based.get("constants", [])):
-            diffs.append("constants(sum)")
-        if structural.get("entry_found") != regex_based.get("entry_found"):
-            diffs.append("entry_found")
-        if bool(structural.get("unresolved")) != bool(regex_based.get("unresolved")):
-            diffs.append("unresolved(presence)")
+        # them) -- different granularity. The two totals are equal ONLY when
+        # there is no constant-packing padding/dedup (structural's sum is
+        # really the PACKED total -- make_contract.py's packed_sum -- not the
+        # raw per-tensor dense sum; a standalone run has no packed_sum to
+        # compare against, so this falls back to regex_based's own dense sum
+        # and can show a "constants(sum)" DISAGREE on a padded model that
+        # make_contract.py's own cross-check, given the real packed_sum via
+        # constants_reference, would not -- diagnostic-only, not a bug in the
+        # contract path). dispatches is informational only in both tools
+        # (does not gate bound_method), so a difference there is reported but
+        # does not fail the check. "unresolved" only compared by presence:
+        # the two tools report DIFFERENT diagnostic strings for the same
+        # condition by design (SSA operand name vs. op name) -- what matters
+        # is whether either found a reason to refuse a static bound, not the
+        # message text.
+        diffs = diff_against_regex(structural, regex_based)
         if structural.get("dispatches") != regex_based.get("dispatches"):
             print("note: dispatches differ (informational, does not gate bound_method): "
                  "structural=%s regex=%s" % (structural.get("dispatches"), regex_based.get("dispatches")), file=sys.stderr)

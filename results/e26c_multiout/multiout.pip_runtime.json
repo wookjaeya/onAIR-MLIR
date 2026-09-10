@@ -1,0 +1,20 @@
+{
+ "hal_device_bytes_peak": 704,
+ "bounded_bytes": 704,
+ "static_per_call_bytes": 192,
+ "module_resident_constant_bytes": 512,
+ "peak_within_bounded": true,
+ "n_outputs": 2,
+ "out_shapes": [
+  [
+   1,
+   8
+  ],
+  [
+   1,
+   4
+  ]
+ ],
+ "runs": 5,
+ "driver": "local-sync"
+}

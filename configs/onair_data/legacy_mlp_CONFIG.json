@@ -1,0 +1,76 @@
+{
+ "subsystems": {
+  "NONE": {
+   "TIME": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F0": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F1": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F2": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F3": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F4": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F5": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F6": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F7": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   },
+   "F8": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "legacy MLP telemetry field"
+   }
+  }
+ }
+}

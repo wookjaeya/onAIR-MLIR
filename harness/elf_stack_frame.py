@@ -489,6 +489,16 @@ A64_FP_SETUP = re.compile(r"^(mov\s+x29,\s*sp|add\s+x29,\s*sp,\s*#.*)$")
 A64_SUB_REG_FROM_SP = re.compile(r"^sub\s+(x\d+),\s*sp,\s*#(0x[0-9a-f]+|\d+)$")
 A64_AND_SP_FROM_REG = re.compile(r"^and\s+sp,\s*(x\d+),\s*#(0x[0-9a-f]+)$")
 A64_MOV_SP_FROM_REG = re.compile(r"^mov\s+sp,\s*(x\d+)$")
+# The offset form of the same restore.  When the frame record does not sit at the
+# very top of the frame the prologue sets `add x29, sp, #K` and the epilogue must
+# undo it as `sub sp, x29, #K` -- one step back to the pre-realign sp, exactly what
+# `mov sp, x29` does when K is 0.  x86-64's counterpart (`lea -N(%rbp),%rsp`) was
+# recognized from the start; this AArch64 spelling was not, so a fully static
+# over-aligned frame was classified as a dynamic alloca and refused (E32/D58).
+# ONLY accepted when K equals the prologue's own `add x29, sp, #K` -- a different
+# offset restores sp somewhere this analyzer has not accounted for, and stays refused.
+A64_SUB_SP_FROM_FP = re.compile(r"^sub\s+sp,\s*x29,\s*#(0x[0-9a-f]+|\d+)(?:,\s*lsl\s*#(\d+))?$")
+A64_FP_SETUP_OFF = re.compile(r"^add\s+x29,\s*sp,\s*#(0x[0-9a-f]+|\d+)(?:,\s*lsl\s*#(\d+))?$")
 A64_CALLS = {"bl", "blr", "blraa", "blraaz", "blrab", "blrabz"}
 A64_ARR = re.compile(r"\bv\d+\.(16b|8b|8h|4h|4s|2s|2d|1d|b|h|s|d)\b")
 A64_VREG_LANE = re.compile(r"\bv\d+\.[bhsd]\[\d+\]")
@@ -526,6 +536,8 @@ def analyze_aarch64(fn):
     realign_pending = {}
     realign_bytes = 0
     realign_restored = False
+    fp_offset = None          # K from the prologue's `mov x29, sp` (0) or `add x29, sp, #K`
+    r["realign_restore_form"] = None
     vec = dict(fmla=0, fmul=0, fadd=0, fmls=0, fsub=0, neon_vreg_operands=0)
     arrangements = set()
     compute_arr = set()  # arrangements used by the FP arithmetic instructions themselves
@@ -574,12 +586,25 @@ def analyze_aarch64(fn):
         mm = A64_MOV_SP_FROM_REG.match(t)
         if mm and realign_bytes:
             realign_restored = True
+            r["realign_restore_form"] = "mov_sp_from_reg"
             r["restore_bytes"] += realign_bytes  # `mov sp, x29` restores the realigned locals in one step
             r["epilogue"].append(t)
+        mm = A64_SUB_SP_FROM_FP.match(t)
+        if mm and realign_bytes and fp_offset is not None:
+            # `sub sp, x29, #K` is the same one-step restore as `mov sp, x29` only when K is
+            # the offset the prologue itself used; otherwise sp lands somewhere unaccounted for.
+            if (imm(mm.group(1)) << int(mm.group(2) or 0)) == fp_offset:
+                realign_restored = True
+                r["realign_restore_form"] = "sub_sp_from_fp_imm"
+                r["restore_bytes"] += realign_bytes
+                r["epilogue"].append(t)
         if A64_FRAMEREC_ST.match(t):
             fr_store = True
         if A64_FP_SETUP.match(t):
             fp_setup = True
+            if fp_offset is None:
+                om = A64_FP_SETUP_OFF.match(t)
+                fp_offset = (imm(om.group(1)) << int(om.group(2) or 0)) if om else 0
             r["prologue"].append(t)
         # sp/x29-relative loads and stores other than the frame record itself
         is_ldst = m.startswith(("ld", "st")) or m in ("prfm",)
@@ -760,6 +785,195 @@ def split_functions(insns, arch, starts_named, use_heuristic):
 
 
 # ----------------------------------------------------------------------------
+# Call-target resolution (E26a)
+# ----------------------------------------------------------------------------
+# classify() below has always said, for any executable containing call
+# instructions, "callee stack use is not visible in this ELF -> resolve targets
+# (imports/runtime) before classifying" -- and that resolution step was never
+# implemented, so ANY call at all put the model in bucket (3)/(4) and
+# gen_contract_header.py (E21/D22) then refused to emit a deployable header.
+#
+# Every model this repository had measured until now (the 14 stored E14
+# contracts and E25's canonical model) has total_call_insns == 0, so the gap
+# was invisible: hand-written linalg models lower to self-contained dispatch
+# functions. A real public CNN does not. MLPerf Tiny's ResNet (CIFAR-10)
+# produces ONE dispatch with calls -- the softmax -- whose 80 call
+# instructions target exactly two addresses, both inside this ELF's own .text,
+# both leaf routines with a zero-byte frame (compiler-generated float helpers).
+# There is no .plt and no undefined symbol. Refusing that model reports "no
+# static task-stack bound" for a program whose task-stack use is fully static
+# and equal to 439 + 8 B -- a type (B) defect (over-rejection) in this repo's
+# two-way defect definition.
+#
+# The resolution below is deliberately one-sided: it can only ever turn
+# "unresolved" into "resolved", and it refuses on the first thing it cannot
+# prove. Anything indirect (call *%rax, blr), anything targeting outside this
+# ELF's executable sections, any callee without a clean single-ret body, any
+# branch leaving the callee (tail call), any dynamic stack growth inside a
+# callee, and any recursion all keep the original bucket (3)/(4) verdict.
+X86_CALL_DIRECT = re.compile(r"^callq?\s+([0-9a-fA-F]+)\s*(?:<|$)")
+A64_CALL_DIRECT = re.compile(r"^bl\s+([0-9a-fA-F]+)\s*(?:<|$)")
+X86_BRANCH_TGT = re.compile(r"^j[a-z]+\s+([0-9a-fA-F]+)\s*(?:<|$)")
+A64_BRANCH_TGT = re.compile(r"^(?:b|b\.[a-z]+|cbn?z|tbn?z)\s+(?:[^,]+,\s*)*([0-9a-fA-F]+)\s*(?:<|$)")
+
+
+def _direct_call_target(text, arch):
+    """Numeric target of a DIRECT call, or None (indirect / unparseable)."""
+    m = (X86_CALL_DIRECT if arch == "x86_64" else A64_CALL_DIRECT).match(text.strip())
+    return int(m.group(1), 16) if m else None
+
+
+def _branch_target(x, arch):
+    """(is_branch, target) -- target None means 'branch whose destination we
+    could not read', which is treated exactly like a branch out of range."""
+    m = x["mnem"]
+    if arch == "x86_64":
+        if not m.startswith("j"):
+            return (False, None)
+        mm = X86_BRANCH_TGT.match(x["text"].strip())
+        return (True, int(mm.group(1), 16) if mm else None)
+    if m in ("br", "braa", "brab", "brk"):
+        return (True, None)                       # indirect branch: never resolvable
+    if not (m == "b" or m.startswith("b.") or m.startswith("cb") or m.startswith("tb")):
+        return (False, None)                      # bl/blr are calls, handled separately
+    mm = A64_BRANCH_TGT.match(x["text"].strip())
+    return (True, int(mm.group(1), 16) if mm else None)
+
+
+def _is_uncond_jump(x, arch):
+    return x["mnem"] in ("jmp", "jmpq") if arch == "x86_64" else x["mnem"] == "b"
+
+
+def _callee_body(insns, addr_index, start, arch, known_starts, limit=20000):
+    """Discover a callee's extent by walking its control-flow graph from `start`.
+
+    Slicing "up to the first ret" is wrong -- a function may have several rets
+    with forward branches jumping past the first one (MLPerf Tiny's ResNet float
+    helper at 0x5440 does exactly that at 0x5497). Walking the CFG finds the real
+    extent instead. Returns (body, None) or (None, reason); anything that cannot
+    be followed -- an indirect branch, an unreadable target, a jump into another
+    known function (tail call), a target outside the disassembly -- refuses."""
+    if start not in addr_index:
+        return None, "no instruction boundary at 0x%x" % start
+    seen, work, steps = set(), [start], 0
+    while work:
+        a = work.pop()
+        while True:
+            steps += 1
+            if steps > limit:
+                return None, "callee 0x%x exceeds the %d-instruction walk limit" % (start, limit)
+            i = addr_index.get(a)
+            if i is None:
+                return None, "control flow of callee 0x%x reaches 0x%x, outside the disassembly" % (start, a)
+            if a in seen:
+                break
+            seen.add(a)
+            x = insns[i]
+            if x["mnem"] in ("ret", "retq"):
+                break
+            is_branch, tgt = _branch_target(x, arch)
+            if is_branch:
+                if tgt is None:
+                    return None, "indirect or unreadable branch at 0x%x in callee 0x%x" % (a, start)
+                if tgt in known_starts:
+                    return None, ("callee 0x%x tail-calls another function at 0x%x" % (start, tgt))
+                work.append(tgt)
+                if _is_uncond_jump(x, arch):
+                    break
+            if i + 1 >= len(insns):
+                return None, "callee 0x%x runs off the end of the disassembly" % start
+            a = insns[i + 1]["addr"]
+    lo, hi = min(seen), max(seen)
+    body = [x for x in insns if lo <= x["addr"] <= hi]
+    return body, None
+
+
+def _resolve_callee(insns, addr_index, start, arch, analyzer, in_exec, known_starts, seen):
+    """dict for the callee rooted at `start`, or (None, reason)."""
+    if start in seen:
+        return None, "recursion: 0x%x is already on the call chain" % start
+    if not in_exec(start):
+        return None, "call target 0x%x is outside this ELF's executable sections" % start
+    body, err = _callee_body(insns, addr_index, start, arch, known_starts)
+    if body is None:
+        return None, err
+    a = analyzer(dict(body=body))
+    if a["dynamic_stack_alloc"]:
+        return None, "callee 0x%x grows the stack by a register amount (dynamic alloca)" % start
+    frame = a["callee_save_bytes"] + a["local_alloc_bytes"]
+    inv = frame + a["return_address_bytes"] + a.get("realign_max_pad_bytes", 0)
+    nested_max, nested = 0, []
+    for t in a["call_targets"]:
+        tt = _direct_call_target(t, arch)
+        if tt is None:
+            return None, "indirect call inside callee 0x%x (%r)" % (start, t.strip()[:60])
+        rec, err = _resolve_callee(insns, addr_index, tt, arch, analyzer, in_exec, known_starts,
+                                   seen | {start})
+        if rec is None:
+            return None, err
+        nested_max = max(nested_max, rec["chain_stack_bytes"])
+        nested.append(rec)
+    return dict(addr="0x%x" % start, insns=len(body), frame_bytes=frame,
+                invocation_stack_bytes=inv, chain_stack_bytes=inv + nested_max,
+                calls=len(a["call_targets"]), nested=nested), None
+
+
+def resolve_call_graph(insns, fns, funcs, elf, arch, analyzer):
+    """Try to account for every call instruction's callee stack.
+
+    Returns a dict that is always safe to consume: `unresolved_call_insns` is
+    the count classify() must use, and it equals total_call_insns whenever
+    anything could not be proven."""
+    total = sum(f["call_insns"] for f in funcs)
+    out = dict(total_call_insns=total, unresolved_call_insns=total, resolved=(total == 0),
+               reason=None if total == 0 else "not attempted", distinct_targets=[],
+               callees=[], max_chain_stack_bytes=None)
+    if total == 0:
+        out["reason"] = "no call instructions"
+        out["max_chain_stack_bytes"] = 0
+        return out
+    if not insns:
+        out["reason"] = "no disassembly available"
+        return out
+    addr_index = {x["addr"]: i for i, x in enumerate(insns)}
+    if elf is not None:
+        in_exec = elf.in_exec
+    else:
+        lo_a, hi_a = insns[0]["addr"], insns[-1]["addr"]
+        in_exec = lambda a: lo_a <= a <= hi_a                          # noqa: E731
+    # a jump INTO one of these is a tail call to another function, not internal
+    # control flow, so the resolver refuses rather than swallowing its frame.
+    known_starts = {f["addr"] for f in fns}
+    cache, targets = {}, []
+    per_fn_chain = {}
+    for raw, rec in zip(fns, funcs):
+        best = 0
+        for t in rec["call_targets"]:
+            tt = _direct_call_target(t, arch)
+            if tt is None:
+                out["reason"] = "indirect call in %s (%r)" % (rec["name"], t.strip()[:60])
+                return out
+            targets.append(tt)
+            if tt not in cache:
+                r, err = _resolve_callee(insns, addr_index, tt, arch, analyzer, in_exec,
+                                         known_starts, frozenset())
+                if r is None:
+                    out["reason"] = err
+                    return out
+                cache[tt] = r
+            best = max(best, cache[tt]["chain_stack_bytes"])
+        per_fn_chain[rec["name"]] = rec["invocation_stack_bytes"] + best
+    out.update(resolved=True, unresolved_call_insns=0,
+               reason="all %d call instruction(s) target %d address(es) inside this ELF; every "
+                      "callee has a static frame and no indirect or outbound control flow"
+                      % (total, len(cache)),
+               distinct_targets=sorted("0x%x" % a for a in set(targets)),
+               callees=[cache[a] for a in sorted(cache)],
+               per_function_chain_stack_bytes=per_fn_chain,
+               max_chain_stack_bytes=max(per_fn_chain.values(), default=0))
+    return out
+
+# ----------------------------------------------------------------------------
 # LLVM IR (.codegen.ll) facts
 # ----------------------------------------------------------------------------
 def analyze_ll(path):
@@ -890,6 +1104,18 @@ def analyze(elf_path=None, objdump_tool=None, objdump_txt=None, ll_path=None):
     out["any_dynamic_stack_alloc"] = any(f["dynamic_stack_alloc"] for f in disp)
     out["any_sp_relative_mem_ops"] = any(f["sp_relative_mem_ops"] for f in disp)
     out["all_dispatch_frames_balanced"] = all(f["frame_balanced"] is not False for f in disp)
+    # E26a: resolve call targets instead of giving up on their existence.
+    cr = resolve_call_graph(insns, fns, funcs, elf, arch, analyzer)
+    out["call_resolution"] = cr
+    out["unresolved_call_insns"] = cr["unresolved_call_insns"]
+    if cr["resolved"]:
+        chains = cr.get("per_function_chain_stack_bytes") or {}
+        out["max_dispatch_invocation_stack_bytes_with_calls"] = max(
+            [chains.get(f["name"], f["invocation_stack_bytes"]) for f in disp], default=0)
+    else:
+        # unresolved: no chain figure at all rather than a number that looks
+        # like one (D25/D29 -- "could not observe" must not read as "observed").
+        out["max_dispatch_invocation_stack_bytes_with_calls"] = None
     out["classification_note"] = classify(out, disp)
     return out
 
@@ -897,12 +1123,26 @@ def analyze(elf_path=None, objdump_tool=None, objdump_txt=None, ll_path=None):
 def classify(out, disp):
     mx = out["max_dispatch_frame_bytes"]
     calls = out["total_call_insns"]
+    # E26a: the question was never "are there calls" but "can the callees' stack
+    # be accounted for". Fall back to `calls` when the resolver did not run, so
+    # an older/partial analysis keeps the conservative verdict.
+    unresolved = out.get("unresolved_call_insns", calls)
+    cr = out.get("call_resolution") or {}
     if out["any_dynamic_stack_alloc"]:
         return ("bucket (4) UNACCOUNTED: a dispatch function grows the stack by a register amount "
                 "(dynamic alloca); no static task-stack bound -> revise contract boundary before admission.")
+    if unresolved:
+        return ("bucket (3)/(4) CANDIDATE: %d call instruction(s) in the executable, %d of them unresolved; "
+                "callee stack use is not visible in this ELF -> resolve targets (imports/runtime) before "
+                "classifying. Resolver said: %s" % (calls, unresolved, cr.get("reason")))
     if calls:
-        return ("bucket (3)/(4) CANDIDATE: %d call instruction(s) in the executable; callee stack use is not "
-                "visible in this ELF -> resolve targets (imports/runtime) before classifying." % calls)
+        return ("bucket (2) TASK-STACK with resolved calls: %d call instruction(s) target %d address(es) "
+                "inside this same ELF; every callee has a static frame and no indirect or outbound control "
+                "flow, so the deepest per-invocation chain is %d B (vs %d B for the calling dispatch alone). "
+                "Not HAL memory (not in bounded_bytes); add the chain figure to the task/thread stack budget."
+                % (calls, len(cr.get("distinct_targets") or []),
+                   out.get("max_dispatch_invocation_stack_bytes_with_calls") or 0,
+                   out["max_dispatch_invocation_stack_bytes"]))
     if mx == 0:
         return ("no stack frame and no calls in any dispatch function (leaf, registers only): nothing to add "
                 "to the task-stack bucket beyond the IREE runtime residual; HAL contract covers all kernel memory.")

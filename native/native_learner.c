@@ -29,6 +29,7 @@
  *   contract, so this should be unreachable for any header it produced; it only
  *   fires on a stale or hand-edited contract_gen.h).
  */
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,7 +43,7 @@
 #if !defined(CONTRACT_BOUND_KNOWN) || !defined(CONTRACT_INPUT_RANK) || !defined(CONTRACT_INPUT_SHAPE) || \
     !defined(CONTRACT_OUTPUT_ELEMS) || !defined(CONTRACT_ENTRY) || !defined(CONTRACT_KERNEL_STACK_BYTES) || \
     !defined(CONTRACT_MODEL_NAME) || !defined(CONTRACT_TARGET_TRIPLE) || !defined(CONTRACT_DRIVER) || \
-    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS)
+    !defined(CONTRACT_NUM_INPUTS) || !defined(CONTRACT_NUM_OUTPUTS) || !defined(CONTRACT_DTYPES_ALL_F32)
 #error "contract_gen.h is missing Stage 1 macros: regenerate it with harness/gen_contract_header.py"
 #endif
 /* A contract whose shapes are not all static cannot carry a static bound; refuse it as
@@ -62,6 +63,7 @@ static struct {
   iree_runtime_session_t* session;
   iree_hal_buffer_view_t* x;
   void* blob; long blob_len;
+  int module_ptr_mod64; long hal_peak_after_append; int conditional_map;
   int cleanup_calls;
 } g;
 
@@ -104,6 +106,31 @@ static void status_to_json(iree_status_t st, char* out, size_t cap) {
   if (buf) iree_allocator_free(a, buf);
 }
 
+/* ---- E29 (docs/EVIDENCE_v0.31_E29.md): module image alignment ----------------
+ * IREE emits module-resident constants as `stream.resource.try_map` + an
+ * `scf.if(%did_map)`: the map arm allocates nothing on the HAL device, the copy
+ * arm allocates the whole constant block.  CONTRACT_BOUNDED_BYTES is the max
+ * over both, so admission on it stays sound whichever arm runs; E26 measured up
+ * to 172.30x between them for the SAME vmfb and left the determinant open.
+ *
+ * E29 identified it: iree_hal_heap_buffer_wrap() (runtime/src/iree/hal/
+ * buffer_heap.c) refuses an imported span that is not aligned to
+ * IREE_HAL_HEAP_BUFFER_ALIGNMENT (64), and the map arm is exactly that import.
+ * harness/e29_collect.py measured 64/64 cells (8 models x 8 alignment classes):
+ * map <=> 64-byte aligned, peak always 0 or exactly the constant block, never a
+ * third value.  plain malloc() handed this runtime a 16 mod 64 pointer, which is
+ * why every native/cFS cell in E26/E26e/E26f took the copy arm.
+ *
+ * A failed posix_memalign falls back to malloc -- correct, only less tight --
+ * and the arm actually taken is measured after append, never assumed. */
+static void* alloc_module_image(size_t n, int* out_mod64) {
+  void* p = NULL;
+  if (posix_memalign(&p, 64, n) != 0) p = NULL;
+  if (!p) p = malloc(n);
+  *out_mod64 = p ? (int)(((uintptr_t)p) % 64) : -1;
+  return p;
+}
+
 /* A5 path: IREE refused the artifact AFTER admission and binding passed (the
  * contract hash matched a corrupted artifact, or device/session creation
  * failed). Report, release every resource, exit 7. No abort. */
@@ -120,13 +147,28 @@ static int runtime_load_failed(const char* step, iree_status_t st) {
 }
 
 int main(int argc, char** argv) {
-  if (argc < 4) { fprintf(stderr, "usage: %s model.vmfb budget_bytes iters\n", argv[0]); return 2; }
+  if (argc < 4) { fprintf(stderr, "usage: %s model.vmfb budget_bytes iters [inputs.bin outputs.bin]\n"
+                          "  env ONAIR_CONDITIONAL_MAP=1 admits on the map arm's bound (per-call only) when the\n"
+                          "  budget does not cover bounded_bytes; the precondition is enforced and then verified\n"
+                          "  after module append, refusing before any inference if the copy arm ran (E29).\n", argv[0]); return 2; }
   const char* vmfb_path = argv[1]; long budget = atol(argv[2]); int iters = atoi(argv[3]);
+  { const char* cm = getenv("ONAIR_CONDITIONAL_MAP"); g.conditional_map = (cm && *cm == '1'); }
   if (iters < 1) iters = 1;
 
   /* ---- admission (before touching the runtime or even the artifact) ---- */
   long bounded = (long)CONTRACT_BOUNDED_BYTES;
-  const char* verdict = !GATE_BOUND_KNOWN ? "UNKNOWN_BOUND" : (bounded <= budget ? "ADMIT" : "NOT_ADMITTED");
+  /* E29 conditional tier: opt-in, and only when the budget does not already
+   * cover the unconditional bound. It is the same contract read under a
+   * precondition this runtime enforces (aligned module image) and then verifies
+   * after append -- not a weaker check. */
+  if (g.conditional_map && !(bounded <= budget) && (long)CONTRACT_PER_CALL_BYTES <= budget) {
+    /* stays conditional */
+  } else {
+    g.conditional_map = 0;
+  }
+  const char* verdict = !GATE_BOUND_KNOWN ? "UNKNOWN_BOUND"
+                      : (bounded <= budget ? "ADMIT"
+                      : (g.conditional_map ? "ADMIT_CONDITIONAL_MAP" : "NOT_ADMITTED"));
   printf("{\"stage\":\"admission\",\"verdict\":\"%s\",\"model\":\"%s\",\"target\":\"%s\","
          "\"bounded_bytes\":%ld,\"budget_bytes\":%ld,\"per_call\":%ld,\"constants\":%ld,"
          "\"kernel_stack_bytes\":%ld,\"bound_known\":%s}\n",
@@ -137,16 +179,20 @@ int main(int argc, char** argv) {
     printf("{\"stage\":\"exit\",\"reason\":\"bound unknown: contract has no static bound; refused before artifact access\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
     return 6;
   }
-  if (bounded > budget) { printf("{\"stage\":\"exit\",\"reason\":\"not admitted\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 3; }
+  if (bounded > budget && !g.conditional_map) { printf("{\"stage\":\"exit\",\"reason\":\"not admitted\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 3; }
   /* EVIDENCE_v0.10 Phase 3 (R3 defense-in-depth): this runtime pushes exactly
    * one f32 input and pops exactly one f32 output (below). gen_contract_header.py
    * already refuses to emit a bound-known header whose interface is not that
    * shape, so this should never fire for a header it produced -- it only
    * catches a stale or hand-edited contract_gen.h. */
-  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1) {
+  /* F7 (external review, 2026-09): the message and comment above already
+   * called this a "single-f32" check while the condition only ever checked
+   * input/output COUNT -- there was no macro carrying dtype for C to test.
+   * CONTRACT_DTYPES_ALL_F32 (gen_contract_header.py) closes that. */
+  if (CONTRACT_NUM_INPUTS != 1 || CONTRACT_NUM_OUTPUTS != 1 || !CONTRACT_DTYPES_ALL_F32) {
     printf("{\"stage\":\"exit\",\"reason\":\"bound known but interface is not the single-f32-input/single-f32-output "
-           "shape this runtime hardcodes\",\"num_inputs\":%d,\"num_outputs\":%d,\"cleanup_calls\":%d}\n",
-           CONTRACT_NUM_INPUTS, CONTRACT_NUM_OUTPUTS, g.cleanup_calls);
+           "shape this runtime hardcodes\",\"num_inputs\":%d,\"num_outputs\":%d,\"dtypes_all_f32\":%d,\"cleanup_calls\":%d}\n",
+           CONTRACT_NUM_INPUTS, CONTRACT_NUM_OUTPUTS, CONTRACT_DTYPES_ALL_F32, g.cleanup_calls);
     return 9;
   }
 
@@ -168,7 +214,7 @@ int main(int argc, char** argv) {
     printf("{\"stage\":\"exit\",\"reason\":\"contract does not describe this artifact; runtime not created\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
     return 5;
   }
-  g.blob = malloc((size_t)n); g.blob_len = n;
+  g.blob = alloc_module_image((size_t)n, &g.module_ptr_mod64); g.blob_len = n;
   if (!g.blob || fread(g.blob, 1, (size_t)n, f) != (size_t)n) {
     fclose(f); cleanup();
     printf("{\"stage\":\"exit\",\"reason\":\"cannot read artifact\",\"cleanup_calls\":%d}\n", g.cleanup_calls); return 4;
@@ -182,6 +228,21 @@ int main(int argc, char** argv) {
     cleanup();  /* only the blob exists; runtime never created */
     printf("{\"stage\":\"exit\",\"reason\":\"contract does not describe this artifact; runtime not created\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
     return 5;
+  }
+
+  /* E29b (D54, seventh external review SS4.1-4.2): in the conditional tier the
+   * map precondition is decided by the alignment of the image just allocated
+   * (E29: map <=> 64-byte aligned, 64/64 cells), so it is checkable BEFORE the
+   * runtime exists. Refusing here means the copy arm's constant-block
+   * allocation never happens -- no transient above B_map at all, instead of
+   * "allocate B_copy, then refuse". This is the review's option (1): decide
+   * map-ability before append. */
+  if (g.conditional_map && g.module_ptr_mod64 != 0) {
+    printf("{\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_UNMET\",\"module_ptr_mod64\":%d,"
+           "\"reason\":\"module image not 64-byte aligned; refused before runtime creation\"}\n", g.module_ptr_mod64);
+    cleanup();
+    printf("{\"stage\":\"exit\",\"reason\":\"map precondition unmet; refused before any runtime allocation\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
+    return 10;
   }
 
   long rss0 = rss_kb();
@@ -201,6 +262,37 @@ int main(int argc, char** argv) {
   /* ---- module load: the SAME verified bytes (zero-copy; blob freed after session release) ---- */
   st = iree_runtime_session_append_bytecode_module_from_memory(g.session, iree_make_const_byte_span(g.blob, (size_t)n), iree_allocator_null());
   if (!iree_status_is_ok(st)) return runtime_load_failed("append_bytecode_module", st);
+  /* E29: the try_map arm is decided during append and nowhere else -- before any
+   * input buffer or inference exists, so this peak is the constant block alone. */
+  {
+    iree_hal_allocator_statistics_t s0;
+    iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &s0);
+    g.hal_peak_after_append = (long)s0.device_bytes_peak;
+    const char* arm = (g.hal_peak_after_append == 0) ? "map"
+                    : ((g.hal_peak_after_append == (long)CONTRACT_CONST_BYTES) ? "copy" : "other");
+    printf("{\"stage\":\"map_branch\",\"model\":\"%s\",\"module_ptr_mod64\":%d,\"hal_peak_after_append\":%ld,"
+           "\"contract_const_bytes\":%ld,\"contract_per_call_bytes\":%ld,\"arm\":\"%s\",\"admission_mode\":\"%s\"}\n",
+           CONTRACT_MODEL_NAME, g.module_ptr_mod64, g.hal_peak_after_append,
+           (long)CONTRACT_CONST_BYTES, (long)CONTRACT_PER_CALL_BYTES, arm,
+           g.conditional_map ? "conditional_map" : "unconditional");
+    /* E29b (D54): the E29 check here was `> CONTRACT_PER_CALL_BYTES`. A copy arm
+     * allocates exactly `constants` at append, so for any model with
+     * constants < per_call it passed -- the app had already labelled the arm
+     * "copy" above and still ran, ending at per_call + constants over the budget
+     * it was admitted on (bigact: 59,460 on a 45,444 budget, reproduced in
+     * results/e29b_conditional_verify/). Every model archived before E29b had
+     * constants > per_call, which is why the E29 revert-and-confirm-fail never
+     * saw it. The admitted bound is B_map = per_call, and B_map holds only on the
+     * map arm, whose append peak is exactly 0 (E29: 32/32 map cells). So the
+     * verification is "map arm, or refuse" -- not a size comparison. */
+    if (g.conditional_map && g.hal_peak_after_append != 0) {
+      printf("{\"stage\":\"map_branch\",\"verdict\":\"MAP_PRECONDITION_FAILED\",\"hal_peak_after_append\":%ld,"
+             "\"contract_per_call_bytes\":%ld}\n", g.hal_peak_after_append, (long)CONTRACT_PER_CALL_BYTES);
+      cleanup();
+      printf("{\"stage\":\"exit\",\"reason\":\"map precondition failed; refused before any inference\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
+      return 10;
+    }
+  }
   long rss2 = rss_kb();
 
   /* ---- input buffer (contract shape, f32), allocated once and reused ---- */
@@ -213,8 +305,75 @@ int main(int argc, char** argv) {
       iree_make_const_byte_span(xdata, sizeof xdata), &g.x);
   if (!iree_status_is_ok(st)) return runtime_load_failed("input_buffer_allocate", st);
 
+  /* E26: allocator state at the END of initialisation, BEFORE any inference and BEFORE
+   * the E25 block below. Without it the only observable HAL numbers were the post-run
+   * totals, so "module load + input buffer" could not be separated from "inference",
+   * and with E25 mode on the split was destroyed entirely (64 inferences run first).
+   * init / first-call / steady is the split E26 measures (review SS6, SS8.2). */
+  iree_hal_allocator_statistics_t st_init;
+  iree_hal_allocator_query_statistics(iree_runtime_session_device_allocator(g.session), &st_init);
+  int e25_mode_active = (argc >= 6);
+
+  /* ---- E25 equivalence mode (optional): argv[4] = inputs.bin, argv[5] = outputs.bin ----
+   * Reads N raw float32 vectors of CONTRACT_INPUT_ELEMS each, runs one inference per
+   * vector, writes N raw float32 vectors of CONTRACT_OUTPUT_ELEMS. Deliberately placed
+   * AFTER every gate above (stack, admission, interface, artifact size + sha256), so the
+   * numbers this mode produces come from the same fully-gated deployment path the app
+   * uses -- not from a bare inference harness. Absent argv[4..5] nothing changes.
+   * (E25 / docs/plans/E25_same_model_equivalence.md) */
+  if (argc >= 6) {
+    const char* e25_in = argv[4]; const char* e25_out = argv[5];
+    FILE* fi = fopen(e25_in, "rb");
+    if (!fi) { fprintf(stderr, "E25: cannot open %s\n", e25_in); return 4; }
+    fseek(fi, 0, SEEK_END); long ib = ftell(fi); fseek(fi, 0, SEEK_SET);
+    long nvec = ib / (long)(CONTRACT_INPUT_ELEMS * sizeof(float));
+    if (nvec <= 0 || ib % (long)(CONTRACT_INPUT_ELEMS * sizeof(float)) != 0) {
+      fprintf(stderr, "E25: %s is %ld B, not a multiple of %zu B (%d f32)\n",
+              e25_in, ib, CONTRACT_INPUT_ELEMS * sizeof(float), CONTRACT_INPUT_ELEMS);
+      fclose(fi); return 2;
+    }
+    float* xin = (float*)malloc((size_t)ib);
+    if (!xin || fread(xin, 1, (size_t)ib, fi) != (size_t)ib) { fprintf(stderr, "E25: read failed\n"); fclose(fi); return 4; }
+    fclose(fi);
+    FILE* fo = fopen(e25_out, "wb");
+    if (!fo) { fprintf(stderr, "E25: cannot open %s for writing\n", e25_out); free(xin); return 4; }
+    static float e25_y[CONTRACT_OUTPUT_ELEMS];
+    long done = 0;
+    for (long v = 0; v < nvec; ++v) {
+      iree_hal_buffer_view_t* xv = NULL;
+      st = iree_hal_buffer_view_allocate_buffer_copy(g.device, iree_runtime_session_device_allocator(g.session),
+          CONTRACT_INPUT_RANK, in_shape, IREE_HAL_ELEMENT_TYPE_FLOAT_32, IREE_HAL_ENCODING_TYPE_DENSE_ROW_MAJOR,
+          (iree_hal_buffer_params_t){.type = IREE_HAL_MEMORY_TYPE_DEVICE_LOCAL, .access = IREE_HAL_MEMORY_ACCESS_ALL, .usage = IREE_HAL_BUFFER_USAGE_DEFAULT},
+          iree_make_const_byte_span(xin + v * CONTRACT_INPUT_ELEMS, CONTRACT_INPUT_ELEMS * sizeof(float)), &xv);
+      if (!iree_status_is_ok(st)) { iree_status_free(st); break; }
+      iree_runtime_call_t c2; iree_hal_buffer_view_t* r2 = NULL;
+      st = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &c2);
+      if (!iree_status_is_ok(st)) { iree_status_free(st); iree_hal_buffer_view_release(xv); break; }
+      st = iree_runtime_call_inputs_push_back_buffer_view(&c2, xv);
+      if (iree_status_is_ok(st)) st = iree_runtime_call_invoke(&c2, 0);
+      if (iree_status_is_ok(st)) st = iree_runtime_call_outputs_pop_front_buffer_view(&c2, &r2);
+      if (iree_status_is_ok(st)) {
+        st = iree_hal_device_transfer_d2h(g.device, iree_hal_buffer_view_buffer(r2), 0, e25_y,
+                                          sizeof e25_y, IREE_HAL_TRANSFER_BUFFER_FLAG_DEFAULT,
+                                          iree_infinite_timeout());
+      }
+      if (iree_status_is_ok(st)) { fwrite(e25_y, sizeof e25_y, 1, fo); done++; }
+      else iree_status_free(st);
+      if (r2) iree_hal_buffer_view_release(r2);
+      iree_runtime_call_deinitialize(&c2);
+      iree_hal_buffer_view_release(xv);
+    }
+    fclose(fo); free(xin);
+    printf("{\"stage\":\"e25_equivalence\",\"inputs\":%ld,\"completed\":%ld,"
+           "\"artifact_sha256\":\"%.16s...\",\"input_elems\":%d,\"output_elems\":%d}\n",
+           nvec, done, hex, CONTRACT_INPUT_ELEMS, CONTRACT_OUTPUT_ELEMS);
+    fflush(stdout);
+    if (done != nvec) { fprintf(stderr, "E25: only %ld/%ld inferences completed\n", done, nvec); return 8; }
+  }
+
   iree_hal_allocator_t* alloc = iree_runtime_session_device_allocator(g.session);
   iree_hal_allocator_statistics_t st_warm = {0};
+  iree_hal_allocator_statistics_t st_first = {0}; int st_first_valid = 0;   /* E26 */
 
   /* ---- inference loop: WARMUP_CALLS warmup calls, then `iters` measured calls ---- */
   double* lat = malloc(sizeof(double) * (size_t)iters);
@@ -227,6 +386,7 @@ int main(int argc, char** argv) {
     iree_status_free(s_); } while (0)
   for (int i = 0; i < iters + WARMUP_CALLS; ++i) {
     if (i == WARMUP_CALLS) iree_hal_allocator_query_statistics(alloc, &st_warm);  /* steady-state baseline */
+    if (i == 1) { iree_hal_allocator_query_statistics(alloc, &st_first); st_first_valid = 1; }  /* E26: after exactly one call */
     iree_runtime_call_t call; int ok = 0; iree_hal_buffer_view_t* ret = NULL; iree_status_t s;
     attempted++;
     s = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &call);
@@ -255,6 +415,18 @@ int main(int argc, char** argv) {
      so it is compared with the BOUNDED figure. Steady-state per-call allocation is
      the counter difference across the measured window (reviewer §5). */
   int peak_within_bounded = peak <= (long)CONTRACT_BOUNDED_BYTES;
+  /* E32 / D59: `peak_within_bounded` answers "is the UNCONDITIONAL contract sound?".
+   * It does NOT answer "did this deployment stay inside the budget it was admitted on".
+   * Those are the same number only in the unconditional tier. In the conditional tier
+   * admission is granted on CONTRACT_PER_CALL_BYTES, so comparing the peak with
+   * CONTRACT_BOUNDED_BYTES reports `true` for a run that is over its approved budget --
+   * D53's lesson ("check the number you admitted on") applied to the post-hoc check that
+   * E29/E29b left comparing the wrong quantity. Measured on SmartCam/aarch64: admitted at
+   * 9,382,092, peaked at 9,984,204 (106.4%), reported within_bounded=true.
+   * The extra is exactly one input tensor: a replay that keeps the resident input buffer
+   * AND allocates a per-sample input has TWO inputs live, while per_call's io term counts one. */
+  long admitted_budget = g.conditional_map ? (long)CONTRACT_PER_CALL_BYTES : budget;
+  int peak_within_budget = peak <= admitted_budget;
   double steady_per_call = (double)(stats.device_bytes_allocated - st_warm.device_bytes_allocated) / iters;
   int steady_within_per_call = steady_per_call <= (double)CONTRACT_PER_CALL_BYTES;
 
@@ -266,13 +438,29 @@ int main(int argc, char** argv) {
          lat[iters / 2], lat[(int)(iters * 0.99)], lat[iters - 1], out[0]);
   for (int k = 0; k < CONTRACT_OUTPUT_ELEMS; ++k) printf("%s%.6f", k ? "," : "", out[k]);
   printf("],\"hal_device_bytes_peak\":%ld,\"peak_within_bounded\":%s,"
+         "\"admitted_budget_bytes\":%ld,\"peak_within_admitted_budget\":%s,\"admission_mode\":\"%s\","
          "\"hal_bytes_per_call_amortized\":%.1f,\"hal_bytes_per_call_steady\":%.1f,\"steady_within_per_call\":%s,"
          "\"rss_kb\":{\"start\":%ld,\"after_runtime\":%ld,\"after_module\":%ld,\"after_run\":%ld},"
          "\"rss_delta_kb\":{\"runtime_bringup\":%ld,\"module_load\":%ld,\"inference\":%ld,\"total\":%ld},"
-         "\"vmfb_bytes\":%ld,\"kernel_stack_bytes\":%ld,\"first_fail_step\":\"%s\",\"first_fail_status\":\"%s\"}\n",
+         "\"vmfb_bytes\":%ld,\"kernel_stack_bytes\":%ld,"
+         /* E26: the contract-region peak at three points, so soundness/tightness can be
+            attributed to a phase instead of only to the whole run. e25_mode_active is
+            recorded so a memory run can PROVE the equivalence mode was off. */
+         "\"phase_hal\":{\"after_init\":{\"peak\":%ld,\"allocated\":%ld},"
+         "\"after_first_call\":{\"peak\":%ld,\"allocated\":%ld,\"observed\":%s},"
+         "\"steady_baseline\":{\"peak\":%ld,\"allocated\":%ld}},"
+         "\"e25_mode_active\":%s,"
+         "\"first_fail_step\":\"%s\",\"first_fail_status\":\"%s\"}\n",
          peak, peak_within_bounded ? "true" : "false",
+         admitted_budget, peak_within_budget ? "true" : "false",
+         g.conditional_map ? "conditional_map" : "unconditional",
          (double)(stats.device_bytes_allocated) / (iters + WARMUP_CALLS), steady_per_call, steady_within_per_call ? "true" : "false",
          rss0, rss1, rss2, rss3, rss1 - rss0, rss2 - rss1, rss3 - rss2, rss3 - rss0, n, (long)CONTRACT_KERNEL_STACK_BYTES,
+         (long)st_init.device_bytes_peak, (long)st_init.device_bytes_allocated,
+         (long)st_first.device_bytes_peak, (long)st_first.device_bytes_allocated,
+         st_first_valid ? "true" : "false",
+         (long)st_warm.device_bytes_peak, (long)st_warm.device_bytes_allocated,
+         e25_mode_active ? "true" : "false",
          first_fail_step, first_fail_status);
 
   fflush(stdout);

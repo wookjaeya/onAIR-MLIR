@@ -1,0 +1,286 @@
+{
+ "experiment": "E30 (P1: OPS-SAT SmartCam import feasibility)",
+ "scope": "docs/reviews/ONAIR_MLIR_P1_SEQUENCE_ANALYSIS_1.md SS4-SS5, SS9: provenance, inventory, import attempt, audited transform, MLIR/VMFB feasibility. Nothing else.",
+ "models": {
+  "smartcam": {
+   "source": {
+    "repo": "https://github.com/georgeslabreche/opssat-smartcam.git",
+    "commit": "be09ecee41f0a5db52afe0ee929dbd339cb68672",
+    "path": "home/exp1000/models/default/model.tflite",
+    "bytes": 8950028,
+    "sha256": "fd1ecbd01ad2d46bd35cbac17809cfa24b1d929b8f14871fc1fb6fca5ff06aae",
+    "modified": false
+   },
+   "inventory": {
+    "inputs": [
+     {
+      "name": "input_1",
+      "shape": [
+       1,
+       224,
+       224,
+       3
+      ],
+      "dtype": "FLOAT32",
+      "layout": "NHWC"
+     }
+    ],
+    "outputs": [
+     {
+      "name": "Identity",
+      "shape": [
+       1,
+       3
+      ],
+      "dtype": "FLOAT32"
+     }
+    ],
+    "operators_total": 68,
+    "operators_distinct": 9,
+    "custom_ops": 0,
+    "dynamic_tensors": 0,
+    "histogram": {
+     "CONV_2D": 35,
+     "DEPTHWISE_CONV_2D": 17,
+     "ADD": 10,
+     "MUL": 1,
+     "SUB": 1,
+     "AVERAGE_POOL_2D": 1,
+     "SQUEEZE": 1,
+     "FULLY_CONNECTED": 1,
+     "SOFTMAX": 1
+    }
+   },
+   "original_import": {
+    "tool": "tflite2onnx 0.4.1 (stock)",
+    "result": "BLOCKED",
+    "error": "NotImplementedError: Unsupported TFLite OP: 43 SQUEEZE!",
+    "where": "parse time (OpFactory.create), before any ONNX emission",
+    "log": "import/step1_original_tflite2onnx.stderr"
+   },
+   "verdict": "TRANSFORM_REQUIRED",
+   "go_with_transform": true,
+   "transform": {
+    "kind": "converter extension (harness/tflite2onnx_ext_squeeze.py) -- the flight .tflite is never edited",
+    "instances": 1,
+    "conditions_checked": {
+     "C1_squeezed_axes_size_1": true,
+     "C2_elements_preserved": true,
+     "C3_dtype_preserved": true,
+     "C4_static_output_equals_expected": true
+    },
+    "conditions_source": {
+     "tflite_squeeze_dims": [
+      1,
+      2
+     ],
+     "input_shape_tflite": [
+      1,
+      1,
+      1,
+      1280
+     ],
+     "output_shape": [
+      1,
+      1280
+     ],
+     "input_dtype": 1,
+     "output_dtype": 1,
+     "C1_squeezed_axes_size_1": true,
+     "C2_elements_preserved": true,
+     "C3_dtype_preserved": true,
+     "C4_static_output_equals_expected": true,
+     "expected_output_shape": [
+      1,
+      1280
+     ],
+     "identity": false,
+     "raw_squeeze_dims": [
+      1,
+      2
+     ],
+     "C5_kept_axis_order_preserved": true,
+     "C5_decided_by": "numeric simulation vs np.squeeze reference (shape and values)",
+     "layout": "NCHW(NHWC->NCHW)",
+     "input_shape_onnx": [
+      1,
+      1280,
+      1,
+      1
+     ],
+     "onnx_axes": [
+      2,
+      3
+     ],
+     "emit_mode": "squeeze",
+     "onnx_node_name": "predict/feature_vector/SpatialSqueeze;StatefulPartitionedCall/sequential/keras_layer/StatefulPartitionedCall/StatefulPartitionedCall/StatefulPartitionedCall/predict/feature_vector/SpatialSqueeze"
+    },
+    "emission_modes_tried": [
+     "squeeze (ONNX Squeeze, axes attr, opset 11)",
+     "reshape (ONNX Reshape, static shape initializer)"
+    ],
+    "emission_mode_independent": true,
+    "emission_mode_note": "with canonical initializer/value_info order the two modes' linalg MLIR are byte-identical (variant_reshape/equivalence.json)",
+    "converter_determinism": "initializer and value_info sorted by name (tflite2onnx emits them from sets)",
+    "audit_trail": [
+     "import/step2_smartcam_ext_squeeze.transform_manifest.json",
+     "import/step2_smartcam_ext_reshape.transform_manifest.json",
+     "import/import_log.txt"
+    ],
+    "hashes": {
+     "original_tflite": "fd1ecbd01ad2d46bd35cbac17809cfa24b1d929b8f14871fc1fb6fca5ff06aae",
+     "onnx_squeeze": "79c57abc32c1bfa75b7b3c5dd8a47d96cbc89885351fcbd2206f3a62ca436968",
+     "onnx_reshape": "3af9c7a14e1b588a6305f4df66376b3bc4cd4796c8e4e602d25c34f079cc84e7",
+     "linalg_mlir": "f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4",
+     "vmfb": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8"
+    },
+    "condition_7_numeric_equivalence": "NOT DONE -- P2 (analysis doc SS5 item 7)"
+   },
+   "interface_change_recorded": {
+    "flight_tflite_input": {
+     "shape": [
+      1,
+      224,
+      224,
+      3
+     ],
+     "layout": "NHWC",
+     "layout_source": "TFLite CONV_2D operator convention ([batch,height,width,channels]); the flatbuffer carries no layout metadata"
+    },
+    "iree_entry_input": {
+     "shape": [
+      1,
+      3,
+      224,
+      224
+     ],
+     "layout": "NCHW",
+     "layout_source": "tflite2onnx re-indexes activations adjacent to Conv/Pool and permutes the 52 Conv filters OHWI->OIHW; no Transpose node is emitted"
+    },
+    "elements": 150528,
+    "dtype": "f32",
+    "element_order_preserved": false,
+    "batch": {
+     "flight_shape_signature": [
+      -1,
+      224,
+      224,
+      3
+     ],
+     "flight_executed_shape": [
+      1,
+      224,
+      224,
+      3
+     ],
+     "iree_entry_batch": 1,
+     "note": "the exporter left the batch symbolic (-1) in shape_signature; the concrete shape the flatbuffer executes with is batch 1 and the IREE entry fixes it to 1. A second narrowing besides layout; P2 compares at batch 1"
+    },
+    "consequence": "P2 must feed the IREE entry NCHW-ordered bytes (a transposed copy of the TFLite NHWC input). The two C executors allocate a contract-shaped buffer view (rank 4 {1,3,224,224}, dense row-major) and fill it in flat index order; the contract carries shape but no NHWC/NCHW semantics, so the caller supplies the order",
+    "alternative_not_taken": "bake an ONNX Transpose(perm=[0,3,1,2]) at the graph input so the entry keeps the flight NHWC shape -- a new one-invocation build whose contract would change; a P2 design choice, not done in P1"
+   },
+   "mlir_vmfb_feasibility": {
+    "chain": "tflite2onnx(+ext) -> iree-import-onnx --opset-version 17 -> iree-opt (torch->linalg) -> ONE iree-compile",
+    "residual_torch_ops": 0,
+    "iree_compile_rc": 0,
+    "dispatches": 56,
+    "compiler": "IREE 3.11.0rc20260316 e4a3b04",
+    "target": "x86_64-unknown-linux-gnu / generic / llvm-cpu / local-sync",
+    "vmfb_bytes": 8915257,
+    "vmfb_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8"
+   },
+   "contract": {
+    "generated": true,
+    "overrides_applied": [],
+    "verification_grade": "verified",
+    "bounded_bytes": 18222796,
+    "static_per_call_bytes": 9382092,
+    "static_io_bytes": 602124,
+    "static_transient_bytes": 8779968,
+    "module_resident_constant_bytes": 8840704,
+    "identity_bounded_eq_per_call_plus_constants": true,
+    "constants_confirmation_state": "confirmed",
+    "structural_walker_agrees": true,
+    "kernel_task_stack_bytes": 368,
+    "kernel_task_stack_invocation_bytes": 439,
+    "kernel_stack_classification": "bucket_2_task_stack_budget",
+    "unresolved_call_insns": 0,
+    "header": {
+     "file": "build/contract_gen.smartcam.h",
+     "CONTRACT_BOUND_KNOWN": 1,
+     "CONTRACT_PROVENANCE_VERIFIED": 1,
+     "CONTRACT_KERNEL_STACK_BYTES": 439,
+     "CONTRACT_INPUT_ELEMS": 150528,
+     "CONTRACT_OUTPUT_ELEMS": 3,
+     "CONTRACT_DTYPES_ALL_F32": 1
+    },
+    "two_arm_structure_in_layout_ir": {
+     "stream.resource.try_map": 1,
+     "scf.if": 1,
+     "constant_alloc_in_copy_arm": 1,
+     "B_map": 9382092,
+     "B_copy": 18222796,
+     "B_copy_over_B_map": 1.9423
+    }
+   },
+   "third_source_reconciliation": {
+    "source": "the flight flatbuffer's own constant buffers (tflite schema package), independent of MLIR, dump and vmfb",
+    "flight_constant_bytes": 8842644,
+    "flight_constant_tensors": 108,
+    "flight_params_f32": 2210661,
+    "contract_module_resident_constant_bytes": 8840704,
+    "delta_bytes": 1940,
+    "delta_explained": "15 tensors of <= 256 B (13 bias vectors, the FC bias [3], the two preprocessing scalars 2.0/1.0) are inlined by iree-compile into the dispatch executables; their bytes appear verbatim in the embedded ELF .rodata (kernel_elf_bytes, outside the HAL boundary the contract counts)",
+    "note": "recorded by the adversarial review of E30; the contract's memory_boundary excludes the executable image by definition, so this is a reconciliation, not a discrepancy",
+    "executables_vs_functions": "40 hal.executables (dump/), 39 unique ELF functions (infer_dispatch_35 is folded onto infer_dispatch_23's code by the linker), 56 stream.cmd.dispatch sites"
+   },
+   "second_information_source": {
+    "tool": "harness/e27_baseline_vmfb_only_hardened.py (artifact only, no MLIR, no dump)",
+    "status": "value",
+    "bounded": 18222796,
+    "per_call": 9382092,
+    "constants": 8840704,
+    "agrees_with_contract": true
+   },
+   "smoke_execution": {
+    "runner": "pip iree.runtime (python bindings), one model per process",
+    "status": "ran",
+    "output_shape": [
+     1,
+     3
+    ],
+    "finite": true,
+    "deterministic_same_input": true,
+    "hal_device_bytes_peak": 9382092,
+    "peak_eq_per_call": true,
+    "allocated_eq_freed": true,
+    "arm_in_this_process": "map (peak == per_call exactly; E29's alignment determinant, not controlled here)",
+    "note": "feasibility only: the artifact loads and runs; NOT an E26 cell, NOT a soundness or equivalence claim"
+   },
+   "cfs_interface_fit": {
+    "single_f32_in_single_f32_out_static": true,
+    "input_elems": 150528,
+    "output_elems": 3,
+    "header_generated_for_c_paths": true,
+    "native_or_cfs_execution": "NOT RUN in P1 (P2/P3)",
+    "note": "E28/D52 moved feat[]/out[]/outs[] to static storage sized from the contract, so a 602,112 B input does not live on the task stack"
+   },
+   "not_claimed": [
+    "numeric equivalence with the TFLite model (P2)",
+    "accuracy on any dataset",
+    "AArch64 or cFS execution (P3)",
+    "soundness of bounded/per_call beyond this one pip-runtime process",
+    "generalization to other models or compiler versions",
+    "byte-reproducibility of the vmfb across iree-compile re-invocations in general (E26e; two calls agreed here, that is all)"
+   ]
+  }
+ },
+ "environment": {
+  "iree_compile": "IREE (https://iree.dev):\n  IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25\n  LLVM version 23.0.0git\n  Optimized build",
+  "tflite2onnx": "0.4.1",
+  "tflite_schema": "2.18.0",
+  "onnx": "1.22.0",
+  "python": "3.11.15"
+ },
+ "fixture_note": "build/smartcam.mlir is stored gzipped; dump/ is reduced (6 LLVM intermediates dropped, hashes in build/dropped_dump_files.sha256); the stored contract regenerates from the reduced fixture with diff 0, and ONNX -> linalg MLIR regenerates to the same sha256 from original/model.tflite (test group: p1-smartcam)"
+}

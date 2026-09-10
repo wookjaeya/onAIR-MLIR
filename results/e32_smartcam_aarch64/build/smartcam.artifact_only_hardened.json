@@ -1,0 +1,92 @@
+{
+ "tool": "BL1_robust_vmfb_only",
+ "vmfb": "results/e32_smartcam_aarch64/build/smartcam.vmfb",
+ "entry": "infer",
+ "status": "value",
+ "input_bytes": 602112,
+ "output_bytes": 12,
+ "abi_declaration": "iree.abi.declaration: sync func @infer(%input0: tensor<1x3x224x224xf32>) -> (%output0: tensor<1x3xf32>)",
+ "abi_arity": [
+  1,
+  1
+ ],
+ "alloca_sizes": [
+  12,
+  8779968
+ ],
+ "hal_calls_in_entry": 10,
+ "insn_count": 42,
+ "entry_calls": [
+  "hal.buffer.assert",
+  "hal.buffer_view.buffer",
+  "hal.device.allocator",
+  "hal.device.queue.alloca",
+  "hal.device.queue.dealloca",
+  "hal.fence.create"
+ ],
+ "rodata_detail": [
+  {
+   "kind": "external",
+   "bytes": 8840704,
+   "label": null,
+   "is_label": false,
+   "role": "constant",
+   "entry": "_const.bin"
+  },
+  {
+   "kind": "embedded",
+   "bytes": 13,
+   "label": "hal.device.id",
+   "is_label": true,
+   "role": "metadata_string"
+  },
+  {
+   "kind": "embedded",
+   "bytes": 6,
+   "label": "local*",
+   "is_label": true,
+   "role": "metadata_string"
+  },
+  {
+   "kind": "embedded",
+   "bytes": 21,
+   "label": "hal.executable.format",
+   "is_label": true,
+   "role": "metadata_string"
+  },
+  {
+   "kind": "embedded",
+   "bytes": 19,
+   "label": "embedded-elf-arm_64",
+   "is_label": true,
+   "role": "metadata_string"
+  },
+  {
+   "kind": "external",
+   "bytes": 131096,
+   "label": null,
+   "is_label": false,
+   "role": "executable",
+   "entry": "smartcam_linked_embedded_elf_arm_64.so"
+  },
+  {
+   "kind": "embedded",
+   "bytes": 6,
+   "label": "input0",
+   "is_label": true,
+   "role": "metadata_string"
+  },
+  {
+   "kind": "embedded",
+   "bytes": 6,
+   "label": "tensor",
+   "is_label": true,
+   "role": "metadata_string"
+  }
+ ],
+ "bl1_constants": 8840704,
+ "bl1_executable_bytes": 131096,
+ "bl1_per_call": 9382092,
+ "bl1_bounded": 18222796,
+ "refusals": []
+}

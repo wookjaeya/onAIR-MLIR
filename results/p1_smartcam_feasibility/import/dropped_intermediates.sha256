@@ -1,0 +1,7 @@
+# intermediates produced by the P1 chain and dropped from the stored fixture (all reproducible from original/model.tflite
+# with harness/p1_tflite_to_onnx.py -> iree-import-onnx --opset-version 17 -> iree-opt; see import_log.txt). sha256  path  bytes
+3af9c7a14e1b588a6305f4df66376b3bc4cd4796c8e4e602d25c34f079cc84e7  import/step2_smartcam_ext_reshape.onnx  9301505
+fa4b7b19040f8bf1c4199930131acd6860d1cb9ca9e6d0d21f61cec44019a091  import/step3_smartcam_ext_squeeze.torch.mlir  17812697
+a09302e7579b400d849e4da7785a0750bdfd70a6099b5f5bed5f9b082b2dc2da  import/step3_smartcam_ext_reshape.torch.mlir  17812828
+f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4  import/step4_smartcam_ext_squeeze.linalg.mlir  17750942
+f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4  import/step4_smartcam_ext_reshape.linalg.mlir  17750942

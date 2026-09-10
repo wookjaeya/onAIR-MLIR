@@ -1,6 +1,16 @@
 # PROGRESS — Contract-Guided MLIR Lowering for AI Deployment in NASA OnAIR/cFS
 
-**기준 버전**: v0.3.1 (git tag `v0.3.1`) — v0.4 이후의 총괄은 `REPORT_v0.4.md` 참조
+**기준 버전**: v0.3.1 — 이 문서는 그 시점의 한 장 요약이며, **현재 상태의 정본이 아니다.**
+
+> **v0.40에서 확정**: 이 문서는 **v0.3.1 시점 스냅샷으로 동결**되며 작업 규율 6의 "매 버전 갱신"
+> 대상에서 제외된다. 실제로 v0.4 이후 갱신된 적이 없고, 정본은 아래 순서다.
+> **현재 버전은 v0.38.1이다.** 최신 상태는 `CLAUDE.md`(프로젝트 컨텍스트·우선순위) →
+> `EXPERIMENT_LOG.md`(실험 레지스트리·결함 원장) → `CHANGELOG.md` 순으로 읽는다.
+> v0.4 총괄은 `REPORT_v0.4.md`, 최신 판정은 `docs/EVIDENCE_v0.34_E31.md`(P2: SmartCam 원본 의미 보존 PASS)·`docs/EVIDENCE_v0.33_E30.md`(P1: SmartCam 반입 타당성, TRANSFORM_REQUIRED → GO)·`docs/EVIDENCE_v0.32_E29b.md`(조건부 검증 논리 수정, D54)·`docs/EVIDENCE_v0.31_E29.md`(조건부 계약: try_map 분기
+> 결정 요인 = 모듈 이미지의 64바이트 정렬, 64/64셀 위반 0, 제어 시 map 피크 = `per_call` 정확히)와
+> `docs/EVIDENCE_v0.25_E26.md`(계약 경계의 유용성: Q1·Q3 PASS)이고 다음 계획은 `docs/plans/E26_boundary_utility.md`·
+> `docs/plans/E27_mlir_contribution.md`다.
+> 아래 본문은 v0.3.1 시점 그대로 보존한다(작업 규율 5: 고쳐쓰지 않는다).
 **문서 역할**: 현재까지의 진행 상황을 한 장으로 요약하는 정본. 세부 수치·판정 근거는 `docs/EVIDENCE_v0.*.md`, 실험 등록은 `EXPERIMENT_LOG.md`, 변경 이력은 `CHANGELOG.md`가 정본이다.
 
 ---

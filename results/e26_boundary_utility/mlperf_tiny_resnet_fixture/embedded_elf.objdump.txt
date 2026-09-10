@@ -1,0 +1,2326 @@
+
+dump_b2_resnet_infer/module_b2_resnet_infer_linked_embedded_elf_x86_64.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000002e50 <iree_hal_executable_library_query-0x2550>:
+    2e50:	push   %rbp
+    2e51:	mov    %rsp,%rbp
+    2e54:	mov    0x20(%rsi),%rdx
+    2e58:	mov    (%rdx),%rax
+    2e5b:	mov    $0x8c,%ecx
+    2e60:	add    0x8(%rdx),%rcx
+    2e64:	xor    %edx,%edx
+    2e66:	cs nopw 0x0(%rax,%rax,1)
+    2e70:	mov    %rcx,%rsi
+    2e73:	mov    %rax,%rdi
+    2e76:	xor    %r8d,%r8d
+    2e79:	nopl   0x0(%rax)
+    2e80:	mov    $0xfffffffffffffffc,%r9
+    2e87:	nopw   0x0(%rax,%rax,1)
+    2e90:	movaps 0x10(%rdi,%r9,4),%xmm0
+    2e96:	movups %xmm0,0x10(%rsi,%r9,4)
+    2e9c:	add    $0x4,%r9
+    2ea0:	cmp    $0x1c,%r9
+    2ea4:	jb     2e90 <iree_hal_executable_library_query-0x2510>
+    2ea6:	inc    %r8
+    2ea9:	sub    $0xffffffffffffff80,%rdi
+    2ead:	add    $0x88,%rsi
+    2eb4:	cmp    $0x20,%r8
+    2eb8:	jne    2e80 <iree_hal_executable_library_query-0x2520>
+    2eba:	inc    %rdx
+    2ebd:	add    $0x1000,%rax
+    2ec3:	add    $0x1210,%rcx
+    2eca:	cmp    $0x3,%rdx
+    2ece:	jne    2e70 <iree_hal_executable_library_query-0x2530>
+    2ed0:	xor    %eax,%eax
+    2ed2:	pop    %rbp
+    2ed3:	ret
+    2ed4:	int3
+    2ed5:	int3
+    2ed6:	int3
+    2ed7:	int3
+    2ed8:	int3
+    2ed9:	int3
+    2eda:	int3
+    2edb:	int3
+    2edc:	int3
+    2edd:	int3
+    2ede:	int3
+    2edf:	int3
+    2ee0:	push   %rbp
+    2ee1:	mov    %rsp,%rbp
+    2ee4:	push   %r15
+    2ee6:	push   %r14
+    2ee8:	push   %r13
+    2eea:	push   %r12
+    2eec:	push   %rbx
+    2eed:	and    $0xffffffffffffffc0,%rsp
+    2ef1:	sub    $0x140,%rsp
+    2ef8:	mov    0x20(%rsi),%rax
+    2efc:	mov    $0x46000,%ecx
+    2f01:	add    0x8(%rax),%rcx
+    2f05:	mov    %rcx,0xa0(%rsp)
+    2f0d:	mov    $0x3640,%ecx
+    2f12:	add    0x10(%rax),%rcx
+    2f16:	mov    %rcx,0x98(%rsp)
+    2f1e:	mov    (%rdx),%ecx
+    2f20:	mov    %ecx,%edx
+    2f22:	and    $0xfffffffe,%edx
+    2f25:	mov    %rdx,0x90(%rsp)
+    2f2d:	mov    %ecx,%edx
+    2f2f:	shl    $0x4,%edx
+    2f32:	and    $0x10,%edx
+    2f35:	mov    %rdx,0xa8(%rsp)
+    2f3d:	xorps  %xmm0,%xmm0
+    2f40:	and    $0x1,%ecx
+    2f43:	imul   $0x880,%rcx,%rcx
+    2f4a:	add    (%rax),%rcx
+    2f4d:	mov    %rcx,0x88(%rsp)
+    2f55:	movaps %xmm0,0xc0(%rsp)
+    2f5d:	mov    $0x1,%al
+    2f5f:	xor    %ecx,%ecx
+    2f61:	data16 data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    2f70:	mov    %eax,0x3c(%rsp)
+    2f74:	or     0x90(%rsp),%rcx
+    2f7c:	imul   $0x6c,%rcx,%rdx
+    2f80:	add    0xa0(%rsp),%rdx
+    2f88:	lea    -0x240f(%rip),%rax        # b80 <iree_hal_executable_library_query-0x4820>
+    2f8f:	movss  (%rax,%rcx,4),%xmm1
+    2f94:	shufps $0x0,%xmm1,%xmm1
+    2f98:	shl    $0xc,%rcx
+    2f9c:	add    0x98(%rsp),%rcx
+    2fa4:	mov    0x88(%rsp),%rsi
+    2fac:	xor    %r14d,%r14d
+    2faf:	mov    %rcx,0xb0(%rsp)
+    2fb7:	nopw   0x0(%rax,%rax,1)
+    2fc0:	mov    0xa8(%rsp),%rax
+    2fc8:	lea    (%r14,%rax,1),%r15
+    2fcc:	shl    $0x7,%r15
+    2fd0:	add    %rcx,%r15
+    2fd3:	mov    %rsi,0xb8(%rsp)
+    2fdb:	mov    %rsi,%rax
+    2fde:	xor    %r13d,%r13d
+    2fe1:	data16 data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    2ff0:	xor    %ecx,%ecx
+    2ff2:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3000:	movss  0xc0(%rsp,%rcx,4),%xmm2
+    3009:	movss  %xmm2,0x40(%rsp,%rcx,4)
+    300f:	inc    %rcx
+    3012:	cmp    $0x4,%rcx
+    3016:	jne    3000 <iree_hal_executable_library_query-0x23a0>
+    3018:	mov    %rdx,%r10
+    301b:	mov    %rax,%rdi
+    301e:	xor    %ecx,%ecx
+    3020:	mov    %r10,%r11
+    3023:	mov    %rdi,%rbx
+    3026:	xor    %r8d,%r8d
+    3029:	nopl   0x0(%rax)
+    3030:	mov    %rbx,%r12
+    3033:	xor    %r9d,%r9d
+    3036:	cs nopw 0x0(%rax,%rax,1)
+    3040:	movss  0x40(%rsp,%r9,4),%xmm2
+    3047:	xor    %esi,%esi
+    3049:	nopl   0x0(%rax)
+    3050:	movss  (%r12,%rsi,4),%xmm3
+    3056:	mulss  (%r11,%rsi,4),%xmm3
+    305c:	addss  %xmm3,%xmm2
+    3060:	inc    %rsi
+    3063:	cmp    $0x3,%rsi
+    3067:	jne    3050 <iree_hal_executable_library_query-0x2350>
+    3069:	movss  %xmm2,0x40(%rsp,%r9,4)
+    3070:	inc    %r9
+    3073:	add    $0x4,%r12
+    3077:	cmp    $0x4,%r9
+    307b:	jne    3040 <iree_hal_executable_library_query-0x2360>
+    307d:	inc    %r8
+    3080:	add    $0x88,%rbx
+    3087:	add    $0xc,%r11
+    308b:	cmp    $0x3,%r8
+    308f:	jne    3030 <iree_hal_executable_library_query-0x2370>
+    3091:	inc    %rcx
+    3094:	add    $0x1210,%rdi
+    309b:	add    $0x24,%r10
+    309f:	cmp    $0x3,%rcx
+    30a3:	jne    3020 <iree_hal_executable_library_query-0x2380>
+    30a9:	movaps 0x40(%rsp),%xmm2
+    30ae:	addps  %xmm1,%xmm2
+    30b1:	movaps %xmm2,%xmm3
+    30b4:	cmpnleps %xmm0,%xmm3
+    30b8:	andps  %xmm2,%xmm3
+    30bb:	movaps %xmm3,(%r15,%r13,4)
+    30c0:	add    $0x10,%rax
+    30c4:	cmp    $0x1c,%r13
+    30c8:	lea    0x4(%r13),%r13
+    30cc:	jb     2ff0 <iree_hal_executable_library_query-0x23b0>
+    30d2:	inc    %r14
+    30d5:	mov    0xb8(%rsp),%rsi
+    30dd:	add    $0x88,%rsi
+    30e4:	cmp    $0x10,%r14
+    30e8:	mov    0xb0(%rsp),%rcx
+    30f0:	jne    2fc0 <iree_hal_executable_library_query-0x23e0>
+    30f6:	mov    $0x1,%ecx
+    30fb:	testb  $0x1,0x3c(%rsp)
+    3100:	mov    $0x0,%eax
+    3105:	jne    2f70 <iree_hal_executable_library_query-0x2430>
+    310b:	xor    %eax,%eax
+    310d:	lea    -0x28(%rbp),%rsp
+    3111:	pop    %rbx
+    3112:	pop    %r12
+    3114:	pop    %r13
+    3116:	pop    %r14
+    3118:	pop    %r15
+    311a:	pop    %rbp
+    311b:	ret
+    311c:	int3
+    311d:	int3
+    311e:	int3
+    311f:	int3
+    3120:	push   %rbp
+    3121:	mov    %rsp,%rbp
+    3124:	mov    0x20(%rsi),%rax
+    3128:	mov    (%rax),%rcx
+    312b:	mov    0x8(%rax),%rsi
+    312f:	mov    (%rdx),%eax
+    3131:	mov    %eax,%edx
+    3133:	shr    $1,%edx
+    3135:	imul   $0x9080,%rdx,%rdi
+    313c:	shl    $0xf,%rdx
+    3140:	and    $0x1,%eax
+    3143:	imul   $0x880,%rax,%r8
+    314a:	shl    $0xb,%eax
+    314d:	or     %rdx,%rax
+    3150:	add    %rcx,%rax
+    3153:	add    $0x3640,%rax
+    3159:	add    %rdi,%r8
+    315c:	lea    (%rsi,%r8,1),%rcx
+    3160:	add    $0x136cc,%rcx
+    3167:	xor    %edx,%edx
+    3169:	nopl   0x0(%rax)
+    3170:	mov    %rcx,%rsi
+    3173:	mov    %rax,%rdi
+    3176:	xor    %r8d,%r8d
+    3179:	nopl   0x0(%rax)
+    3180:	mov    $0xfffffffffffffffc,%r9
+    3187:	nopw   0x0(%rax,%rax,1)
+    3190:	movaps 0x10(%rdi,%r9,4),%xmm0
+    3196:	movups %xmm0,0x10(%rsi,%r9,4)
+    319c:	add    $0x4,%r9
+    31a0:	cmp    $0x1c,%r9
+    31a4:	jb     3190 <iree_hal_executable_library_query-0x2210>
+    31a6:	inc    %r8
+    31a9:	sub    $0xffffffffffffff80,%rdi
+    31ad:	add    $0x88,%rsi
+    31b4:	cmp    $0x10,%r8
+    31b8:	jne    3180 <iree_hal_executable_library_query-0x2220>
+    31ba:	inc    %rdx
+    31bd:	add    $0x1000,%rax
+    31c3:	add    $0x1210,%rcx
+    31ca:	cmp    $0x8,%rdx
+    31ce:	jne    3170 <iree_hal_executable_library_query-0x2230>
+    31d0:	xor    %eax,%eax
+    31d2:	pop    %rbp
+    31d3:	ret
+    31d4:	int3
+    31d5:	int3
+    31d6:	int3
+    31d7:	int3
+    31d8:	int3
+    31d9:	int3
+    31da:	int3
+    31db:	int3
+    31dc:	int3
+    31dd:	int3
+    31de:	int3
+    31df:	int3
+    31e0:	push   %rbp
+    31e1:	mov    %rsp,%rbp
+    31e4:	push   %r15
+    31e6:	push   %r14
+    31e8:	push   %r13
+    31ea:	push   %r12
+    31ec:	push   %rbx
+    31ed:	and    $0xffffffffffffffc0,%rsp
+    31f1:	sub    $0x140,%rsp
+    31f8:	mov    0x20(%rsi),%rax
+    31fc:	mov    (%rax),%rcx
+    31ff:	mov    $0x4c00,%esi
+    3204:	add    0x8(%rax),%rsi
+    3208:	mov    %rsi,0xa0(%rsp)
+    3210:	mov    $0x25740,%esi
+    3215:	add    0x10(%rax),%rsi
+    3219:	mov    %rsi,0x98(%rsp)
+    3221:	mov    (%rdx),%eax
+    3223:	mov    %eax,%edx
+    3225:	and    $0xfffffffe,%edx
+    3228:	mov    %rdx,0x90(%rsp)
+    3230:	mov    %eax,%edx
+    3232:	shl    $0x4,%edx
+    3235:	and    $0x10,%edx
+    3238:	mov    %rdx,0xa8(%rsp)
+    3240:	xorps  %xmm0,%xmm0
+    3243:	movaps %xmm0,0xc0(%rsp)
+    324b:	and    $0x1,%eax
+    324e:	imul   $0x880,%rax,%rax
+    3255:	add    %rcx,%rax
+    3258:	add    $0x13640,%rax
+    325e:	mov    %rax,0x88(%rsp)
+    3266:	mov    $0x1,%cl
+    3268:	xor    %eax,%eax
+    326a:	nopw   0x0(%rax,%rax,1)
+    3270:	mov    %ecx,0x3c(%rsp)
+    3274:	or     0x90(%rsp),%rax
+    327c:	lea    (%rax,%rax,8),%rdx
+    3280:	shl    $0x6,%rdx
+    3284:	add    0xa0(%rsp),%rdx
+    328c:	lea    -0x26d3(%rip),%rcx        # bc0 <iree_hal_executable_library_query-0x47e0>
+    3293:	movss  (%rcx,%rax,4),%xmm1
+    3298:	shufps $0x0,%xmm1,%xmm1
+    329c:	imul   $0x1210,%rax,%rax
+    32a3:	add    0x98(%rsp),%rax
+    32ab:	mov    %rax,0xb0(%rsp)
+    32b3:	mov    0x88(%rsp),%rsi
+    32bb:	xor    %r14d,%r14d
+    32be:	xchg   %ax,%ax
+    32c0:	mov    0xa8(%rsp),%rax
+    32c8:	add    %r14,%rax
+    32cb:	mov    %rax,%rcx
+    32ce:	shl    $0x7,%rcx
+    32d2:	lea    (%rcx,%rax,8),%rax
+    32d6:	mov    0xb0(%rsp),%rcx
+    32de:	lea    (%rcx,%rax,1),%r15
+    32e2:	add    $0x8c,%r15
+    32e9:	mov    %rsi,0xb8(%rsp)
+    32f1:	mov    %rsi,%rax
+    32f4:	xor    %r13d,%r13d
+    32f7:	nopw   0x0(%rax,%rax,1)
+    3300:	xor    %ecx,%ecx
+    3302:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3310:	movss  0xc0(%rsp,%rcx,4),%xmm2
+    3319:	movss  %xmm2,0x40(%rsp,%rcx,4)
+    331f:	inc    %rcx
+    3322:	cmp    $0x4,%rcx
+    3326:	jne    3310 <iree_hal_executable_library_query-0x2090>
+    3328:	mov    %rdx,%r9
+    332b:	mov    %rax,%rdi
+    332e:	xor    %ecx,%ecx
+    3330:	mov    %r9,%r10
+    3333:	mov    %rdi,%rbx
+    3336:	xor    %r8d,%r8d
+    3339:	nopl   0x0(%rax)
+    3340:	mov    %rbx,%r12
+    3343:	xor    %r11d,%r11d
+    3346:	cs nopw 0x0(%rax,%rax,1)
+    3350:	movss  0x40(%rsp,%r11,4),%xmm2
+    3357:	xor    %esi,%esi
+    3359:	nopl   0x0(%rax)
+    3360:	movss  (%r12,%rsi,4),%xmm3
+    3366:	mulss  (%r10,%rsi,4),%xmm3
+    336c:	addss  %xmm3,%xmm2
+    3370:	inc    %rsi
+    3373:	cmp    $0x3,%rsi
+    3377:	jne    3360 <iree_hal_executable_library_query-0x2040>
+    3379:	movss  %xmm2,0x40(%rsp,%r11,4)
+    3380:	inc    %r11
+    3383:	add    $0x4,%r12
+    3387:	cmp    $0x4,%r11
+    338b:	jne    3350 <iree_hal_executable_library_query-0x2050>
+    338d:	inc    %r8
+    3390:	add    $0x88,%rbx
+    3397:	add    $0xc,%r10
+    339b:	cmp    $0x3,%r8
+    339f:	jne    3340 <iree_hal_executable_library_query-0x2060>
+    33a1:	inc    %rcx
+    33a4:	add    $0x1210,%rdi
+    33ab:	add    $0x24,%r9
+    33af:	cmp    $0x10,%rcx
+    33b3:	jne    3330 <iree_hal_executable_library_query-0x2070>
+    33b9:	movaps 0x40(%rsp),%xmm2
+    33be:	addps  %xmm1,%xmm2
+    33c1:	movaps %xmm2,%xmm3
+    33c4:	cmpnleps %xmm0,%xmm3
+    33c8:	andps  %xmm2,%xmm3
+    33cb:	movups %xmm3,(%r15,%r13,4)
+    33d0:	add    $0x10,%rax
+    33d4:	cmp    $0x1c,%r13
+    33d8:	lea    0x4(%r13),%r13
+    33dc:	jb     3300 <iree_hal_executable_library_query-0x20a0>
+    33e2:	inc    %r14
+    33e5:	mov    0xb8(%rsp),%rsi
+    33ed:	add    $0x88,%rsi
+    33f4:	cmp    $0x10,%r14
+    33f8:	jne    32c0 <iree_hal_executable_library_query-0x20e0>
+    33fe:	mov    $0x1,%eax
+    3403:	testb  $0x1,0x3c(%rsp)
+    3408:	mov    $0x0,%ecx
+    340d:	jne    3270 <iree_hal_executable_library_query-0x2130>
+    3413:	xor    %eax,%eax
+    3415:	lea    -0x28(%rbp),%rsp
+    3419:	pop    %rbx
+    341a:	pop    %r12
+    341c:	pop    %r13
+    341e:	pop    %r14
+    3420:	pop    %r15
+    3422:	pop    %rbp
+    3423:	ret
+    3424:	int3
+    3425:	int3
+    3426:	int3
+    3427:	int3
+    3428:	int3
+    3429:	int3
+    342a:	int3
+    342b:	int3
+    342c:	int3
+    342d:	int3
+    342e:	int3
+    342f:	int3
+    3430:	push   %rbp
+    3431:	mov    %rsp,%rbp
+    3434:	push   %r15
+    3436:	push   %r14
+    3438:	push   %r13
+    343a:	push   %r12
+    343c:	push   %rbx
+    343d:	and    $0xffffffffffffffc0,%rsp
+    3441:	sub    $0x140,%rsp
+    3448:	mov    0x20(%rsi),%rax
+    344c:	mov    (%rax),%rsi
+    344f:	mov    0x10(%rax),%rcx
+    3453:	mov    %rcx,0xb8(%rsp)
+    345b:	mov    $0x2800,%ecx
+    3460:	add    0x8(%rax),%rcx
+    3464:	mov    %rcx,0x90(%rsp)
+    346c:	mov    (%rdx),%eax
+    346e:	mov    %eax,%ecx
+    3470:	and    $0xfffffffe,%ecx
+    3473:	mov    %rcx,0x88(%rsp)
+    347b:	mov    %eax,%ecx
+    347d:	shl    $0x4,%ecx
+    3480:	and    $0x10,%ecx
+    3483:	mov    %rcx,0x98(%rsp)
+    348b:	xorps  %xmm0,%xmm0
+    348e:	movaps %xmm0,0xc0(%rsp)
+    3496:	and    $0x1,%eax
+    3499:	imul   $0x880,%rax,%rax
+    34a0:	mov    %rsi,%rcx
+    34a3:	add    %rsi,%rax
+    34a6:	add    $0x25740,%rax
+    34ac:	mov    %rax,0x80(%rsp)
+    34b4:	mov    $0x1,%al
+    34b6:	xor    %edx,%edx
+    34b8:	nopl   0x0(%rax,%rax,1)
+    34c0:	mov    %eax,0x3c(%rsp)
+    34c4:	or     0x88(%rsp),%rdx
+    34cc:	lea    (%rdx,%rdx,8),%r9
+    34d0:	shl    $0x6,%r9
+    34d4:	add    0x90(%rsp),%r9
+    34dc:	lea    -0x28e3(%rip),%rax        # c00 <iree_hal_executable_library_query-0x47a0>
+    34e3:	movss  (%rax,%rdx,4),%xmm1
+    34e8:	shl    $0xa,%rdx
+    34ec:	shufps $0x0,%xmm1,%xmm1
+    34f0:	mov    0x80(%rsp),%rdi
+    34f8:	xor    %esi,%esi
+    34fa:	mov    %rdx,0xa0(%rsp)
+    3502:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3510:	mov    0x98(%rsp),%rax
+    3518:	mov    %rsi,0xa8(%rsp)
+    3520:	lea    (%rsi,%rax,1),%r12
+    3524:	shl    $0x5,%r12
+    3528:	add    %rdx,%r12
+    352b:	mov    %rdi,0xb0(%rsp)
+    3533:	xor    %r11d,%r11d
+    3536:	cs nopw 0x0(%rax,%rax,1)
+    3540:	xor    %eax,%eax
+    3542:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3550:	movss  0xc0(%rsp,%rax,4),%xmm2
+    3559:	movss  %xmm2,0x40(%rsp,%rax,4)
+    355f:	inc    %rax
+    3562:	cmp    $0x4,%rax
+    3566:	jne    3550 <iree_hal_executable_library_query-0x1e50>
+    3568:	mov    %r9,%rsi
+    356b:	mov    %rdi,%r8
+    356e:	xor    %edx,%edx
+    3570:	mov    %rsi,%rbx
+    3573:	mov    %r8,%r14
+    3576:	xor    %r10d,%r10d
+    3579:	nopl   0x0(%rax)
+    3580:	mov    %r14,%r13
+    3583:	xor    %r15d,%r15d
+    3586:	cs nopw 0x0(%rax,%rax,1)
+    3590:	movss  0x40(%rsp,%r15,4),%xmm2
+    3597:	xor    %eax,%eax
+    3599:	nopl   0x0(%rax)
+    35a0:	movss  0x0(%r13,%rax,4),%xmm3
+    35a7:	mulss  (%rbx,%rax,4),%xmm3
+    35ac:	addss  %xmm3,%xmm2
+    35b0:	inc    %rax
+    35b3:	cmp    $0x3,%rax
+    35b7:	jne    35a0 <iree_hal_executable_library_query-0x1e00>
+    35b9:	movss  %xmm2,0x40(%rsp,%r15,4)
+    35c0:	inc    %r15
+    35c3:	add    $0x4,%r13
+    35c7:	cmp    $0x4,%r15
+    35cb:	jne    3590 <iree_hal_executable_library_query-0x1e10>
+    35cd:	inc    %r10
+    35d0:	add    $0x88,%r14
+    35d7:	add    $0xc,%rbx
+    35db:	cmp    $0x3,%r10
+    35df:	jne    3580 <iree_hal_executable_library_query-0x1e20>
+    35e1:	inc    %rdx
+    35e4:	add    $0x1210,%r8
+    35eb:	add    $0x24,%rsi
+    35ef:	cmp    $0x10,%rdx
+    35f3:	jne    3570 <iree_hal_executable_library_query-0x1e30>
+    35f9:	lea    (%r12,%r11,1),%rax
+    35fd:	movaps 0x40(%rsp),%xmm2
+    3602:	addps  %xmm1,%xmm2
+    3605:	addps  0x3640(%rcx,%rax,4),%xmm2
+    360d:	movaps %xmm2,%xmm3
+    3610:	cmpnleps %xmm0,%xmm3
+    3614:	andps  %xmm2,%xmm3
+    3617:	mov    0xb8(%rsp),%rdx
+    361f:	movaps %xmm3,0x13640(%rdx,%rax,4)
+    3627:	add    $0x10,%rdi
+    362b:	cmp    $0x1c,%r11
+    362f:	lea    0x4(%r11),%r11
+    3633:	jb     3540 <iree_hal_executable_library_query-0x1e60>
+    3639:	mov    0xa8(%rsp),%rsi
+    3641:	inc    %rsi
+    3644:	mov    0xb0(%rsp),%rdi
+    364c:	add    $0x88,%rdi
+    3653:	cmp    $0x10,%rsi
+    3657:	mov    0xa0(%rsp),%rdx
+    365f:	jne    3510 <iree_hal_executable_library_query-0x1e90>
+    3665:	mov    $0x1,%edx
+    366a:	testb  $0x1,0x3c(%rsp)
+    366f:	mov    $0x0,%eax
+    3674:	jne    34c0 <iree_hal_executable_library_query-0x1ee0>
+    367a:	xor    %eax,%eax
+    367c:	lea    -0x28(%rbp),%rsp
+    3680:	pop    %rbx
+    3681:	pop    %r12
+    3683:	pop    %r13
+    3685:	pop    %r14
+    3687:	pop    %r15
+    3689:	pop    %rbp
+    368a:	ret
+    368b:	int3
+    368c:	int3
+    368d:	int3
+    368e:	int3
+    368f:	int3
+    3690:	push   %rbp
+    3691:	mov    %rsp,%rbp
+    3694:	mov    0x20(%rsi),%rax
+    3698:	mov    (%rax),%rcx
+    369b:	mov    0x8(%rax),%rsi
+    369f:	mov    (%rdx),%eax
+    36a1:	mov    %eax,%edx
+    36a3:	shr    $1,%edx
+    36a5:	imul   $0x8820,%rdx,%rdi
+    36ac:	shl    $0xf,%rdx
+    36b0:	and    $0x1,%eax
+    36b3:	imul   $0x840,%rax,%r8
+    36ba:	shl    $0xb,%eax
+    36bd:	or     %rdx,%rax
+    36c0:	add    %rcx,%rax
+    36c3:	add    $0x13640,%rax
+    36c9:	add    %rdi,%r8
+    36cc:	lea    (%rsi,%r8,1),%rcx
+    36d0:	add    $0x37840,%rcx
+    36d7:	xor    %edx,%edx
+    36d9:	nopl   0x0(%rax)
+    36e0:	mov    %rcx,%rsi
+    36e3:	mov    %rax,%rdi
+    36e6:	xor    %r8d,%r8d
+    36e9:	nopl   0x0(%rax)
+    36f0:	mov    $0xfffffffffffffffc,%r9
+    36f7:	nopw   0x0(%rax,%rax,1)
+    3700:	movaps 0x10(%rdi,%r9,4),%xmm0
+    3706:	movups %xmm0,0x10(%rsi,%r9,4)
+    370c:	add    $0x4,%r9
+    3710:	cmp    $0x1c,%r9
+    3714:	jb     3700 <iree_hal_executable_library_query-0x1ca0>
+    3716:	inc    %r8
+    3719:	sub    $0xffffffffffffff80,%rdi
+    371d:	add    $0x84,%rsi
+    3724:	cmp    $0x10,%r8
+    3728:	jne    36f0 <iree_hal_executable_library_query-0x1cb0>
+    372a:	inc    %rdx
+    372d:	add    $0x1000,%rax
+    3733:	add    $0x1104,%rcx
+    373a:	cmp    $0x8,%rdx
+    373e:	jne    36e0 <iree_hal_executable_library_query-0x1cc0>
+    3740:	xor    %eax,%eax
+    3742:	pop    %rbp
+    3743:	ret
+    3744:	int3
+    3745:	int3
+    3746:	int3
+    3747:	int3
+    3748:	int3
+    3749:	int3
+    374a:	int3
+    374b:	int3
+    374c:	int3
+    374d:	int3
+    374e:	int3
+    374f:	int3
+    3750:	push   %rbp
+    3751:	mov    %rsp,%rbp
+    3754:	push   %r15
+    3756:	push   %r14
+    3758:	push   %r13
+    375a:	push   %r12
+    375c:	push   %rbx
+    375d:	and    $0xffffffffffffffc0,%rsp
+    3761:	sub    $0x100,%rsp
+    3768:	mov    0x20(%rsi),%rax
+    376c:	mov    (%rax),%rcx
+    376f:	mov    0x8(%rax),%rsi
+    3773:	mov    0x10(%rax),%rax
+    3777:	mov    %rax,0x58(%rsp)
+    377c:	mov    (%rdx),%eax
+    377e:	mov    %eax,%edx
+    3780:	and    $0x1,%edx
+    3783:	mov    %rax,%rdi
+    3786:	add    %rax,%rdi
+    3789:	and    $0xfffffffffffffffc,%rdi
+    378d:	mov    %rdi,0x50(%rsp)
+    3792:	lea    0x0(,%rdx,8),%edi
+    3799:	mov    %rdi,0x68(%rsp)
+    379e:	xorps  %xmm0,%xmm0
+    37a1:	movaps %xmm0,0x80(%rsp)
+    37a9:	imul   $0x840,%rdx,%rdx
+    37b0:	add    %rdx,%rcx
+    37b3:	add    $0x37840,%rcx
+    37ba:	mov    %rcx,0x48(%rsp)
+    37bf:	shr    $1,%eax
+    37c1:	lea    (%rax,%rax,8),%rax
+    37c5:	shl    $0x8,%rax
+    37c9:	lea    (%rax,%rsi,1),%r9
+    37cd:	add    $0x466c0,%r9
+    37d4:	xor    %eax,%eax
+    37d6:	cs nopw 0x0(%rax,%rax,1)
+    37e0:	mov    %rax,0x60(%rsp)
+    37e5:	or     0x50(%rsp),%rax
+    37ea:	lea    -0x2bb1(%rip),%rcx        # c40 <iree_hal_executable_library_query-0x4760>
+    37f1:	movss  (%rcx,%rax,4),%xmm1
+    37f6:	shufps $0x0,%xmm1,%xmm1
+    37fa:	imul   $0x510,%rax,%rax
+    3801:	add    0x58(%rsp),%rax
+    3806:	mov    %rax,0x70(%rsp)
+    380b:	mov    0x48(%rsp),%rdx
+    3810:	xor    %ebx,%ebx
+    3812:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3820:	mov    0x68(%rsp),%rax
+    3825:	add    %rbx,%rax
+    3828:	lea    (%rax,%rax,8),%rax
+    382c:	mov    0x70(%rsp),%rcx
+    3831:	lea    (%rcx,%rax,8),%r14
+    3835:	add    $0x4c,%r14
+    3839:	mov    %rdx,0x78(%rsp)
+    383e:	mov    %rdx,%rcx
+    3841:	xor    %r12d,%r12d
+    3844:	data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3850:	xor    %eax,%eax
+    3852:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3860:	movss  0x80(%rsp,%rax,4),%xmm2
+    3869:	movss  %xmm2,(%rsp,%rax,4)
+    386e:	inc    %rax
+    3871:	cmp    $0x4,%rax
+    3875:	jne    3860 <iree_hal_executable_library_query-0x1b40>
+    3877:	mov    %r9,%rdi
+    387a:	mov    %rcx,%rsi
+    387d:	xor    %eax,%eax
+    387f:	nop
+    3880:	mov    %rdi,%r13
+    3883:	mov    %rsi,%r11
+    3886:	xor    %r8d,%r8d
+    3889:	nopl   0x0(%rax)
+    3890:	mov    %r11,%r15
+    3893:	xor    %r10d,%r10d
+    3896:	cs nopw 0x0(%rax,%rax,1)
+    38a0:	movss  (%rsp,%r10,4),%xmm2
+    38a6:	xor    %edx,%edx
+    38a8:	nopl   0x0(%rax,%rax,1)
+    38b0:	movss  (%r15,%rdx,4),%xmm3
+    38b6:	mulss  0x0(%r13,%rdx,4),%xmm3
+    38bd:	addss  %xmm3,%xmm2
+    38c1:	inc    %rdx
+    38c4:	cmp    $0x3,%rdx
+    38c8:	jne    38b0 <iree_hal_executable_library_query-0x1af0>
+    38ca:	movss  %xmm2,(%rsp,%r10,4)
+    38d0:	inc    %r10
+    38d3:	add    $0x8,%r15
+    38d7:	cmp    $0x4,%r10
+    38db:	jne    38a0 <iree_hal_executable_library_query-0x1b00>
+    38dd:	inc    %r8
+    38e0:	add    $0x84,%r11
+    38e7:	add    $0xc,%r13
+    38eb:	cmp    $0x3,%r8
+    38ef:	jne    3890 <iree_hal_executable_library_query-0x1b10>
+    38f1:	inc    %rax
+    38f4:	add    $0x1104,%rsi
+    38fb:	add    $0x24,%rdi
+    38ff:	cmp    $0x10,%rax
+    3903:	jne    3880 <iree_hal_executable_library_query-0x1b20>
+    3909:	movaps (%rsp),%xmm2
+    390d:	addps  %xmm1,%xmm2
+    3910:	movaps %xmm2,%xmm3
+    3913:	cmpnleps %xmm0,%xmm3
+    3917:	andps  %xmm2,%xmm3
+    391a:	movups %xmm3,(%r14,%r12,4)
+    391f:	add    $0x20,%rcx
+    3923:	cmp    $0xc,%r12
+    3927:	lea    0x4(%r12),%r12
+    392c:	jb     3850 <iree_hal_executable_library_query-0x1b50>
+    3932:	inc    %rbx
+    3935:	mov    0x78(%rsp),%rdx
+    393a:	add    $0x108,%rdx
+    3941:	cmp    $0x8,%rbx
+    3945:	jne    3820 <iree_hal_executable_library_query-0x1b80>
+    394b:	mov    0x60(%rsp),%rax
+    3950:	inc    %rax
+    3953:	add    $0x240,%r9
+    395a:	cmp    $0x4,%rax
+    395e:	jne    37e0 <iree_hal_executable_library_query-0x1bc0>
+    3964:	xor    %eax,%eax
+    3966:	lea    -0x28(%rbp),%rsp
+    396a:	pop    %rbx
+    396b:	pop    %r12
+    396d:	pop    %r13
+    396f:	pop    %r14
+    3971:	pop    %r15
+    3973:	pop    %rbp
+    3974:	ret
+    3975:	int3
+    3976:	int3
+    3977:	int3
+    3978:	int3
+    3979:	int3
+    397a:	int3
+    397b:	int3
+    397c:	int3
+    397d:	int3
+    397e:	int3
+    397f:	int3
+    3980:	push   %rbp
+    3981:	mov    %rsp,%rbp
+    3984:	push   %r15
+    3986:	push   %r14
+    3988:	push   %r13
+    398a:	push   %r12
+    398c:	push   %rbx
+    398d:	mov    0x20(%rsi),%rcx
+    3991:	mov    (%rcx),%rsi
+    3994:	mov    0x8(%rcx),%rdi
+    3998:	mov    $0xa200,%eax
+    399d:	add    0x10(%rcx),%rax
+    39a1:	mov    (%rdx),%r8d
+    39a4:	mov    %r8d,%ecx
+    39a7:	and    $0xfffffffe,%ecx
+    39aa:	add    %rcx,%rcx
+    39ad:	lea    0x0(,%r8,8),%edx
+    39b5:	and    $0x8,%edx
+    39b8:	mov    %r8d,%r9d
+    39bb:	and    $0x1,%r9d
+    39bf:	shl    $0xb,%r9d
+    39c3:	add    %r9,%rsi
+    39c6:	add    $0x16640,%rsi
+    39cd:	shr    $1,%r8d
+    39d0:	shl    $0x8,%r8
+    39d4:	add    %r8,%rdi
+    39d7:	add    $0x200c,%rdi
+    39de:	xor    %r8d,%r8d
+    39e1:	data16 data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    39f0:	mov    %r8,%r9
+    39f3:	or     %rcx,%r9
+    39f6:	shl    $0xa,%r9
+    39fa:	add    %rax,%r9
+    39fd:	mov    %rsi,%r10
+    3a00:	xor    %r11d,%r11d
+    3a03:	data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3a10:	lea    (%r11,%rdx,1),%rbx
+    3a14:	shl    $0x6,%rbx
+    3a18:	add    %r9,%rbx
+    3a1b:	mov    %r10,%r14
+    3a1e:	xor    %r15d,%r15d
+    3a21:	data16 data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3a30:	xorps  %xmm0,%xmm0
+    3a33:	mov    $0xfffffffffffffffc,%r12
+    3a3a:	mov    %r14,%r13
+    3a3d:	nopl   (%rax)
+    3a40:	movss  -0x3000(%r13),%xmm1
+    3a49:	movss  -0x2000(%r13),%xmm2
+    3a52:	mulss  0x4(%rdi,%r12,4),%xmm1
+    3a59:	movss  -0x1000(%r13),%xmm3
+    3a62:	addss  %xmm0,%xmm1
+    3a66:	mulss  0x8(%rdi,%r12,4),%xmm2
+    3a6d:	movss  0x0(%r13),%xmm0
+    3a73:	addss  %xmm1,%xmm2
+    3a77:	mulss  0xc(%rdi,%r12,4),%xmm3
+    3a7e:	addss  %xmm2,%xmm3
+    3a82:	mulss  0x10(%rdi,%r12,4),%xmm0
+    3a89:	addss  %xmm3,%xmm0
+    3a8d:	add    $0x4,%r12
+    3a91:	add    $0x4000,%r13
+    3a98:	cmp    $0xc,%r12
+    3a9c:	jb     3a40 <iree_hal_executable_library_query-0x1960>
+    3a9e:	movss  %xmm0,(%rbx,%r15,4)
+    3aa4:	inc    %r15
+    3aa7:	add    $0x8,%r14
+    3aab:	cmp    $0x10,%r15
+    3aaf:	jne    3a30 <iree_hal_executable_library_query-0x1970>
+    3ab5:	inc    %r11
+    3ab8:	add    $0x100,%r10
+    3abf:	cmp    $0x8,%r11
+    3ac3:	jne    3a10 <iree_hal_executable_library_query-0x1990>
+    3ac9:	inc    %r8
+    3acc:	add    $0x40,%rdi
+    3ad0:	cmp    $0x4,%r8
+    3ad4:	jne    39f0 <iree_hal_executable_library_query-0x19b0>
+    3ada:	xor    %eax,%eax
+    3adc:	pop    %rbx
+    3add:	pop    %r12
+    3adf:	pop    %r13
+    3ae1:	pop    %r14
+    3ae3:	pop    %r15
+    3ae5:	pop    %rbp
+    3ae6:	ret
+    3ae7:	int3
+    3ae8:	int3
+    3ae9:	int3
+    3aea:	int3
+    3aeb:	int3
+    3aec:	int3
+    3aed:	int3
+    3aee:	int3
+    3aef:	int3
+    3af0:	push   %rbp
+    3af1:	mov    %rsp,%rbp
+    3af4:	push   %r15
+    3af6:	push   %r14
+    3af8:	push   %r13
+    3afa:	push   %r12
+    3afc:	push   %rbx
+    3afd:	and    $0xffffffffffffffc0,%rsp
+    3b01:	sub    $0x100,%rsp
+    3b08:	mov    0x20(%rsi),%rax
+    3b0c:	mov    (%rax),%rdi
+    3b0f:	mov    0x8(%rax),%rsi
+    3b13:	mov    0x10(%rax),%rax
+    3b17:	mov    %rax,0x78(%rsp)
+    3b1c:	mov    (%rdx),%eax
+    3b1e:	mov    %eax,%ecx
+    3b20:	and    $0xfffffffe,%ecx
+    3b23:	add    %rcx,%rcx
+    3b26:	mov    %rcx,0x48(%rsp)
+    3b2b:	lea    0x0(,%rax,8),%ecx
+    3b32:	and    $0x8,%ecx
+    3b35:	mov    %rcx,0x58(%rsp)
+    3b3a:	xorps  %xmm0,%xmm0
+    3b3d:	movaps %xmm0,0x80(%rsp)
+    3b45:	mov    %eax,%edx
+    3b47:	and    $0x1,%edx
+    3b4a:	lea    (%rdx,%rdx,8),%rdx
+    3b4e:	shl    $0x6,%edx
+    3b51:	mov    %rdi,%rcx
+    3b54:	add    %rdi,%rdx
+    3b57:	mov    %rdx,0x40(%rsp)
+    3b5c:	shr    $1,%eax
+    3b5e:	lea    (%rax,%rax,8),%rax
+    3b62:	shl    $0x9,%rax
+    3b66:	lea    (%rax,%rsi,1),%r9
+    3b6a:	add    $0x3d000,%r9
+    3b71:	xor    %eax,%eax
+    3b73:	data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3b80:	mov    %rax,0x50(%rsp)
+    3b85:	or     0x48(%rsp),%rax
+    3b8a:	lea    -0x2e51(%rip),%rdx        # d40 <iree_hal_executable_library_query-0x4660>
+    3b91:	movss  (%rdx,%rax,4),%xmm1
+    3b96:	lea    -0x2edd(%rip),%rdx        # cc0 <iree_hal_executable_library_query-0x46e0>
+    3b9d:	movss  (%rdx,%rax,4),%xmm2
+    3ba2:	shl    $0x8,%rax
+    3ba6:	mov    %rax,0x60(%rsp)
+    3bab:	shufps $0x0,%xmm1,%xmm1
+    3baf:	shufps $0x0,%xmm2,%xmm2
+    3bb3:	mov    0x40(%rsp),%rsi
+    3bb8:	xor    %edx,%edx
+    3bba:	nopw   0x0(%rax,%rax,1)
+    3bc0:	mov    0x58(%rsp),%rax
+    3bc5:	mov    %rdx,0x68(%rsp)
+    3bca:	lea    (%rdx,%rax,1),%r12
+    3bce:	shl    $0x4,%r12
+    3bd2:	add    0x60(%rsp),%r12
+    3bd7:	mov    %rsi,0x70(%rsp)
+    3bdc:	xor    %r10d,%r10d
+    3bdf:	nop
+    3be0:	xor    %eax,%eax
+    3be2:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3bf0:	movss  0x80(%rsp,%rax,4),%xmm3
+    3bf9:	movss  %xmm3,(%rsp,%rax,4)
+    3bfe:	inc    %rax
+    3c01:	cmp    $0x4,%rax
+    3c05:	jne    3bf0 <iree_hal_executable_library_query-0x17b0>
+    3c07:	mov    %r9,%r11
+    3c0a:	mov    %rsi,%rdi
+    3c0d:	xor    %edx,%edx
+    3c0f:	nop
+    3c10:	mov    %r11,%r8
+    3c13:	mov    %rdi,%r14
+    3c16:	xor    %ebx,%ebx
+    3c18:	nopl   0x0(%rax,%rax,1)
+    3c20:	mov    %r14,%r13
+    3c23:	xor    %r15d,%r15d
+    3c26:	cs nopw 0x0(%rax,%rax,1)
+    3c30:	movss  (%rsp,%r15,4),%xmm3
+    3c36:	xor    %eax,%eax
+    3c38:	nopl   0x0(%rax,%rax,1)
+    3c40:	movss  0x0(%r13,%rax,4),%xmm4
+    3c47:	mulss  (%r8,%rax,4),%xmm4
+    3c4d:	addss  %xmm4,%xmm3
+    3c51:	inc    %rax
+    3c54:	cmp    $0x3,%rax
+    3c58:	jne    3c40 <iree_hal_executable_library_query-0x1760>
+    3c5a:	movss  %xmm3,(%rsp,%r15,4)
+    3c60:	inc    %r15
+    3c63:	add    $0x4,%r13
+    3c67:	cmp    $0x4,%r15
+    3c6b:	jne    3c30 <iree_hal_executable_library_query-0x1770>
+    3c6d:	inc    %rbx
+    3c70:	add    $0x48,%r14
+    3c74:	add    $0xc,%r8
+    3c78:	cmp    $0x3,%rbx
+    3c7c:	jne    3c20 <iree_hal_executable_library_query-0x1780>
+    3c7e:	inc    %rdx
+    3c81:	add    $0x510,%rdi
+    3c88:	add    $0x24,%r11
+    3c8c:	cmp    $0x20,%rdx
+    3c90:	jne    3c10 <iree_hal_executable_library_query-0x1790>
+    3c96:	lea    (%r12,%r10,1),%rax
+    3c9a:	movaps (%rsp),%xmm3
+    3c9e:	addps  %xmm1,%xmm3
+    3ca1:	movaps 0xa200(%rcx,%rax,4),%xmm4
+    3ca9:	addps  %xmm2,%xmm4
+    3cac:	addps  %xmm3,%xmm4
+    3caf:	movaps %xmm4,%xmm3
+    3cb2:	cmpnleps %xmm0,%xmm3
+    3cb6:	andps  %xmm4,%xmm3
+    3cb9:	mov    0x78(%rsp),%rdx
+    3cbe:	movaps %xmm3,0x12200(%rdx,%rax,4)
+    3cc6:	add    $0x10,%rsi
+    3cca:	cmp    $0xc,%r10
+    3cce:	lea    0x4(%r10),%r10
+    3cd2:	jb     3be0 <iree_hal_executable_library_query-0x17c0>
+    3cd8:	mov    0x68(%rsp),%rdx
+    3cdd:	inc    %rdx
+    3ce0:	mov    0x70(%rsp),%rsi
+    3ce5:	add    $0x48,%rsi
+    3ce9:	cmp    $0x8,%rdx
+    3ced:	jne    3bc0 <iree_hal_executable_library_query-0x17e0>
+    3cf3:	mov    0x50(%rsp),%rax
+    3cf8:	inc    %rax
+    3cfb:	add    $0x480,%r9
+    3d02:	cmp    $0x4,%rax
+    3d06:	jne    3b80 <iree_hal_executable_library_query-0x1820>
+    3d0c:	xor    %eax,%eax
+    3d0e:	lea    -0x28(%rbp),%rsp
+    3d12:	pop    %rbx
+    3d13:	pop    %r12
+    3d15:	pop    %r13
+    3d17:	pop    %r14
+    3d19:	pop    %r15
+    3d1b:	pop    %rbp
+    3d1c:	ret
+    3d1d:	int3
+    3d1e:	int3
+    3d1f:	int3
+    3d20:	push   %rbp
+    3d21:	mov    %rsp,%rbp
+    3d24:	mov    0x20(%rsi),%rax
+    3d28:	mov    (%rax),%rcx
+    3d2b:	mov    0x8(%rax),%rsi
+    3d2f:	mov    (%rdx),%eax
+    3d31:	imul   $0x220,%rax,%rdx
+    3d38:	shl    $0x9,%rax
+    3d3c:	add    %rcx,%rax
+    3d3f:	add    $0x12200,%rax
+    3d45:	lea    (%rdx,%rsi,1),%rcx
+    3d49:	add    $0x1a200,%rcx
+    3d50:	xor    %edx,%edx
+    3d52:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3d60:	mov    %rcx,%rsi
+    3d63:	mov    %rax,%rdi
+    3d66:	xor    %r8d,%r8d
+    3d69:	nopl   0x0(%rax)
+    3d70:	mov    $0xfffffffffffffffc,%r9
+    3d77:	nopw   0x0(%rax,%rax,1)
+    3d80:	movaps 0x10(%rdi,%r9,4),%xmm0
+    3d86:	movups %xmm0,0x10(%rsi,%r9,4)
+    3d8c:	add    $0x4,%r9
+    3d90:	cmp    $0xc,%r9
+    3d94:	jb     3d80 <iree_hal_executable_library_query-0x1620>
+    3d96:	inc    %r8
+    3d99:	add    $0x40,%rdi
+    3d9d:	add    $0x44,%rsi
+    3da1:	cmp    $0x8,%r8
+    3da5:	jne    3d70 <iree_hal_executable_library_query-0x1630>
+    3da7:	inc    %rdx
+    3daa:	add    $0x400,%rax
+    3db0:	add    $0x484,%rcx
+    3db7:	cmp    $0x20,%rdx
+    3dbb:	jne    3d60 <iree_hal_executable_library_query-0x1640>
+    3dbd:	xor    %eax,%eax
+    3dbf:	pop    %rbp
+    3dc0:	ret
+    3dc1:	int3
+    3dc2:	int3
+    3dc3:	int3
+    3dc4:	int3
+    3dc5:	int3
+    3dc6:	int3
+    3dc7:	int3
+    3dc8:	int3
+    3dc9:	int3
+    3dca:	int3
+    3dcb:	int3
+    3dcc:	int3
+    3dcd:	int3
+    3dce:	int3
+    3dcf:	int3
+    3dd0:	push   %rbp
+    3dd1:	mov    %rsp,%rbp
+    3dd4:	push   %r15
+    3dd6:	push   %r14
+    3dd8:	push   %r13
+    3dda:	push   %r12
+    3ddc:	push   %rbx
+    3ddd:	and    $0xffffffffffffffc0,%rsp
+    3de1:	sub    $0x100,%rsp
+    3de8:	mov    0x20(%rsi),%rax
+    3dec:	mov    (%rax),%rcx
+    3def:	mov    0x8(%rax),%rsi
+    3df3:	mov    0x10(%rax),%rax
+    3df7:	mov    %rax,0x58(%rsp)
+    3dfc:	mov    (%rdx),%eax
+    3dfe:	mov    %eax,%edx
+    3e00:	and    $0x1,%edx
+    3e03:	mov    %rax,%rdi
+    3e06:	shl    $0x2,%rdi
+    3e0a:	and    $0xfffffffffffffff8,%rdi
+    3e0e:	mov    %rdi,0x50(%rsp)
+    3e13:	lea    0x0(,%rdx,4),%edi
+    3e1a:	mov    %rdi,0x68(%rsp)
+    3e1f:	xorps  %xmm0,%xmm0
+    3e22:	movaps %xmm0,0x80(%rsp)
+    3e2a:	imul   $0x220,%rdx,%rdx
+    3e31:	add    %rdx,%rcx
+    3e34:	add    $0x1a200,%rcx
+    3e3b:	mov    %rcx,0x48(%rsp)
+    3e40:	shr    $1,%eax
+    3e42:	lea    (%rax,%rax,8),%rax
+    3e46:	shl    $0xa,%rax
+    3e4a:	add    %rax,%rsi
+    3e4d:	add    $0x2b000,%rsi
+    3e54:	xor    %eax,%eax
+    3e56:	cs nopw 0x0(%rax,%rax,1)
+    3e60:	mov    %rax,0x60(%rsp)
+    3e65:	or     0x50(%rsp),%rax
+    3e6a:	lea    -0x30b1(%rip),%rcx        # dc0 <iree_hal_executable_library_query-0x45e0>
+    3e71:	movss  (%rcx,%rax,4),%xmm1
+    3e76:	shufps $0x0,%xmm1,%xmm1
+    3e7a:	imul   $0x190,%rax,%rax
+    3e81:	add    0x58(%rsp),%rax
+    3e86:	mov    %rax,0x70(%rsp)
+    3e8b:	mov    0x48(%rsp),%r11
+    3e90:	xor    %ecx,%ecx
+    3e92:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3ea0:	mov    0x68(%rsp),%rax
+    3ea5:	mov    %rcx,0x78(%rsp)
+    3eaa:	add    %rcx,%rax
+    3ead:	lea    (%rax,%rax,4),%rax
+    3eb1:	mov    0x70(%rsp),%rcx
+    3eb6:	lea    (%rcx,%rax,8),%r14
+    3eba:	add    $0x2c,%r14
+    3ebe:	mov    $0x1,%r15b
+    3ec1:	xor    %r12d,%r12d
+    3ec4:	data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3ed0:	xor    %eax,%eax
+    3ed2:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    3ee0:	movss  0x80(%rsp,%rax,4),%xmm2
+    3ee9:	movss  %xmm2,(%rsp,%rax,4)
+    3eee:	inc    %rax
+    3ef1:	cmp    $0x4,%rax
+    3ef5:	jne    3ee0 <iree_hal_executable_library_query-0x14c0>
+    3ef7:	lea    (%r11,%r12,8),%rdx
+    3efb:	mov    %rsi,%r9
+    3efe:	xor    %eax,%eax
+    3f00:	mov    %r9,%rdi
+    3f03:	mov    %rdx,%rcx
+    3f06:	xor    %r8d,%r8d
+    3f09:	nopl   0x0(%rax)
+    3f10:	mov    %rcx,%r13
+    3f13:	xor    %r10d,%r10d
+    3f16:	cs nopw 0x0(%rax,%rax,1)
+    3f20:	movss  (%rsp,%r10,4),%xmm2
+    3f26:	xor    %ebx,%ebx
+    3f28:	nopl   0x0(%rax,%rax,1)
+    3f30:	movss  0x0(%r13,%rbx,4),%xmm3
+    3f37:	mulss  (%rdi,%rbx,4),%xmm3
+    3f3c:	addss  %xmm3,%xmm2
+    3f40:	inc    %rbx
+    3f43:	cmp    $0x3,%rbx
+    3f47:	jne    3f30 <iree_hal_executable_library_query-0x1470>
+    3f49:	movss  %xmm2,(%rsp,%r10,4)
+    3f4f:	inc    %r10
+    3f52:	add    $0x8,%r13
+    3f56:	cmp    $0x4,%r10
+    3f5a:	jne    3f20 <iree_hal_executable_library_query-0x1480>
+    3f5c:	inc    %r8
+    3f5f:	add    $0x44,%rcx
+    3f63:	add    $0xc,%rdi
+    3f67:	cmp    $0x3,%r8
+    3f6b:	jne    3f10 <iree_hal_executable_library_query-0x1490>
+    3f6d:	inc    %rax
+    3f70:	add    $0x484,%rdx
+    3f77:	add    $0x24,%r9
+    3f7b:	cmp    $0x20,%rax
+    3f7f:	jne    3f00 <iree_hal_executable_library_query-0x14a0>
+    3f85:	movaps (%rsp),%xmm2
+    3f89:	addps  %xmm1,%xmm2
+    3f8c:	movaps %xmm2,%xmm3
+    3f8f:	cmpnleps %xmm0,%xmm3
+    3f93:	andps  %xmm2,%xmm3
+    3f96:	movups %xmm3,(%r14,%r12,4)
+    3f9b:	mov    $0x4,%r12d
+    3fa1:	test   $0x1,%r15b
+    3fa5:	mov    $0x0,%r15d
+    3fab:	jne    3ed0 <iree_hal_executable_library_query-0x14d0>
+    3fb1:	mov    0x78(%rsp),%rcx
+    3fb6:	inc    %rcx
+    3fb9:	add    $0x88,%r11
+    3fc0:	cmp    $0x4,%rcx
+    3fc4:	jne    3ea0 <iree_hal_executable_library_query-0x1500>
+    3fca:	mov    0x60(%rsp),%rax
+    3fcf:	inc    %rax
+    3fd2:	add    $0x480,%rsi
+    3fd9:	cmp    $0x8,%rax
+    3fdd:	jne    3e60 <iree_hal_executable_library_query-0x1540>
+    3fe3:	xor    %eax,%eax
+    3fe5:	lea    -0x28(%rbp),%rsp
+    3fe9:	pop    %rbx
+    3fea:	pop    %r12
+    3fec:	pop    %r13
+    3fee:	pop    %r14
+    3ff0:	pop    %r15
+    3ff2:	pop    %rbp
+    3ff3:	ret
+    3ff4:	int3
+    3ff5:	int3
+    3ff6:	int3
+    3ff7:	int3
+    3ff8:	int3
+    3ff9:	int3
+    3ffa:	int3
+    3ffb:	int3
+    3ffc:	int3
+    3ffd:	int3
+    3ffe:	int3
+    3fff:	int3
+    4000:	push   %rbp
+    4001:	mov    %rsp,%rbp
+    4004:	push   %r15
+    4006:	push   %r14
+    4008:	push   %r13
+    400a:	push   %r12
+    400c:	push   %rbx
+    400d:	mov    0x20(%rsi),%rcx
+    4011:	mov    0x8(%rcx),%rax
+    4015:	mov    $0x6400,%esi
+    401a:	add    0x10(%rcx),%rsi
+    401e:	mov    %rsi,-0x48(%rbp)
+    4022:	mov    (%rdx),%edx
+    4024:	mov    %rdx,%rsi
+    4027:	shl    $0x2,%rsi
+    402b:	mov    %rsi,%rdi
+    402e:	and    $0xfffffffffffffff8,%rdi
+    4032:	mov    %rdi,-0x40(%rbp)
+    4036:	and    $0x4,%esi
+    4039:	mov    %rsi,-0x58(%rbp)
+    403d:	mov    %edx,%esi
+    403f:	and    $0x1,%esi
+    4042:	lea    (%rsi,%rsi,4),%rsi
+    4046:	shl    $0x5,%esi
+    4049:	add    (%rcx),%rsi
+    404c:	mov    %rsi,-0x38(%rbp)
+    4050:	shr    $1,%edx
+    4052:	lea    (%rdx,%rdx,8),%rcx
+    4056:	shl    $0xb,%rcx
+    405a:	add    %rcx,%rax
+    405d:	add    $0x7000,%rax
+    4063:	mov    %rax,-0x30(%rbp)
+    4067:	xor    %eax,%eax
+    4069:	xorps  %xmm0,%xmm0
+    406c:	nopl   0x0(%rax)
+    4070:	mov    %rax,-0x50(%rbp)
+    4074:	or     -0x40(%rbp),%rax
+    4078:	shl    $0x8,%rax
+    407c:	add    -0x48(%rbp),%rax
+    4080:	mov    %rax,-0x60(%rbp)
+    4084:	mov    -0x38(%rbp),%r10
+    4088:	xor    %ecx,%ecx
+    408a:	nopw   0x0(%rax,%rax,1)
+    4090:	mov    -0x58(%rbp),%rax
+    4094:	mov    %rcx,-0x68(%rbp)
+    4098:	lea    (%rcx,%rax,1),%rbx
+    409c:	shl    $0x5,%rbx
+    40a0:	add    -0x60(%rbp),%rbx
+    40a4:	mov    $0x1,%r14b
+    40a7:	xor    %r15d,%r15d
+    40aa:	nopw   0x0(%rax,%rax,1)
+    40b0:	movaps %xmm0,(%rbx,%r15,4)
+    40b5:	lea    (%r10,%r15,4),%rcx
+    40b9:	mov    -0x30(%rbp),%rdi
+    40bd:	xor    %eax,%eax
+    40bf:	nop
+    40c0:	mov    %rdi,%r13
+    40c3:	mov    %rcx,%rsi
+    40c6:	xor    %r8d,%r8d
+    40c9:	nopl   0x0(%rax)
+    40d0:	mov    %rsi,%r12
+    40d3:	xor    %r9d,%r9d
+    40d6:	cs nopw 0x0(%rax,%rax,1)
+    40e0:	lea    (%r9,%r15,1),%r11
+    40e4:	movss  (%rbx,%r11,4),%xmm1
+    40ea:	xor    %edx,%edx
+    40ec:	nopl   0x0(%rax)
+    40f0:	movss  (%r12,%rdx,4),%xmm2
+    40f6:	mulss  0x0(%r13,%rdx,4),%xmm2
+    40fd:	addss  %xmm2,%xmm1
+    4101:	movss  %xmm1,(%rbx,%r11,4)
+    4107:	inc    %rdx
+    410a:	cmp    $0x3,%rdx
+    410e:	jne    40f0 <iree_hal_executable_library_query-0x12b0>
+    4110:	inc    %r9
+    4113:	add    $0x4,%r12
+    4117:	cmp    $0x4,%r9
+    411b:	jne    40e0 <iree_hal_executable_library_query-0x12c0>
+    411d:	inc    %r8
+    4120:	add    $0x28,%rsi
+    4124:	add    $0xc,%r13
+    4128:	cmp    $0x3,%r8
+    412c:	jne    40d0 <iree_hal_executable_library_query-0x12d0>
+    412e:	inc    %rax
+    4131:	add    $0x190,%rcx
+    4138:	add    $0x24,%rdi
+    413c:	cmp    $0x40,%rax
+    4140:	jne    40c0 <iree_hal_executable_library_query-0x12e0>
+    4146:	mov    $0x4,%r15d
+    414c:	test   $0x1,%r14b
+    4150:	mov    $0x0,%r14d
+    4156:	jne    40b0 <iree_hal_executable_library_query-0x12f0>
+    415c:	mov    -0x68(%rbp),%rcx
+    4160:	inc    %rcx
+    4163:	add    $0x28,%r10
+    4167:	cmp    $0x4,%rcx
+    416b:	jne    4090 <iree_hal_executable_library_query-0x1310>
+    4171:	mov    -0x50(%rbp),%rax
+    4175:	inc    %rax
+    4178:	addq   $0x900,-0x30(%rbp)
+    4180:	cmp    $0x8,%rax
+    4184:	jne    4070 <iree_hal_executable_library_query-0x1330>
+    418a:	xor    %eax,%eax
+    418c:	pop    %rbx
+    418d:	pop    %r12
+    418f:	pop    %r13
+    4191:	pop    %r14
+    4193:	pop    %r15
+    4195:	pop    %rbp
+    4196:	ret
+    4197:	int3
+    4198:	int3
+    4199:	int3
+    419a:	int3
+    419b:	int3
+    419c:	int3
+    419d:	int3
+    419e:	int3
+    419f:	int3
+    41a0:	push   %rbp
+    41a1:	mov    %rsp,%rbp
+    41a4:	push   %r15
+    41a6:	push   %r14
+    41a8:	push   %r12
+    41aa:	push   %rbx
+    41ab:	mov    0x20(%rsi),%rsi
+    41af:	mov    0x8(%rsi),%rdi
+    41b3:	mov    $0xa400,%eax
+    41b8:	add    0x10(%rsi),%rax
+    41bc:	mov    (%rdx),%r8d
+    41bf:	mov    $0x12e00,%ecx
+    41c4:	add    (%rsi),%rcx
+    41c7:	lea    0x0(,%r8,8),%rdx
+    41cf:	shl    $0xa,%r8
+    41d3:	lea    (%r8,%rdi,1),%rsi
+    41d7:	add    $0xc,%rsi
+    41db:	xor    %edi,%edi
+    41dd:	nopl   (%rax)
+    41e0:	lea    (%rdi,%rdx,1),%r8
+    41e4:	shl    $0x8,%r8
+    41e8:	add    %rax,%r8
+    41eb:	mov    %rcx,%r9
+    41ee:	xor    %r10d,%r10d
+    41f1:	data16 data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    4200:	mov    %r10,%r11
+    4203:	shl    $0x5,%r11
+    4207:	add    %r8,%r11
+    420a:	mov    %r9,%rbx
+    420d:	xor    %r14d,%r14d
+    4210:	xorps  %xmm0,%xmm0
+    4213:	mov    $0xfffffffffffffffc,%r15
+    421a:	mov    %rbx,%r12
+    421d:	nopl   (%rax)
+    4220:	movss  -0xc00(%r12),%xmm1
+    422a:	movss  -0x800(%r12),%xmm2
+    4234:	mulss  0x4(%rsi,%r15,4),%xmm1
+    423b:	movss  -0x400(%r12),%xmm3
+    4245:	addss  %xmm0,%xmm1
+    4249:	mulss  0x8(%rsi,%r15,4),%xmm2
+    4250:	movss  (%r12),%xmm0
+    4256:	addss  %xmm1,%xmm2
+    425a:	mulss  0xc(%rsi,%r15,4),%xmm3
+    4261:	addss  %xmm2,%xmm3
+    4265:	mulss  0x10(%rsi,%r15,4),%xmm0
+    426c:	addss  %xmm3,%xmm0
+    4270:	add    $0x4,%r15
+    4274:	add    $0x1000,%r12
+    427b:	cmp    $0x1c,%r15
+    427f:	jb     4220 <iree_hal_executable_library_query-0x1180>
+    4281:	movss  %xmm0,(%r11,%r14,4)
+    4287:	inc    %r14
+    428a:	add    $0x8,%rbx
+    428e:	cmp    $0x8,%r14
+    4292:	jne    4210 <iree_hal_executable_library_query-0x1190>
+    4298:	inc    %r10
+    429b:	sub    $0xffffffffffffff80,%r9
+    429f:	cmp    $0x8,%r10
+    42a3:	jne    4200 <iree_hal_executable_library_query-0x11a0>
+    42a9:	inc    %rdi
+    42ac:	sub    $0xffffffffffffff80,%rsi
+    42b0:	cmp    $0x8,%rdi
+    42b4:	jne    41e0 <iree_hal_executable_library_query-0x11c0>
+    42ba:	xor    %eax,%eax
+    42bc:	pop    %rbx
+    42bd:	pop    %r12
+    42bf:	pop    %r14
+    42c1:	pop    %r15
+    42c3:	pop    %rbp
+    42c4:	ret
+    42c5:	int3
+    42c6:	int3
+    42c7:	int3
+    42c8:	int3
+    42c9:	int3
+    42ca:	int3
+    42cb:	int3
+    42cc:	int3
+    42cd:	int3
+    42ce:	int3
+    42cf:	int3
+    42d0:	push   %rbp
+    42d1:	mov    %rsp,%rbp
+    42d4:	mov    0x20(%rsi),%rax
+    42d8:	mov    (%rax),%rsi
+    42db:	mov    0x8(%rax),%rax
+    42df:	mov    (%rdx),%edx
+    42e1:	lea    0x0(,%rdx,8),%rcx
+    42e9:	shl    $0xb,%rdx
+    42ed:	add    %rsi,%rdx
+    42f0:	add    $0xa700,%rdx
+    42f7:	mov    $0x1,%sil
+    42fa:	xor    %r9d,%r9d
+    42fd:	lea    -0x3444(%rip),%rdi        # ec0 <iree_hal_executable_library_query-0x44e0>
+    4304:	lea    -0x334b(%rip),%r8        # fc0 <iree_hal_executable_library_query-0x43e0>
+    430b:	xorps  %xmm0,%xmm0
+    430e:	xchg   %ax,%ax
+    4310:	mov    %r9,%r10
+    4313:	or     %rcx,%r10
+    4316:	movaps (%rdi,%r10,4),%xmm2
+    431b:	movaps %xmm2,%xmm1
+    431e:	shufps $0x0,%xmm2,%xmm1
+    4322:	movaps %xmm1,-0x10(%rbp)
+    4326:	movaps %xmm2,%xmm4
+    4329:	shufps $0x55,%xmm2,%xmm4
+    432d:	movaps %xmm2,%xmm5
+    4330:	shufps $0xaa,%xmm2,%xmm5
+    4334:	shufps $0xff,%xmm2,%xmm2
+    4338:	movaps (%r8,%r10,4),%xmm6
+    433d:	movaps %xmm6,%xmm7
+    4340:	shufps $0x0,%xmm6,%xmm7
+    4344:	movaps %xmm6,%xmm8
+    4348:	shufps $0x55,%xmm6,%xmm8
+    434d:	movaps %xmm6,%xmm9
+    4351:	shufps $0xaa,%xmm6,%xmm9
+    4356:	shufps $0xff,%xmm6,%xmm6
+    435a:	shl    $0x8,%r9
+    435e:	add    %rdx,%r9
+    4361:	mov    $0xfffffffffffffffc,%r11
+    4368:	xorps  %xmm10,%xmm10
+    436c:	nopl   0x0(%rax)
+    4370:	movaps -0x42f0(%r9,%r11,4),%xmm11
+    4379:	addps  %xmm7,%xmm11
+    437d:	movaps -0x41f0(%r9,%r11,4),%xmm12
+    4386:	addps  %xmm8,%xmm12
+    438a:	movaps -0x40f0(%r9,%r11,4),%xmm13
+    4393:	addps  %xmm9,%xmm13
+    4397:	movaps -0x3ff0(%r9,%r11,4),%xmm14
+    43a0:	addps  %xmm6,%xmm14
+    43a4:	movaps -0x2f0(%r9,%r11,4),%xmm3
+    43ad:	addps  -0x10(%rbp),%xmm3
+    43b1:	addps  %xmm11,%xmm3
+    43b5:	movaps -0x1f0(%r9,%r11,4),%xmm1
+    43be:	addps  %xmm4,%xmm1
+    43c1:	addps  %xmm12,%xmm1
+    43c5:	movaps -0xf0(%r9,%r11,4),%xmm12
+    43ce:	addps  %xmm5,%xmm12
+    43d2:	addps  %xmm13,%xmm12
+    43d6:	movaps 0x10(%r9,%r11,4),%xmm11
+    43dc:	addps  %xmm2,%xmm11
+    43e0:	addps  %xmm14,%xmm11
+    43e4:	movaps %xmm3,%xmm15
+    43e8:	cmpnleps %xmm0,%xmm15
+    43ed:	andps  %xmm3,%xmm15
+    43f1:	movaps %xmm1,%xmm14
+    43f5:	cmpnleps %xmm0,%xmm14
+    43fa:	andps  %xmm1,%xmm14
+    43fe:	movaps %xmm12,%xmm13
+    4402:	cmpnleps %xmm0,%xmm13
+    4407:	andps  %xmm12,%xmm13
+    440b:	movaps %xmm11,%xmm1
+    440f:	cmpnleps %xmm0,%xmm1
+    4413:	andps  %xmm11,%xmm1
+    4417:	movaps %xmm10,%xmm3
+    441b:	addss  %xmm15,%xmm3
+    4420:	pshufd $0x55,%xmm15,%xmm11
+    4426:	addss  %xmm3,%xmm11
+    442b:	pshufd $0xee,%xmm15,%xmm3
+    4431:	addss  %xmm11,%xmm3
+    4436:	pshufd $0xff,%xmm15,%xmm12
+    443c:	addss  %xmm3,%xmm12
+    4441:	movaps %xmm10,%xmm3
+    4445:	shufps $0x55,%xmm10,%xmm3
+    444a:	addss  %xmm14,%xmm3
+    444f:	pshufd $0x55,%xmm14,%xmm11
+    4455:	addss  %xmm3,%xmm11
+    445a:	pshufd $0xee,%xmm14,%xmm3
+    4460:	addss  %xmm11,%xmm3
+    4465:	pshufd $0xff,%xmm14,%xmm11
+    446b:	addss  %xmm3,%xmm11
+    4470:	unpcklps %xmm11,%xmm12
+    4474:	movaps %xmm10,%xmm3
+    4478:	unpckhpd %xmm10,%xmm3
+    447d:	addss  %xmm13,%xmm3
+    4482:	pshufd $0x55,%xmm13,%xmm11
+    4488:	addss  %xmm3,%xmm11
+    448d:	pshufd $0xee,%xmm13,%xmm3
+    4493:	addss  %xmm11,%xmm3
+    4498:	pshufd $0xff,%xmm13,%xmm11
+    449e:	addss  %xmm3,%xmm11
+    44a3:	shufps $0xff,%xmm10,%xmm10
+    44a8:	addss  %xmm1,%xmm10
+    44ad:	pshufd $0x55,%xmm1,%xmm3
+    44b2:	addss  %xmm10,%xmm3
+    44b7:	pshufd $0xee,%xmm1,%xmm10
+    44bd:	addss  %xmm3,%xmm10
+    44c2:	pshufd $0xff,%xmm1,%xmm1
+    44c7:	addss  %xmm10,%xmm1
+    44cc:	unpcklps %xmm1,%xmm11
+    44d0:	movaps %xmm12,%xmm10
+    44d4:	movlhps %xmm11,%xmm10
+    44d8:	add    $0x4,%r11
+    44dc:	cmp    $0x3c,%r11
+    44e0:	jb     4370 <iree_hal_executable_library_query-0x1030>
+    44e6:	mulps  -0x3a1e(%rip),%xmm10        # ad0 <iree_hal_executable_library_query-0x48d0>
+    44ee:	movaps %xmm10,(%rax,%r10,4)
+    44f3:	mov    $0x4,%r9d
+    44f9:	test   $0x1,%sil
+    44fd:	mov    $0x0,%esi
+    4502:	jne    4310 <iree_hal_executable_library_query-0x1090>
+    4508:	xor    %eax,%eax
+    450a:	pop    %rbp
+    450b:	ret
+    450c:	int3
+    450d:	int3
+    450e:	int3
+    450f:	int3
+    4510:	push   %rbp
+    4511:	mov    %rsp,%rbp
+    4514:	mov    0x20(%rsi),%rsi
+    4518:	mov    (%rsi),%rax
+    451b:	mov    0x10(%rsi),%rcx
+    451f:	mov    $0x4aec0,%edx
+    4524:	add    0x8(%rsi),%rdx
+    4528:	xor    %esi,%esi
+    452a:	lea    -0x3471(%rip),%rdi        # 10c0 <iree_hal_executable_library_query-0x42e0>
+    4531:	data16 data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    4540:	xorps  %xmm0,%xmm0
+    4543:	mov    $0xfffffffffffffffc,%r8
+    454a:	nopw   0x0(%rax,%rax,1)
+    4550:	movaps 0x10(%rdx,%r8,4),%xmm1
+    4556:	movaps %xmm1,%xmm2
+    4559:	movaps %xmm1,%xmm3
+    455c:	shufps $0x55,%xmm1,%xmm3
+    4560:	movaps %xmm1,%xmm4
+    4563:	unpckhpd %xmm1,%xmm4
+    4567:	shufps $0xff,%xmm1,%xmm1
+    456b:	movss  0x10(%rax,%r8,4),%xmm5
+    4572:	mulss  %xmm2,%xmm5
+    4576:	addss  %xmm0,%xmm5
+    457a:	mulss  0x14(%rax,%r8,4),%xmm3
+    4581:	mulss  0x18(%rax,%r8,4),%xmm4
+    4588:	addss  %xmm5,%xmm3
+    458c:	addss  %xmm3,%xmm4
+    4590:	mulss  0x1c(%rax,%r8,4),%xmm1
+    4597:	movaps %xmm1,%xmm0
+    459a:	addss  %xmm4,%xmm0
+    459e:	add    $0x4,%r8
+    45a2:	cmp    $0x3c,%r8
+    45a6:	jb     4550 <iree_hal_executable_library_query-0xe50>
+    45a8:	addss  (%rdi,%rsi,4),%xmm0
+    45ad:	movss  %xmm0,0x100(%rcx,%rsi,4)
+    45b6:	inc    %rsi
+    45b9:	add    $0x100,%rdx
+    45c0:	cmp    $0xa,%rsi
+    45c4:	jne    4540 <iree_hal_executable_library_query-0xe60>
+    45ca:	xor    %eax,%eax
+    45cc:	pop    %rbp
+    45cd:	ret
+    45ce:	int3
+    45cf:	int3
+    45d0:	push   %rbp
+    45d1:	mov    %rsp,%rbp
+    45d4:	push   %r15
+    45d6:	push   %r14
+    45d8:	push   %r12
+    45da:	push   %rbx
+    45db:	sub    $0xc0,%rsp
+    45e2:	mov    0x20(%rsi),%rax
+    45e6:	mov    $0x100,%ebx
+    45eb:	add    (%rax),%rbx
+    45ee:	mov    0x8(%rax),%r14
+    45f2:	movss  -0x3abe(%rip),%xmm7        # b3c <iree_hal_executable_library_query-0x4864>
+    45fa:	mov    $0xfffffffffffffffc,%rax
+    4601:	mov    $0xa,%ecx
+    4606:	movaps -0x3b4d(%rip),%xmm0        # ac0 <iree_hal_executable_library_query-0x48e0>
+    460d:	jmp    46bf <iree_hal_executable_library_query-0xce1>
+    4612:	data16 data16 data16 data16 cs nopw 0x0(%rax,%rax,1)
+    4620:	pxor   -0x3b48(%rip),%xmm1        # ae0 <iree_hal_executable_library_query-0x48c0>
+    4628:	pcmpgtd -0x3b30(%rip),%xmm1        # b00 <iree_hal_executable_library_query-0x48a0>
+    4630:	andps  %xmm1,%xmm2
+    4633:	andnps %xmm0,%xmm1
+    4636:	orps   %xmm2,%xmm1
+    4639:	pshufd $0xff,%xmm1,%xmm3
+    463e:	pshufd $0xee,%xmm1,%xmm4
+    4643:	pshufd $0x55,%xmm1,%xmm5
+    4648:	movaps %xmm1,%xmm2
+    464b:	cmpunordss %xmm1,%xmm2
+    4650:	movaps %xmm2,%xmm6
+    4653:	andps  %xmm5,%xmm6
+    4656:	maxss  %xmm1,%xmm5
+    465a:	andnps %xmm5,%xmm2
+    465d:	orps   %xmm6,%xmm2
+    4660:	movdqa %xmm4,%xmm1
+    4664:	maxss  %xmm2,%xmm1
+    4668:	cmpunordss %xmm2,%xmm2
+    466d:	movaps %xmm2,%xmm5
+    4670:	andnps %xmm1,%xmm5
+    4673:	andps  %xmm4,%xmm2
+    4676:	orps   %xmm5,%xmm2
+    4679:	movdqa %xmm3,%xmm1
+    467d:	maxss  %xmm2,%xmm1
+    4681:	cmpunordss %xmm2,%xmm2
+    4686:	movaps %xmm2,%xmm4
+    4689:	andnps %xmm1,%xmm4
+    468c:	andps  %xmm3,%xmm2
+    468f:	orps   %xmm4,%xmm2
+    4692:	movaps %xmm7,%xmm1
+    4695:	maxss  %xmm2,%xmm1
+    4699:	cmpunordss %xmm2,%xmm2
+    469e:	movaps %xmm2,%xmm3
+    46a1:	andnps %xmm1,%xmm3
+    46a4:	andps  %xmm7,%xmm2
+    46a7:	orps   %xmm3,%xmm2
+    46aa:	movaps %xmm2,%xmm7
+    46ad:	add    $0x4,%rax
+    46b1:	add    $0xfffffffffffffffc,%rcx
+    46b5:	cmp    $0x6,%rax
+    46b9:	jae    4758 <iree_hal_executable_library_query-0xc48>
+    46bf:	cmp    $0x4,%rcx
+    46c3:	mov    $0x4,%edx
+    46c8:	cmovb  %rcx,%rdx
+    46cc:	movd   %edx,%xmm1
+    46d0:	pshufd $0x0,%xmm1,%xmm1
+    46d5:	lea    0x10(%rbx,%rax,4),%rdx
+    46da:	movdqa %xmm1,%xmm2
+    46de:	pcmpgtd -0x3c46(%rip),%xmm2        # aa0 <iree_hal_executable_library_query-0x4900>
+    46e6:	movmskps %xmm2,%esi
+    46e9:	test   $0x1,%sil
+    46ed:	jne    4710 <iree_hal_executable_library_query-0xc90>
+    46ef:	test   $0x2,%sil
+    46f3:	jne    471a <iree_hal_executable_library_query-0xc86>
+    46f5:	test   $0x4,%sil
+    46f9:	jne    472f <iree_hal_executable_library_query-0xc71>
+    46fb:	test   $0x8,%sil
+    46ff:	je     4620 <iree_hal_executable_library_query-0xd80>
+    4705:	jmp    4746 <iree_hal_executable_library_query-0xc5a>
+    4707:	nopw   0x0(%rax,%rax,1)
+    4710:	movss  (%rdx),%xmm2
+    4714:	test   $0x2,%sil
+    4718:	je     46f5 <iree_hal_executable_library_query-0xcab>
+    471a:	movss  0x4(%rdx),%xmm3
+    471f:	movlhps %xmm2,%xmm3
+    4722:	shufps $0xe2,%xmm2,%xmm3
+    4726:	movaps %xmm3,%xmm2
+    4729:	test   $0x4,%sil
+    472d:	je     46fb <iree_hal_executable_library_query-0xca5>
+    472f:	movss  0x8(%rdx),%xmm3
+    4734:	shufps $0x30,%xmm2,%xmm3
+    4738:	shufps $0x84,%xmm3,%xmm2
+    473c:	test   $0x8,%sil
+    4740:	je     4620 <iree_hal_executable_library_query-0xd80>
+    4746:	movss  0xc(%rdx),%xmm3
+    474b:	shufps $0xe4,%xmm2,%xmm3
+    474f:	shufps $0x24,%xmm3,%xmm2
+    4753:	jmp    4620 <iree_hal_executable_library_query-0xd80>
+    4758:	shufps $0x0,%xmm7,%xmm7
+    475c:	movaps %xmm7,-0xe0(%rbp)
+    4763:	xorps  %xmm0,%xmm0
+    4766:	movaps %xmm0,-0xc0(%rbp)
+    476d:	mov    $0xfffffffffffffffc,%r15
+    4774:	mov    $0xa,%r12d
+    477a:	jmp    4cb5 <iree_hal_executable_library_query-0x6eb>
+    477f:	nop
+    4780:	movdqa -0x3ca8(%rip),%xmm1        # ae0 <iree_hal_executable_library_query-0x48c0>
+    4788:	pxor   %xmm1,%xmm3
+    478c:	pcmpgtd -0x3c94(%rip),%xmm3        # b00 <iree_hal_executable_library_query-0x48a0>
+    4794:	movdqa %xmm3,-0xd0(%rbp)
+    479c:	subps  %xmm2,%xmm0
+    479f:	movaps -0x3cf6(%rip),%xmm1        # ab0 <iree_hal_executable_library_query-0x48f0>
+    47a6:	maxps  %xmm0,%xmm1
+    47a9:	movaps -0x3d20(%rip),%xmm0        # a90 <iree_hal_executable_library_query-0x4910>
+    47b0:	minps  %xmm1,%xmm0
+    47b3:	movaps %xmm0,-0x40(%rbp)
+    47b7:	shufps $0x55,%xmm0,%xmm0
+    47bb:	movaps %xmm0,-0x80(%rbp)
+    47bf:	movss  -0x3c87(%rip),%xmm1        # b40 <iree_hal_executable_library_query-0x4860>
+    47c7:	movss  -0x3ca7(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    47cf:	call   5440 <iree_hal_executable_library_query+0xa0>
+    47d4:	movss  %xmm0,-0xb0(%rbp)
+    47dc:	movaps -0x40(%rbp),%xmm0
+    47e0:	movss  -0x3ca8(%rip),%xmm1        # b40 <iree_hal_executable_library_query-0x4860>
+    47e8:	movss  -0x3cc8(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    47f0:	call   5440 <iree_hal_executable_library_query+0xa0>
+    47f5:	movss  %xmm0,-0x70(%rbp)
+    47fa:	movaps -0x40(%rbp),%xmm0
+    47fe:	movhlps %xmm0,%xmm0
+    4801:	movaps %xmm0,-0xa0(%rbp)
+    4808:	movss  -0x3cd0(%rip),%xmm1        # b40 <iree_hal_executable_library_query-0x4860>
+    4810:	movss  -0x3cf0(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4818:	call   5440 <iree_hal_executable_library_query+0xa0>
+    481d:	movss  %xmm0,-0x60(%rbp)
+    4822:	movaps -0x40(%rbp),%xmm0
+    4826:	shufps $0xff,%xmm0,%xmm0
+    482a:	movaps %xmm0,-0x50(%rbp)
+    482e:	movss  -0x3cf6(%rip),%xmm1        # b40 <iree_hal_executable_library_query-0x4860>
+    4836:	movss  -0x3d16(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    483e:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4843:	call   53c0 <iree_hal_executable_library_query+0x20>
+    4848:	movaps %xmm0,-0x90(%rbp)
+    484f:	movss  -0x60(%rbp),%xmm0
+    4854:	call   53c0 <iree_hal_executable_library_query+0x20>
+    4859:	unpcklps -0x90(%rbp),%xmm0
+    4860:	movaps %xmm0,-0x60(%rbp)
+    4864:	movss  -0x70(%rbp),%xmm0
+    4869:	call   53c0 <iree_hal_executable_library_query+0x20>
+    486e:	movaps %xmm0,-0x70(%rbp)
+    4872:	movss  -0xb0(%rbp),%xmm0
+    487a:	call   53c0 <iree_hal_executable_library_query+0x20>
+    487f:	movaps -0x70(%rbp),%xmm1
+    4883:	unpcklps %xmm0,%xmm1
+    4886:	unpcklpd -0x60(%rbp),%xmm1
+    488b:	movaps -0x3e12(%rip),%xmm0        # a80 <iree_hal_executable_library_query-0x4920>
+    4892:	maxps  %xmm1,%xmm0
+    4895:	movaps -0x3dac(%rip),%xmm1        # af0 <iree_hal_executable_library_query-0x48b0>
+    489c:	minps  %xmm0,%xmm1
+    489f:	movaps %xmm1,-0xb0(%rbp)
+    48a6:	movaps %xmm1,%xmm0
+    48a9:	shufps $0x55,%xmm1,%xmm0
+    48ad:	movaps %xmm0,-0x70(%rbp)
+    48b1:	movss  -0x3d85(%rip),%xmm1        # b34 <iree_hal_executable_library_query-0x486c>
+    48b9:	movaps -0x80(%rbp),%xmm2
+    48bd:	call   5440 <iree_hal_executable_library_query+0xa0>
+    48c2:	movss  %xmm0,-0x60(%rbp)
+    48c7:	movaps -0xb0(%rbp),%xmm0
+    48ce:	movss  -0x3da2(%rip),%xmm1        # b34 <iree_hal_executable_library_query-0x486c>
+    48d6:	movaps -0x40(%rbp),%xmm2
+    48da:	call   5440 <iree_hal_executable_library_query+0xa0>
+    48df:	movss  %xmm0,-0x40(%rbp)
+    48e4:	movaps -0xb0(%rbp),%xmm0
+    48eb:	movhlps %xmm0,%xmm0
+    48ee:	movaps %xmm0,-0x80(%rbp)
+    48f2:	movss  -0x3dc6(%rip),%xmm1        # b34 <iree_hal_executable_library_query-0x486c>
+    48fa:	movaps -0xa0(%rbp),%xmm2
+    4901:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4906:	movss  %xmm0,-0xa0(%rbp)
+    490e:	movaps -0xb0(%rbp),%xmm0
+    4915:	shufps $0xff,%xmm0,%xmm0
+    4919:	movaps %xmm0,-0x90(%rbp)
+    4920:	movss  -0x3df4(%rip),%xmm1        # b34 <iree_hal_executable_library_query-0x486c>
+    4928:	movaps -0x50(%rbp),%xmm2
+    492c:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4931:	movaps %xmm0,%xmm2
+    4934:	movaps -0x90(%rbp),%xmm0
+    493b:	movss  -0x3e0b(%rip),%xmm1        # b38 <iree_hal_executable_library_query-0x4868>
+    4943:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4948:	movaps %xmm0,-0x50(%rbp)
+    494c:	movaps -0x80(%rbp),%xmm0
+    4950:	movss  -0x3e20(%rip),%xmm1        # b38 <iree_hal_executable_library_query-0x4868>
+    4958:	movss  -0xa0(%rbp),%xmm2
+    4960:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4965:	movaps %xmm0,-0x80(%rbp)
+    4969:	unpcklps -0x50(%rbp),%xmm0
+    496d:	movaps %xmm0,-0x90(%rbp)
+    4974:	movaps -0xb0(%rbp),%xmm0
+    497b:	movss  -0x3e4b(%rip),%xmm1        # b38 <iree_hal_executable_library_query-0x4868>
+    4983:	movss  -0x40(%rbp),%xmm2
+    4988:	call   5440 <iree_hal_executable_library_query+0xa0>
+    498d:	movaps %xmm0,-0x40(%rbp)
+    4991:	movaps -0x70(%rbp),%xmm0
+    4995:	movss  -0x3e65(%rip),%xmm1        # b38 <iree_hal_executable_library_query-0x4868>
+    499d:	movss  -0x60(%rbp),%xmm2
+    49a2:	call   5440 <iree_hal_executable_library_query+0xa0>
+    49a7:	movaps %xmm0,-0xa0(%rbp)
+    49ae:	movaps -0x40(%rbp),%xmm1
+    49b2:	unpcklps %xmm0,%xmm1
+    49b5:	unpcklpd -0x90(%rbp),%xmm1
+    49bd:	movaps %xmm1,-0x70(%rbp)
+    49c1:	movss  -0x3e7d(%rip),%xmm1        # b4c <iree_hal_executable_library_query-0x4854>
+    49c9:	movss  -0x3eb1(%rip),%xmm2        # b20 <iree_hal_executable_library_query-0x4880>
+    49d1:	call   5440 <iree_hal_executable_library_query+0xa0>
+    49d6:	movss  %xmm0,-0x60(%rbp)
+    49db:	movaps -0x40(%rbp),%xmm0
+    49df:	movss  -0x3e9b(%rip),%xmm1        # b4c <iree_hal_executable_library_query-0x4854>
+    49e7:	movss  -0x3ecf(%rip),%xmm2        # b20 <iree_hal_executable_library_query-0x4880>
+    49ef:	call   5440 <iree_hal_executable_library_query+0xa0>
+    49f4:	movss  %xmm0,-0x28(%rbp)
+    49f9:	movaps -0x80(%rbp),%xmm0
+    49fd:	movss  -0x3eb9(%rip),%xmm1        # b4c <iree_hal_executable_library_query-0x4854>
+    4a05:	movss  -0x3eed(%rip),%xmm2        # b20 <iree_hal_executable_library_query-0x4880>
+    4a0d:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4a12:	movss  %xmm0,-0x24(%rbp)
+    4a17:	movaps -0x50(%rbp),%xmm0
+    4a1b:	movss  -0x3ed7(%rip),%xmm1        # b4c <iree_hal_executable_library_query-0x4854>
+    4a23:	movss  -0x3f0b(%rip),%xmm2        # b20 <iree_hal_executable_library_query-0x4880>
+    4a2b:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4a30:	movaps -0x50(%rbp),%xmm1
+    4a34:	movss  -0x3f0c(%rip),%xmm2        # b30 <iree_hal_executable_library_query-0x4870>
+    4a3c:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4a41:	movss  %xmm0,-0x90(%rbp)
+    4a49:	movss  -0x24(%rbp),%xmm0
+    4a4e:	movaps -0x80(%rbp),%xmm1
+    4a52:	movss  -0x3f2a(%rip),%xmm2        # b30 <iree_hal_executable_library_query-0x4870>
+    4a5a:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4a5f:	movss  %xmm0,-0x24(%rbp)
+    4a64:	movss  -0x28(%rbp),%xmm0
+    4a69:	movaps -0x40(%rbp),%xmm1
+    4a6d:	movss  -0x3f45(%rip),%xmm2        # b30 <iree_hal_executable_library_query-0x4870>
+    4a75:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4a7a:	movss  %xmm0,-0x28(%rbp)
+    4a7f:	movss  -0x60(%rbp),%xmm0
+    4a84:	movaps -0xa0(%rbp),%xmm1
+    4a8b:	movss  -0x3f63(%rip),%xmm2        # b30 <iree_hal_executable_library_query-0x4870>
+    4a93:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4a98:	movaps -0xa0(%rbp),%xmm1
+    4a9f:	movss  -0x3f5f(%rip),%xmm2        # b48 <iree_hal_executable_library_query-0x4858>
+    4aa7:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4aac:	movss  %xmm0,-0x60(%rbp)
+    4ab1:	movss  -0x28(%rbp),%xmm0
+    4ab6:	movaps -0x40(%rbp),%xmm1
+    4aba:	movss  -0x3f7a(%rip),%xmm2        # b48 <iree_hal_executable_library_query-0x4858>
+    4ac2:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4ac7:	movss  %xmm0,-0x28(%rbp)
+    4acc:	movss  -0x24(%rbp),%xmm0
+    4ad1:	movaps -0x80(%rbp),%xmm1
+    4ad5:	movss  -0x3f95(%rip),%xmm2        # b48 <iree_hal_executable_library_query-0x4858>
+    4add:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4ae2:	movss  %xmm0,-0x24(%rbp)
+    4ae7:	movss  -0x90(%rbp),%xmm0
+    4aef:	movaps -0x50(%rbp),%xmm1
+    4af3:	movss  -0x3fb3(%rip),%xmm2        # b48 <iree_hal_executable_library_query-0x4858>
+    4afb:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4b00:	movaps -0x50(%rbp),%xmm1
+    4b04:	movss  -0x3fc8(%rip),%xmm2        # b44 <iree_hal_executable_library_query-0x485c>
+    4b0c:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4b11:	movss  %xmm0,-0x90(%rbp)
+    4b19:	movss  -0x24(%rbp),%xmm0
+    4b1e:	movaps -0x80(%rbp),%xmm1
+    4b22:	movss  -0x3fe6(%rip),%xmm2        # b44 <iree_hal_executable_library_query-0x485c>
+    4b2a:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4b2f:	movss  %xmm0,-0x24(%rbp)
+    4b34:	movss  -0x28(%rbp),%xmm0
+    4b39:	movaps -0x40(%rbp),%xmm1
+    4b3d:	movss  -0x4001(%rip),%xmm2        # b44 <iree_hal_executable_library_query-0x485c>
+    4b45:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4b4a:	movss  %xmm0,-0x28(%rbp)
+    4b4f:	movss  -0x60(%rbp),%xmm0
+    4b54:	movaps -0xa0(%rbp),%xmm1
+    4b5b:	movss  -0x401f(%rip),%xmm2        # b44 <iree_hal_executable_library_query-0x485c>
+    4b63:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4b68:	movaps -0xa0(%rbp),%xmm1
+    4b6f:	movss  -0x404f(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4b77:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4b7c:	movss  %xmm0,-0x60(%rbp)
+    4b81:	movss  -0x28(%rbp),%xmm0
+    4b86:	movaps -0x40(%rbp),%xmm1
+    4b8a:	movss  -0x406a(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4b92:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4b97:	movss  %xmm0,-0x28(%rbp)
+    4b9c:	movss  -0x24(%rbp),%xmm0
+    4ba1:	movaps -0x80(%rbp),%xmm1
+    4ba5:	movss  -0x4085(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4bad:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4bb2:	movss  %xmm0,-0x24(%rbp)
+    4bb7:	movss  -0x90(%rbp),%xmm0
+    4bbf:	movaps -0x50(%rbp),%xmm1
+    4bc3:	movss  -0x40a3(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4bcb:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4bd0:	movaps -0x70(%rbp),%xmm1
+    4bd4:	mulps  %xmm1,%xmm1
+    4bd7:	movaps %xmm1,-0x70(%rbp)
+    4bdb:	shufps $0xff,%xmm1,%xmm1
+    4bdf:	movaps -0x50(%rbp),%xmm2
+    4be3:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4be8:	movaps %xmm0,-0x50(%rbp)
+    4bec:	movaps -0x70(%rbp),%xmm1
+    4bf0:	movhlps %xmm1,%xmm1
+    4bf3:	movss  -0x24(%rbp),%xmm0
+    4bf8:	movaps -0x80(%rbp),%xmm2
+    4bfc:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4c01:	unpcklps -0x50(%rbp),%xmm0
+    4c05:	movaps %xmm0,-0x50(%rbp)
+    4c09:	movss  -0x28(%rbp),%xmm0
+    4c0e:	movaps -0x70(%rbp),%xmm1
+    4c12:	movaps -0x40(%rbp),%xmm2
+    4c16:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4c1b:	movaps %xmm0,-0x40(%rbp)
+    4c1f:	movaps -0x70(%rbp),%xmm1
+    4c23:	shufps $0x55,%xmm1,%xmm1
+    4c27:	movss  -0x60(%rbp),%xmm0
+    4c2c:	movaps -0xa0(%rbp),%xmm2
+    4c33:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4c38:	movaps -0x40(%rbp),%xmm2
+    4c3c:	unpcklps %xmm0,%xmm2
+    4c3f:	unpcklpd -0x50(%rbp),%xmm2
+    4c44:	movaps -0x413b(%rip),%xmm1        # b10 <iree_hal_executable_library_query-0x4890>
+    4c4b:	addps  %xmm1,%xmm2
+    4c4e:	cvttps2dq -0xb0(%rbp),%xmm0
+    4c56:	pslld  $0x17,%xmm0
+    4c5b:	paddd  %xmm1,%xmm0
+    4c5f:	mulps  %xmm2,%xmm0
+    4c62:	movaps -0xd0(%rbp),%xmm2
+    4c69:	andps  %xmm2,%xmm0
+    4c6c:	andnps -0x4193(%rip),%xmm2        # ae0 <iree_hal_executable_library_query-0x48c0>
+    4c73:	orps   %xmm0,%xmm2
+    4c76:	movaps -0xc0(%rbp),%xmm1
+    4c7d:	addss  %xmm2,%xmm1
+    4c81:	pshufd $0x55,%xmm2,%xmm0
+    4c86:	addss  %xmm1,%xmm0
+    4c8a:	pshufd $0xee,%xmm2,%xmm1
+    4c8f:	addss  %xmm0,%xmm1
+    4c93:	pshufd $0xff,%xmm2,%xmm0
+    4c98:	addss  %xmm1,%xmm0
+    4c9c:	movaps %xmm0,-0xc0(%rbp)
+    4ca3:	add    $0x4,%r15
+    4ca7:	add    $0xfffffffffffffffc,%r12
+    4cab:	cmp    $0x6,%r15
+    4caf:	jae    4d4c <iree_hal_executable_library_query-0x654>
+    4cb5:	cmp    $0x4,%r12
+    4cb9:	mov    $0x4,%eax
+    4cbe:	cmovb  %r12,%rax
+    4cc2:	movd   %eax,%xmm0
+    4cc6:	pshufd $0x0,%xmm0,%xmm3
+    4ccb:	lea    0x10(%rbx,%r15,4),%rax
+    4cd0:	movdqa %xmm3,%xmm0
+    4cd4:	pcmpgtd -0x423c(%rip),%xmm0        # aa0 <iree_hal_executable_library_query-0x4900>
+    4cdc:	movmskps %xmm0,%ecx
+    4cdf:	test   $0x1,%cl
+    4ce2:	jne    4d00 <iree_hal_executable_library_query-0x6a0>
+    4ce4:	test   $0x2,%cl
+    4ce7:	movaps -0xe0(%rbp),%xmm2
+    4cee:	jne    4d10 <iree_hal_executable_library_query-0x690>
+    4cf0:	test   $0x4,%cl
+    4cf3:	jne    4d24 <iree_hal_executable_library_query-0x67c>
+    4cf5:	test   $0x8,%cl
+    4cf8:	je     4780 <iree_hal_executable_library_query-0xc20>
+    4cfe:	jmp    4d3a <iree_hal_executable_library_query-0x666>
+    4d00:	movss  (%rax),%xmm0
+    4d04:	test   $0x2,%cl
+    4d07:	movaps -0xe0(%rbp),%xmm2
+    4d0e:	je     4cf0 <iree_hal_executable_library_query-0x6b0>
+    4d10:	movss  0x4(%rax),%xmm1
+    4d15:	movlhps %xmm0,%xmm1
+    4d18:	shufps $0xe2,%xmm0,%xmm1
+    4d1c:	movaps %xmm1,%xmm0
+    4d1f:	test   $0x4,%cl
+    4d22:	je     4cf5 <iree_hal_executable_library_query-0x6ab>
+    4d24:	movss  0x8(%rax),%xmm1
+    4d29:	shufps $0x30,%xmm0,%xmm1
+    4d2d:	shufps $0x84,%xmm1,%xmm0
+    4d31:	test   $0x8,%cl
+    4d34:	je     4780 <iree_hal_executable_library_query-0xc20>
+    4d3a:	movss  0xc(%rax),%xmm1
+    4d3f:	shufps $0xe4,%xmm0,%xmm1
+    4d43:	shufps $0x24,%xmm1,%xmm0
+    4d47:	jmp    4780 <iree_hal_executable_library_query-0xc20>
+    4d4c:	movaps -0xc0(%rbp),%xmm0
+    4d53:	shufps $0x0,%xmm0,%xmm0
+    4d57:	movaps %xmm0,-0xc0(%rbp)
+    4d5e:	mov    $0xfffffffffffffffc,%r15
+    4d65:	mov    $0xa,%r12d
+    4d6b:	movaps -0xe0(%rbp),%xmm2
+    4d72:	jmp    4d92 <iree_hal_executable_library_query-0x60e>
+    4d74:	data16 data16 cs nopw 0x0(%rax,%rax,1)
+    4d80:	add    $0x4,%r15
+    4d84:	add    $0xfffffffffffffffc,%r12
+    4d88:	cmp    $0x6,%r15
+    4d8c:	jae    5384 <iree_hal_executable_library_query-0x1c>
+    4d92:	cmp    $0x4,%r12
+    4d96:	mov    $0x4,%eax
+    4d9b:	cmovb  %r12,%rax
+    4d9f:	movd   %eax,%xmm0
+    4da3:	pshufd $0x0,%xmm0,%xmm0
+    4da8:	lea    0x10(%rbx,%r15,4),%rax
+    4dad:	movdqa %xmm0,-0xd0(%rbp)
+    4db5:	pcmpgtd -0x431d(%rip),%xmm0        # aa0 <iree_hal_executable_library_query-0x4900>
+    4dbd:	movmskps %xmm0,%ecx
+    4dc0:	test   $0x1,%cl
+    4dc3:	jne    5300 <iree_hal_executable_library_query-0xa0>
+    4dc9:	test   $0x2,%cl
+    4dcc:	jne    530d <iree_hal_executable_library_query-0x93>
+    4dd2:	test   $0x4,%cl
+    4dd5:	jne    5325 <iree_hal_executable_library_query-0x7b>
+    4ddb:	test   $0x8,%cl
+    4dde:	je     4ded <iree_hal_executable_library_query-0x5b3>
+    4de0:	movss  0xc(%rax),%xmm1
+    4de5:	shufps $0xe4,%xmm0,%xmm1
+    4de9:	shufps $0x24,%xmm1,%xmm0
+    4ded:	subps  %xmm2,%xmm0
+    4df0:	movaps -0x4347(%rip),%xmm1        # ab0 <iree_hal_executable_library_query-0x48f0>
+    4df7:	maxps  %xmm0,%xmm1
+    4dfa:	movaps -0x4371(%rip),%xmm0        # a90 <iree_hal_executable_library_query-0x4910>
+    4e01:	minps  %xmm1,%xmm0
+    4e04:	movaps %xmm0,-0x40(%rbp)
+    4e08:	shufps $0x55,%xmm0,%xmm0
+    4e0c:	movaps %xmm0,-0x80(%rbp)
+    4e10:	movss  -0x42d8(%rip),%xmm1        # b40 <iree_hal_executable_library_query-0x4860>
+    4e18:	movss  -0x42f8(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4e20:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4e25:	movss  %xmm0,-0xb0(%rbp)
+    4e2d:	movaps -0x40(%rbp),%xmm0
+    4e31:	movss  -0x42f9(%rip),%xmm1        # b40 <iree_hal_executable_library_query-0x4860>
+    4e39:	movss  -0x4319(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4e41:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4e46:	movss  %xmm0,-0x70(%rbp)
+    4e4b:	movaps -0x40(%rbp),%xmm0
+    4e4f:	movhlps %xmm0,%xmm0
+    4e52:	movaps %xmm0,-0xa0(%rbp)
+    4e59:	movss  -0x4321(%rip),%xmm1        # b40 <iree_hal_executable_library_query-0x4860>
+    4e61:	movss  -0x4341(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4e69:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4e6e:	movss  %xmm0,-0x60(%rbp)
+    4e73:	movaps -0x40(%rbp),%xmm0
+    4e77:	shufps $0xff,%xmm0,%xmm0
+    4e7b:	movaps %xmm0,-0x50(%rbp)
+    4e7f:	movss  -0x4347(%rip),%xmm1        # b40 <iree_hal_executable_library_query-0x4860>
+    4e87:	movss  -0x4367(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    4e8f:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4e94:	call   53c0 <iree_hal_executable_library_query+0x20>
+    4e99:	movaps %xmm0,-0x90(%rbp)
+    4ea0:	movss  -0x60(%rbp),%xmm0
+    4ea5:	call   53c0 <iree_hal_executable_library_query+0x20>
+    4eaa:	unpcklps -0x90(%rbp),%xmm0
+    4eb1:	movaps %xmm0,-0x60(%rbp)
+    4eb5:	movss  -0x70(%rbp),%xmm0
+    4eba:	call   53c0 <iree_hal_executable_library_query+0x20>
+    4ebf:	movaps %xmm0,-0x70(%rbp)
+    4ec3:	movss  -0xb0(%rbp),%xmm0
+    4ecb:	call   53c0 <iree_hal_executable_library_query+0x20>
+    4ed0:	movaps -0x70(%rbp),%xmm1
+    4ed4:	unpcklps %xmm0,%xmm1
+    4ed7:	unpcklpd -0x60(%rbp),%xmm1
+    4edc:	movaps -0x4463(%rip),%xmm0        # a80 <iree_hal_executable_library_query-0x4920>
+    4ee3:	maxps  %xmm1,%xmm0
+    4ee6:	movaps -0x43fd(%rip),%xmm1        # af0 <iree_hal_executable_library_query-0x48b0>
+    4eed:	minps  %xmm0,%xmm1
+    4ef0:	movaps %xmm1,-0xb0(%rbp)
+    4ef7:	movaps %xmm1,%xmm0
+    4efa:	shufps $0x55,%xmm1,%xmm0
+    4efe:	movaps %xmm0,-0x70(%rbp)
+    4f02:	movss  -0x43d6(%rip),%xmm1        # b34 <iree_hal_executable_library_query-0x486c>
+    4f0a:	movaps -0x80(%rbp),%xmm2
+    4f0e:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4f13:	movss  %xmm0,-0x60(%rbp)
+    4f18:	movaps -0xb0(%rbp),%xmm0
+    4f1f:	movss  -0x43f3(%rip),%xmm1        # b34 <iree_hal_executable_library_query-0x486c>
+    4f27:	movaps -0x40(%rbp),%xmm2
+    4f2b:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4f30:	movss  %xmm0,-0x40(%rbp)
+    4f35:	movaps -0xb0(%rbp),%xmm0
+    4f3c:	movhlps %xmm0,%xmm0
+    4f3f:	movaps %xmm0,-0x80(%rbp)
+    4f43:	movss  -0x4417(%rip),%xmm1        # b34 <iree_hal_executable_library_query-0x486c>
+    4f4b:	movaps -0xa0(%rbp),%xmm2
+    4f52:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4f57:	movss  %xmm0,-0xa0(%rbp)
+    4f5f:	movaps -0xb0(%rbp),%xmm0
+    4f66:	shufps $0xff,%xmm0,%xmm0
+    4f6a:	movaps %xmm0,-0x90(%rbp)
+    4f71:	movss  -0x4445(%rip),%xmm1        # b34 <iree_hal_executable_library_query-0x486c>
+    4f79:	movaps -0x50(%rbp),%xmm2
+    4f7d:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4f82:	movaps %xmm0,%xmm2
+    4f85:	movaps -0x90(%rbp),%xmm0
+    4f8c:	movss  -0x445c(%rip),%xmm1        # b38 <iree_hal_executable_library_query-0x4868>
+    4f94:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4f99:	movaps %xmm0,-0x50(%rbp)
+    4f9d:	movaps -0x80(%rbp),%xmm0
+    4fa1:	movss  -0x4471(%rip),%xmm1        # b38 <iree_hal_executable_library_query-0x4868>
+    4fa9:	movss  -0xa0(%rbp),%xmm2
+    4fb1:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4fb6:	movaps %xmm0,-0x80(%rbp)
+    4fba:	unpcklps -0x50(%rbp),%xmm0
+    4fbe:	movaps %xmm0,-0x90(%rbp)
+    4fc5:	movaps -0xb0(%rbp),%xmm0
+    4fcc:	movss  -0x449c(%rip),%xmm1        # b38 <iree_hal_executable_library_query-0x4868>
+    4fd4:	movss  -0x40(%rbp),%xmm2
+    4fd9:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4fde:	movaps %xmm0,-0x40(%rbp)
+    4fe2:	movaps -0x70(%rbp),%xmm0
+    4fe6:	movss  -0x44b6(%rip),%xmm1        # b38 <iree_hal_executable_library_query-0x4868>
+    4fee:	movss  -0x60(%rbp),%xmm2
+    4ff3:	call   5440 <iree_hal_executable_library_query+0xa0>
+    4ff8:	movaps %xmm0,-0xa0(%rbp)
+    4fff:	movaps -0x40(%rbp),%xmm1
+    5003:	unpcklps %xmm0,%xmm1
+    5006:	unpcklpd -0x90(%rbp),%xmm1
+    500e:	movaps %xmm1,-0x70(%rbp)
+    5012:	movss  -0x44ce(%rip),%xmm1        # b4c <iree_hal_executable_library_query-0x4854>
+    501a:	movss  -0x4502(%rip),%xmm2        # b20 <iree_hal_executable_library_query-0x4880>
+    5022:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5027:	movss  %xmm0,-0x60(%rbp)
+    502c:	movaps -0x40(%rbp),%xmm0
+    5030:	movss  -0x44ec(%rip),%xmm1        # b4c <iree_hal_executable_library_query-0x4854>
+    5038:	movss  -0x4520(%rip),%xmm2        # b20 <iree_hal_executable_library_query-0x4880>
+    5040:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5045:	movss  %xmm0,-0x28(%rbp)
+    504a:	movaps -0x80(%rbp),%xmm0
+    504e:	movss  -0x450a(%rip),%xmm1        # b4c <iree_hal_executable_library_query-0x4854>
+    5056:	movss  -0x453e(%rip),%xmm2        # b20 <iree_hal_executable_library_query-0x4880>
+    505e:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5063:	movss  %xmm0,-0x24(%rbp)
+    5068:	movaps -0x50(%rbp),%xmm0
+    506c:	movss  -0x4528(%rip),%xmm1        # b4c <iree_hal_executable_library_query-0x4854>
+    5074:	movss  -0x455c(%rip),%xmm2        # b20 <iree_hal_executable_library_query-0x4880>
+    507c:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5081:	movaps -0x50(%rbp),%xmm1
+    5085:	movss  -0x455d(%rip),%xmm2        # b30 <iree_hal_executable_library_query-0x4870>
+    508d:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5092:	movss  %xmm0,-0x90(%rbp)
+    509a:	movss  -0x24(%rbp),%xmm0
+    509f:	movaps -0x80(%rbp),%xmm1
+    50a3:	movss  -0x457b(%rip),%xmm2        # b30 <iree_hal_executable_library_query-0x4870>
+    50ab:	call   5440 <iree_hal_executable_library_query+0xa0>
+    50b0:	movss  %xmm0,-0x24(%rbp)
+    50b5:	movss  -0x28(%rbp),%xmm0
+    50ba:	movaps -0x40(%rbp),%xmm1
+    50be:	movss  -0x4596(%rip),%xmm2        # b30 <iree_hal_executable_library_query-0x4870>
+    50c6:	call   5440 <iree_hal_executable_library_query+0xa0>
+    50cb:	movss  %xmm0,-0x28(%rbp)
+    50d0:	movss  -0x60(%rbp),%xmm0
+    50d5:	movaps -0xa0(%rbp),%xmm1
+    50dc:	movss  -0x45b4(%rip),%xmm2        # b30 <iree_hal_executable_library_query-0x4870>
+    50e4:	call   5440 <iree_hal_executable_library_query+0xa0>
+    50e9:	movaps -0xa0(%rbp),%xmm1
+    50f0:	movss  -0x45b0(%rip),%xmm2        # b48 <iree_hal_executable_library_query-0x4858>
+    50f8:	call   5440 <iree_hal_executable_library_query+0xa0>
+    50fd:	movss  %xmm0,-0x60(%rbp)
+    5102:	movss  -0x28(%rbp),%xmm0
+    5107:	movaps -0x40(%rbp),%xmm1
+    510b:	movss  -0x45cb(%rip),%xmm2        # b48 <iree_hal_executable_library_query-0x4858>
+    5113:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5118:	movss  %xmm0,-0x28(%rbp)
+    511d:	movss  -0x24(%rbp),%xmm0
+    5122:	movaps -0x80(%rbp),%xmm1
+    5126:	movss  -0x45e6(%rip),%xmm2        # b48 <iree_hal_executable_library_query-0x4858>
+    512e:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5133:	movss  %xmm0,-0x24(%rbp)
+    5138:	movss  -0x90(%rbp),%xmm0
+    5140:	movaps -0x50(%rbp),%xmm1
+    5144:	movss  -0x4604(%rip),%xmm2        # b48 <iree_hal_executable_library_query-0x4858>
+    514c:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5151:	movaps -0x50(%rbp),%xmm1
+    5155:	movss  -0x4619(%rip),%xmm2        # b44 <iree_hal_executable_library_query-0x485c>
+    515d:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5162:	movss  %xmm0,-0x90(%rbp)
+    516a:	movss  -0x24(%rbp),%xmm0
+    516f:	movaps -0x80(%rbp),%xmm1
+    5173:	movss  -0x4637(%rip),%xmm2        # b44 <iree_hal_executable_library_query-0x485c>
+    517b:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5180:	movss  %xmm0,-0x24(%rbp)
+    5185:	movss  -0x28(%rbp),%xmm0
+    518a:	movaps -0x40(%rbp),%xmm1
+    518e:	movss  -0x4652(%rip),%xmm2        # b44 <iree_hal_executable_library_query-0x485c>
+    5196:	call   5440 <iree_hal_executable_library_query+0xa0>
+    519b:	movss  %xmm0,-0x28(%rbp)
+    51a0:	movss  -0x60(%rbp),%xmm0
+    51a5:	movaps -0xa0(%rbp),%xmm1
+    51ac:	movss  -0x4670(%rip),%xmm2        # b44 <iree_hal_executable_library_query-0x485c>
+    51b4:	call   5440 <iree_hal_executable_library_query+0xa0>
+    51b9:	movaps -0xa0(%rbp),%xmm1
+    51c0:	movss  -0x46a0(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    51c8:	call   5440 <iree_hal_executable_library_query+0xa0>
+    51cd:	movss  %xmm0,-0x60(%rbp)
+    51d2:	movss  -0x28(%rbp),%xmm0
+    51d7:	movaps -0x40(%rbp),%xmm1
+    51db:	movss  -0x46bb(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    51e3:	call   5440 <iree_hal_executable_library_query+0xa0>
+    51e8:	movss  %xmm0,-0x28(%rbp)
+    51ed:	movss  -0x24(%rbp),%xmm0
+    51f2:	movaps -0x80(%rbp),%xmm1
+    51f6:	movss  -0x46d6(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    51fe:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5203:	movss  %xmm0,-0x24(%rbp)
+    5208:	movss  -0x90(%rbp),%xmm0
+    5210:	movaps -0x50(%rbp),%xmm1
+    5214:	movss  -0x46f4(%rip),%xmm2        # b28 <iree_hal_executable_library_query-0x4878>
+    521c:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5221:	movaps -0x70(%rbp),%xmm1
+    5225:	mulps  %xmm1,%xmm1
+    5228:	movaps %xmm1,-0x70(%rbp)
+    522c:	shufps $0xff,%xmm1,%xmm1
+    5230:	movaps -0x50(%rbp),%xmm2
+    5234:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5239:	movaps %xmm0,-0x50(%rbp)
+    523d:	movaps -0x70(%rbp),%xmm1
+    5241:	movhlps %xmm1,%xmm1
+    5244:	movss  -0x24(%rbp),%xmm0
+    5249:	movaps -0x80(%rbp),%xmm2
+    524d:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5252:	unpcklps -0x50(%rbp),%xmm0
+    5256:	movaps %xmm0,-0x50(%rbp)
+    525a:	movss  -0x28(%rbp),%xmm0
+    525f:	movaps -0x70(%rbp),%xmm1
+    5263:	movaps -0x40(%rbp),%xmm2
+    5267:	call   5440 <iree_hal_executable_library_query+0xa0>
+    526c:	movaps %xmm0,-0x40(%rbp)
+    5270:	movaps -0x70(%rbp),%xmm1
+    5274:	shufps $0x55,%xmm1,%xmm1
+    5278:	movss  -0x60(%rbp),%xmm0
+    527d:	movaps -0xa0(%rbp),%xmm2
+    5284:	call   5440 <iree_hal_executable_library_query+0xa0>
+    5289:	movaps -0x40(%rbp),%xmm2
+    528d:	unpcklps %xmm0,%xmm2
+    5290:	unpcklpd -0x50(%rbp),%xmm2
+    5295:	movaps -0x478c(%rip),%xmm1        # b10 <iree_hal_executable_library_query-0x4890>
+    529c:	addps  %xmm1,%xmm2
+    529f:	cvttps2dq -0xb0(%rbp),%xmm0
+    52a7:	pslld  $0x17,%xmm0
+    52ac:	paddd  %xmm1,%xmm0
+    52b0:	mulps  %xmm2,%xmm0
+    52b3:	divps  -0xc0(%rbp),%xmm0
+    52ba:	lea    0x10(%r14,%r15,4),%rax
+    52bf:	movdqa -0xd0(%rbp),%xmm1
+    52c7:	pxor   -0x47ef(%rip),%xmm1        # ae0 <iree_hal_executable_library_query-0x48c0>
+    52cf:	pcmpgtd -0x47d7(%rip),%xmm1        # b00 <iree_hal_executable_library_query-0x48a0>
+    52d7:	movmskps %xmm1,%ecx
+    52da:	test   $0x1,%cl
+    52dd:	jne    5340 <iree_hal_executable_library_query-0x60>
+    52df:	test   $0x2,%cl
+    52e2:	jne    5349 <iree_hal_executable_library_query-0x57>
+    52e4:	test   $0x4,%cl
+    52e7:	movaps -0xe0(%rbp),%xmm2
+    52ee:	jne    5361 <iree_hal_executable_library_query-0x3f>
+    52f0:	test   $0x8,%cl
+    52f3:	je     4d80 <iree_hal_executable_library_query-0x620>
+    52f9:	jmp    5376 <iree_hal_executable_library_query-0x2a>
+    52fb:	nopl   0x0(%rax,%rax,1)
+    5300:	movss  (%rax),%xmm0
+    5304:	test   $0x2,%cl
+    5307:	je     4dd2 <iree_hal_executable_library_query-0x5ce>
+    530d:	movss  0x4(%rax),%xmm1
+    5312:	movlhps %xmm0,%xmm1
+    5315:	shufps $0xe2,%xmm0,%xmm1
+    5319:	movaps %xmm1,%xmm0
+    531c:	test   $0x4,%cl
+    531f:	je     4ddb <iree_hal_executable_library_query-0x5c5>
+    5325:	movss  0x8(%rax),%xmm1
+    532a:	shufps $0x30,%xmm0,%xmm1
+    532e:	shufps $0x84,%xmm1,%xmm0
+    5332:	test   $0x8,%cl
+    5335:	jne    4de0 <iree_hal_executable_library_query-0x5c0>
+    533b:	jmp    4ded <iree_hal_executable_library_query-0x5b3>
+    5340:	movss  %xmm0,(%rax)
+    5344:	test   $0x2,%cl
+    5347:	je     52e4 <iree_hal_executable_library_query-0xbc>
+    5349:	movaps %xmm0,%xmm1
+    534c:	shufps $0x55,%xmm0,%xmm1
+    5350:	movss  %xmm1,0x4(%rax)
+    5355:	test   $0x4,%cl
+    5358:	movaps -0xe0(%rbp),%xmm2
+    535f:	je     52f0 <iree_hal_executable_library_query-0xb0>
+    5361:	movaps %xmm0,%xmm1
+    5364:	unpckhpd %xmm0,%xmm1
+    5368:	movss  %xmm1,0x8(%rax)
+    536d:	test   $0x8,%cl
+    5370:	je     4d80 <iree_hal_executable_library_query-0x620>
+    5376:	shufps $0xff,%xmm0,%xmm0
+    537a:	movss  %xmm0,0xc(%rax)
+    537f:	jmp    4d80 <iree_hal_executable_library_query-0x620>
+    5384:	xor    %eax,%eax
+    5386:	add    $0xc0,%rsp
+    538d:	pop    %rbx
+    538e:	pop    %r12
+    5390:	pop    %r14
+    5392:	pop    %r15
+    5394:	pop    %rbp
+    5395:	ret
+    5396:	int3
+    5397:	int3
+    5398:	int3
+    5399:	int3
+    539a:	int3
+    539b:	int3
+    539c:	int3
+    539d:	int3
+    539e:	int3
+    539f:	int3
+
+00000000000053a0 <iree_hal_executable_library_query>:
+    53a0:	xor    %eax,%eax
+    53a2:	cmp    $0x6,%edi
+    53a5:	lea    0x14f4(%rip),%rcx        # 68a0 <iree_hal_executable_library_query+0x1500>
+    53ac:	cmove  %rcx,%rax
+    53b0:	ret
+    53b1:	int3
+    53b2:	int3
+    53b3:	int3
+    53b4:	int3
+    53b5:	int3
+    53b6:	int3
+    53b7:	int3
+    53b8:	int3
+    53b9:	int3
+    53ba:	int3
+    53bb:	int3
+    53bc:	int3
+    53bd:	int3
+    53be:	int3
+    53bf:	int3
+    53c0:	movd   %xmm0,%eax
+    53c4:	mov    %eax,%ecx
+    53c6:	shr    $0x17,%ecx
+    53c9:	movzbl %cl,%ecx
+    53cc:	cmp    $0x95,%ecx
+    53d2:	jbe    53d5 <iree_hal_executable_library_query+0x35>
+    53d4:	ret
+    53d5:	cmp    $0x7f,%ecx
+    53d8:	jb     540d <iree_hal_executable_library_query+0x6d>
+    53da:	add    $0xffffff81,%ecx
+    53dd:	mov    $0x7fffff,%edx
+    53e2:	shr    %cl,%edx
+    53e4:	test   %eax,%edx
+    53e6:	je     5433 <iree_hal_executable_library_query+0x93>
+    53e8:	addss  -0x48c4(%rip),%xmm0        # b2c <iree_hal_executable_library_query-0x4874>
+    53f0:	mov    $0xff800000,%esi
+    53f5:	sar    %cl,%esi
+    53f7:	movss  %xmm0,-0x8(%rsp)
+    53fd:	mov    %eax,%ecx
+    53ff:	sar    $0x1f,%ecx
+    5402:	and    %edx,%ecx
+    5404:	add    %eax,%ecx
+    5406:	and    %esi,%ecx
+    5408:	movd   %ecx,%xmm0
+    540c:	ret
+    540d:	movss  -0x48e9(%rip),%xmm1        # b2c <iree_hal_executable_library_query-0x4874>
+    5415:	addss  %xmm0,%xmm1
+    5419:	movss  %xmm1,-0x4(%rsp)
+    541f:	xorps  %xmm1,%xmm1
+    5422:	test   %eax,%eax
+    5424:	jns    5430 <iree_hal_executable_library_query+0x90>
+    5426:	ucomiss %xmm1,%xmm0
+    5429:	movaps %xmm0,%xmm1
+    542c:	jne    5434 <iree_hal_executable_library_query+0x94>
+    542e:	jp     5434 <iree_hal_executable_library_query+0x94>
+    5430:	movaps %xmm1,%xmm0
+    5433:	ret
+    5434:	movss  -0x4918(%rip),%xmm1        # b24 <iree_hal_executable_library_query-0x487c>
+    543c:	movaps %xmm1,%xmm0
+    543f:	ret
+    5440:	cvtss2sd %xmm0,%xmm3
+    5444:	xorps  %xmm0,%xmm0
+    5447:	cvtss2sd %xmm1,%xmm0
+    544b:	mulsd  %xmm3,%xmm0
+    544f:	cvtss2sd %xmm2,%xmm2
+    5453:	movapd %xmm0,%xmm1
+    5457:	addsd  %xmm2,%xmm1
+    545b:	movq   %xmm1,%rax
+    5460:	mov    %rax,%rcx
+    5463:	not    %rcx
+    5466:	mov    %eax,%edx
+    5468:	and    $0x1fffffff,%edx
+    546e:	cmp    $0x10000000,%edx
+    5474:	setne  %dl
+    5477:	movabs $0x7ff0000000000000,%rsi
+    5481:	test   %rsi,%rcx
+    5484:	sete   %cl
+    5487:	or     %dl,%cl
+    5489:	jne    54ab <iree_hal_executable_library_query+0x10b>
+    548b:	movapd %xmm1,%xmm3
+    548f:	subsd  %xmm0,%xmm3
+    5493:	ucomisd %xmm2,%xmm3
+    5497:	jne    54b3 <iree_hal_executable_library_query+0x113>
+    5499:	jp     54b3 <iree_hal_executable_library_query+0x113>
+    549b:	movapd %xmm1,%xmm3
+    549f:	subsd  %xmm2,%xmm3
+    54a3:	ucomisd %xmm0,%xmm3
+    54a7:	jne    54b3 <iree_hal_executable_library_query+0x113>
+    54a9:	jp     54b3 <iree_hal_executable_library_query+0x113>
+    54ab:	xorps  %xmm0,%xmm0
+    54ae:	cvtsd2ss %xmm1,%xmm0
+    54b2:	ret
+    54b3:	test   %rax,%rax
+    54b6:	sets   %cl
+    54b9:	ucomisd %xmm0,%xmm2
+    54bd:	setbe  %dl
+    54c0:	xor    %cl,%dl
+    54c2:	jne    54ca <iree_hal_executable_library_query+0x12a>
+    54c4:	subsd  %xmm1,%xmm2
+    54c8:	jmp    54ce <iree_hal_executable_library_query+0x12e>
+    54ca:	subsd  %xmm1,%xmm0
+    54ce:	addsd  %xmm2,%xmm0
+    54d2:	xorpd  %xmm1,%xmm1
+    54d6:	ucomisd %xmm0,%xmm1
+    54da:	setbe  %dl
+    54dd:	xor    %dl,%cl
+    54df:	mov    %rax,%rdx
+    54e2:	or     $0x1,%rdx
+    54e6:	dec    %rax
+    54e9:	test   %cl,%cl
+    54eb:	cmovne %rdx,%rax
+    54ef:	movq   %rax,%xmm1
+    54f4:	xorps  %xmm0,%xmm0
+    54f7:	cvtsd2ss %xmm1,%xmm0
+    54fb:	ret

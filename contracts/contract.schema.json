@@ -93,7 +93,8 @@
           "type": [
             "integer",
             "null"
-          ]
+          ],
+          "minimum": 0
         },
         "static_transient_bytes": {
           "type": [
@@ -108,14 +109,16 @@
           ]
         },
         "module_resident_constant_bytes": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 0
         },
         "bounded_bytes": {
           "type": [
             "integer",
             "null"
           ],
-          "description": "static_per_call_bytes + module_resident_constant_bytes; the figure compared against a budget"
+          "description": "static_per_call_bytes + module_resident_constant_bytes; the figure compared against a budget",
+          "minimum": 0
         },
         "bound_method": {
           "enum": [
@@ -148,7 +151,8 @@
             "integer",
             "null"
           ],
-          "description": "max stack-frame bytes over the executable's dispatch functions (ELF analysis). Task-stack budget bucket (proposal SS9.2 bucket 2), NOT part of bounded_bytes. null = not analysed"
+          "description": "max stack-frame bytes over the executable's dispatch functions (ELF analysis). Task-stack budget bucket (proposal SS9.2 bucket 2), NOT part of bounded_bytes. null = not analysed",
+          "minimum": 0
         },
         "kernel_external_call_insns": {
           "type": [
@@ -180,6 +184,25 @@
             "type": "string"
           },
           "description": "IR size symbols that were not compile-time constants (non-empty iff bound_method == NONE)"
+        },
+        "kernel_task_stack_invocation_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "F2/E24c: per-invocation worst-case task-stack bytes from the ELF analysis. minimum 0 -- D35/R1 showed a negative figure turns the cFS stack gate into a tautology."
+        },
+        "constants_confirmation_state": {
+          "enum": [
+            "confirmed",
+            "contradicted",
+            "nothing_to_confirm",
+            "not_observed",
+            "unevaluable_budget_exceeded",
+            null
+          ],
+          "description": "F3/E24c: machine-readable twin of constants_check_note. OPTIONAL -- contracts written before E24c have no such field, and absence must not be read as any particular state."
         }
       }
     },
@@ -229,8 +252,10 @@
     },
     "artifact": {
       "type": "object",
+      "_comment_n5": "bytes is required as of E24 (N5): both the C path (ai_learner.c blob size precheck before the hash, D15/E16) and the OnAIR path (plugins/compiled_learner/artifact_binding.py, D27/E23) refuse a contract without it, so leaving it optional here let a schema-valid contract be rejected by every consumer. All 17 contracts in this repo carry it.",
       "required": [
         "file",
+        "bytes",
         "sha256"
       ],
       "properties": {
@@ -261,6 +286,20 @@
         },
         "dump_dir_files": {
           "type": "array"
+        },
+        "overrides_applied": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "R5/E24b: --allow-*/--no-validate flags that actually suppressed a refusal while this contract was built. OPTIONAL: contracts written before E24b have no such field, and absence must not be read as 'none were applied' (measured: requiring it rejects all 14 archived contracts -- an over-rejection of the D16/D17 kind)"
+        },
+        "verification_grade": {
+          "enum": [
+            "verified",
+            "overridden"
+          ],
+          "description": "R5/E24b: 'verified' = every check harness/make_contract.py knows how to make ran and passed (NOT a claim that the contract is correct); 'overridden' = at least one was waived. OPTIONAL for the same reason as overrides_applied"
         }
       },
       "description": "how the numbers were obtained (harness/make_contract.py)"

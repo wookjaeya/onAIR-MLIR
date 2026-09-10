@@ -1,0 +1,2 @@
+{"stage":"admission","verdict":"NOT_ADMITTED","model":"b2_resnet","target":"x86_64-unknown-linux-gnu","bounded_bytes":618856,"budget_bytes":618855,"per_call":309416,"constants":309440,"kernel_stack_bytes":439,"bound_known":true}
+{"stage":"exit","reason":"not admitted","cleanup_calls":0}

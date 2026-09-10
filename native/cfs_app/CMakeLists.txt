@@ -12,6 +12,8 @@ set(AI_LEARNER_STACK_BASE_BYTES 262144 CACHE STRING
     "Base task stack (bytes) the startup script has used since E12; the startup entry must be base + CONTRACT_KERNEL_STACK_BYTES")
 set(AI_LEARNER_REPORT_EVERY 5 CACHE STRING
     "Emit the run/mem JSON lines and an EVS event every N completed inferences")
+set(AI_LEARNER_ALLOW_CONDITIONAL_MAP 0 CACHE STRING
+    "E29: 1 lets admission accept a budget that covers CONTRACT_PER_CALL_BYTES but not CONTRACT_BOUNDED_BYTES, under the try_map precondition the app enforces (64-byte aligned module image) and verifies after append; 0 (default) keeps the unconditional decision")
 file(GLOB_RECURSE IREE_RT_LIBS "${IREE_B}/runtime/*.a")
 list(APPEND IREE_RT_LIBS
   "${IREE_B}/build_tools/third_party/flatcc/libflatcc_parsing.a"
@@ -23,7 +25,8 @@ target_compile_definitions(ai_learner PRIVATE
   IREE_ALLOCATOR_SYSTEM_CTL=iree_allocator_libc_ctl
   AI_LEARNER_BUDGET_BYTES=${AI_LEARNER_BUDGET_BYTES}
   AI_LEARNER_STACK_BASE_BYTES=${AI_LEARNER_STACK_BASE_BYTES}
-  AI_LEARNER_REPORT_EVERY=${AI_LEARNER_REPORT_EVERY})
+  AI_LEARNER_REPORT_EVERY=${AI_LEARNER_REPORT_EVERY}
+  AI_LEARNER_ALLOW_CONDITIONAL_MAP=${AI_LEARNER_ALLOW_CONDITIONAL_MAP})
 target_link_libraries(ai_learner -Wl,--start-group ${IREE_RT_LIBS} -Wl,--end-group m dl)
 # cFS applies -std=c99 -pedantic -Werror to apps; IREE headers use C11 static_assert
 # and anonymous unions (GNU extension in C99). Relax for this app only.

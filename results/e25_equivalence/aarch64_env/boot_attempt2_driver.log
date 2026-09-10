@@ -1,0 +1,7 @@
+qemu-system-aarch64 started: pid 867, smp=1 mem=1024MiB, ssh port 2222 (stderr: /root/onair-mlir-bench/ext/guest/qemu_stderr.log)
+waiting for sshd ...
+guest up after ~370 s
+Linux onair-aarch64 6.8.0-138-generic #138-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 22:20:42 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+1
+               total        used        free      shared  buff/cache   available
+Mem:             952         199         673           1         155         752

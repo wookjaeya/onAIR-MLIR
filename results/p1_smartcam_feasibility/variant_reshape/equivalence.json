@@ -1,0 +1,60 @@
+{
+ "purpose": "the analysis document's literal suggestion (emit a static RESHAPE) vs the semantic twin (ONNX Squeeze) -- does the choice change anything downstream?",
+ "onnx": {
+  "squeeze": {
+   "sha256": "79c57abc32c1bfa75b7b3c5dd8a47d96cbc89885351fcbd2206f3a62ca436968",
+   "bytes": 9301420
+  },
+  "reshape": {
+   "sha256": "3af9c7a14e1b588a6305f4df66376b3bc4cd4796c8e4e602d25c34f079cc84e7",
+   "bytes": 9301505
+  },
+  "node_histogram_squeeze": {
+   "Conv": 52,
+   "Clip": 35,
+   "Add": 10,
+   "Reshape": 2,
+   "Mul": 1,
+   "Sub": 1,
+   "AveragePool": 1,
+   "Squeeze": 1,
+   "Gemm": 1,
+   "Softmax": 1
+  },
+  "node_histogram_reshape": {
+   "Conv": 52,
+   "Clip": 35,
+   "Add": 10,
+   "Reshape": 3,
+   "Mul": 1,
+   "Sub": 1,
+   "AveragePool": 1,
+   "Gemm": 1,
+   "Softmax": 1
+  }
+ },
+ "torch_mlir": {
+  "squeeze_sha256": "fa4b7b19040f8bf1c4199930131acd6860d1cb9ca9e6d0d21f61cec44019a091",
+  "reshape_sha256": "a09302e7579b400d849e4da7785a0750bdfd70a6099b5f5bed5f9b082b2dc2da"
+ },
+ "linalg_mlir": {
+  "squeeze_sha256": "f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4",
+  "reshape_sha256": "f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4",
+  "byte_identical": true
+ },
+ "vmfb": {
+  "squeeze_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8",
+  "reshape_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8",
+  "byte_identical": true,
+  "note": "two separate iree-compile invocations of byte-identical input gave byte-identical output here; E26e observed the opposite for a threaded 16-dispatch build, so this is an observation about these two invocations, not a property to rely on"
+ },
+ "contract": {
+  "resources_identical": true,
+  "interface_identical": true,
+  "bounded_bytes": 18222796,
+  "static_per_call_bytes": 9382092,
+  "module_resident_constant_bytes": 8840704
+ },
+ "conclusion": "ONNX Squeeze(axes) and ONNX Reshape(static shape) converge already at the linalg level (same tensor.collapse_shape); the P1 verdict does not depend on the emission mode. The reshape build (vmfb/dump/contract) is therefore not stored -- it is byte-identical to build/.",
+ "prior_run_note": "before the wrapper sorted initializer/value_info by name (tflite2onnx emits them from sets), the two modes' linalg files differed in constant numbering only and every contract field but kernel_elf_sha256 was equal; with canonical order they are byte-identical"
+}

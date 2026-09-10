@@ -1,0 +1,53 @@
+{
+ "scenario": "A5b_canonical",
+ "why": "docs/plans/E26_boundary_utility.md §5 step 3 named this run; EVIDENCE_v0.25_E26.md neither reported nor disclaimed it.",
+ "level": "cFS AArch64 guest (qemu-system-aarch64, core-cpu1)",
+ "corrupt_method": "flatbuffer_root_uoffset",
+ "source_vmfb": "results/e25_equivalence/aarch64/model_canonical.aarch64.vmfb",
+ "source_vmfb_sha256": "4e5b2972c0bd970479eb5b8cb855d6ee83ff3dd2d9b86f4bf7773e780cadfba1",
+ "corrupted_vmfb_sha256": "b118305d1d7d067749373e8309360ada842f8d6893e4cf2e89393af13343859d",
+ "bytes_unchanged": true,
+ "contract_regenerated_against_corrupted_file": true,
+ "build_tag": "e26d_canon_a5b",
+ "budget_bytes": 786476,
+ "observed": {
+  "stack": {
+   "app": "AI_LEARNER",
+   "stage": "stack",
+   "es_stack_size": 262160,
+   "stack_base_bytes": 262144,
+   "contract_kernel_stack_bytes": 16,
+   "kernel_stack_accounted": true
+  },
+  "admission": [
+   "ADMIT"
+  ],
+  "binding": [
+   "MATCH"
+  ],
+  "runtime_load_failed": [
+   {
+    "app": "AI_LEARNER",
+    "stage": "runtime_load_failed",
+    "step": "append_bytecode_module",
+    "status": "iree-src/runtime/src/iree/vm/bytecode/archive.c:119: INVALID_ARGUMENT; FlatBuffer length prefix out of bounds (prefix is 4294967295 but only 732692 available)",
+    "model": "canonical_e25",
+    "target": "aarch64-unknown-linux-gnu"
+   }
+  ],
+  "cleanup": [
+   {
+    "app": "AI_LEARNER",
+    "stage": "cleanup",
+    "released": true,
+    "cleanup_calls": 1
+   }
+  ]
+ },
+ "check_expect_mismatches": [],
+ "e25_mode_record": "absent BY CONSTRUCTION -- ai_learner.c emits it at :406, after the bytecode load at :317 that fails here. Not an instrumentation gap.",
+ "cfs_still_loading_apps_after_exit": true,
+ "crash_or_abort": false,
+ "exit_code": 124,
+ "exit_note": "timeout -s INT after 45 s, as with every other cFS scenario in this repository"
+}

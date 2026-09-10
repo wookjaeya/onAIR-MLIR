@@ -1,0 +1,60 @@
+{
+  "experiment": "E25 (in progress)",
+  "stage": "x86-64 (reference / IREE-python / native C / cFS) + AArch64 cFS guest \u2014 all paths run",
+  "generator": "python3 harness/gen_model_canonical.py --outdir results/e25_equivalence/model",
+  "generator_is_deterministic": "seed 20260909; model_canonical.mlir and weights.npz regenerate byte-identically, so they are preserved here for convenience but are reproducible from the generator alone",
+  "compile_argv": [
+    "iree-compile",
+    "model/model_canonical.mlir",
+    "-o",
+    "model_canonical.vmfb",
+    "--iree-hal-target-device=local",
+    "--iree-hal-local-target-device-backends=llvm-cpu",
+    "--iree-llvmcpu-target-triple=x86_64-unknown-linux-gnu",
+    "--iree-llvmcpu-target-cpu=host",
+    "--mlir-print-ir-after=iree-stream-layout-slices",
+    "--iree-hal-dump-executable-files-to=dump",
+    "--mlir-elide-elementsattrs-if-larger=16"
+  ],
+  "compiler_version_raw": "IREE (https://iree.dev):\n  IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25\n  LLVM version 23.0.0git\n  Optimized build",
+  "model_manifest_sha256": {
+    "model_canonical.mlir": "b9a2fe52e85718938d65bb6773ca82f94dfc88db8452560655533622ba10df30",
+    "weights.npz": "dd078298d59c60315dcac92d5f218a0f29a49001ac6d36555822547a23ad0224",
+    "inputs.npy": "71e541a69fb7ff23cfe4f21853d81b672dce4e67c8d0701e2ffdfb988a396d78"
+  },
+  "vmfb_sha256": "0e250c2f16e704dbfd9a272073abb72935d5165c584c3c8d73fcd2790d2baebd",
+  "contract_equals_e14_mlp16k": {
+    "note": "the canonical model uses the same topology as E14's mlp16k (hidden 16384), and the contract values come out identical -- so this model is comparable with the archived E14 contracts, headers and scenarios",
+    "bounded_bytes": 786476,
+    "static_per_call_bytes": 65580,
+    "module_resident_constant_bytes": 720896
+  },
+  "aarch64": {
+    "compile_argv": [
+      "iree-compile",
+      "model/model_canonical.mlir",
+      "-o",
+      "model_canonical.aarch64.vmfb",
+      "--iree-hal-target-device=local",
+      "--iree-hal-local-target-device-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--iree-hal-dump-executable-files-to=dump",
+      "--mlir-elide-elementsattrs-if-larger=16"
+    ],
+    "compiler_version_raw": "IREE (https://iree.dev):\n  IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25\n  LLVM version 23.0.0git\n  Optimized build",
+    "cross_toolchain": "aarch64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "qemu": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+    "vmfb_sha256": "4e5b2972c0bd970479eb5b8cb855d6ee83ff3dd2d9b86f4bf7773e780cadfba1",
+    "same_canonical_source": "model/model_canonical.mlir (sha256 in model_manifest_sha256) \u2014 the x86-64 and AArch64 vmfb are DIFFERENT artifacts compiled from that ONE source with the same weights",
+    "cfs_cross_build": "scripts/51_build_cfs_aarch64.sh, 480/480 compile commands carry -mcpu=cortex-a53, startup stack 262160 = 262144 + CONTRACT_KERNEL_STACK_BYTES 16",
+    "contract_equals_x86_64": {
+      "bounded_bytes": 786476,
+      "static_per_call_bytes": 65580,
+      "module_resident_constant_bytes": 720896,
+      "kernel_task_stack_invocation_bytes": 16,
+      "note": "identical on both ISAs; only the vmfb bytes differ"
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+ "emit_mode": "reshape",
+ "output_onnx": {
+  "path": "results/p1_smartcam_feasibility/import/step2_smartcam_ext_reshape.onnx",
+  "bytes": 9301505,
+  "sha256": "3af9c7a14e1b588a6305f4df66376b3bc4cd4796c8e4e602d25c34f079cc84e7",
+  "ir_version": 6,
+  "opset": [
+   [
+    "",
+    11
+   ]
+  ],
+  "graph_name": "infer"
+ },
+ "signature_onnx": {
+  "inputs": [
+   {
+    "name": "input_1",
+    "dtype": 1,
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "Identity",
+    "dtype": 1,
+    "shape": [
+     1,
+     3
+    ]
+   }
+  ]
+ },
+ "onnx_node_histogram": {
+  "Conv": 52,
+  "Clip": 35,
+  "Add": 10,
+  "Reshape": 3,
+  "Mul": 1,
+  "Sub": 1,
+  "AveragePool": 1,
+  "Gemm": 1,
+  "Softmax": 1
+ },
+ "squeeze_instances": [
+  {
+   "tflite_squeeze_dims": [
+    1,
+    2
+   ],
+   "input_shape_tflite": [
+    1,
+    1,
+    1,
+    1280
+   ],
+   "output_shape": [
+    1,
+    1280
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "C1_squeezed_axes_size_1": true,
+   "C2_elements_preserved": true,
+   "C3_dtype_preserved": true,
+   "C4_static_output_equals_expected": true,
+   "expected_output_shape": [
+    1,
+    1280
+   ],
+   "identity": false,
+   "raw_squeeze_dims": [
+    1,
+    2
+   ],
+   "C5_kept_axis_order_preserved": true,
+   "C5_decided_by": "numeric simulation vs np.squeeze reference (shape and values)",
+   "layout": "NCHW(NHWC->NCHW)",
+   "input_shape_onnx": [
+    1,
+    1280,
+    1,
+    1
+   ],
+   "onnx_axes": [
+    2,
+    3
+   ],
+   "emit_mode": "reshape",
+   "reshape_shape_initializer": [
+    1,
+    1280
+   ],
+   "onnx_node_name": "predict/feature_vector/SpatialSqueeze;StatefulPartitionedCall/sequential/keras_layer/StatefulPartitionedCall/StatefulPartitionedCall/StatefulPartitionedCall/predict/feature_vector/SpatialSqueeze"
+  }
+ ]
+}

@@ -1,0 +1,134 @@
+{
+  "tool": "harness/cross_target_compare.py",
+  "tol_out0": 1e-05,
+  "models": {
+    "multibranch": {
+      "targets": [
+        "x86_64-unknown-linux-gnu/host",
+        "aarch64-unknown-linux-gnu/cortex-a53"
+      ],
+      "rows": [
+        {
+          "contract_file": "contract.multibranch.x86_64.json",
+          "target": "x86_64-unknown-linux-gnu/host",
+          "triple": "x86_64-unknown-linux-gnu",
+          "cpu": "host",
+          "bound_method": "static_from_stream_layout",
+          "bounded_bytes": 38216,
+          "static_per_call_bytes": 840,
+          "static_transient_bytes": 768,
+          "static_io_bytes": 72,
+          "module_resident_constant_bytes": 37376,
+          "vmfb_sha256": "0a62ca0e8f2bc3db2e15c4c49faa3b6a36e9189adeb0a3aa7ca349605d321898",
+          "vmfb_bytes": 53186,
+          "elf_bytes": 7568,
+          "elf_sha256": "4fb16dafcd0351790f3e1af99c5c4509948baea7dbeb58826de00e0638f2ca0a",
+          "llvm_alloca_count": 0,
+          "elf_call_insns": 0,
+          "elf_stack_frame_bytes": 8,
+          "kernel_stack_classification": "bucket_2_task_stack_budget",
+          "dispatches": 4,
+          "constants_confirmed_in_artifact": true,
+          "single_invocation": true,
+          "compiler": "IREE 3.11.0rc20260316 e4a3b04",
+          "native": {
+            "hal_device_bytes_peak": 38216,
+            "hal_bytes_per_call_steady": 776.0,
+            "peak_within_bounded": true,
+            "steady_within_per_call": true,
+            "out0": 0.239826,
+            "sound": true,
+            "source_of_verdicts": {
+              "peak_within_bounded": "given",
+              "steady_within_per_call": "given"
+            },
+            "summary_file": "results/e26_boundary_utility/comparison/native.x86_64.multibranch.json",
+            "summary_key": null
+          }
+        },
+        {
+          "contract_file": "contract.multibranch.aarch64.json",
+          "target": "aarch64-unknown-linux-gnu/cortex-a53",
+          "triple": "aarch64-unknown-linux-gnu",
+          "cpu": "cortex-a53",
+          "bound_method": "static_from_stream_layout",
+          "bounded_bytes": 38216,
+          "static_per_call_bytes": 840,
+          "static_transient_bytes": 768,
+          "static_io_bytes": 72,
+          "module_resident_constant_bytes": 37376,
+          "vmfb_sha256": "bfd681833ef9c3b598863cb5ad55467043a8542ca00c426b82b00a69d19a159d",
+          "vmfb_bytes": 51594,
+          "elf_bytes": 6872,
+          "elf_sha256": "86abcc8c8ed4c7920d79a0e975df2eabcdc82aad0f755e4b550a884460a31dc0",
+          "llvm_alloca_count": 0,
+          "elf_call_insns": 0,
+          "elf_stack_frame_bytes": 16,
+          "kernel_stack_classification": "bucket_2_task_stack_budget",
+          "dispatches": 4,
+          "constants_confirmed_in_artifact": true,
+          "single_invocation": true,
+          "compiler": "IREE 3.11.0rc20260316 e4a3b04",
+          "native": {
+            "hal_device_bytes_peak": 840,
+            "hal_bytes_per_call_steady": 776.0,
+            "peak_within_bounded": true,
+            "steady_within_per_call": true,
+            "out0": 0.239826,
+            "sound": true,
+            "source_of_verdicts": {
+              "peak_within_bounded": "given",
+              "steady_within_per_call": "given"
+            },
+            "summary_file": "results/e26_boundary_utility/comparison/native.aarch64.multibranch.json",
+            "summary_key": null
+          }
+        }
+      ],
+      "identical_bounded_bytes": true,
+      "identical_per_call_bytes": true,
+      "identical_constant_bytes": true,
+      "all_bounds_known": true,
+      "vmfb_sha256_all_distinct": true,
+      "elf_stack_frame_bytes_by_target": {
+        "x86_64-unknown-linux-gnu/host": 8,
+        "aarch64-unknown-linux-gnu/cortex-a53": 16
+      },
+      "elf_call_insns_by_target": {
+        "x86_64-unknown-linux-gnu/host": 0,
+        "aarch64-unknown-linux-gnu/cortex-a53": 0
+      },
+      "llvm_alloca_count_by_target": {
+        "x86_64-unknown-linux-gnu/host": 0,
+        "aarch64-unknown-linux-gnu/cortex-a53": 0
+      },
+      "both_sound": true,
+      "sound_by_target": {
+        "x86_64-unknown-linux-gnu/host": true,
+        "aarch64-unknown-linux-gnu/cortex-a53": true
+      },
+      "out0_agreement": {
+        "values": {
+          "x86_64-unknown-linux-gnu/host": 0.239826,
+          "aarch64-unknown-linux-gnu/cortex-a53": 0.239826
+        },
+        "max_abs_diff": 0.0,
+        "tol": 1e-05,
+        "agree": true
+      }
+    }
+  },
+  "summary": {
+    "models": 1,
+    "all_models_identical_bounded_bytes": true,
+    "models_with_unknown_bound": [],
+    "models_both_sound": [
+      "multibranch"
+    ],
+    "models_not_sound": [],
+    "models_out0_agree": [
+      "multibranch"
+    ],
+    "models_out0_disagree": []
+  }
+}

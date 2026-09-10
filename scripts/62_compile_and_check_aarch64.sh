@@ -38,13 +38,32 @@ python3 - "$OUT/model.vmfb" <<'PY'
 import json, hashlib, sys
 b = open(sys.argv[1], "rb").read()
 json.dump({"resources": {"bounded_bytes": 786476, "static_per_call_bytes": 65580,
-                         "module_resident_constant_bytes": 720896},
+                         "module_resident_constant_bytes": 720896,
+                         # bound_method (E24b): omitted until now, so gen_contract_header.py
+                         # refused this contract with "unrecognized bound_method 'unspecified'"
+                         # -- a second, distinct pre-existing breakage of this documented
+                         # reproduction (independent of the stack one above, and also present
+                         # before E24b). These three figures are mlp16k's real post-layout
+                         # values, so naming the method they came from is a statement of fact,
+                         # not a new claim. A deployment contract should come from
+                         # make_contract.py rather than being hand-built like this.
+                         "bound_method": "static_from_stream_layout"},
           "artifact": {"bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()},
-          "validity": {"input": {"shape": [1, 9]}, "output": {"shape": [1, 2]},
+          # dtype (E24b): E24's N3 gate refuses a bound-known contract that states no
+          # dtype anywhere (an empty dtype set must not assert "all f32"). This inline
+          # contract omitted it, so E24 itself broke this reproduction -- a class-B
+          # over-rejection E24 missed because its measurement covered contracts/*.json
+          # but not contracts that scripts build inline. The model IS f32; say so.
+          "validity": {"input": {"shape": [1, 9], "dtype": "f32"},
+                       "output": {"shape": [1, 2], "dtype": "f32"},
                        "driver": "local-sync"}},
           open("contract_aarch64.json", "w"))
 PY
-python3 "$BENCH_DIR/harness/gen_contract_header.py" contract_aarch64.json contract_gen.h
+# --allow-unknown-stack (E24b): this inline contract is a hand-built BUDGET contract
+# for the Stage 0 reproduction -- it has no ELF stack analysis, so D13/D15 refuses it.
+# That has been true since E15 (verified against the pre-E24b generator); the flag makes
+# the documented reproduction run again rather than weakening any gate.
+python3 "$BENCH_DIR/harness/gen_contract_header.py" contract_aarch64.json contract_gen.h --allow-unknown-stack
 
 aarch64-linux-gnu-gcc -O2 -std=gnu11 -static \
   -I"$IREE_SRC/runtime/src" -I"$IREE_B/runtime/src" -I. \

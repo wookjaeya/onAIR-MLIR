@@ -1,0 +1,24 @@
+{
+  "arg_shapes": [
+    [
+      1,
+      8,
+      8,
+      1
+    ]
+  ],
+  "bytes_per_call": 1352.0,
+  "device_bytes_allocated": 13520,
+  "device_bytes_freed": 13520,
+  "device_bytes_peak": 1352,
+  "host_bytes_allocated": 0,
+  "host_bytes_freed": 0,
+  "host_bytes_peak": 0,
+  "iree_runtime_version": "unknown",
+  "iters": 10,
+  "mlir_source": "results/e14_aarch64_qemu/models/conv2d/conv2d_baked.mlir",
+  "model": "conv2d",
+  "runner": "pip iree.runtime (python bindings), one model per process",
+  "supported": true,
+  "vmfb": "results/e14_aarch64_qemu/x86_64/vmfb/conv2d.vmfb"
+}

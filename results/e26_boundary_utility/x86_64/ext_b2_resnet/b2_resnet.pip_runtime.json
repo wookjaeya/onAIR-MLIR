@@ -1,0 +1,25 @@
+{
+ "model": "b2_resnet_mlperf_tiny",
+ "layer": "ext",
+ "runner": "pip_runtime",
+ "driver": "local-sync",
+ "runs": 5,
+ "hal_device_bytes_peak": 309416,
+ "hal_device_bytes_allocated": 1547080,
+ "hal_device_bytes_freed": 1547080,
+ "all_freed_at_measurement": true,
+ "bounded_bytes": 618856,
+ "static_per_call_bytes": 309416,
+ "module_resident_constant_bytes": 309440,
+ "static_transient_bytes": 297088,
+ "static_io_bytes": 12328,
+ "peak_within_bounded": true,
+ "tightness_bounded_over_peak": 2.0001,
+ "branch": "mapped",
+ "out_shape": [
+  1,
+  10
+ ],
+ "out_sum": 1.0,
+ "measurement_note": "the returned buffer must be released before the next call or the peak is inflated by the retained outputs: retaining 4 gave 309,576 (= per_call + 4x40 B) and a false 'refutes_hypothesis'. Peak is read with every device buffer freed (allocated == freed)."
+}

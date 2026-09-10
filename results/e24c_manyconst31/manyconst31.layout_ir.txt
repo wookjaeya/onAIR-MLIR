@@ -1,0 +1,982 @@
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.initializer {
+  %c2048 = arith.constant 2048 : index
+  %c1024 = arith.constant 1024 : index
+  %cst = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_0 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_1 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_2 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_3 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_4 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_5 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_6 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_7 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_8 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_9 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_10 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_11 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_12 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_13 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_14 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_15 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_16 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_17 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_18 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_19 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_20 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_21 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_22 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_23 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_24 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_25 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_26 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_27 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_28 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_29 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024} = dense_resource<__elided__> : tensor<16x16xf32>
+  %cst_30 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c2048} = dense_resource<__elided__> : tensor<16x32xf32>
+  util.global.store %cst, @__constant_tensor_16x16xf32 : !stream.resource<constant>
+  util.global.store %cst_0, @__constant_tensor_16x16xf32_0 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_0__size : index
+  util.global.store %cst_1, @__constant_tensor_16x16xf32_1 : !stream.resource<constant>
+  util.global.store %cst_10, @__constant_tensor_16x16xf32_10 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_10__size : index
+  util.global.store %cst_11, @__constant_tensor_16x16xf32_11 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_11__size : index
+  util.global.store %cst_12, @__constant_tensor_16x16xf32_12 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_12__size : index
+  util.global.store %cst_13, @__constant_tensor_16x16xf32_13 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_13__size : index
+  util.global.store %cst_14, @__constant_tensor_16x16xf32_14 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_14__size : index
+  util.global.store %cst_15, @__constant_tensor_16x16xf32_15 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_15__size : index
+  util.global.store %cst_16, @__constant_tensor_16x16xf32_16 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_16__size : index
+  util.global.store %cst_17, @__constant_tensor_16x16xf32_17 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_17__size : index
+  util.global.store %cst_18, @__constant_tensor_16x16xf32_18 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_18__size : index
+  util.global.store %cst_19, @__constant_tensor_16x16xf32_19 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_19__size : index
+  util.global.store %c1024, @__constant_tensor_16x16xf32_1__size : index
+  util.global.store %cst_2, @__constant_tensor_16x16xf32_2 : !stream.resource<constant>
+  util.global.store %cst_20, @__constant_tensor_16x16xf32_20 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_20__size : index
+  util.global.store %cst_21, @__constant_tensor_16x16xf32_21 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_21__size : index
+  util.global.store %cst_22, @__constant_tensor_16x16xf32_22 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_22__size : index
+  util.global.store %cst_23, @__constant_tensor_16x16xf32_23 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_23__size : index
+  util.global.store %cst_24, @__constant_tensor_16x16xf32_24 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_24__size : index
+  util.global.store %cst_25, @__constant_tensor_16x16xf32_25 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_25__size : index
+  util.global.store %cst_26, @__constant_tensor_16x16xf32_26 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_26__size : index
+  util.global.store %cst_27, @__constant_tensor_16x16xf32_27 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_27__size : index
+  util.global.store %cst_28, @__constant_tensor_16x16xf32_28 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_28__size : index
+  util.global.store %cst_29, @__constant_tensor_16x16xf32_29 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_29__size : index
+  util.global.store %c1024, @__constant_tensor_16x16xf32_2__size : index
+  util.global.store %cst_3, @__constant_tensor_16x16xf32_3 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_3__size : index
+  util.global.store %cst_4, @__constant_tensor_16x16xf32_4 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_4__size : index
+  util.global.store %cst_5, @__constant_tensor_16x16xf32_5 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_5__size : index
+  util.global.store %cst_6, @__constant_tensor_16x16xf32_6 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_6__size : index
+  util.global.store %cst_7, @__constant_tensor_16x16xf32_7 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_7__size : index
+  util.global.store %cst_8, @__constant_tensor_16x16xf32_8 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_8__size : index
+  util.global.store %cst_9, @__constant_tensor_16x16xf32_9 : !stream.resource<constant>
+  util.global.store %c1024, @__constant_tensor_16x16xf32_9__size : index
+  util.global.store %c1024, @__constant_tensor_16x16xf32__size : index
+  util.global.store %cst_30, @__constant_tensor_16x32xf32 : !stream.resource<constant>
+  util.global.store %c2048, @__constant_tensor_16x32xf32__size : index
+  util.return
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @infer(%arg0: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @infer(%input0: tensor<1x16xf32>) -> (%output0: tensor<1x32xf32>)"}} {
+  %c128 = arith.constant 128 : index
+  %c0 = arith.constant 0 : index
+  %c64 = arith.constant 64 : index
+  %c16 = arith.constant 16 : index
+  %c1 = arith.constant 1 : index
+  %__constant_tensor_16x16xf32 = util.global.load immutable @__constant_tensor_16x16xf32 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32__size = util.global.load immutable @__constant_tensor_16x16xf32__size : index
+  %__constant_tensor_16x16xf32_0 = util.global.load immutable @__constant_tensor_16x16xf32_0 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_0__size = util.global.load immutable @__constant_tensor_16x16xf32_0__size : index
+  %__constant_tensor_16x16xf32_1 = util.global.load immutable @__constant_tensor_16x16xf32_1 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_1__size = util.global.load immutable @__constant_tensor_16x16xf32_1__size : index
+  %__constant_tensor_16x16xf32_2 = util.global.load immutable @__constant_tensor_16x16xf32_2 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_2__size = util.global.load immutable @__constant_tensor_16x16xf32_2__size : index
+  %__constant_tensor_16x16xf32_3 = util.global.load immutable @__constant_tensor_16x16xf32_3 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_3__size = util.global.load immutable @__constant_tensor_16x16xf32_3__size : index
+  %__constant_tensor_16x16xf32_4 = util.global.load immutable @__constant_tensor_16x16xf32_4 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_4__size = util.global.load immutable @__constant_tensor_16x16xf32_4__size : index
+  %__constant_tensor_16x16xf32_5 = util.global.load immutable @__constant_tensor_16x16xf32_5 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_5__size = util.global.load immutable @__constant_tensor_16x16xf32_5__size : index
+  %__constant_tensor_16x16xf32_6 = util.global.load immutable @__constant_tensor_16x16xf32_6 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_6__size = util.global.load immutable @__constant_tensor_16x16xf32_6__size : index
+  %__constant_tensor_16x16xf32_7 = util.global.load immutable @__constant_tensor_16x16xf32_7 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_7__size = util.global.load immutable @__constant_tensor_16x16xf32_7__size : index
+  %__constant_tensor_16x16xf32_8 = util.global.load immutable @__constant_tensor_16x16xf32_8 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_8__size = util.global.load immutable @__constant_tensor_16x16xf32_8__size : index
+  %__constant_tensor_16x16xf32_9 = util.global.load immutable @__constant_tensor_16x16xf32_9 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_9__size = util.global.load immutable @__constant_tensor_16x16xf32_9__size : index
+  %__constant_tensor_16x16xf32_10 = util.global.load immutable @__constant_tensor_16x16xf32_10 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_10__size = util.global.load immutable @__constant_tensor_16x16xf32_10__size : index
+  %__constant_tensor_16x16xf32_11 = util.global.load immutable @__constant_tensor_16x16xf32_11 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_11__size = util.global.load immutable @__constant_tensor_16x16xf32_11__size : index
+  %__constant_tensor_16x16xf32_12 = util.global.load immutable @__constant_tensor_16x16xf32_12 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_12__size = util.global.load immutable @__constant_tensor_16x16xf32_12__size : index
+  %__constant_tensor_16x16xf32_13 = util.global.load immutable @__constant_tensor_16x16xf32_13 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_13__size = util.global.load immutable @__constant_tensor_16x16xf32_13__size : index
+  %__constant_tensor_16x16xf32_14 = util.global.load immutable @__constant_tensor_16x16xf32_14 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_14__size = util.global.load immutable @__constant_tensor_16x16xf32_14__size : index
+  %__constant_tensor_16x16xf32_15 = util.global.load immutable @__constant_tensor_16x16xf32_15 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_15__size = util.global.load immutable @__constant_tensor_16x16xf32_15__size : index
+  %__constant_tensor_16x16xf32_16 = util.global.load immutable @__constant_tensor_16x16xf32_16 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_16__size = util.global.load immutable @__constant_tensor_16x16xf32_16__size : index
+  %__constant_tensor_16x16xf32_17 = util.global.load immutable @__constant_tensor_16x16xf32_17 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_17__size = util.global.load immutable @__constant_tensor_16x16xf32_17__size : index
+  %__constant_tensor_16x16xf32_18 = util.global.load immutable @__constant_tensor_16x16xf32_18 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_18__size = util.global.load immutable @__constant_tensor_16x16xf32_18__size : index
+  %__constant_tensor_16x16xf32_19 = util.global.load immutable @__constant_tensor_16x16xf32_19 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_19__size = util.global.load immutable @__constant_tensor_16x16xf32_19__size : index
+  %__constant_tensor_16x16xf32_20 = util.global.load immutable @__constant_tensor_16x16xf32_20 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_20__size = util.global.load immutable @__constant_tensor_16x16xf32_20__size : index
+  %__constant_tensor_16x16xf32_21 = util.global.load immutable @__constant_tensor_16x16xf32_21 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_21__size = util.global.load immutable @__constant_tensor_16x16xf32_21__size : index
+  %__constant_tensor_16x16xf32_22 = util.global.load immutable @__constant_tensor_16x16xf32_22 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_22__size = util.global.load immutable @__constant_tensor_16x16xf32_22__size : index
+  %__constant_tensor_16x16xf32_23 = util.global.load immutable @__constant_tensor_16x16xf32_23 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_23__size = util.global.load immutable @__constant_tensor_16x16xf32_23__size : index
+  %__constant_tensor_16x16xf32_24 = util.global.load immutable @__constant_tensor_16x16xf32_24 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_24__size = util.global.load immutable @__constant_tensor_16x16xf32_24__size : index
+  %__constant_tensor_16x16xf32_25 = util.global.load immutable @__constant_tensor_16x16xf32_25 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_25__size = util.global.load immutable @__constant_tensor_16x16xf32_25__size : index
+  %__constant_tensor_16x16xf32_26 = util.global.load immutable @__constant_tensor_16x16xf32_26 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_26__size = util.global.load immutable @__constant_tensor_16x16xf32_26__size : index
+  %__constant_tensor_16x16xf32_27 = util.global.load immutable @__constant_tensor_16x16xf32_27 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_27__size = util.global.load immutable @__constant_tensor_16x16xf32_27__size : index
+  %__constant_tensor_16x16xf32_28 = util.global.load immutable @__constant_tensor_16x16xf32_28 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_28__size = util.global.load immutable @__constant_tensor_16x16xf32_28__size : index
+  %__constant_tensor_16x16xf32_29 = util.global.load immutable @__constant_tensor_16x16xf32_29 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_29__size = util.global.load immutable @__constant_tensor_16x16xf32_29__size : index
+  %__constant_tensor_16x32xf32 = util.global.load immutable @__constant_tensor_16x32xf32 : !stream.resource<constant>
+  %__constant_tensor_16x32xf32__size = util.global.load immutable @__constant_tensor_16x32xf32__size : index
+  %0 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32 : !stream.resource<constant>{%__constant_tensor_16x16xf32__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32__size}
+  %1 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_0 : !stream.resource<constant>{%__constant_tensor_16x16xf32_0__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_0__size}
+  %2 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_1 : !stream.resource<constant>{%__constant_tensor_16x16xf32_1__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_1__size}
+  %3 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_2 : !stream.resource<constant>{%__constant_tensor_16x16xf32_2__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_2__size}
+  %4 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_3 : !stream.resource<constant>{%__constant_tensor_16x16xf32_3__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_3__size}
+  %5 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_4 : !stream.resource<constant>{%__constant_tensor_16x16xf32_4__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_4__size}
+  %6 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_5 : !stream.resource<constant>{%__constant_tensor_16x16xf32_5__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_5__size}
+  %7 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_6 : !stream.resource<constant>{%__constant_tensor_16x16xf32_6__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_6__size}
+  %8 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_7 : !stream.resource<constant>{%__constant_tensor_16x16xf32_7__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_7__size}
+  %9 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_8 : !stream.resource<constant>{%__constant_tensor_16x16xf32_8__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_8__size}
+  %10 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_9 : !stream.resource<constant>{%__constant_tensor_16x16xf32_9__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_9__size}
+  %11 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_10 : !stream.resource<constant>{%__constant_tensor_16x16xf32_10__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_10__size}
+  %12 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_11 : !stream.resource<constant>{%__constant_tensor_16x16xf32_11__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_11__size}
+  %13 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_12 : !stream.resource<constant>{%__constant_tensor_16x16xf32_12__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_12__size}
+  %14 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_13 : !stream.resource<constant>{%__constant_tensor_16x16xf32_13__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_13__size}
+  %15 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_14 : !stream.resource<constant>{%__constant_tensor_16x16xf32_14__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_14__size}
+  %16 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_15 : !stream.resource<constant>{%__constant_tensor_16x16xf32_15__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_15__size}
+  %17 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_16 : !stream.resource<constant>{%__constant_tensor_16x16xf32_16__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_16__size}
+  %18 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_17 : !stream.resource<constant>{%__constant_tensor_16x16xf32_17__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_17__size}
+  %19 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_18 : !stream.resource<constant>{%__constant_tensor_16x16xf32_18__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_18__size}
+  %20 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_19 : !stream.resource<constant>{%__constant_tensor_16x16xf32_19__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_19__size}
+  %21 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_20 : !stream.resource<constant>{%__constant_tensor_16x16xf32_20__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_20__size}
+  %22 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_21 : !stream.resource<constant>{%__constant_tensor_16x16xf32_21__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_21__size}
+  %23 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_22 : !stream.resource<constant>{%__constant_tensor_16x16xf32_22__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_22__size}
+  %24 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_23 : !stream.resource<constant>{%__constant_tensor_16x16xf32_23__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_23__size}
+  %25 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_24 : !stream.resource<constant>{%__constant_tensor_16x16xf32_24__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_24__size}
+  %26 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_25 : !stream.resource<constant>{%__constant_tensor_16x16xf32_25__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_25__size}
+  %27 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_26 : !stream.resource<constant>{%__constant_tensor_16x16xf32_26__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_26__size}
+  %28 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_27 : !stream.resource<constant>{%__constant_tensor_16x16xf32_27__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_27__size}
+  %29 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_28 : !stream.resource<constant>{%__constant_tensor_16x16xf32_28__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_28__size}
+  %30 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x16xf32_29 : !stream.resource<constant>{%__constant_tensor_16x16xf32_29__size} -> !stream.resource<*>{%__constant_tensor_16x16xf32_29__size}
+  %31 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_16x32xf32 : !stream.resource<constant>{%__constant_tensor_16x32xf32__size} -> !stream.resource<*>{%__constant_tensor_16x32xf32__size}
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg0 : !hal.buffer_view> message("input0") shape([%c1, %c16]) type(%element_type_f32) encoding(%dense_row_major)
+  %32 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<1x16xf32> in !stream.resource<external>{%c64}
+  %33 = stream.async.clone on(#hal.device.affinity<@__device_0>) %32 : !stream.resource<external>{%c64} -> !stream.resource<*>{%c64}
+  %34 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%33[%c0 to %c64 for %c64], %0[%c0 to %__constant_tensor_16x16xf32__size for %__constant_tensor_16x16xf32__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32__size}) -> !stream.resource<*>{%c64}
+  %35 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%34[%c0 to %c64 for %c64], %1[%c0 to %__constant_tensor_16x16xf32_0__size for %__constant_tensor_16x16xf32_0__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_0__size}) -> !stream.resource<*>{%c64}
+  %36 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%35[%c0 to %c64 for %c64], %2[%c0 to %__constant_tensor_16x16xf32_1__size for %__constant_tensor_16x16xf32_1__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_1__size}) -> !stream.resource<*>{%c64}
+  %37 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%36[%c0 to %c64 for %c64], %3[%c0 to %__constant_tensor_16x16xf32_2__size for %__constant_tensor_16x16xf32_2__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_2__size}) -> !stream.resource<*>{%c64}
+  %38 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%37[%c0 to %c64 for %c64], %4[%c0 to %__constant_tensor_16x16xf32_3__size for %__constant_tensor_16x16xf32_3__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_3__size}) -> !stream.resource<*>{%c64}
+  %39 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%38[%c0 to %c64 for %c64], %5[%c0 to %__constant_tensor_16x16xf32_4__size for %__constant_tensor_16x16xf32_4__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_4__size}) -> !stream.resource<*>{%c64}
+  %40 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%39[%c0 to %c64 for %c64], %6[%c0 to %__constant_tensor_16x16xf32_5__size for %__constant_tensor_16x16xf32_5__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_5__size}) -> !stream.resource<*>{%c64}
+  %41 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%40[%c0 to %c64 for %c64], %7[%c0 to %__constant_tensor_16x16xf32_6__size for %__constant_tensor_16x16xf32_6__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_6__size}) -> !stream.resource<*>{%c64}
+  %42 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%41[%c0 to %c64 for %c64], %8[%c0 to %__constant_tensor_16x16xf32_7__size for %__constant_tensor_16x16xf32_7__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_7__size}) -> !stream.resource<*>{%c64}
+  %43 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%42[%c0 to %c64 for %c64], %9[%c0 to %__constant_tensor_16x16xf32_8__size for %__constant_tensor_16x16xf32_8__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_8__size}) -> !stream.resource<*>{%c64}
+  %44 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%43[%c0 to %c64 for %c64], %10[%c0 to %__constant_tensor_16x16xf32_9__size for %__constant_tensor_16x16xf32_9__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_9__size}) -> !stream.resource<*>{%c64}
+  %45 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%44[%c0 to %c64 for %c64], %11[%c0 to %__constant_tensor_16x16xf32_10__size for %__constant_tensor_16x16xf32_10__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_10__size}) -> !stream.resource<*>{%c64}
+  %46 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%45[%c0 to %c64 for %c64], %12[%c0 to %__constant_tensor_16x16xf32_11__size for %__constant_tensor_16x16xf32_11__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_11__size}) -> !stream.resource<*>{%c64}
+  %47 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%46[%c0 to %c64 for %c64], %13[%c0 to %__constant_tensor_16x16xf32_12__size for %__constant_tensor_16x16xf32_12__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_12__size}) -> !stream.resource<*>{%c64}
+  %48 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%47[%c0 to %c64 for %c64], %14[%c0 to %__constant_tensor_16x16xf32_13__size for %__constant_tensor_16x16xf32_13__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_13__size}) -> !stream.resource<*>{%c64}
+  %49 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%48[%c0 to %c64 for %c64], %15[%c0 to %__constant_tensor_16x16xf32_14__size for %__constant_tensor_16x16xf32_14__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_14__size}) -> !stream.resource<*>{%c64}
+  %50 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%49[%c0 to %c64 for %c64], %16[%c0 to %__constant_tensor_16x16xf32_15__size for %__constant_tensor_16x16xf32_15__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_15__size}) -> !stream.resource<*>{%c64}
+  %51 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%50[%c0 to %c64 for %c64], %17[%c0 to %__constant_tensor_16x16xf32_16__size for %__constant_tensor_16x16xf32_16__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_16__size}) -> !stream.resource<*>{%c64}
+  %52 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%51[%c0 to %c64 for %c64], %18[%c0 to %__constant_tensor_16x16xf32_17__size for %__constant_tensor_16x16xf32_17__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_17__size}) -> !stream.resource<*>{%c64}
+  %53 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%52[%c0 to %c64 for %c64], %19[%c0 to %__constant_tensor_16x16xf32_18__size for %__constant_tensor_16x16xf32_18__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_18__size}) -> !stream.resource<*>{%c64}
+  %54 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%53[%c0 to %c64 for %c64], %20[%c0 to %__constant_tensor_16x16xf32_19__size for %__constant_tensor_16x16xf32_19__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_19__size}) -> !stream.resource<*>{%c64}
+  %55 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%54[%c0 to %c64 for %c64], %21[%c0 to %__constant_tensor_16x16xf32_20__size for %__constant_tensor_16x16xf32_20__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_20__size}) -> !stream.resource<*>{%c64}
+  %56 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%55[%c0 to %c64 for %c64], %22[%c0 to %__constant_tensor_16x16xf32_21__size for %__constant_tensor_16x16xf32_21__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_21__size}) -> !stream.resource<*>{%c64}
+  %57 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%56[%c0 to %c64 for %c64], %23[%c0 to %__constant_tensor_16x16xf32_22__size for %__constant_tensor_16x16xf32_22__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_22__size}) -> !stream.resource<*>{%c64}
+  %58 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%57[%c0 to %c64 for %c64], %24[%c0 to %__constant_tensor_16x16xf32_23__size for %__constant_tensor_16x16xf32_23__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_23__size}) -> !stream.resource<*>{%c64}
+  %59 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%58[%c0 to %c64 for %c64], %25[%c0 to %__constant_tensor_16x16xf32_24__size for %__constant_tensor_16x16xf32_24__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_24__size}) -> !stream.resource<*>{%c64}
+  %60 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%59[%c0 to %c64 for %c64], %26[%c0 to %__constant_tensor_16x16xf32_25__size for %__constant_tensor_16x16xf32_25__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_25__size}) -> !stream.resource<*>{%c64}
+  %61 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%60[%c0 to %c64 for %c64], %27[%c0 to %__constant_tensor_16x16xf32_26__size for %__constant_tensor_16x16xf32_26__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_26__size}) -> !stream.resource<*>{%c64}
+  %62 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%61[%c0 to %c64 for %c64], %28[%c0 to %__constant_tensor_16x16xf32_27__size for %__constant_tensor_16x16xf32_27__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_27__size}) -> !stream.resource<*>{%c64}
+  %63 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%62[%c0 to %c64 for %c64], %29[%c0 to %__constant_tensor_16x16xf32_28__size for %__constant_tensor_16x16xf32_28__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_28__size}) -> !stream.resource<*>{%c64}
+  %64 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32(%63[%c0 to %c64 for %c64], %30[%c0 to %__constant_tensor_16x16xf32_29__size for %__constant_tensor_16x16xf32_29__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x16xf32_29__size}) -> !stream.resource<*>{%c64}
+  %65 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_31::@infer_dispatch_31_matmul_1x32x16_f32(%64[%c0 to %c64 for %c64], %31[%c0 to %__constant_tensor_16x32xf32__size for %__constant_tensor_16x32xf32__size]) : (!stream.resource<*>{%c64}, !stream.resource<*>{%__constant_tensor_16x32xf32__size}) -> !stream.resource<*>{%c128}
+  %66 = stream.async.clone on(#hal.device.affinity<@__device_0>) %65 : !stream.resource<*>{%c128} -> !stream.resource<external>{%c128}
+  %67 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %66 : tensor<1x32xf32> in !stream.resource<external>{%c128} -> !hal.buffer_view
+  util.return %67 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @infer(%arg0: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @infer(%input0: tensor<1x16xf32>) -> (%output0: tensor<1x32xf32>)"}} {
+  %c2048 = arith.constant 2048 : index
+  %c1024 = arith.constant 1024 : index
+  %c1 = arith.constant 1 : index
+  %c16 = arith.constant 16 : index
+  %c64 = arith.constant 64 : index
+  %c0 = arith.constant 0 : index
+  %c128 = arith.constant 128 : index
+  %__constant_tensor_16x16xf32__timepoint = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_0 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_1 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_2 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_3 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_4 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_5 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_6 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_7 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_8 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_9 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_10 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_11 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_12 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_13 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_14 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_15 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_16 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_17 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_18 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_19 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_20 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_21 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_22 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_23 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_24 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_25 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_26 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_27 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_28 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_29 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32__timepoint_30 = util.global.load immutable @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  %__constant_tensor_16x16xf32 = util.global.load immutable @__constant_tensor_16x16xf32 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_0 = util.global.load immutable @__constant_tensor_16x16xf32_0 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_1 = util.global.load immutable @__constant_tensor_16x16xf32_1 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_2 = util.global.load immutable @__constant_tensor_16x16xf32_2 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_3 = util.global.load immutable @__constant_tensor_16x16xf32_3 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_4 = util.global.load immutable @__constant_tensor_16x16xf32_4 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_5 = util.global.load immutable @__constant_tensor_16x16xf32_5 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_6 = util.global.load immutable @__constant_tensor_16x16xf32_6 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_7 = util.global.load immutable @__constant_tensor_16x16xf32_7 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_8 = util.global.load immutable @__constant_tensor_16x16xf32_8 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_9 = util.global.load immutable @__constant_tensor_16x16xf32_9 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_10 = util.global.load immutable @__constant_tensor_16x16xf32_10 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_11 = util.global.load immutable @__constant_tensor_16x16xf32_11 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_12 = util.global.load immutable @__constant_tensor_16x16xf32_12 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_13 = util.global.load immutable @__constant_tensor_16x16xf32_13 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_14 = util.global.load immutable @__constant_tensor_16x16xf32_14 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_15 = util.global.load immutable @__constant_tensor_16x16xf32_15 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_16 = util.global.load immutable @__constant_tensor_16x16xf32_16 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_17 = util.global.load immutable @__constant_tensor_16x16xf32_17 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_18 = util.global.load immutable @__constant_tensor_16x16xf32_18 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_19 = util.global.load immutable @__constant_tensor_16x16xf32_19 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_20 = util.global.load immutable @__constant_tensor_16x16xf32_20 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_21 = util.global.load immutable @__constant_tensor_16x16xf32_21 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_22 = util.global.load immutable @__constant_tensor_16x16xf32_22 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_23 = util.global.load immutable @__constant_tensor_16x16xf32_23 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_24 = util.global.load immutable @__constant_tensor_16x16xf32_24 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_25 = util.global.load immutable @__constant_tensor_16x16xf32_25 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_26 = util.global.load immutable @__constant_tensor_16x16xf32_26 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_27 = util.global.load immutable @__constant_tensor_16x16xf32_27 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_28 = util.global.load immutable @__constant_tensor_16x16xf32_28 : !stream.resource<constant>
+  %__constant_tensor_16x16xf32_29 = util.global.load immutable @__constant_tensor_16x16xf32_29 : !stream.resource<constant>
+  %__constant_tensor_16x32xf32 = util.global.load immutable @__constant_tensor_16x32xf32 : !stream.resource<constant>
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg0 : !hal.buffer_view> message("input0") shape([%c1, %c16]) type(%element_type_f32) encoding(%dense_row_major)
+  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<1x16xf32> in !stream.resource<external>{%c64}
+  %1 = stream.timepoint.join max(%__constant_tensor_16x16xf32__timepoint_0, %__constant_tensor_16x16xf32__timepoint_30, %__constant_tensor_16x16xf32__timepoint_19, %__constant_tensor_16x16xf32__timepoint_8, %__constant_tensor_16x16xf32__timepoint_7, %__constant_tensor_16x16xf32__timepoint_6, %__constant_tensor_16x16xf32__timepoint_5, %__constant_tensor_16x16xf32__timepoint_4, %__constant_tensor_16x16xf32__timepoint_3, %__constant_tensor_16x16xf32__timepoint_2, %__constant_tensor_16x16xf32__timepoint_1, %__constant_tensor_16x16xf32__timepoint_29, %__constant_tensor_16x16xf32__timepoint_28, %__constant_tensor_16x16xf32__timepoint_27, %__constant_tensor_16x16xf32__timepoint_26, %__constant_tensor_16x16xf32__timepoint_25, %__constant_tensor_16x16xf32__timepoint_24, %__constant_tensor_16x16xf32__timepoint_23, %__constant_tensor_16x16xf32__timepoint_22, %__constant_tensor_16x16xf32__timepoint_21, %__constant_tensor_16x16xf32__timepoint_20, %__constant_tensor_16x16xf32__timepoint_18, %__constant_tensor_16x16xf32__timepoint_17, %__constant_tensor_16x16xf32__timepoint_16, %__constant_tensor_16x16xf32__timepoint_15, %__constant_tensor_16x16xf32__timepoint_14, %__constant_tensor_16x16xf32__timepoint_13, %__constant_tensor_16x16xf32__timepoint_12, %__constant_tensor_16x16xf32__timepoint_11, %__constant_tensor_16x16xf32__timepoint_10, %__constant_tensor_16x16xf32__timepoint_9, %__constant_tensor_16x16xf32__timepoint) => !stream.timepoint
+  %c0_31 = arith.constant 0 : index
+  %result, %result_timepoint = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<external>{%c128} => !stream.timepoint
+  %c0_32 = arith.constant 0 : index
+  %c64_33 = arith.constant 64 : index
+  %c64_34 = arith.constant 64 : index
+  %c64_35 = arith.constant 64 : index
+  %c64_36 = arith.constant 64 : index
+  %c64_37 = arith.constant 64 : index
+  %c64_38 = arith.constant 64 : index
+  %c64_39 = arith.constant 64 : index
+  %c64_40 = arith.constant 64 : index
+  %c64_41 = arith.constant 64 : index
+  %c64_42 = arith.constant 64 : index
+  %c64_43 = arith.constant 64 : index
+  %c64_44 = arith.constant 64 : index
+  %c64_45 = arith.constant 64 : index
+  %c64_46 = arith.constant 64 : index
+  %c64_47 = arith.constant 64 : index
+  %c64_48 = arith.constant 64 : index
+  %c128_49 = arith.constant 128 : index
+  %c128_50 = arith.constant 128 : index
+  %result_51, %result_timepoint_52 = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%c128_50} => !stream.timepoint
+  %2 = stream.timepoint.join max(%1, %result_timepoint, %result_timepoint_52) => !stream.timepoint
+  %3 = stream.cmd.execute on(#hal.device.affinity<@__device_0>) await(%2) => with(%0 as %arg1: !stream.resource<external>{%c64}, %__constant_tensor_16x16xf32 as %arg2: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_0 as %arg3: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_1 as %arg4: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_2 as %arg5: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_3 as %arg6: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_4 as %arg7: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_5 as %arg8: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_6 as %arg9: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_7 as %arg10: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_8 as %arg11: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_9 as %arg12: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_10 as %arg13: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_11 as %arg14: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_12 as %arg15: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_13 as %arg16: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_14 as %arg17: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_15 as %arg18: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_16 as %arg19: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_17 as %arg20: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_18 as %arg21: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_19 as %arg22: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_20 as %arg23: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_21 as %arg24: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_22 as %arg25: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_23 as %arg26: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_24 as %arg27: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_25 as %arg28: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_26 as %arg29: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_27 as %arg30: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_28 as %arg31: !stream.resource<constant>{%c1024}, %__constant_tensor_16x16xf32_29 as %arg32: !stream.resource<constant>{%c1024}, %__constant_tensor_16x32xf32 as %arg33: !stream.resource<constant>{%c2048}, %result as %arg34: !stream.resource<external>{%c128}, %result_51 as %arg35: !stream.resource<transient>{%c128_50}) {
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg1[%c0 for %c64] : !stream.resource<external>{%c64},
+      ro %arg2[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg3[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_34 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_34 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg4[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg5[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_35 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_35 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg6[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg7[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_36 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_36 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg8[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg9[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_37 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_37 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg10[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg11[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_38 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_38 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg12[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg13[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_39 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_39 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg14[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg15[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_40 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_40 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg16[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg17[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_41 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_41 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg18[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg19[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_42 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_42 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg20[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg21[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_43 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_43 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg22[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg23[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_44 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_44 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg24[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg25[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_45 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_45 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg26[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg27[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_46 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_46 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg28[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg29[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_47 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_47 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg30[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg31[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c64_48 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_1x16x16_f32 {
+      ro %arg35[%c64_48 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg32[%c0 for %c1024] : !stream.resource<constant>{%c1024},
+      wo %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50}
+    }
+    stream.cmd.dispatch @infer_dispatch_31::@infer_dispatch_31_matmul_1x32x16_f32 {
+      ro %arg35[%c0_32 for %c64] : !stream.resource<transient>{%c128_50},
+      ro %arg33[%c0 for %c2048] : !stream.resource<constant>{%c2048},
+      wo %arg34[%c0_31 for %c128] : !stream.resource<external>{%c128}
+    }
+  } => !stream.timepoint
+  %4 = stream.resource.dealloca on(#hal.device.affinity<@__device_0>) await(%3) => %result_51 : !stream.resource<transient>{%c128_50} => !stream.timepoint
+  %5 = stream.timepoint.join max(%4, %3) => !stream.timepoint
+  %6 = stream.timepoint.await %5 => %result : !stream.resource<external>{%c128}
+  %7 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %6 : tensor<1x32xf32> in !stream.resource<external>{%c128} -> !hal.buffer_view
+  util.return %7 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.initializer {
+  %0 = stream.timepoint.immediate => !stream.timepoint
+  %c2048 = arith.constant 2048 : index
+  %c1024 = arith.constant 1024 : index
+  %1 = stream.timepoint.immediate => !stream.timepoint
+  %buffer_cst = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %c0 = arith.constant 0 : index
+  %did_map, %result = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %c0_i64 = arith.constant 0 : i64
+  %2:2 = scf.if %did_map -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %1, %result : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%1) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %3 = stream.resource.subview %2#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_0 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_1, %result_2 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_0[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %4:2 = scf.if %did_map_1 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %2#0, %result_2 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_0[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%2#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %5 = stream.resource.subview %4#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_3 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_4, %result_5 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_3[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %6:2 = scf.if %did_map_4 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %4#0, %result_5 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_3[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%4#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %7 = stream.resource.subview %6#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_6 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_7, %result_8 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_6[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %8:2 = scf.if %did_map_7 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %6#0, %result_8 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_6[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%6#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %9 = stream.resource.subview %8#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_9 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_10, %result_11 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_9[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %10:2 = scf.if %did_map_10 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %8#0, %result_11 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_9[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%8#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %11 = stream.resource.subview %10#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_12 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_13, %result_14 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_12[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %12:2 = scf.if %did_map_13 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %10#0, %result_14 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_12[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%10#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %13 = stream.resource.subview %12#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_15 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_16, %result_17 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_15[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %14:2 = scf.if %did_map_16 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %12#0, %result_17 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_15[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%12#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %15 = stream.resource.subview %14#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_18 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_19, %result_20 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_18[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %16:2 = scf.if %did_map_19 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %14#0, %result_20 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_18[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%14#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %17 = stream.resource.subview %16#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_21 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_22, %result_23 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_21[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %18:2 = scf.if %did_map_22 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %16#0, %result_23 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_21[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%16#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %19 = stream.resource.subview %18#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_24 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_25, %result_26 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_24[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %20:2 = scf.if %did_map_25 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %18#0, %result_26 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_24[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%18#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %21 = stream.resource.subview %20#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_27 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_28, %result_29 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_27[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %22:2 = scf.if %did_map_28 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %20#0, %result_29 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_27[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%20#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %23 = stream.resource.subview %22#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_30 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_31, %result_32 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_30[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %24:2 = scf.if %did_map_31 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %22#0, %result_32 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_30[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%22#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %25 = stream.resource.subview %24#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_33 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_34, %result_35 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_33[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %26:2 = scf.if %did_map_34 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %24#0, %result_35 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_33[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%24#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %27 = stream.resource.subview %26#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_36 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_37, %result_38 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_36[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %28:2 = scf.if %did_map_37 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %26#0, %result_38 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_36[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%26#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %29 = stream.resource.subview %28#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_39 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_40, %result_41 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_39[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %30:2 = scf.if %did_map_40 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %28#0, %result_41 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_39[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%28#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %31 = stream.resource.subview %30#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_42 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_43, %result_44 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_42[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %32:2 = scf.if %did_map_43 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %30#0, %result_44 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_42[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%30#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %33 = stream.resource.subview %32#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_45 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_46, %result_47 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_45[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %34:2 = scf.if %did_map_46 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %32#0, %result_47 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_45[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%32#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %35 = stream.resource.subview %34#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_48 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_49, %result_50 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_48[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %36:2 = scf.if %did_map_49 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %34#0, %result_50 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_48[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%34#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %37 = stream.resource.subview %36#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_51 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_52, %result_53 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_51[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %38:2 = scf.if %did_map_52 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %36#0, %result_53 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_51[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%36#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %39 = stream.resource.subview %38#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_54 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_55, %result_56 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_54[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %40:2 = scf.if %did_map_55 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %38#0, %result_56 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_54[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%38#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %41 = stream.resource.subview %40#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_57 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_58, %result_59 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_57[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %42:2 = scf.if %did_map_58 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %40#0, %result_59 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_57[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%40#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %43 = stream.resource.subview %42#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_60 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_61, %result_62 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_60[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %44:2 = scf.if %did_map_61 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %42#0, %result_62 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_60[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%42#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %45 = stream.resource.subview %44#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_63 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_64, %result_65 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_63[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %46:2 = scf.if %did_map_64 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %44#0, %result_65 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_63[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%44#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %47 = stream.resource.subview %46#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_66 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_67, %result_68 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_66[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %48:2 = scf.if %did_map_67 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %46#0, %result_68 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_66[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%46#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %49 = stream.resource.subview %48#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_69 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_70, %result_71 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_69[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %50:2 = scf.if %did_map_70 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %48#0, %result_71 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_69[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%48#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %51 = stream.resource.subview %50#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_72 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_73, %result_74 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_72[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %52:2 = scf.if %did_map_73 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %50#0, %result_74 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_72[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%50#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %53 = stream.resource.subview %52#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_75 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_76, %result_77 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_75[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %54:2 = scf.if %did_map_76 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %52#0, %result_77 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_75[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%52#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %55 = stream.resource.subview %54#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_78 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_79, %result_80 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_78[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %56:2 = scf.if %did_map_79 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %54#0, %result_80 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_78[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%54#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %57 = stream.resource.subview %56#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_81 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_82, %result_83 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_81[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %58:2 = scf.if %did_map_82 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %56#0, %result_83 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_81[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%56#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %59 = stream.resource.subview %58#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_84 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_85, %result_86 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_84[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %60:2 = scf.if %did_map_85 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %58#0, %result_86 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_84[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%58#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %61 = stream.resource.subview %60#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_87 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<1024xi8, [
+    dense_resource<__elided__> : tensor<16x16xf32>,
+]>
+  %did_map_88, %result_89 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_87[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c1024}
+  %62:2 = scf.if %did_map_88 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %60#0, %result_89 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c1024}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_87[%c0 for %c1024] : !util.buffer{%c1024} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%60#0) => %file[%c0_i64], %69[%c0], %c1024 : !stream.file -> !stream.resource<constant>{%c1024} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %63 = stream.resource.subview %62#1[%c0] : !stream.resource<constant>{%c1024} -> !stream.resource<constant>{%c1024}
+  %buffer_cst_90 = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<2048xi8, [
+    dense_resource<__elided__> : tensor<16x32xf32>,
+]>
+  %did_map_91, %result_92 = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst_90[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c2048}
+  %64:2 = scf.if %did_map_91 -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %62#0, %result_92 : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %69 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c2048}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst_90[%c0 for %c2048] : !util.buffer{%c2048} -> !stream.file
+    %70 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%62#0) => %file[%c0_i64], %69[%c0], %c2048 : !stream.file -> !stream.resource<constant>{%c2048} => !stream.timepoint
+    scf.yield %70, %69 : !stream.timepoint, !stream.resource<constant>
+  }
+  %65 = stream.resource.subview %64#1[%c0] : !stream.resource<constant>{%c2048} -> !stream.resource<constant>{%c2048}
+  %66 = stream.cmd.execute once on(#hal.device.affinity<@__device_0>) with() {
+  } => !stream.timepoint
+  %67 = stream.timepoint.join max(%64#0, %66) => !stream.timepoint
+  %68:32 = stream.timepoint.await sync %67 => %3, %5, %7, %25, %27, %29, %31, %33, %35, %37, %39, %41, %43, %45, %47, %49, %51, %53, %55, %57, %59, %61, %63, %65, %9, %11, %13, %15, %17, %19, %21, %23 : !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c2048}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}, !stream.resource<constant>{%c1024}
+  util.global.store %68#0, @__constant_tensor_16x16xf32 : !stream.resource<constant>
+  util.global.store %68#1, @__constant_tensor_16x16xf32_0 : !stream.resource<constant>
+  util.global.store %68#2, @__constant_tensor_16x16xf32_1 : !stream.resource<constant>
+  util.global.store %68#3, @__constant_tensor_16x16xf32_10 : !stream.resource<constant>
+  util.global.store %68#4, @__constant_tensor_16x16xf32_11 : !stream.resource<constant>
+  util.global.store %68#5, @__constant_tensor_16x16xf32_12 : !stream.resource<constant>
+  util.global.store %68#6, @__constant_tensor_16x16xf32_13 : !stream.resource<constant>
+  util.global.store %68#7, @__constant_tensor_16x16xf32_14 : !stream.resource<constant>
+  util.global.store %68#8, @__constant_tensor_16x16xf32_15 : !stream.resource<constant>
+  util.global.store %68#9, @__constant_tensor_16x16xf32_16 : !stream.resource<constant>
+  util.global.store %68#10, @__constant_tensor_16x16xf32_17 : !stream.resource<constant>
+  util.global.store %68#11, @__constant_tensor_16x16xf32_18 : !stream.resource<constant>
+  util.global.store %68#12, @__constant_tensor_16x16xf32_19 : !stream.resource<constant>
+  util.global.store %68#24, @__constant_tensor_16x16xf32_2 : !stream.resource<constant>
+  util.global.store %68#13, @__constant_tensor_16x16xf32_20 : !stream.resource<constant>
+  util.global.store %68#14, @__constant_tensor_16x16xf32_21 : !stream.resource<constant>
+  util.global.store %68#15, @__constant_tensor_16x16xf32_22 : !stream.resource<constant>
+  util.global.store %68#16, @__constant_tensor_16x16xf32_23 : !stream.resource<constant>
+  util.global.store %68#17, @__constant_tensor_16x16xf32_24 : !stream.resource<constant>
+  util.global.store %68#18, @__constant_tensor_16x16xf32_25 : !stream.resource<constant>
+  util.global.store %68#19, @__constant_tensor_16x16xf32_26 : !stream.resource<constant>
+  util.global.store %68#20, @__constant_tensor_16x16xf32_27 : !stream.resource<constant>
+  util.global.store %68#21, @__constant_tensor_16x16xf32_28 : !stream.resource<constant>
+  util.global.store %68#22, @__constant_tensor_16x16xf32_29 : !stream.resource<constant>
+  util.global.store %68#25, @__constant_tensor_16x16xf32_3 : !stream.resource<constant>
+  util.global.store %68#26, @__constant_tensor_16x16xf32_4 : !stream.resource<constant>
+  util.global.store %68#27, @__constant_tensor_16x16xf32_5 : !stream.resource<constant>
+  util.global.store %68#28, @__constant_tensor_16x16xf32_6 : !stream.resource<constant>
+  util.global.store %68#29, @__constant_tensor_16x16xf32_7 : !stream.resource<constant>
+  util.global.store %68#30, @__constant_tensor_16x16xf32_8 : !stream.resource<constant>
+  util.global.store %68#31, @__constant_tensor_16x16xf32_9 : !stream.resource<constant>
+  util.global.store %0, @__constant_tensor_16x16xf32__timepoint : !stream.timepoint
+  util.global.store %68#23, @__constant_tensor_16x32xf32 : !stream.resource<constant>
+  util.return
+}
+

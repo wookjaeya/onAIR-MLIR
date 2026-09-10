@@ -81,7 +81,19 @@ _CONT = r"(?:(?!\n\s*(?:%[\w.]+[,\s]|\}))[\s\S])*?"
 # which forces bound_method to UNKNOWN_BOUND. This is a whitelist, not a
 # parser: it does not understand what an unrecognized op does, only that this
 # tool cannot size it.
+# E26c/D49: `resource.subview` joins this set. It is structurally
+# non-allocating in the same sense as `tensor.export` -- it produces a VIEW of
+# an operand resource that some other op already allocated (verified on a
+# stock two-output model: ONE `stream.resource.alloca` of 128 B followed by two
+# subviews of 32 B @0 and 16 B @64 of that same slab). Leaving it out was not a
+# safe default but a type (B) over-rejection: every multi-output model IREE
+# packs into a single output slab came out UNKNOWN_BOUND even though the
+# parser had already sized the one real allocation soundly. Unlike the other
+# two non-allocating entries, this one is CHECKED rather than trusted: the
+# scanner below refuses unless offset + result_size <= source_size, so a
+# subview that claims to view bytes its source does not have is unresolved.
 _KNOWN_ENTRY_OPS = {"resource.alloca", "resource.pack", "resource.dealloca",
+                    "resource.subview",
                     "tensor.import", "tensor.export"}
 _OP_RE = re.compile(r"stream\.(resource|tensor)\.([A-Za-z_]+)")
 
@@ -136,6 +148,22 @@ def parse_alloc_ir(ir, entry="infer"):
         for s2 in re.finditer(r"\[\s*\d+\s*,\s*\d+\s*\]\s*=\s*(%[\w#]+)", mm.group(1)):
             v, ok = size_of(s2.group(1))
             (result["transient_slices"] if ok else result["unresolved"]).append(v if ok else s2.group(1))
+
+    # stream.resource.subview: allocates nothing, but its containment claim is
+    # verified rather than assumed (E26c/D49). Any subview whose three index
+    # operands are not resolvable constants, or whose window falls outside its
+    # source, is unresolved -- the parser then cannot state a bound.
+    for mm in re.finditer(r"stream\.resource\.subview\s+(%[\w#]+)\[(%[\w#]+)\]" + _CONT
+                          + r"\{(%[\w#]+)\}\s*->" + _CONT + r"\{(%[\w#]+)\}", body):
+        src_sym, off_sym, src_size_sym, res_size_sym = mm.groups()
+        off, ok_off = size_of(off_sym)
+        src_size, ok_src = size_of(src_size_sym)
+        res_size, ok_res = size_of(res_size_sym)
+        if not (ok_off and ok_src and ok_res):
+            result["unresolved"].append("subview_size:%s" % src_sym)
+        elif off + res_size > src_size:
+            result["unresolved"].append(
+                "subview_out_of_range:%s[%d for %d] of %d" % (src_sym, off, res_size, src_size))
 
     # fail-closed: any resource-producing op in the entry body that isn't one
     # of the ops this parser understands is an unsized allocation, not a
@@ -210,17 +238,55 @@ def artifact_rodata_segments(vmfb):
     iree-dump-module stores a small constant pool (e.g. 2176 B) as `embedded`
     rather than `external`, so data_segments also includes the UNLABELED
     embedded segments; the labeled embedded strings (`hal.device.id`, ...) are
-    excluded. external_segments keeps the pre-Stage-1 meaning."""
-    r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    excluded. external_segments keeps the pre-Stage-1 meaning.
+
+    D25 (E23): returns (None, None) -- NOT ([], []) -- when iree-dump-module is
+    not runnable at all, so a caller can tell "the independent observation was
+    not made" from "it was made and found no segments". Previously the missing
+    binary raised FileNotFoundError out of here and killed the caller."""
+    try:
+        r = subprocess.run(["iree-dump-module", vmfb], capture_output=True, text=True)
+    except OSError:
+        return None, None
     external, data = [], []
     for m in re.finditer(r"\.rodata\[\s*\d+\]\s+(external|embedded)\s+(\d+) bytes([^\n]*)", r.stdout):
         kind, n, rest = m.group(1), int(m.group(2)), m.group(3)
         if kind == "external":
             external.append(n)
             data.append(n)
-        elif "`" not in rest:
+        elif not _is_string_label(rest, n):
             data.append(n)
     return external, data
+
+
+_RODATA_LABEL = re.compile(r"`([^`]*)`")
+
+
+def _is_string_label(rest, nbytes):
+    """Is this embedded .rodata segment a metadata STRING (a name IREE stores,
+    e.g. `hal.device.id`) rather than constant DATA?
+
+    D48 (E26b): the test used to be `"`" in rest` -- any backticks at all meant
+    "not data". iree-dump-module renders an embedded segment's content between
+    backticks when it looks printable, so a genuine 2,816-byte f32 constant block
+    whose first byte is NUL prints as an EMPTY pair of backticks and was dropped
+    from the observed constant total. The contract's own constants figure then
+    contradicted the observation, and N1/D28's constants gate (correctly, given
+    what it was told) refused the model unless --allow-unconfirmed-constants was
+    passed -- which marks the contract `overridden` and makes the header
+    generator refuse it in turn (E24b/D39). An honest f32 model could not produce
+    a deployable header.
+
+    The discriminator is the label's own length: IREE prints the whole string, so
+    for a real string segment len(label) == nbytes. Checked against every
+    backticked .rodata line in this repository's stored artifacts plus the probe
+    models -- 137 lines, 136 satisfy it, and the single exception is exactly the
+    mis-classified data segment. A segment with no backticks at all is data, as
+    before. Anything ambiguous stays DATA, which is the conservative direction
+    here: over-counting observed constants makes the cross-check refuse (visible),
+    under-counting makes it silently accept a wrong figure."""
+    m = _RODATA_LABEL.search(rest)
+    return bool(m) and len(m.group(1)) == nbytes
 
 
 def source_baked_f32_constant_bytes(mlir_path):

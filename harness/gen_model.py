@@ -57,7 +57,16 @@ def main():
         "timing": {"boundary": None, "execution_bound_us": None,
                    "bound_method": None, "sample_count": None,
                    "platform_timing_grade": None},
+        # N5 (external review v0.18-followup, E24): `bytes` is what
+        # plugins/compiled_learner/artifact_binding.py checks FIRST (size
+        # precheck before the hash, mirroring the C path), and E23 correctly
+        # made its absence a refusal. This generator never wrote it, so every
+        # runtime directory it produced -- including the one harness/sweep.py
+        # regenerates on each step -- was refused by the plugin's own gate.
+        # Fixing the shipped fixture alone would have been volatile: sweep.py
+        # rewrites that directory from here.
         "artifact": {"file": "model.vmfb",
+                     "bytes": len(blob),
                      "sha256": hashlib.sha256(blob).hexdigest()},
     }
     (out / "contract.json").write_text(json.dumps(contract, indent=2))

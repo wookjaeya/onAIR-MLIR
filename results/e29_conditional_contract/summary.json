@@ -1,0 +1,236 @@
+{
+ "align_sweep": {
+  "D1_dichotomy_holds": true,
+  "D2_alignment_is_determinant": true,
+  "arms": {
+   "OTHER": 0,
+   "copy": 32,
+   "map": 32
+  },
+  "cells": 64,
+  "deltas": [
+   0,
+   8,
+   16,
+   32,
+   64,
+   128,
+   136,
+   192
+  ],
+  "graded_cells": 64,
+  "models": [
+   "mlp16k",
+   "conv2d",
+   "multibranch",
+   "canonical",
+   "multiout",
+   "manyconst31",
+   "b2_resnet",
+   "b3_deepae"
+  ]
+ },
+ "cfs_x86_64": {
+  "conditional_map_admit": {
+   "admission_verdict": "ADMIT_CONDITIONAL_MAP",
+   "end_hal_peak": 6208,
+   "inferences": 5,
+   "log": "cfs/b3_deepae_conditional_map_ADMIT.log",
+   "map_branch": {
+    "admission_mode": "conditional_map",
+    "app": "AI_LEARNER",
+    "arm": "map",
+    "contract_const_bytes": 1063424,
+    "contract_per_call_bytes": 6208,
+    "hal_peak_after_append": 0,
+    "model": "b3_deepae",
+    "module_ptr_mod64": 0,
+    "stage": "map_branch"
+   },
+   "refused": false
+  },
+  "conditional_map_precondition_failed": {
+   "admission_verdict": "ADMIT_CONDITIONAL_MAP",
+   "end_hal_peak": null,
+   "inferences": 0,
+   "log": "cfs/b3_deepae_conditional_map_PRECONDITION_FAILED.log",
+   "map_branch": {
+    "admission_mode": "conditional_map",
+    "app": "AI_LEARNER",
+    "arm": "copy",
+    "contract_const_bytes": 1063424,
+    "contract_per_call_bytes": 6208,
+    "hal_peak_after_append": 1063424,
+    "model": "b3_deepae",
+    "module_ptr_mod64": 16,
+    "stage": "map_branch"
+   },
+   "refused": true
+  },
+  "percall_budget_no_optin": {
+   "admission_verdict": "NOT_ADMITTED",
+   "end_hal_peak": null,
+   "inferences": 0,
+   "log": "cfs/b3_deepae_percall_budget_no_optin_DENY.log",
+   "map_branch": null,
+   "refused": false
+  },
+  "unconditional_B": {
+   "admission_verdict": "ADMIT",
+   "end_hal_peak": 6208,
+   "inferences": 5,
+   "log": "cfs/b3_deepae_unconditional_B.log",
+   "map_branch": {
+    "admission_mode": "unconditional",
+    "app": "AI_LEARNER",
+    "arm": "map",
+    "contract_const_bytes": 1063424,
+    "contract_per_call_bytes": 6208,
+    "hal_peak_after_append": 0,
+    "model": "b3_deepae",
+    "module_ptr_mod64": 0,
+    "stage": "map_branch"
+   },
+   "refused": false
+  }
+ },
+ "determinant": {
+  "answer": "64-byte alignment of the pointer the module image is loaded from",
+  "iree_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25 (3.11.0rc20260316)",
+  "source": "runtime/src/iree/hal/buffer_heap.c iree_hal_heap_buffer_wrap() returns OUT_OF_RANGE unless the imported span has IREE_HAL_HEAP_BUFFER_ALIGNMENT alignment; that constant is 64 in runtime/src/iree/base/config.h"
+ },
+ "experiment": "E29",
+ "invariants_observed": {
+  "copy_arm_peak_equals_bounded": true,
+  "map_arm_peak_equals_per_call": true,
+  "models": 7
+ },
+ "native_x86_64": [
+  {
+   "aligned_arm": "map",
+   "aligned_end_peak": 309416,
+   "aligned_ptr_mod64": 0,
+   "bounded": 618856,
+   "constants": 309440,
+   "copy_peak_equals_bounded": true,
+   "malloc_arm": "copy",
+   "malloc_end_peak": 618856,
+   "malloc_ptr_mod64": 16,
+   "map_peak_equals_per_call": true,
+   "model": "b2_resnet",
+   "per_call": 309416,
+   "tightness_vs_bounded_aligned": 2.0001,
+   "tightness_vs_bounded_malloc": 1.0,
+   "tightness_vs_per_call_aligned": 1.0
+  },
+  {
+   "aligned_arm": "map",
+   "aligned_end_peak": 6208,
+   "aligned_ptr_mod64": 0,
+   "bounded": 1069632,
+   "constants": 1063424,
+   "copy_peak_equals_bounded": true,
+   "malloc_arm": "copy",
+   "malloc_end_peak": 1069632,
+   "malloc_ptr_mod64": 16,
+   "map_peak_equals_per_call": true,
+   "model": "b3_deepae",
+   "per_call": 6208,
+   "tightness_vs_bounded_aligned": 172.299,
+   "tightness_vs_bounded_malloc": 1.0,
+   "tightness_vs_per_call_aligned": 1.0
+  },
+  {
+   "aligned_arm": "map",
+   "aligned_end_peak": 65580,
+   "aligned_ptr_mod64": 0,
+   "bounded": 786476,
+   "constants": 720896,
+   "copy_peak_equals_bounded": true,
+   "malloc_arm": "copy",
+   "malloc_end_peak": 786476,
+   "malloc_ptr_mod64": 16,
+   "map_peak_equals_per_call": true,
+   "model": "canonical",
+   "per_call": 65580,
+   "tightness_vs_bounded_aligned": 11.9926,
+   "tightness_vs_bounded_malloc": 1.0,
+   "tightness_vs_per_call_aligned": 1.0
+  },
+  {
+   "aligned_arm": "map",
+   "aligned_end_peak": 1352,
+   "aligned_ptr_mod64": 0,
+   "bounded": 3528,
+   "constants": 2176,
+   "copy_peak_equals_bounded": true,
+   "malloc_arm": "copy",
+   "malloc_end_peak": 3528,
+   "malloc_ptr_mod64": 32,
+   "map_peak_equals_per_call": true,
+   "model": "conv2d",
+   "per_call": 1352,
+   "tightness_vs_bounded_aligned": 2.6095,
+   "tightness_vs_bounded_malloc": 1.0,
+   "tightness_vs_per_call_aligned": 1.0
+  },
+  {
+   "aligned_arm": "map",
+   "aligned_end_peak": 320,
+   "aligned_ptr_mod64": 0,
+   "bounded": 34112,
+   "constants": 33792,
+   "copy_peak_equals_bounded": true,
+   "malloc_arm": "copy",
+   "malloc_end_peak": 34112,
+   "malloc_ptr_mod64": 32,
+   "map_peak_equals_per_call": true,
+   "model": "manyconst31",
+   "per_call": 320,
+   "tightness_vs_bounded_aligned": 106.6,
+   "tightness_vs_bounded_malloc": 1.0,
+   "tightness_vs_per_call_aligned": 1.0
+  },
+  {
+   "aligned_arm": "map",
+   "aligned_end_peak": 65580,
+   "aligned_ptr_mod64": 0,
+   "bounded": 786476,
+   "constants": 720896,
+   "copy_peak_equals_bounded": true,
+   "malloc_arm": "copy",
+   "malloc_end_peak": 786476,
+   "malloc_ptr_mod64": 16,
+   "map_peak_equals_per_call": true,
+   "model": "mlp16k",
+   "per_call": 65580,
+   "tightness_vs_bounded_aligned": 11.9926,
+   "tightness_vs_bounded_malloc": 1.0,
+   "tightness_vs_per_call_aligned": 1.0
+  },
+  {
+   "aligned_arm": "map",
+   "aligned_end_peak": 840,
+   "aligned_ptr_mod64": 0,
+   "bounded": 38216,
+   "constants": 37376,
+   "copy_peak_equals_bounded": true,
+   "malloc_arm": "copy",
+   "malloc_end_peak": 38216,
+   "malloc_ptr_mod64": 32,
+   "map_peak_equals_per_call": true,
+   "model": "multibranch",
+   "per_call": 840,
+   "tightness_vs_bounded_aligned": 45.4952,
+   "tightness_vs_bounded_malloc": 1.0,
+   "tightness_vs_per_call_aligned": 1.0
+  }
+ ],
+ "not_claimed": [
+  "that bounded_bytes was ever unsound -- it is the max over both arms and stays a valid upper bound either way (E26 Q1 unchanged)",
+  "that alignment is the only possible cause of a copy arm in every IREE version or driver; it is the cause measured here, and the app verifies the arm rather than assuming it",
+  "any latency or timing claim (platform_check FUNCTIONAL_ONLY)",
+  "AArch64 guest cFS cells -- not run in this session"
+ ],
+ "question": "which deployment property selects the stream.resource.try_map arm, and can a deployment control it"
+}

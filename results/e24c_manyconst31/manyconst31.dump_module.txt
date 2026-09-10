@@ -1,0 +1,887 @@
+//===--------------------------------------------------------------------------------------------------------------===//
+// @module : version 0
+//===--------------------------------------------------------------------------------------------------------------===//
+
+Requirements: 0000000C
+
+Required Types:
+  [  0] i32
+  [  1] i64
+  [  2] !hal.allocator
+  [  3] !hal.buffer
+  [  4] !hal.buffer_view
+  [  5] !hal.command_buffer
+  [  6] !hal.device
+  [  7] !hal.executable
+  [  8] !hal.fence
+  [  9] !hal.file
+  [ 10] !vm.buffer
+
+Module Dependencies:
+  hal, version >= 6, required
+
+Imported Functions:
+  [  0] hal.ex.file.from_memory(!vm.ref<?>, i64, i32, !vm.ref<?>, i64, i64, i32) -> (!vm.ref<?>)
+  [  1] hal.allocator.allocate(!vm.ref<?>, i64, i32, i32, i64) -> (!vm.ref<?>)
+  [  2] hal.allocator.import(!vm.ref<?>, i32, i64, i32, i32, !vm.ref<?>, i64, i64) -> (!vm.ref<?>)
+  [  3] hal.buffer.assert(!vm.ref<?>, !vm.ref<?>, !vm.ref<?>, i64, i32, i32) -> ()
+  [  4] hal.buffer_view.create(!vm.ref<?>, i64, i64, i32, i32, tuple<i64>...) -> (!vm.ref<?>)
+  [  5] hal.buffer_view.assert(!vm.ref<?>, !vm.ref<?>, i32, i32, tuple<i64>...) -> ()
+  [  6] hal.buffer_view.buffer(!vm.ref<?>) -> (!vm.ref<?>)
+  [  7] hal.command_buffer.create(!vm.ref<?>, i32, i32, i64, i32) -> (!vm.ref<?>)
+  [  8] hal.command_buffer.finalize(!vm.ref<?>) -> ()
+  [  9] hal.command_buffer.execution_barrier(!vm.ref<?>, i32, i32, i64) -> ()
+  [ 10] hal.command_buffer.dispatch(!vm.ref<?>, !vm.ref<?>, i32, i32, i32, i32, i64, tuple<i32>..., tuple<i32, i32, !vm.ref<?>, i64, i64>...) -> ()
+  [ 11] hal.device.allocator(!vm.ref<?>) -> (!vm.ref<?>)
+  [ 12] hal.device.query.i64(!vm.ref<?>, !vm.ref<?>, !vm.ref<?>) -> (i32, i64)
+  [ 13] hal.device.queue.alloca(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, i64, i32, i32, i64, i64) -> (!vm.ref<?>)
+  [ 14] hal.device.queue.dealloca(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, !vm.ref<?>, i64) -> ()
+  [ 15] hal.device.queue.read(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, !vm.ref<?>, i64, !vm.ref<?>, i64, i64, i64) -> ()
+  [ 16] hal.device.queue.execute.indirect(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, !vm.ref<?>, i64, tuple<!vm.ref<?>, i64, i64>...) -> ()
+  [ 17] hal.devices.count() -> (i32)
+  [ 18] hal.devices.get(i32) -> (!vm.ref<?>)
+  [ 19] hal.executable.create(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, !vm.ref<?>) -> (!vm.ref<?>)
+  [ 20] hal.fence.create(!vm.ref<?>, i64) -> (!vm.ref<?>)
+  [ 21] hal.fence.join(i64, tuple<!vm.ref<?>>...) -> (!vm.ref<?>)
+  [ 22] hal.fence.await(i32, i64, tuple<!vm.ref<?>>...) -> (i32)
+
+Exported Functions:
+  [  0] infer(!vm.ref<?>) -> (!vm.ref<?>)
+        iree.abi.declaration: sync func @infer(%input0: tensor<1x16xf32>) -> (%output0: tensor<1x32xf32>)
+  [  1] __init() -> ()
+
+//===--------------------------------------------------------------------------------------------------------------===//
+// Sections
+//===--------------------------------------------------------------------------------------------------------------===//
+
+Module State:
+  0 bytes, 35 refs, ~560 bytes total
+
+FlatBuffer: 58364 bytes
+  Bytecode: 12800 bytes
+  .rodata[  0] embedded     1024 bytes
+  .rodata[  1] embedded     1024 bytes
+  .rodata[  2] embedded     1024 bytes
+  .rodata[  3] embedded     1024 bytes
+  .rodata[  4] embedded     1024 bytes
+  .rodata[  5] embedded     1024 bytes
+  .rodata[  6] embedded     1024 bytes
+  .rodata[  7] embedded     1024 bytes
+  .rodata[  8] embedded     1024 bytes
+  .rodata[  9] embedded     1024 bytes
+  .rodata[ 10] embedded     1024 bytes
+  .rodata[ 11] embedded     1024 bytes
+  .rodata[ 12] embedded     1024 bytes
+  .rodata[ 13] embedded     1024 bytes
+  .rodata[ 14] embedded     1024 bytes
+  .rodata[ 15] embedded     1024 bytes
+  .rodata[ 16] embedded     1024 bytes
+  .rodata[ 17] embedded     1024 bytes
+  .rodata[ 18] embedded     1024 bytes
+  .rodata[ 19] embedded     1024 bytes
+  .rodata[ 20] embedded     1024 bytes
+  .rodata[ 21] embedded     1024 bytes
+  .rodata[ 22] embedded     1024 bytes
+  .rodata[ 23] embedded     1024 bytes
+  .rodata[ 24] embedded     1024 bytes
+  .rodata[ 25] embedded     1024 bytes
+  .rodata[ 26] embedded     1024 bytes
+  .rodata[ 27] embedded     1024 bytes
+  .rodata[ 28] embedded     1024 bytes
+  .rodata[ 29] embedded     1024 bytes
+  .rodata[ 30] embedded     1024 bytes
+  .rodata[ 31] embedded     2048 bytes
+  .rodata[ 32] embedded       13 bytes `hal.device.id`
+  .rodata[ 33] embedded        6 bytes `local*`
+  .rodata[ 34] embedded       21 bytes `hal.executable.format`
+  .rodata[ 35] embedded       19 bytes `embedded-elf-x86_64`
+  .rodata[ 36] external     5024 bytes (offset 96 / 60h to 1400h)
+  .rodata[ 37] embedded        6 bytes `input0`
+  .rodata[ 38] embedded        6 bytes `tensor`
+
+External .rodata: ~5024 bytes
+
+//===--------------------------------------------------------------------------------------------------------------===//
+// Bytecode : version 0
+//===--------------------------------------------------------------------------------------------------------------===//
+
+  # | Offset   |   Length | Blocks | i32 # | ref # | Requirements | Aliases
+----+----------+----------+--------+-------+-------+--------------+-----------------------------------------------------
+  0 | 00000000 |     3588 |      1 |    20 |    36 | 00000008     | 
+  1 | 00000E08 |      590 |      4 |    20 |     8 | 0000000C     | infer
+  2 | 00001058 |     8616 |    109 |    28 |    40 | 0000000C     | __init
+
+//===--------------------------------------------------------------------------------------------------------------===//
+// Debug Information
+//===--------------------------------------------------------------------------------------------------------------===//
+// NOTE: debug databases are large and should be stripped in deployed artifacts.
+
+Locations: 135
+
+
+//===----------------------------------------------------------------------===//
+// Disassembly: module.__init (#0)
+//===----------------------------------------------------------------------===//
+[00000000]    <block>
+[00000001]    %i0 = vm.const.i32 13  // 0x0000000D
+[00000008]    %i1 = vm.const.i32 28  // 0x0000001C
+[0000000F]    %i2 = vm.const.i32 2  // 0x00000002
+[00000016]    %r0 = vm.const.ref.zero
+[00000019]    %i3 = vm.const.i32 1  // 0x00000001
+[00000020]    %i4 = vm.const.i32 3  // 0x00000003
+[00000027]    %i6:7 = vm.const.i64 2048  // 0x0000000000000800
+[00000032]    %i5 = vm.const.i32 64  // 0x00000040
+[00000039]    %i8:9 = vm.const.i64 128  // 0x0000000000000080
+[00000044]    %i10:11 = vm.const.i64 1024  // 0x0000000000000400
+[0000004F]    %i12:13 = vm.const.i64 64  // 0x0000000000000040
+[0000005A]    %i14:15 = vm.const.i64.zero
+[0000005D]    %i16 = vm.const.i32.zero
+[00000060]    %i18:19 = vm.const.i64 -1  // 0xFFFFFFFFFFFFFFFF
+[0000006B]    %r1 = vm.global.load.ref .refs[0] : !hal.device
+[00000076]    %r2 = vm.global.load.ref .refs[2] : !hal.buffer
+[00000081]    %r3 = vm.global.load.ref .refs[3] : !hal.buffer
+[0000008C]    %r4 = vm.global.load.ref .refs[4] : !hal.buffer
+[00000097]    %r5 = vm.global.load.ref .refs[5] : !hal.buffer
+[000000A2]    %r6 = vm.global.load.ref .refs[6] : !hal.buffer
+[000000AD]    %r7 = vm.global.load.ref .refs[7] : !hal.buffer
+[000000B8]    %r8 = vm.global.load.ref .refs[8] : !hal.buffer
+[000000C3]    %r9 = vm.global.load.ref .refs[9] : !hal.buffer
+[000000CE]    %r10 = vm.global.load.ref .refs[10] : !hal.buffer
+[000000D9]    %r11 = vm.global.load.ref .refs[11] : !hal.buffer
+[000000E4]    %r12 = vm.global.load.ref .refs[12] : !hal.buffer
+[000000EF]    %r13 = vm.global.load.ref .refs[13] : !hal.buffer
+[000000FA]    %r14 = vm.global.load.ref .refs[14] : !hal.buffer
+[00000105]    %r15 = vm.global.load.ref .refs[15] : !hal.buffer
+[00000110]    %r16 = vm.global.load.ref .refs[16] : !hal.buffer
+[0000011B]    %r17 = vm.global.load.ref .refs[17] : !hal.buffer
+[00000126]    %r18 = vm.global.load.ref .refs[18] : !hal.buffer
+[00000131]    %r19 = vm.global.load.ref .refs[19] : !hal.buffer
+[0000013C]    %r20 = vm.global.load.ref .refs[20] : !hal.buffer
+[00000147]    %r21 = vm.global.load.ref .refs[21] : !hal.buffer
+[00000152]    %r22 = vm.global.load.ref .refs[22] : !hal.buffer
+[0000015D]    %r23 = vm.global.load.ref .refs[23] : !hal.buffer
+[00000168]    %r24 = vm.global.load.ref .refs[24] : !hal.buffer
+[00000173]    %r25 = vm.global.load.ref .refs[25] : !hal.buffer
+[0000017E]    %r26 = vm.global.load.ref .refs[26] : !hal.buffer
+[00000189]    %r27 = vm.global.load.ref .refs[27] : !hal.buffer
+[00000194]    %r28 = vm.global.load.ref .refs[28] : !hal.buffer
+[0000019F]    %r29 = vm.global.load.ref .refs[29] : !hal.buffer
+[000001AA]    %r30 = vm.global.load.ref .refs[30] : !hal.buffer
+[000001B5]    %r31 = vm.global.load.ref .refs[31] : !hal.buffer
+[000001C0]    %r32 = vm.global.load.ref .refs[32] : !hal.buffer
+[000001CB]    %r33 = vm.global.load.ref .refs[33] : !hal.buffer
+[000001D6]    %r34 = vm.global.load.ref .refs[1] : !hal.executable
+[000001E1]    %r35 = vm.call @hal.command_buffer.create(%R1, %i16, %i4, %i18, %i4)
+[000001F6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i16, %i16, %i16, %r0, %i14, %i12, %i16, %i16, %R2, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000244]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000256]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R3, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[000002A4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[000002B6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R4, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000304]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000316]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R5, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000364]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000376]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R6, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[000003C4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[000003D6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R7, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000424]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000436]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R8, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000484]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000496]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R9, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[000004E4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[000004F6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R10, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000544]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000556]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R11, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[000005A4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[000005B6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R12, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000604]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000616]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R13, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000664]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000676]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R14, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[000006C4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[000006D6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R15, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000724]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000736]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R16, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000784]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000796]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R17, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[000007E4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[000007F6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R18, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000844]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000856]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R19, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[000008A4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[000008B6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R20, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000904]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000916]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R21, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000964]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000976]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R22, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[000009C4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[000009D6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R23, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000A24]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000A36]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R24, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000A84]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000A96]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R25, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000AE4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000AF6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R26, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000B44]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000B56]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R27, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000BA4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000BB6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R28, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000C04]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000C16]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R29, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000C64]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000C76]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R30, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000CC4]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000CD6]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i16, %i5, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R31, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000D24]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000D36]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %r34, %i16, %i3, %i3, %i3, %i14, %i5, %i16, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R32, %i14, %i10, %i16, %i2, %r0, %i14, %i8)
+[00000D84]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000D96]    vm.call.variadic @hal.command_buffer.dispatch(%r35, %R34, %i3, %i3, %i3, %i3, %i14, %i16, %i2, %r0, %i14, %i8, %i16, %i16, %R33, %i14, %i6, %i16, %i3, %R0, %i14, %i8)
+[00000DE0]    vm.call @hal.command_buffer.execution_barrier(%r35, %i1, %i0, %i14)
+[00000DF2]    vm.call @hal.command_buffer.finalize(%r35)
+[00000DFE]    vm.return %R35
+
+//===----------------------------------------------------------------------===//
+// Disassembly: module.infer (#1)
+//===----------------------------------------------------------------------===//
+[00000000]    <block>
+[00000001]    %i0 = vm.const.i32 16  // 0x00000010
+[00000008]    %i1 = vm.const.i32 1  // 0x00000001
+[0000000F]    %i2 = vm.const.i32 553648160  // 0x21000020
+[00000016]    %i3 = vm.const.i32 3075  // 0x00000C03
+[0000001D]    %i4 = vm.const.i32 48  // 0x00000030
+[00000024]    %i6:7 = vm.const.i64 128  // 0x0000000000000080
+[0000002F]    %i8:9 = vm.const.i64.zero
+[00000032]    %i10:11 = vm.const.i64 64  // 0x0000000000000040
+[0000003D]    %i12:13 = vm.const.i64 16  // 0x0000000000000010
+[00000048]    %i14:15 = vm.const.i64 1  // 0x0000000000000001
+[00000053]    %i16:17 = vm.const.i64 -1  // 0xFFFFFFFFFFFFFFFF
+[0000005E]    %r1 = vm.const.ref.zero
+[00000061]    %i5 = vm.const.i32 -1  // 0xFFFFFFFF
+[00000068]    %i18:19 = vm.const.i64 32  // 0x0000000000000020
+[00000073]    %r2 = vm.global.load.ref .refs[0] : !hal.device
+[0000007E]    %r3 = vm.global.load.ref .refs[34] : !hal.command_buffer
+[00000089]    %r4 = vm.const.ref.rodata 37  // 0x00007f96d137b160 6b
+[00000090]    vm.call.variadic @hal.buffer_view.assert(%r0, %R4, %i2, %i1, %i14, %i12)
+[000000B2]    %r4 = vm.call @hal.buffer_view.buffer(%R0)
+[000000C0]    %r0 = vm.call @hal.device.allocator(%r2)
+[000000CE]    %r5 = vm.const.ref.rodata 38  // 0x00007f96d137b174 6b
+[000000D5]    vm.call @hal.buffer.assert(%r4, %R5, %R0, %i10, %i0, %i3)
+[000000EA]    %r0 = vm.call @hal.fence.create(%r2, %i8)
+[000000FA]    %r5 = vm.call @hal.device.queue.alloca(%r2, %i16, %r1, %r0, %i8, %i4, %i3, %i6, %i8)
+[00000118]    %r6 = vm.call @hal.fence.create(%r2, %i8)
+[00000128]    %r7 = vm.call @hal.device.queue.alloca(%r2, %i16, %R1, %r6, %i8, %i4, %i3, %i6, %i8)
+[00000146]    %r6 = vm.call.variadic @hal.fence.join(%i8, %R0, %R6)
+[0000015E]    %r0 = vm.call @hal.fence.create(%r2, %i8)
+[0000016E]    vm.call.variadic @hal.device.queue.execute.indirect(%r2, %i16, %R6, %r0, %R3, %i8, %R4, %i8, %i10, %r5, %i8, %i6, %r7, %i8, %i6)
+[000001A6]    %r1 = vm.call @hal.fence.create(%r2, %i8)
+[000001B6]    vm.call @hal.device.queue.dealloca(%R2, %i16, %R0, %r1, %R7, %i8)
+[000001CC]    vm.call.variadic.yieldable @hal.fence.await(%i5, %i8, %R1) -> ^000001EA(%i0)
+[000001EA]    <block>
+[000001EB]    vm.cond_br %i0, ^00000228(), ^000001FA()
+[000001FA]    <block>
+[000001FB]    %r0 = vm.call.variadic @hal.buffer_view.create(%R5, %i8, %i6, %i2, %i1, %i14, %i18)
+[00000222]    vm.return %R0
+[00000228]    <block>
+[00000229]    vm.discard.refs %r5
+[0000022E]    vm.fail %i0, "failed to wait on timepoint"
+
+//===----------------------------------------------------------------------===//
+// Disassembly: module.__init (#2)
+//===----------------------------------------------------------------------===//
+[00000000]    <block>
+[00000001]    %r0 = vm.const.ref.zero
+[00000004]    %i0 = vm.const.i32 1  // 0x00000001
+[0000000B]    %r1 = vm.const.ref.zero
+[0000000E]    %i2:3 = vm.const.i64 1  // 0x0000000000000001
+[00000019]    %i1 = vm.const.i32 18  // 0x00000012
+[00000020]    %i4:5 = vm.const.i64 -1  // 0xFFFFFFFFFFFFFFFF
+[0000002B]    %i6 = vm.const.i32 14  // 0x0000000E
+[00000032]    %i7 = vm.const.i32 -1  // 0xFFFFFFFF
+[00000039]    %i8 = vm.const.i32.zero
+[0000003C]    %i10:11 = vm.const.i64.zero
+[0000003F]    %r2 = vm.const.ref.zero
+[00000042]    %i12:13 = vm.const.i64 2048  // 0x0000000000000800
+[0000004D]    %i14:15 = vm.const.i64 1024  // 0x0000000000000400
+[00000058]    %i9 = vm.const.i32 48  // 0x00000030
+[0000005F]    %i16 = vm.const.i32 527363  // 0x00080C03
+[00000066]    %r3 = vm.const.ref.rodata 0  // 0x00007f96d1372500 1024b
+[0000006D]    %r4 = vm.const.ref.rodata 1  // 0x00007f96d1372940 1024b
+[00000074]    %r5 = vm.const.ref.rodata 2  // 0x00007f96d1372d80 1024b
+[0000007B]    %r6 = vm.const.ref.rodata 3  // 0x00007f96d13731c0 1024b
+[00000082]    %r7 = vm.const.ref.rodata 4  // 0x00007f96d1373600 1024b
+[00000089]    %r8 = vm.const.ref.rodata 5  // 0x00007f96d1373a40 1024b
+[00000090]    %r9 = vm.const.ref.rodata 6  // 0x00007f96d1373e80 1024b
+[00000097]    %r10 = vm.const.ref.rodata 7  // 0x00007f96d13742c0 1024b
+[0000009E]    %r11 = vm.const.ref.rodata 8  // 0x00007f96d1374700 1024b
+[000000A5]    %r12 = vm.const.ref.rodata 9  // 0x00007f96d1374b40 1024b
+[000000AC]    %r13 = vm.const.ref.rodata 10  // 0x00007f96d1374f80 1024b
+[000000B3]    %r14 = vm.const.ref.rodata 11  // 0x00007f96d13753c0 1024b
+[000000BA]    %r15 = vm.const.ref.rodata 12  // 0x00007f96d1375800 1024b
+[000000C1]    %r16 = vm.const.ref.rodata 13  // 0x00007f96d1375c40 1024b
+[000000C8]    %r17 = vm.const.ref.rodata 14  // 0x00007f96d1376080 1024b
+[000000CF]    %r18 = vm.const.ref.rodata 15  // 0x00007f96d13764c0 1024b
+[000000D6]    %r19 = vm.const.ref.rodata 16  // 0x00007f96d1376900 1024b
+[000000DD]    %r20 = vm.const.ref.rodata 17  // 0x00007f96d1376d40 1024b
+[000000E4]    %r21 = vm.const.ref.rodata 18  // 0x00007f96d1377180 1024b
+[000000EB]    %r22 = vm.const.ref.rodata 19  // 0x00007f96d13775c0 1024b
+[000000F2]    %r23 = vm.const.ref.rodata 20  // 0x00007f96d1377a00 1024b
+[000000F9]    %r24 = vm.const.ref.rodata 21  // 0x00007f96d1377e40 1024b
+[00000100]    %r25 = vm.const.ref.rodata 22  // 0x00007f96d1378280 1024b
+[00000107]    %r26 = vm.const.ref.rodata 23  // 0x00007f96d13786c0 1024b
+[0000010E]    %r27 = vm.const.ref.rodata 24  // 0x00007f96d1378b00 1024b
+[00000115]    %r28 = vm.const.ref.rodata 25  // 0x00007f96d1378f40 1024b
+[0000011C]    %r29 = vm.const.ref.rodata 26  // 0x00007f96d1379380 1024b
+[00000123]    %r30 = vm.const.ref.rodata 27  // 0x00007f96d13797c0 1024b
+[0000012A]    %r31 = vm.const.ref.rodata 28  // 0x00007f96d1379c00 1024b
+[00000131]    %r32 = vm.const.ref.rodata 29  // 0x00007f96d137a040 1024b
+[00000138]    %r33 = vm.const.ref.rodata 30  // 0x00007f96d137a480 1024b
+[0000013F]    %r34 = vm.const.ref.rodata 31  // 0x00007f96d137a8c0 2048b
+[00000146]    %i17 = vm.call @hal.devices.count()
+[00000152]    %i18:19 = vm.ext.i32.i64.s %i17
+[00000157]    vm.br ^00000172(%r1->%r35, %i10->%i20, %i11->%i21, %i10->%i22, %i11->%i23)
+[00000172]    <block>
+[00000173]    %i17 = vm.cmp.nz.ref %r35
+[00000178]    %i17 = vm.xor.i32 %i17, %i0
+[0000017F]    %i24 = vm.cmp.lt.i64.s %i20:21, %i18:19
+[00000186]    %i24 = vm.and.i32 %i17, %i24
+[0000018D]    vm.cond_br %i24, ^0000019C(), ^0000027A()
+[0000019C]    <block>
+[0000019D]    vm.discard.refs %r35
+[000001A2]    %i24 = vm.trunc.i64.i32 %i20:21
+[000001A7]    %r36 = vm.call @hal.devices.get(%i24)
+[000001B4]    %r37 = vm.const.ref.rodata 32  // 0x00007f96d137b0d4 13b
+[000001BB]    %r38 = vm.const.ref.rodata 33  // 0x00007f96d137b0f0 6b
+[000001C2]    %i24, %i26 = vm.call @hal.device.query.i64(%r36, %R37, %R38)
+[000001D6]    %i25 = vm.cmp.nz.i64 %i26:27
+[000001DB]    %i25 = vm.select.i32 %i24 ? %i25 : %i8
+[000001E4]    vm.cond_br %i25, ^000001F8(), ^00000234(%i8->%i24)
+[000001F8]    <block>
+[000001F9]    %r37 = vm.const.ref.rodata 34  // 0x00007f96d137b104 21b
+[00000200]    %r38 = vm.const.ref.rodata 35  // 0x00007f96d137b128 19b
+[00000207]    %i24, %i26 = vm.call @hal.device.query.i64(%r36, %R37, %R38)
+[0000021A]    %i25 = vm.cmp.nz.i64 %i26:27
+[0000021F]    %i25 = vm.select.i32 %i24 ? %i25 : %i8
+[00000228]    vm.br ^00000234(%i25->%i24)
+[00000234]    <block>
+[00000235]    %i25 = vm.cmp.eq.i64 %i22:23, %i10:11
+[0000023C]    %i26:27 = vm.select.i64 %i24 ? %i2:3 : %i10:11
+[00000245]    %i26:27 = vm.add.i64 %i22:23, %i26:27
+[0000024C]    %i25 = vm.and.i32 %i24, %i25
+[00000253]    %r36 = vm.select.ref %i25 ? %R36 : %r1 -> !hal.device
+[00000260]    %i20:21 = vm.add.i64 %i20:21, %i2:3
+[00000267]    vm.br ^00000172(%R36->%r35, %i26->%i22, %i27->%i23)
+[0000027A]    <block>
+[0000027B]    vm.discard.refs %r1
+[00000280]    vm.cond_br %i17, ^00000290(), ^00000856()
+[00000290]    <block>
+[00000291]    vm.discard.refs %r0, %r2, %r3, %r4, %r5, %r6, %r7, %r8, %r9, %r10, %r11, %r12, %r13, %r14, %r15, %r16, %r17, %r18, %r19, %r20, %r21, %r22, %r23, %r24, %r25, %r26, %r27, %r28, %r29, %r30, %r31, %r32, %r33, %r34, %r35
+[000002DA]    vm.fail %i1, "HAL device `__device_0` not found or unavailable: #hal.device.target<"local", [#hal.executable.target<"llvm-cpu", "embedded-elf-x86_64", {cpu = "cascadelake", cpu_features = "+64bit,+adx,+aes,-amx-avx512,-amx-bf16,-amx-complex,-amx-fp16,-amx-fp8,-amx-int8,-amx-movrs,-amx-tf32,-amx-tile,+avx,-avx10.1,-avx10.2,+avx2,-avx512bf16,-avx512bitalg,+avx512bw,+avx512cd,+avx512dq,+avx512f,-avx512fp16,-avx512ifma,-avx512vbmi,-avx512vbmi2,+avx512vl,+avx512vnni,-avx512vp2intersect,-avx512vpopcntdq,-avxifma,-avxneconvert,-avxvnni,-avxvnniint16,-avxvnniint8,+bmi,+bmi2,-ccmp,-cf,-cldemote,+clflushopt,+clwb,-clzero,+cmov,-cmpccxadd,+crc32,+cx16,+cx8,-egpr,-enqcmd,+f16c,+fma,-fma4,+fsgsbase,+fxsr,-gfni,-hreset,+invpcid,-kl,-lwp,+lzcnt,+mmx,+movbe,-movdir64b,-movdiri,-movrs,-mwaitx,-ndd,-nf,+pclmul,-pconfig,-pku,+popcnt,-ppx,-prefetchi,+prfchw,-ptwrite,-push2pop2,-raoint,-rdpid,-rdpru,+rdrnd,+rdseed,+rtm,+sahf,-serialize,-sgx,-sha,-sha512,-shstk,-sm3,-sm4,+sse,+sse2,+sse3,+sse4.1,+sse4.2,-sse4a,+ssse3,-tbm,-tsxldtrk,-uintr,-usermsr,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-widekl,-xop,+xsave,+xsavec,+xsaveopt,+xsaves,-zu", data_layout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128", iree.encoding.resolver = #iree_cpu.cpu_encoding_resolver<>, max_stack_allocation_size = 32768 : i64, native_vector_size = 64 : i64, target_triple = "x86_64-unknown-unknown-eabi-elf"}>]>"
+[00000856]    <block>
+[00000857]    %r1 = vm.const.ref.rodata 34  // 0x00007f96d137b104 21b
+[0000085E]    %r36 = vm.const.ref.rodata 35  // 0x00007f96d137b128 19b
+[00000865]    %i1, %i2 = vm.call @hal.device.query.i64(%r35, %R1, %r36)
+[00000878]    %i17 = vm.cmp.nz.i64 %i2:3
+[0000087D]    %i17 = vm.select.i32 %i1 ? %i17 : %i8
+[00000886]    %i2:3 = vm.select.i64 %i17 ? %i10:11 : %i4:5
+[0000088F]    %i1 = vm.cmp.eq.i64 %i2:3, %i10:11
+[00000896]    vm.global.store.ref %r35, .refs[0] : !hal.device
+[000008A1]    vm.cond_br %i1, ^000008B0(), ^0000092A()
+[000008B0]    <block>
+[000008B1]    %r1 = vm.const.ref.rodata 36  // 0x00007f96d137e4a0 5024b
+[000008B8]    %r37 = vm.call @hal.executable.create(%R35, %i4, %R36, %R1, %R0)
+[000008CE]    %r1 = vm.global.load.ref .refs[0] : !hal.device
+[000008D9]    %r38 = vm.call @hal.device.allocator(%r1)
+[000008E6]    %r39 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r3, %i10, %i14)
+[00000902]    %i1 = vm.cmp.nz.ref %r39
+[00000907]    vm.global.store.ref %R37, .refs[1] : !hal.executable
+[00000912]    vm.cond_br %i1, ^00000A70(%r2->%r0, %R39->%r2), ^000009FC()
+[0000092A]    <block>
+[0000092B]    vm.discard.refs %r0, %r2, %r3, %r4, %r5, %r6, %r7, %r8, %r9, %r10, %r11, %r12, %r13, %r14, %r15, %r16, %r17, %r18, %r19, %r20, %r21, %r22, %r23, %r24, %r25, %r26, %r27, %r28, %r29, %r30, %r31, %r32, %r33, %r34, %r35, %r36
+[00000976]    vm.fail %i6, "HAL device `__device_0` does not support any variant of executable `manyconst31_linked`; available formats: [embedded-elf-x86_64]"
+[000009FC]    <block>
+[000009FD]    vm.discard.refs %r39
+[00000A02]    %r0 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000A18]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R3, %i10, %i14, %i8)
+[00000A32]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000A42]    vm.call @hal.device.queue.read(%r1, %i4, %R2, %r36, %R35, %i10, %r0, %i10, %i14, %i10)
+[00000A60]    vm.br ^00000A7E(%R0->%r2, %R36->%r0)
+[00000A70]    <block>
+[00000A71]    vm.discard.refs %r3
+[00000A76]    vm.br ^00000A7E()
+[00000A7E]    <block>
+[00000A7F]    %r3 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r4, %i10, %i14)
+[00000A9A]    %i1 = vm.cmp.nz.ref %r3
+[00000A9F]    vm.cond_br %i1, ^00000B1E(), ^00000AAE()
+[00000AAE]    <block>
+[00000AAF]    vm.discard.refs %r3
+[00000AB4]    %r3 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000ACA]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R4, %i10, %i14, %i8)
+[00000AE4]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000AF4]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r3, %i10, %i14, %i10)
+[00000B12]    vm.br ^00000B2C(%R36->%r0)
+[00000B1E]    <block>
+[00000B1F]    vm.discard.refs %r4
+[00000B24]    vm.br ^00000B2C()
+[00000B2C]    <block>
+[00000B2D]    %r4 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r5, %i10, %i14)
+[00000B48]    %i1 = vm.cmp.nz.ref %r4
+[00000B4D]    vm.cond_br %i1, ^00000BCC(), ^00000B5C()
+[00000B5C]    <block>
+[00000B5D]    vm.discard.refs %r4
+[00000B62]    %r4 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000B78]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R5, %i10, %i14, %i8)
+[00000B92]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000BA2]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r4, %i10, %i14, %i10)
+[00000BC0]    vm.br ^00000BDA(%R36->%r0)
+[00000BCC]    <block>
+[00000BCD]    vm.discard.refs %r5
+[00000BD2]    vm.br ^00000BDA()
+[00000BDA]    <block>
+[00000BDB]    %r5 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r6, %i10, %i14)
+[00000BF6]    %i1 = vm.cmp.nz.ref %r5
+[00000BFB]    vm.cond_br %i1, ^00000C7A(), ^00000C0A()
+[00000C0A]    <block>
+[00000C0B]    vm.discard.refs %r5
+[00000C10]    %r5 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000C26]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R6, %i10, %i14, %i8)
+[00000C40]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000C50]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r5, %i10, %i14, %i10)
+[00000C6E]    vm.br ^00000C88(%R36->%r0)
+[00000C7A]    <block>
+[00000C7B]    vm.discard.refs %r6
+[00000C80]    vm.br ^00000C88()
+[00000C88]    <block>
+[00000C89]    %r6 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r7, %i10, %i14)
+[00000CA4]    %i1 = vm.cmp.nz.ref %r6
+[00000CA9]    vm.cond_br %i1, ^00000D28(), ^00000CB8()
+[00000CB8]    <block>
+[00000CB9]    vm.discard.refs %r6
+[00000CBE]    %r6 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000CD4]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R7, %i10, %i14, %i8)
+[00000CEE]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000CFE]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r6, %i10, %i14, %i10)
+[00000D1C]    vm.br ^00000D36(%R36->%r0)
+[00000D28]    <block>
+[00000D29]    vm.discard.refs %r7
+[00000D2E]    vm.br ^00000D36()
+[00000D36]    <block>
+[00000D37]    %r7 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r8, %i10, %i14)
+[00000D52]    %i1 = vm.cmp.nz.ref %r7
+[00000D57]    vm.cond_br %i1, ^00000DD6(), ^00000D66()
+[00000D66]    <block>
+[00000D67]    vm.discard.refs %r7
+[00000D6C]    %r7 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000D82]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R8, %i10, %i14, %i8)
+[00000D9C]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000DAC]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r7, %i10, %i14, %i10)
+[00000DCA]    vm.br ^00000DE4(%R36->%r0)
+[00000DD6]    <block>
+[00000DD7]    vm.discard.refs %r8
+[00000DDC]    vm.br ^00000DE4()
+[00000DE4]    <block>
+[00000DE5]    %r8 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r9, %i10, %i14)
+[00000E00]    %i1 = vm.cmp.nz.ref %r8
+[00000E05]    vm.cond_br %i1, ^00000E84(), ^00000E14()
+[00000E14]    <block>
+[00000E15]    vm.discard.refs %r8
+[00000E1A]    %r8 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000E30]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R9, %i10, %i14, %i8)
+[00000E4A]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000E5A]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r8, %i10, %i14, %i10)
+[00000E78]    vm.br ^00000E92(%R36->%r0)
+[00000E84]    <block>
+[00000E85]    vm.discard.refs %r9
+[00000E8A]    vm.br ^00000E92()
+[00000E92]    <block>
+[00000E93]    %r9 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r10, %i10, %i14)
+[00000EAE]    %i1 = vm.cmp.nz.ref %r9
+[00000EB3]    vm.cond_br %i1, ^00000F32(), ^00000EC2()
+[00000EC2]    <block>
+[00000EC3]    vm.discard.refs %r9
+[00000EC8]    %r9 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000EDE]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R10, %i10, %i14, %i8)
+[00000EF8]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000F08]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r9, %i10, %i14, %i10)
+[00000F26]    vm.br ^00000F40(%R36->%r0)
+[00000F32]    <block>
+[00000F33]    vm.discard.refs %r10
+[00000F38]    vm.br ^00000F40()
+[00000F40]    <block>
+[00000F41]    %r10 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r11, %i10, %i14)
+[00000F5C]    %i1 = vm.cmp.nz.ref %r10
+[00000F61]    vm.cond_br %i1, ^00000FE0(), ^00000F70()
+[00000F70]    <block>
+[00000F71]    vm.discard.refs %r10
+[00000F76]    %r10 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00000F8C]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R11, %i10, %i14, %i8)
+[00000FA6]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00000FB6]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r10, %i10, %i14, %i10)
+[00000FD4]    vm.br ^00000FEE(%R36->%r0)
+[00000FE0]    <block>
+[00000FE1]    vm.discard.refs %r11
+[00000FE6]    vm.br ^00000FEE()
+[00000FEE]    <block>
+[00000FEF]    %r11 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r12, %i10, %i14)
+[0000100A]    %i1 = vm.cmp.nz.ref %r11
+[0000100F]    vm.cond_br %i1, ^0000108E(), ^0000101E()
+[0000101E]    <block>
+[0000101F]    vm.discard.refs %r11
+[00001024]    %r11 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[0000103A]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R12, %i10, %i14, %i8)
+[00001054]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001064]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r11, %i10, %i14, %i10)
+[00001082]    vm.br ^0000109C(%R36->%r0)
+[0000108E]    <block>
+[0000108F]    vm.discard.refs %r12
+[00001094]    vm.br ^0000109C()
+[0000109C]    <block>
+[0000109D]    %r12 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r13, %i10, %i14)
+[000010B8]    %i1 = vm.cmp.nz.ref %r12
+[000010BD]    vm.cond_br %i1, ^0000113C(), ^000010CC()
+[000010CC]    <block>
+[000010CD]    vm.discard.refs %r12
+[000010D2]    %r12 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[000010E8]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R13, %i10, %i14, %i8)
+[00001102]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001112]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r12, %i10, %i14, %i10)
+[00001130]    vm.br ^0000114A(%R36->%r0)
+[0000113C]    <block>
+[0000113D]    vm.discard.refs %r13
+[00001142]    vm.br ^0000114A()
+[0000114A]    <block>
+[0000114B]    %r13 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r14, %i10, %i14)
+[00001166]    %i1 = vm.cmp.nz.ref %r13
+[0000116B]    vm.cond_br %i1, ^000011EA(), ^0000117A()
+[0000117A]    <block>
+[0000117B]    vm.discard.refs %r13
+[00001180]    %r13 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001196]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R14, %i10, %i14, %i8)
+[000011B0]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[000011C0]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r13, %i10, %i14, %i10)
+[000011DE]    vm.br ^000011F8(%R36->%r0)
+[000011EA]    <block>
+[000011EB]    vm.discard.refs %r14
+[000011F0]    vm.br ^000011F8()
+[000011F8]    <block>
+[000011F9]    %r14 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r15, %i10, %i14)
+[00001214]    %i1 = vm.cmp.nz.ref %r14
+[00001219]    vm.cond_br %i1, ^00001298(), ^00001228()
+[00001228]    <block>
+[00001229]    vm.discard.refs %r14
+[0000122E]    %r14 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001244]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R15, %i10, %i14, %i8)
+[0000125E]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[0000126E]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r14, %i10, %i14, %i10)
+[0000128C]    vm.br ^000012A6(%R36->%r0)
+[00001298]    <block>
+[00001299]    vm.discard.refs %r15
+[0000129E]    vm.br ^000012A6()
+[000012A6]    <block>
+[000012A7]    %r15 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r16, %i10, %i14)
+[000012C2]    %i1 = vm.cmp.nz.ref %r15
+[000012C7]    vm.cond_br %i1, ^00001346(), ^000012D6()
+[000012D6]    <block>
+[000012D7]    vm.discard.refs %r15
+[000012DC]    %r15 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[000012F2]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R16, %i10, %i14, %i8)
+[0000130C]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[0000131C]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r15, %i10, %i14, %i10)
+[0000133A]    vm.br ^00001354(%R36->%r0)
+[00001346]    <block>
+[00001347]    vm.discard.refs %r16
+[0000134C]    vm.br ^00001354()
+[00001354]    <block>
+[00001355]    %r16 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r17, %i10, %i14)
+[00001370]    %i1 = vm.cmp.nz.ref %r16
+[00001375]    vm.cond_br %i1, ^000013F4(), ^00001384()
+[00001384]    <block>
+[00001385]    vm.discard.refs %r16
+[0000138A]    %r16 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[000013A0]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R17, %i10, %i14, %i8)
+[000013BA]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[000013CA]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r16, %i10, %i14, %i10)
+[000013E8]    vm.br ^00001402(%R36->%r0)
+[000013F4]    <block>
+[000013F5]    vm.discard.refs %r17
+[000013FA]    vm.br ^00001402()
+[00001402]    <block>
+[00001403]    %r17 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r18, %i10, %i14)
+[0000141E]    %i1 = vm.cmp.nz.ref %r17
+[00001423]    vm.cond_br %i1, ^000014A2(), ^00001432()
+[00001432]    <block>
+[00001433]    vm.discard.refs %r17
+[00001438]    %r17 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[0000144E]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R18, %i10, %i14, %i8)
+[00001468]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001478]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r17, %i10, %i14, %i10)
+[00001496]    vm.br ^000014B0(%R36->%r0)
+[000014A2]    <block>
+[000014A3]    vm.discard.refs %r18
+[000014A8]    vm.br ^000014B0()
+[000014B0]    <block>
+[000014B1]    %r18 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r19, %i10, %i14)
+[000014CC]    %i1 = vm.cmp.nz.ref %r18
+[000014D1]    vm.cond_br %i1, ^00001550(), ^000014E0()
+[000014E0]    <block>
+[000014E1]    vm.discard.refs %r18
+[000014E6]    %r18 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[000014FC]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R19, %i10, %i14, %i8)
+[00001516]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001526]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r18, %i10, %i14, %i10)
+[00001544]    vm.br ^0000155E(%R36->%r0)
+[00001550]    <block>
+[00001551]    vm.discard.refs %r19
+[00001556]    vm.br ^0000155E()
+[0000155E]    <block>
+[0000155F]    %r19 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r20, %i10, %i14)
+[0000157A]    %i1 = vm.cmp.nz.ref %r19
+[0000157F]    vm.cond_br %i1, ^000015FE(), ^0000158E()
+[0000158E]    <block>
+[0000158F]    vm.discard.refs %r19
+[00001594]    %r19 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[000015AA]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R20, %i10, %i14, %i8)
+[000015C4]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[000015D4]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r19, %i10, %i14, %i10)
+[000015F2]    vm.br ^0000160C(%R36->%r0)
+[000015FE]    <block>
+[000015FF]    vm.discard.refs %r20
+[00001604]    vm.br ^0000160C()
+[0000160C]    <block>
+[0000160D]    %r20 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r21, %i10, %i14)
+[00001628]    %i1 = vm.cmp.nz.ref %r20
+[0000162D]    vm.cond_br %i1, ^000016AC(), ^0000163C()
+[0000163C]    <block>
+[0000163D]    vm.discard.refs %r20
+[00001642]    %r20 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001658]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R21, %i10, %i14, %i8)
+[00001672]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001682]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r20, %i10, %i14, %i10)
+[000016A0]    vm.br ^000016BA(%R36->%r0)
+[000016AC]    <block>
+[000016AD]    vm.discard.refs %r21
+[000016B2]    vm.br ^000016BA()
+[000016BA]    <block>
+[000016BB]    %r21 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r22, %i10, %i14)
+[000016D6]    %i1 = vm.cmp.nz.ref %r21
+[000016DB]    vm.cond_br %i1, ^0000175A(), ^000016EA()
+[000016EA]    <block>
+[000016EB]    vm.discard.refs %r21
+[000016F0]    %r21 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001706]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R22, %i10, %i14, %i8)
+[00001720]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001730]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r21, %i10, %i14, %i10)
+[0000174E]    vm.br ^00001768(%R36->%r0)
+[0000175A]    <block>
+[0000175B]    vm.discard.refs %r22
+[00001760]    vm.br ^00001768()
+[00001768]    <block>
+[00001769]    %r22 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r23, %i10, %i14)
+[00001784]    %i1 = vm.cmp.nz.ref %r22
+[00001789]    vm.cond_br %i1, ^00001808(), ^00001798()
+[00001798]    <block>
+[00001799]    vm.discard.refs %r22
+[0000179E]    %r22 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[000017B4]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R23, %i10, %i14, %i8)
+[000017CE]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[000017DE]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r22, %i10, %i14, %i10)
+[000017FC]    vm.br ^00001816(%R36->%r0)
+[00001808]    <block>
+[00001809]    vm.discard.refs %r23
+[0000180E]    vm.br ^00001816()
+[00001816]    <block>
+[00001817]    %r23 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r24, %i10, %i14)
+[00001832]    %i1 = vm.cmp.nz.ref %r23
+[00001837]    vm.cond_br %i1, ^000018B6(), ^00001846()
+[00001846]    <block>
+[00001847]    vm.discard.refs %r23
+[0000184C]    %r23 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001862]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R24, %i10, %i14, %i8)
+[0000187C]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[0000188C]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r23, %i10, %i14, %i10)
+[000018AA]    vm.br ^000018C4(%R36->%r0)
+[000018B6]    <block>
+[000018B7]    vm.discard.refs %r24
+[000018BC]    vm.br ^000018C4()
+[000018C4]    <block>
+[000018C5]    %r24 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r25, %i10, %i14)
+[000018E0]    %i1 = vm.cmp.nz.ref %r24
+[000018E5]    vm.cond_br %i1, ^00001964(), ^000018F4()
+[000018F4]    <block>
+[000018F5]    vm.discard.refs %r24
+[000018FA]    %r24 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001910]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R25, %i10, %i14, %i8)
+[0000192A]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[0000193A]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r24, %i10, %i14, %i10)
+[00001958]    vm.br ^00001972(%R36->%r0)
+[00001964]    <block>
+[00001965]    vm.discard.refs %r25
+[0000196A]    vm.br ^00001972()
+[00001972]    <block>
+[00001973]    %r25 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r26, %i10, %i14)
+[0000198E]    %i1 = vm.cmp.nz.ref %r25
+[00001993]    vm.cond_br %i1, ^00001A12(), ^000019A2()
+[000019A2]    <block>
+[000019A3]    vm.discard.refs %r25
+[000019A8]    %r25 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[000019BE]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R26, %i10, %i14, %i8)
+[000019D8]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[000019E8]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r25, %i10, %i14, %i10)
+[00001A06]    vm.br ^00001A20(%R36->%r0)
+[00001A12]    <block>
+[00001A13]    vm.discard.refs %r26
+[00001A18]    vm.br ^00001A20()
+[00001A20]    <block>
+[00001A21]    %r26 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r27, %i10, %i14)
+[00001A3C]    %i1 = vm.cmp.nz.ref %r26
+[00001A41]    vm.cond_br %i1, ^00001AC0(), ^00001A50()
+[00001A50]    <block>
+[00001A51]    vm.discard.refs %r26
+[00001A56]    %r26 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001A6C]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R27, %i10, %i14, %i8)
+[00001A86]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001A96]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r26, %i10, %i14, %i10)
+[00001AB4]    vm.br ^00001ACE(%R36->%r0)
+[00001AC0]    <block>
+[00001AC1]    vm.discard.refs %r27
+[00001AC6]    vm.br ^00001ACE()
+[00001ACE]    <block>
+[00001ACF]    %r27 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r28, %i10, %i14)
+[00001AEA]    %i1 = vm.cmp.nz.ref %r27
+[00001AEF]    vm.cond_br %i1, ^00001B6E(), ^00001AFE()
+[00001AFE]    <block>
+[00001AFF]    vm.discard.refs %r27
+[00001B04]    %r27 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001B1A]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R28, %i10, %i14, %i8)
+[00001B34]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001B44]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r27, %i10, %i14, %i10)
+[00001B62]    vm.br ^00001B7C(%R36->%r0)
+[00001B6E]    <block>
+[00001B6F]    vm.discard.refs %r28
+[00001B74]    vm.br ^00001B7C()
+[00001B7C]    <block>
+[00001B7D]    %r28 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r29, %i10, %i14)
+[00001B98]    %i1 = vm.cmp.nz.ref %r28
+[00001B9D]    vm.cond_br %i1, ^00001C1C(), ^00001BAC()
+[00001BAC]    <block>
+[00001BAD]    vm.discard.refs %r28
+[00001BB2]    %r28 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001BC8]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R29, %i10, %i14, %i8)
+[00001BE2]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001BF2]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r28, %i10, %i14, %i10)
+[00001C10]    vm.br ^00001C2A(%R36->%r0)
+[00001C1C]    <block>
+[00001C1D]    vm.discard.refs %r29
+[00001C22]    vm.br ^00001C2A()
+[00001C2A]    <block>
+[00001C2B]    %r29 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r30, %i10, %i14)
+[00001C46]    %i1 = vm.cmp.nz.ref %r29
+[00001C4B]    vm.cond_br %i1, ^00001CCA(), ^00001C5A()
+[00001C5A]    <block>
+[00001C5B]    vm.discard.refs %r29
+[00001C60]    %r29 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001C76]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R30, %i10, %i14, %i8)
+[00001C90]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001CA0]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r29, %i10, %i14, %i10)
+[00001CBE]    vm.br ^00001CD8(%R36->%r0)
+[00001CCA]    <block>
+[00001CCB]    vm.discard.refs %r30
+[00001CD0]    vm.br ^00001CD8()
+[00001CD8]    <block>
+[00001CD9]    %r30 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r31, %i10, %i14)
+[00001CF4]    %i1 = vm.cmp.nz.ref %r30
+[00001CF9]    vm.cond_br %i1, ^00001D78(), ^00001D08()
+[00001D08]    <block>
+[00001D09]    vm.discard.refs %r30
+[00001D0E]    %r30 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001D24]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R31, %i10, %i14, %i8)
+[00001D3E]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001D4E]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r30, %i10, %i14, %i10)
+[00001D6C]    vm.br ^00001D86(%R36->%r0)
+[00001D78]    <block>
+[00001D79]    vm.discard.refs %r31
+[00001D7E]    vm.br ^00001D86()
+[00001D86]    <block>
+[00001D87]    %r31 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r32, %i10, %i14)
+[00001DA2]    %i1 = vm.cmp.nz.ref %r31
+[00001DA7]    vm.cond_br %i1, ^00001E26(), ^00001DB6()
+[00001DB6]    <block>
+[00001DB7]    vm.discard.refs %r31
+[00001DBC]    %r31 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001DD2]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R32, %i10, %i14, %i8)
+[00001DEC]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001DFC]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r31, %i10, %i14, %i10)
+[00001E1A]    vm.br ^00001E34(%R36->%r0)
+[00001E26]    <block>
+[00001E27]    vm.discard.refs %r32
+[00001E2C]    vm.br ^00001E34()
+[00001E34]    <block>
+[00001E35]    %r32 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r33, %i10, %i14)
+[00001E50]    %i1 = vm.cmp.nz.ref %r32
+[00001E55]    vm.cond_br %i1, ^00001ED4(), ^00001E64()
+[00001E64]    <block>
+[00001E65]    vm.discard.refs %r32
+[00001E6A]    %r32 = vm.call @hal.allocator.allocate(%r38, %i4, %i9, %i16, %i14)
+[00001E80]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R33, %i10, %i14, %i8)
+[00001E9A]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001EAA]    vm.call @hal.device.queue.read(%r1, %i4, %R0, %r36, %R35, %i10, %r32, %i10, %i14, %i10)
+[00001EC8]    vm.br ^00001EE2(%R36->%r0)
+[00001ED4]    <block>
+[00001ED5]    vm.discard.refs %r33
+[00001EDA]    vm.br ^00001EE2()
+[00001EE2]    <block>
+[00001EE3]    %r33 = vm.call @hal.allocator.import(%r38, %i0, %i4, %i9, %i16, %r34, %i10, %i12)
+[00001EFE]    %i1 = vm.cmp.nz.ref %r33
+[00001F03]    vm.cond_br %i1, ^00001F86(), ^00001F12()
+[00001F12]    <block>
+[00001F13]    vm.discard.refs %r33
+[00001F18]    %r33 = vm.call @hal.allocator.allocate(%R38, %i4, %i9, %i16, %i12)
+[00001F2E]    %r35 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R34, %i10, %i12, %i8)
+[00001F48]    %r36 = vm.call @hal.fence.create(%r1, %i10)
+[00001F58]    vm.call @hal.device.queue.read(%R1, %i4, %R0, %r36, %R35, %i10, %r33, %i10, %i12, %i10)
+[00001F76]    vm.br ^00001F9C(%R33->%r1, %R36->%r0)
+[00001F86]    <block>
+[00001F87]    vm.discard.refs %r34, %r1, %r38
+[00001F90]    vm.br ^00001F9C(%R33->%r1)
+[00001F9C]    <block>
+[00001F9D]    vm.call.variadic.yieldable @hal.fence.await(%i7, %i10, %R0) -> ^00001FBA(%i0)
+[00001FBA]    <block>
+[00001FBB]    vm.cond_br %i0, ^00002144(), ^00001FCA()
+[00001FCA]    <block>
+[00001FCB]    vm.global.store.ref %R2, .refs[2] : !hal.buffer
+[00001FD6]    vm.global.store.ref %R3, .refs[3] : !hal.buffer
+[00001FE1]    vm.global.store.ref %R4, .refs[4] : !hal.buffer
+[00001FEC]    vm.global.store.ref %R13, .refs[13] : !hal.buffer
+[00001FF7]    vm.global.store.ref %R14, .refs[14] : !hal.buffer
+[00002002]    vm.global.store.ref %R15, .refs[15] : !hal.buffer
+[0000200D]    vm.global.store.ref %R16, .refs[16] : !hal.buffer
+[00002018]    vm.global.store.ref %R17, .refs[17] : !hal.buffer
+[00002023]    vm.global.store.ref %R18, .refs[18] : !hal.buffer
+[0000202E]    vm.global.store.ref %R19, .refs[19] : !hal.buffer
+[00002039]    vm.global.store.ref %R20, .refs[20] : !hal.buffer
+[00002044]    vm.global.store.ref %R21, .refs[21] : !hal.buffer
+[0000204F]    vm.global.store.ref %R22, .refs[22] : !hal.buffer
+[0000205A]    vm.global.store.ref %R5, .refs[5] : !hal.buffer
+[00002065]    vm.global.store.ref %R23, .refs[23] : !hal.buffer
+[00002070]    vm.global.store.ref %R24, .refs[24] : !hal.buffer
+[0000207B]    vm.global.store.ref %R25, .refs[25] : !hal.buffer
+[00002086]    vm.global.store.ref %R26, .refs[26] : !hal.buffer
+[00002091]    vm.global.store.ref %R27, .refs[27] : !hal.buffer
+[0000209C]    vm.global.store.ref %R28, .refs[28] : !hal.buffer
+[000020A7]    vm.global.store.ref %R29, .refs[29] : !hal.buffer
+[000020B2]    vm.global.store.ref %R30, .refs[30] : !hal.buffer
+[000020BD]    vm.global.store.ref %R31, .refs[31] : !hal.buffer
+[000020C8]    vm.global.store.ref %R32, .refs[32] : !hal.buffer
+[000020D3]    vm.global.store.ref %R6, .refs[6] : !hal.buffer
+[000020DE]    vm.global.store.ref %R7, .refs[7] : !hal.buffer
+[000020E9]    vm.global.store.ref %R8, .refs[8] : !hal.buffer
+[000020F4]    vm.global.store.ref %R9, .refs[9] : !hal.buffer
+[000020FF]    vm.global.store.ref %R10, .refs[10] : !hal.buffer
+[0000210A]    vm.global.store.ref %R11, .refs[11] : !hal.buffer
+[00002115]    vm.global.store.ref %R12, .refs[12] : !hal.buffer
+[00002120]    vm.global.store.ref %R1, .refs[33] : !hal.buffer
+[0000212B]    %r0 = vm.call @module.__init()
+[00002136]    vm.global.store.ref %R0, .refs[34] : !hal.command_buffer
+[00002141]    vm.return 
+[00002144]    <block>
+[00002145]    vm.discard.refs %r2, %r3, %r4, %r5, %r6, %r7, %r8, %r9, %r10, %r11, %r12, %r13, %r14, %r15, %r16, %r17, %r18, %r19, %r20, %r21, %r22, %r23, %r24, %r25, %r26, %r27, %r28, %r29, %r30, %r31, %r32, %r1
+[00002188]    vm.fail %i0, "failed to wait on timepoint"
+

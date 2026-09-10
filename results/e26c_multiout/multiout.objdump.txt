@@ -1,0 +1,124 @@
+
+results/e26c_multiout/dump/module_multiout_linked_embedded_elf_x86_64.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000001650 <iree_hal_executable_library_query-0x170>:
+    1650:	push   %rbp
+    1651:	mov    %rsp,%rbp
+    1654:	mov    0x20(%rsi),%rdx
+    1658:	mov    (%rdx),%rax
+    165b:	mov    0x8(%rdx),%rcx
+    165f:	mov    0x10(%rdx),%rdx
+    1663:	add    $0x60,%rcx
+    1667:	xor    %esi,%esi
+    1669:	nopl   0x0(%rax)
+    1670:	xorps  %xmm0,%xmm0
+    1673:	mov    $0xfffffffffffffffc,%rdi
+    167a:	mov    %rcx,%r8
+    167d:	nopl   (%rax)
+    1680:	movss  -0x60(%r8),%xmm1
+    1686:	movss  -0x40(%r8),%xmm2
+    168c:	mulss  0x10(%rax,%rdi,4),%xmm1
+    1692:	movss  -0x20(%r8),%xmm3
+    1698:	addss  %xmm0,%xmm1
+    169c:	mulss  0x14(%rax,%rdi,4),%xmm2
+    16a2:	movss  (%r8),%xmm0
+    16a7:	addss  %xmm1,%xmm2
+    16ab:	mulss  0x18(%rax,%rdi,4),%xmm3
+    16b1:	addss  %xmm2,%xmm3
+    16b5:	mulss  0x1c(%rax,%rdi,4),%xmm0
+    16bb:	addss  %xmm3,%xmm0
+    16bf:	add    $0x4,%rdi
+    16c3:	sub    $0xffffffffffffff80,%r8
+    16c7:	cmp    $0xc,%rdi
+    16cb:	jb     1680 <iree_hal_executable_library_query-0x140>
+    16cd:	movss  %xmm0,(%rdx,%rsi,4)
+    16d2:	inc    %rsi
+    16d5:	add    $0x4,%rcx
+    16d9:	cmp    $0x8,%rsi
+    16dd:	jne    1670 <iree_hal_executable_library_query-0x150>
+    16df:	xor    %eax,%eax
+    16e1:	pop    %rbp
+    16e2:	ret
+    16e3:	int3
+    16e4:	int3
+    16e5:	int3
+    16e6:	int3
+    16e7:	int3
+    16e8:	int3
+    16e9:	int3
+    16ea:	int3
+    16eb:	int3
+    16ec:	int3
+    16ed:	int3
+    16ee:	int3
+    16ef:	int3
+    16f0:	push   %rbp
+    16f1:	mov    %rsp,%rbp
+    16f4:	mov    0x20(%rsi),%rcx
+    16f8:	mov    (%rcx),%rax
+    16fb:	mov    0x8(%rcx),%rcx
+    16ff:	xor    %edx,%edx
+    1701:	lea    -0x1308(%rip),%rsi        # 400 <iree_hal_executable_library_query-0x13c0>
+    1708:	nopl   0x0(%rax,%rax,1)
+    1710:	lea    (%rsi,%rdx,4),%rdi
+    1714:	mov    $0x1,%r10b
+    1717:	xorps  %xmm0,%xmm0
+    171a:	xor    %r8d,%r8d
+    171d:	nopl   (%rax)
+    1720:	mov    %r10d,%r9d
+    1723:	mov    %r8,%r10
+    1726:	shl    $0x4,%r10
+    172a:	movss  (%rdi,%r10,1),%xmm1
+    1730:	mov    %r8,%r10
+    1733:	or     $0x1,%r10
+    1737:	shl    $0x4,%r10
+    173b:	movss  (%rdi,%r10,1),%xmm2
+    1741:	mov    %r8,%r10
+    1744:	or     $0x2,%r10
+    1748:	shl    $0x4,%r10
+    174c:	movss  (%rdi,%r10,1),%xmm3
+    1752:	mov    %r8,%r10
+    1755:	or     $0x3,%r10
+    1759:	mulss  (%rax,%r8,4),%xmm1
+    175f:	shl    $0x4,%r10
+    1763:	addss  %xmm0,%xmm1
+    1767:	mulss  0x4(%rax,%r8,4),%xmm2
+    176e:	movss  (%rdi,%r10,1),%xmm0
+    1774:	addss  %xmm1,%xmm2
+    1778:	mulss  0x8(%rax,%r8,4),%xmm3
+    177f:	addss  %xmm2,%xmm3
+    1783:	mulss  0xc(%rax,%r8,4),%xmm0
+    178a:	addss  %xmm3,%xmm0
+    178e:	mov    $0x4,%r8d
+    1794:	xor    %r10d,%r10d
+    1797:	test   $0x1,%r9b
+    179b:	jne    1720 <iree_hal_executable_library_query-0xa0>
+    179d:	movss  %xmm0,0x40(%rcx,%rdx,4)
+    17a3:	inc    %rdx
+    17a6:	cmp    $0x4,%rdx
+    17aa:	jne    1710 <iree_hal_executable_library_query-0xb0>
+    17b0:	xor    %eax,%eax
+    17b2:	pop    %rbp
+    17b3:	ret
+    17b4:	int3
+    17b5:	int3
+    17b6:	int3
+    17b7:	int3
+    17b8:	int3
+    17b9:	int3
+    17ba:	int3
+    17bb:	int3
+    17bc:	int3
+    17bd:	int3
+    17be:	int3
+    17bf:	int3
+
+00000000000017c0 <iree_hal_executable_library_query>:
+    17c0:	xor    %eax,%eax
+    17c2:	cmp    $0x6,%edi
+    17c5:	lea    0x10a4(%rip),%rcx        # 2870 <iree_hal_executable_library_query+0x10b0>
+    17cc:	cmove  %rcx,%rax
+    17d0:	ret

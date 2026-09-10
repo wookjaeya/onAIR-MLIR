@@ -1,0 +1,180 @@
+{
+ "experiment": "E32",
+ "title": "SmartCam AArch64 cFS execution (stage 2 of the ninth review's build order)",
+ "plan": "docs/plans/E32_smartcam_aarch64_cfs.md (committed before measurement, 3c7295d)",
+ "criteria_note": "semantic criteria inherited UNCHANGED from E25 via E31; reference values are the ORIGINAL TFLite oracle recorded in E31, not re-run here",
+ "artifact": {
+  "vmfb": "results/e32_smartcam_aarch64/build/smartcam.vmfb",
+  "bytes": 8991281,
+  "sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1",
+  "triple": "aarch64-unknown-linux-gnu",
+  "cpu": "cortex-a53",
+  "single_invocation": true
+ },
+ "contract": {
+  "bounded_bytes": 18222796,
+  "per_call_bytes": 9382092,
+  "constants_bytes": 8840704,
+  "kernel_stack_bytes": null,
+  "kernel_stack_classification": "bucket_2_task_stack_budget",
+  "overrides_applied": [],
+  "same_as_x86_64": {
+   "bounded": 18222796,
+   "per_call": 9382092,
+   "constants": 8840704,
+   "note": "E30's x86-64 contract; identical three figures, different artifact and stack"
+  }
+ },
+ "elf": {
+  "any_dynamic_stack_alloc": false,
+  "all_dispatch_frames_balanced": true,
+  "max_dispatch_invocation_stack_bytes": 1919,
+  "total_call_insns": 0,
+  "realign_restore_forms": {
+   "mov_sp_from_reg": 8,
+   "sub_sp_from_fp_imm": 5
+  }
+ },
+ "cells": {
+  "S_native": {
+   "path": "native C (aarch64) under qemu-user",
+   "samples": 37,
+   "elements": 111,
+   "elements_failed": 0,
+   "argmax_failed": 0,
+   "verdict": "PASS",
+   "worst_element": {
+    "abs": 1.2516975402832031e-06,
+    "rel": 1.3420437511375419e-06,
+    "sample_id": "edge_zeros",
+    "index": 0
+   },
+   "log": "results/e32_smartcam_aarch64/native/iree_aarch64.json",
+   "comparison": "results/e32_smartcam_aarch64/native/comparison.json"
+  },
+  "S_cfs": {
+   "path": "cFS AI_LEARNER in the AArch64 QEMU guest, batch replay mode",
+   "samples": 5,
+   "elements": 15,
+   "elements_failed": 0,
+   "argmax_failed": 0,
+   "verdict": "PASS",
+   "worst_element": {
+    "abs": 1.2516975402832031e-06,
+    "rel": 1.3420437511375419e-06,
+    "sample_id": "edge_zeros",
+    "index": 0
+   },
+   "declared_subset": [
+    "edge_ones",
+    "edge_zeros",
+    "img_msec_1597559030639_2",
+    "img_msec_1607377664281_2",
+    "img_msec_1607639907670_2"
+   ],
+   "scope_note": "fixed in the plan BEFORE measuring (3 real images + 2 edge); the 37-sample sweep is S_native's job",
+   "log": "results/e32_smartcam_aarch64/cfs/A_admit.log",
+   "comparison": "results/e32_smartcam_aarch64/cfs/comparison.json"
+  },
+  "S_cfs_repeat": {
+   "path": "cFS AI_LEARNER, message-replay mode, B+1 budget",
+   "output_consuming_inferences": 70,
+   "failures": 0,
+   "hal_peak": 9382092,
+   "equals_per_call": true,
+   "peak_within_admitted_budget": true,
+   "oracle_compared": false,
+   "why_not_compared": "message-replay features come from Software Bus telemetry bytes, not fixture samples, so these outputs CANNOT be scored against the original oracle (plan SS3.4: the two modes are never mixed)",
+   "log": "results/e32_smartcam_aarch64/cfs/A_plus.log"
+  }
+ },
+ "budget_cells": {
+  "native_B_minus_1": {
+   "budget": 18222795,
+   "verdict": "NOT_ADMITTED",
+   "inferences": 0,
+   "log": "results/e32_smartcam_aarch64/native/budget_boundary.log"
+  },
+  "native_B": {
+   "budget": 18222796,
+   "verdict": "ADMIT",
+   "log": "results/e32_smartcam_aarch64/native/budget_boundary.log"
+  },
+  "native_B_plus_1": {
+   "budget": 18222797,
+   "verdict": "ADMIT",
+   "log": "results/e32_smartcam_aarch64/native/budget_boundary.log"
+  },
+  "cfs_B_plus_1": {
+   "budget": 18222797,
+   "verdict": "ADMIT",
+   "log": "results/e32_smartcam_aarch64/cfs/A_plus.log",
+   "output_consuming_inferences": 70,
+   "failures": 0,
+   "hal_peak": 9382092,
+   "peak_within_admitted_budget": true,
+   "admission_mode": "unconditional",
+   "note": "Q3 for the DEPLOYMENT path: 70 message-replay inferences that read every output back, and the peak stays EXACTLY per_call. EXIT=124 is the harness timeout (timeout -s INT), the app's own counters show 70/70 completed with 0 failures."
+  },
+  "cfs_B_minus_1": {
+   "buildable": false,
+   "reason": "AI_LEARNER_BUDGET_BYTES is a compile-time macro, so bounded > budget folds statically and the post-admission code (including the contract sha256 string) is dead-code eliminated; the build's own verification then refuses. Build refusal, NOT a fail-open.",
+   "observed_error": "51_build_cfs_aarch64: ERROR: contract sha256 ecffe6e0... not found in ai_learner.so",
+   "plan_error": "plan SS3.2 said to give B-1 as a RUNTIME budget; the app has no such knob. Recorded as a planning error rather than worked around."
+  }
+ },
+ "D59_conditional_tier": {
+  "finding": "the post-inference check compared the peak with `bounded`, not with the budget admission was granted on; a conditional deployment ran at 106.4% of its approved budget and logged peak_within_bounded: true",
+  "with_replay": {
+   "admitted_budget": 9382092,
+   "hal_peak": 9984204,
+   "ratio": 1.0642,
+   "log": "results/e32_smartcam_aarch64/native/a_cond_with_replay.log"
+  },
+  "without_replay": {
+   "admitted_budget": 9382092,
+   "hal_peak": 9382092,
+   "ratio": 1.0,
+   "log": "results/e32_smartcam_aarch64/native/a_cond_no_replay.log",
+   "note": "the control: peak is EXACTLY per_call, so the overrun is entirely the replay pattern's second input buffer. Also an independent replication of E29's map-arm equality on an 8.9 MB real model on AArch64."
+  },
+  "after_fix": {
+   "hal_peak": 9984204,
+   "peak_within_bounded": true,
+   "peak_within_admitted_budget": false,
+   "admission_mode": "conditional_map",
+   "log": "results/e32_smartcam_aarch64/native/a_cond_with_replay_after_d59.log",
+   "note": "same run, same peak; the violation is now stated instead of hidden"
+  },
+  "arithmetic": {
+   "per_call": 9382092,
+   "io": 602124,
+   "transient": 8779968,
+   "input_tensor_bytes": 602112,
+   "output_bytes": 12,
+   "identity": "peak == per_call + input_tensor_bytes (exact)"
+  },
+  "cfs_app_contrast": {
+   "hal_peak": 9382092,
+   "equals_per_call": true,
+   "note": "both cFS modes reuse the resident input buffer, so the deployment adapter keeps exactly one input live"
+  }
+ },
+ "verdicts": {
+  "Q1_semantics": "PASS",
+  "Q2_contract_admission": "PASS",
+  "Q3_lifecycle": "PASS (unconditional tier) / FAILED (conditional tier) -- see D59",
+  "Q4_mode_separation": "PASS",
+  "stage_2_complete": false,
+  "stage_2_note": "the plan fixed that all four must hold; Q3's conditional cell did not, and that is recorded as a shortfall rather than rounded away"
+ },
+ "not_claimed": [
+  "accuracy (no evaluation set)",
+  "latency or throughput (TCG emulation, FUNCTIONAL_ONLY host)",
+  "the official OnAIR plugin path (stage 3)",
+  "other models (stage 4)",
+  "a fair baseline (stage 5)",
+  "real flight hardware (this is a QEMU guest)",
+  "whole-process RAM (the contract covers IREE-HAL-owned allocations only)"
+ ]
+}

@@ -1,0 +1,268 @@
+//===--------------------------------------------------------------------------------------------------------------===//
+// @module : version 0
+//===--------------------------------------------------------------------------------------------------------------===//
+
+Requirements: 0000000C
+
+Required Types:
+  [  0] i32
+  [  1] i64
+  [  2] !hal.allocator
+  [  3] !hal.buffer
+  [  4] !hal.buffer_view
+  [  5] !hal.command_buffer
+  [  6] !hal.device
+  [  7] !hal.executable
+  [  8] !hal.fence
+  [  9] !hal.file
+  [ 10] !vm.buffer
+
+Module Dependencies:
+  hal, version >= 6, required
+
+Imported Functions:
+  [  0] hal.ex.file.from_memory(!vm.ref<?>, i64, i32, !vm.ref<?>, i64, i64, i32) -> (!vm.ref<?>)
+  [  1] hal.allocator.allocate(!vm.ref<?>, i64, i32, i32, i64) -> (!vm.ref<?>)
+  [  2] hal.allocator.import(!vm.ref<?>, i32, i64, i32, i32, !vm.ref<?>, i64, i64) -> (!vm.ref<?>)
+  [  3] hal.buffer.assert(!vm.ref<?>, !vm.ref<?>, !vm.ref<?>, i64, i32, i32) -> ()
+  [  4] hal.buffer_view.create(!vm.ref<?>, i64, i64, i32, i32, tuple<i64>...) -> (!vm.ref<?>)
+  [  5] hal.buffer_view.assert(!vm.ref<?>, !vm.ref<?>, i32, i32, tuple<i64>...) -> ()
+  [  6] hal.buffer_view.buffer(!vm.ref<?>) -> (!vm.ref<?>)
+  [  7] hal.command_buffer.create(!vm.ref<?>, i32, i32, i64, i32) -> (!vm.ref<?>)
+  [  8] hal.command_buffer.finalize(!vm.ref<?>) -> ()
+  [  9] hal.command_buffer.execution_barrier(!vm.ref<?>, i32, i32, i64) -> ()
+  [ 10] hal.command_buffer.dispatch(!vm.ref<?>, !vm.ref<?>, i32, i32, i32, i32, i64, tuple<i32>..., tuple<i32, i32, !vm.ref<?>, i64, i64>...) -> ()
+  [ 11] hal.device.allocator(!vm.ref<?>) -> (!vm.ref<?>)
+  [ 12] hal.device.query.i64(!vm.ref<?>, !vm.ref<?>, !vm.ref<?>) -> (i32, i64)
+  [ 13] hal.device.queue.alloca(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, i64, i32, i32, i64, i64) -> (!vm.ref<?>)
+  [ 14] hal.device.queue.dealloca(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, !vm.ref<?>, i64) -> ()
+  [ 15] hal.device.queue.read(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, !vm.ref<?>, i64, !vm.ref<?>, i64, i64, i64) -> ()
+  [ 16] hal.device.queue.execute.indirect(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, !vm.ref<?>, i64, tuple<!vm.ref<?>, i64, i64>...) -> ()
+  [ 17] hal.devices.count() -> (i32)
+  [ 18] hal.devices.get(i32) -> (!vm.ref<?>)
+  [ 19] hal.executable.create(!vm.ref<?>, i64, !vm.ref<?>, !vm.ref<?>, !vm.ref<?>) -> (!vm.ref<?>)
+  [ 20] hal.fence.create(!vm.ref<?>, i64) -> (!vm.ref<?>)
+  [ 21] hal.fence.join(i64, tuple<!vm.ref<?>>...) -> (!vm.ref<?>)
+  [ 22] hal.fence.await(i32, i64, tuple<!vm.ref<?>>...) -> (i32)
+
+Exported Functions:
+  [  0] infer(!vm.ref<?>) -> (!vm.ref<?>)
+        iree.abi.declaration: sync func @infer(%input0: tensor<1x9xf32>) -> (%output0: tensor<1x2xf32>)
+  [  1] __init() -> ()
+
+//===--------------------------------------------------------------------------------------------------------------===//
+// Sections
+//===--------------------------------------------------------------------------------------------------------------===//
+
+Module State:
+  0 bytes, 4 refs, ~64 bytes total
+
+FlatBuffer: 10044 bytes
+  Bytecode: 3432 bytes
+  .rodata[  0] embedded     2816 bytes ``
+  .rodata[  1] embedded       13 bytes `hal.device.id`
+  .rodata[  2] embedded        6 bytes `local*`
+  .rodata[  3] embedded       21 bytes `hal.executable.format`
+  .rodata[  4] embedded       19 bytes `embedded-elf-x86_64`
+  .rodata[  5] external     5040 bytes (offset 112 / 70h to 1420h)
+  .rodata[  6] embedded        6 bytes `input0`
+  .rodata[  7] embedded        6 bytes `tensor`
+
+External .rodata: ~5040 bytes
+
+//===--------------------------------------------------------------------------------------------------------------===//
+// Bytecode : version 0
+//===--------------------------------------------------------------------------------------------------------------===//
+
+  # | Offset   |   Length | Blocks | i32 # | ref # | Requirements | Aliases
+----+----------+----------+--------+-------+-------+--------------+-----------------------------------------------------
+  0 | 00000000 |      356 |      1 |    18 |     5 | 00000008     | 
+  1 | 00000168 |      600 |      4 |    22 |     8 | 0000000C     | infer
+  2 | 000003C0 |     2466 |     16 |    26 |     9 | 0000000C     | __init
+
+//===--------------------------------------------------------------------------------------------------------------===//
+// Debug Information
+//===--------------------------------------------------------------------------------------------------------------===//
+// NOTE: debug databases are large and should be stripped in deployed artifacts.
+
+Locations: 15
+
+
+//===----------------------------------------------------------------------===//
+// Disassembly: module.__init (#0)
+//===----------------------------------------------------------------------===//
+[00000000]    <block>
+[00000001]    %i0 = vm.const.i32 13  // 0x0000000D
+[00000008]    %i1 = vm.const.i32 28  // 0x0000001C
+[0000000F]    %i2 = vm.const.i32 2  // 0x00000002
+[00000016]    %r0 = vm.const.ref.zero
+[00000019]    %i3 = vm.const.i32 1  // 0x00000001
+[00000020]    %i4 = vm.const.i32 3  // 0x00000003
+[00000027]    %i5 = vm.const.i32.zero
+[0000002A]    %i6:7 = vm.const.i64 8  // 0x0000000000000008
+[00000035]    %i8:9 = vm.const.i64 256  // 0x0000000000000100
+[00000040]    %i10:11 = vm.const.i64 2816  // 0x0000000000000B00
+[0000004B]    %i12:13 = vm.const.i64 36  // 0x0000000000000024
+[00000056]    %i14:15 = vm.const.i64.zero
+[00000059]    %i16:17 = vm.const.i64 -1  // 0xFFFFFFFFFFFFFFFF
+[00000064]    %r1 = vm.global.load.ref .refs[0] : !hal.device
+[0000006F]    %r2 = vm.global.load.ref .refs[2] : !hal.buffer
+[0000007A]    %r3 = vm.global.load.ref .refs[1] : !hal.executable
+[00000085]    %r4 = vm.call @hal.command_buffer.create(%R1, %i5, %i4, %i16, %i4)
+[0000009A]    vm.call.variadic @hal.command_buffer.dispatch(%r4, %r3, %i5, %i3, %i3, %i3, %i14, %i5, %i5, %r0, %i14, %i12, %i5, %i5, %r2, %i14, %i10, %i5, %i2, %r0, %i14, %i8)
+[000000E4]    vm.call @hal.command_buffer.execution_barrier(%r4, %i1, %i0, %i14)
+[000000F6]    vm.call.variadic @hal.command_buffer.dispatch(%r4, %R3, %i3, %i3, %i3, %i3, %i14, %i5, %i2, %r0, %i14, %i8, %i5, %i5, %R2, %i14, %i10, %i5, %i3, %R0, %i14, %i6)
+[00000140]    vm.call @hal.command_buffer.execution_barrier(%r4, %i1, %i0, %i14)
+[00000152]    vm.call @hal.command_buffer.finalize(%r4)
+[0000015E]    vm.return %R4
+
+//===----------------------------------------------------------------------===//
+// Disassembly: module.infer (#1)
+//===----------------------------------------------------------------------===//
+[00000000]    <block>
+[00000001]    %i0 = vm.const.i32 16  // 0x00000010
+[00000008]    %i1 = vm.const.i32 1  // 0x00000001
+[0000000F]    %i2 = vm.const.i32 553648160  // 0x21000020
+[00000016]    %i3 = vm.const.i32 3075  // 0x00000C03
+[0000001D]    %i4 = vm.const.i32 48  // 0x00000030
+[00000024]    %i6:7 = vm.const.i64 8  // 0x0000000000000008
+[0000002F]    %i8:9 = vm.const.i64.zero
+[00000032]    %i10:11 = vm.const.i64 256  // 0x0000000000000100
+[0000003D]    %i12:13 = vm.const.i64 36  // 0x0000000000000024
+[00000048]    %i14:15 = vm.const.i64 9  // 0x0000000000000009
+[00000053]    %i16:17 = vm.const.i64 1  // 0x0000000000000001
+[0000005E]    %i18:19 = vm.const.i64 -1  // 0xFFFFFFFFFFFFFFFF
+[00000069]    %r1 = vm.const.ref.zero
+[0000006C]    %i20:21 = vm.const.i64 2  // 0x0000000000000002
+[00000077]    %i5 = vm.const.i32 -1  // 0xFFFFFFFF
+[0000007E]    %r2 = vm.global.load.ref .refs[0] : !hal.device
+[00000089]    %r3 = vm.global.load.ref .refs[3] : !hal.command_buffer
+[00000094]    %r4 = vm.const.ref.rodata 6  // 0x00007f343bc32938 6b
+[0000009B]    vm.call.variadic @hal.buffer_view.assert(%r0, %R4, %i2, %i1, %i16, %i14)
+[000000BC]    %r4 = vm.call @hal.buffer_view.buffer(%R0)
+[000000CA]    %r0 = vm.call @hal.device.allocator(%r2)
+[000000D8]    %r5 = vm.const.ref.rodata 7  // 0x00007f343bc3294c 6b
+[000000DF]    vm.call @hal.buffer.assert(%r4, %R5, %R0, %i12, %i0, %i3)
+[000000F4]    %r0 = vm.call @hal.fence.create(%r2, %i8)
+[00000104]    %r5 = vm.call @hal.device.queue.alloca(%r2, %i18, %r1, %r0, %i8, %i4, %i3, %i6, %i8)
+[00000122]    %r6 = vm.call @hal.fence.create(%r2, %i8)
+[00000132]    %r7 = vm.call @hal.device.queue.alloca(%r2, %i18, %R1, %r6, %i8, %i4, %i3, %i10, %i8)
+[00000150]    %r6 = vm.call.variadic @hal.fence.join(%i8, %R0, %R6)
+[00000168]    %r0 = vm.call @hal.fence.create(%r2, %i8)
+[00000178]    vm.call.variadic @hal.device.queue.execute.indirect(%r2, %i18, %R6, %r0, %R3, %i8, %R4, %i8, %i12, %r5, %i8, %i6, %r7, %i8, %i10)
+[000001B0]    %r1 = vm.call @hal.fence.create(%r2, %i8)
+[000001C0]    vm.call @hal.device.queue.dealloca(%R2, %i18, %R0, %r1, %R7, %i8)
+[000001D6]    vm.call.variadic.yieldable @hal.fence.await(%i5, %i8, %R1) -> ^000001F4(%i0)
+[000001F4]    <block>
+[000001F5]    vm.cond_br %i0, ^00000232(), ^00000204()
+[00000204]    <block>
+[00000205]    %r0 = vm.call.variadic @hal.buffer_view.create(%R5, %i8, %i6, %i2, %i1, %i16, %i20)
+[0000022C]    vm.return %R0
+[00000232]    <block>
+[00000233]    vm.discard.refs %r5
+[00000238]    vm.fail %i0, "failed to wait on timepoint"
+
+//===----------------------------------------------------------------------===//
+// Disassembly: module.__init (#2)
+//===----------------------------------------------------------------------===//
+[00000000]    <block>
+[00000001]    %r0 = vm.const.ref.zero
+[00000004]    %i0 = vm.const.i32 1  // 0x00000001
+[0000000B]    %r1 = vm.const.ref.zero
+[0000000E]    %i2:3 = vm.const.i64 1  // 0x0000000000000001
+[00000019]    %i1 = vm.const.i32 18  // 0x00000012
+[00000020]    %i4:5 = vm.const.i64 -1  // 0xFFFFFFFFFFFFFFFF
+[0000002B]    %i6 = vm.const.i32 14  // 0x0000000E
+[00000032]    %i7 = vm.const.i32 -1  // 0xFFFFFFFF
+[00000039]    %i8 = vm.const.i32.zero
+[0000003C]    %i10:11 = vm.const.i64.zero
+[0000003F]    %r2 = vm.const.ref.zero
+[00000042]    %i9 = vm.const.i32 48  // 0x00000030
+[00000049]    %i12 = vm.const.i32 527363  // 0x00080C03
+[00000050]    %i14:15 = vm.const.i64 2816  // 0x0000000000000B00
+[0000005B]    %r3 = vm.const.ref.rodata 0  // 0x00007f343bc31d80 2816b
+[00000062]    %i13 = vm.call @hal.devices.count()
+[0000006E]    %i16:17 = vm.ext.i32.i64.s %i13
+[00000073]    vm.br ^0000008E(%r1->%r4, %i10->%i18, %i11->%i19, %i10->%i20, %i11->%i21)
+[0000008E]    <block>
+[0000008F]    %i13 = vm.cmp.nz.ref %r4
+[00000094]    %i13 = vm.xor.i32 %i13, %i0
+[0000009B]    %i22 = vm.cmp.lt.i64.s %i18:19, %i16:17
+[000000A2]    %i22 = vm.and.i32 %i13, %i22
+[000000A9]    vm.cond_br %i22, ^000000B8(), ^00000196()
+[000000B8]    <block>
+[000000B9]    vm.discard.refs %r4
+[000000BE]    %i22 = vm.trunc.i64.i32 %i18:19
+[000000C3]    %r5 = vm.call @hal.devices.get(%i22)
+[000000D0]    %r6 = vm.const.ref.rodata 1  // 0x00007f343bc328ac 13b
+[000000D7]    %r7 = vm.const.ref.rodata 2  // 0x00007f343bc328c8 6b
+[000000DE]    %i22, %i24 = vm.call @hal.device.query.i64(%r5, %R6, %R7)
+[000000F2]    %i23 = vm.cmp.nz.i64 %i24:25
+[000000F7]    %i23 = vm.select.i32 %i22 ? %i23 : %i8
+[00000100]    vm.cond_br %i23, ^00000114(), ^00000150(%i8->%i22)
+[00000114]    <block>
+[00000115]    %r6 = vm.const.ref.rodata 3  // 0x00007f343bc328dc 21b
+[0000011C]    %r7 = vm.const.ref.rodata 4  // 0x00007f343bc32900 19b
+[00000123]    %i22, %i24 = vm.call @hal.device.query.i64(%r5, %R6, %R7)
+[00000136]    %i23 = vm.cmp.nz.i64 %i24:25
+[0000013B]    %i23 = vm.select.i32 %i22 ? %i23 : %i8
+[00000144]    vm.br ^00000150(%i23->%i22)
+[00000150]    <block>
+[00000151]    %i23 = vm.cmp.eq.i64 %i20:21, %i10:11
+[00000158]    %i24:25 = vm.select.i64 %i22 ? %i2:3 : %i10:11
+[00000161]    %i24:25 = vm.add.i64 %i20:21, %i24:25
+[00000168]    %i23 = vm.and.i32 %i22, %i23
+[0000016F]    %r5 = vm.select.ref %i23 ? %R5 : %r1 -> !hal.device
+[0000017C]    %i18:19 = vm.add.i64 %i18:19, %i2:3
+[00000183]    vm.br ^0000008E(%R5->%r4, %i24->%i20, %i25->%i21)
+[00000196]    <block>
+[00000197]    vm.discard.refs %r1
+[0000019C]    vm.cond_br %i13, ^000001AC(), ^00000734()
+[000001AC]    <block>
+[000001AD]    vm.discard.refs %r0, %r2, %r3, %r4
+[000001B8]    vm.fail %i1, "HAL device `__device_0` not found or unavailable: #hal.device.target<"local", [#hal.executable.target<"llvm-cpu", "embedded-elf-x86_64", {cpu = "cascadelake", cpu_features = "+64bit,+adx,+aes,-amx-avx512,-amx-bf16,-amx-complex,-amx-fp16,-amx-fp8,-amx-int8,-amx-movrs,-amx-tf32,-amx-tile,+avx,-avx10.1,-avx10.2,+avx2,-avx512bf16,-avx512bitalg,+avx512bw,+avx512cd,+avx512dq,+avx512f,-avx512fp16,-avx512ifma,-avx512vbmi,-avx512vbmi2,+avx512vl,+avx512vnni,-avx512vp2intersect,-avx512vpopcntdq,-avxifma,-avxneconvert,-avxvnni,-avxvnniint16,-avxvnniint8,+bmi,+bmi2,-ccmp,-cf,-cldemote,+clflushopt,+clwb,-clzero,+cmov,-cmpccxadd,+crc32,+cx16,+cx8,-egpr,-enqcmd,+f16c,+fma,-fma4,+fsgsbase,+fxsr,-gfni,-hreset,+invpcid,-kl,-lwp,+lzcnt,+mmx,+movbe,-movdir64b,-movdiri,-movrs,-mwaitx,-ndd,-nf,+pclmul,-pconfig,-pku,+popcnt,-ppx,-prefetchi,+prfchw,-ptwrite,-push2pop2,-raoint,-rdpid,-rdpru,+rdrnd,+rdseed,+rtm,+sahf,-serialize,-sgx,-sha,-sha512,-shstk,-sm3,-sm4,+sse,+sse2,+sse3,+sse4.1,+sse4.2,-sse4a,+ssse3,-tbm,-tsxldtrk,-uintr,-usermsr,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-widekl,-xop,+xsave,+xsavec,+xsaveopt,+xsaves,-zu", data_layout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128", iree.encoding.resolver = #iree_cpu.cpu_encoding_resolver<>, max_stack_allocation_size = 32768 : i64, native_vector_size = 64 : i64, target_triple = "x86_64-unknown-unknown-eabi-elf"}>]>"
+[00000734]    <block>
+[00000735]    %r1 = vm.const.ref.rodata 3  // 0x00007f343bc328dc 21b
+[0000073C]    %r5 = vm.const.ref.rodata 4  // 0x00007f343bc32900 19b
+[00000743]    %i1, %i2 = vm.call @hal.device.query.i64(%r4, %R1, %r5)
+[00000756]    %i13 = vm.cmp.nz.i64 %i2:3
+[0000075B]    %i13 = vm.select.i32 %i1 ? %i13 : %i8
+[00000764]    %i2:3 = vm.select.i64 %i13 ? %i10:11 : %i4:5
+[0000076D]    %i1 = vm.cmp.eq.i64 %i2:3, %i10:11
+[00000774]    vm.global.store.ref %r4, .refs[0] : !hal.device
+[0000077F]    vm.cond_br %i1, ^0000078E(), ^00000808()
+[0000078E]    <block>
+[0000078F]    %r1 = vm.const.ref.rodata 5  // 0x00007f343bc337f0 5040b
+[00000796]    %r6 = vm.call @hal.executable.create(%R4, %i4, %R5, %R1, %R0)
+[000007AC]    %r1 = vm.global.load.ref .refs[0] : !hal.device
+[000007B7]    %r7 = vm.call @hal.device.allocator(%r1)
+[000007C4]    %r8 = vm.call @hal.allocator.import(%r7, %i0, %i4, %i9, %i12, %r3, %i10, %i14)
+[000007E0]    %i1 = vm.cmp.nz.ref %r8
+[000007E5]    vm.global.store.ref %R6, .refs[1] : !hal.executable
+[000007F0]    vm.cond_br %i1, ^00000912(%r2->%r0, %R8->%r2), ^0000089E()
+[00000808]    <block>
+[00000809]    vm.discard.refs %r0, %r2, %r3, %r4, %r5
+[00000816]    vm.fail %i6, "HAL device `__device_0` does not support any variant of executable `model_f32twin_linked`; available formats: [embedded-elf-x86_64]"
+[0000089E]    <block>
+[0000089F]    vm.discard.refs %r8
+[000008A4]    %r0 = vm.call @hal.allocator.allocate(%R7, %i4, %i9, %i12, %i14)
+[000008BA]    %r4 = vm.call @hal.ex.file.from_memory(%r1, %i4, %i0, %R3, %i10, %i14, %i8)
+[000008D4]    %r5 = vm.call @hal.fence.create(%r1, %i10)
+[000008E4]    vm.call @hal.device.queue.read(%R1, %i4, %R2, %r5, %R4, %i10, %r0, %i10, %i14, %i10)
+[00000902]    vm.br ^00000928(%R0->%r1, %R5->%r0)
+[00000912]    <block>
+[00000913]    vm.discard.refs %r3, %r1, %r7
+[0000091C]    vm.br ^00000928(%R2->%r1)
+[00000928]    <block>
+[00000929]    vm.call.variadic.yieldable @hal.fence.await(%i7, %i10, %R0) -> ^00000946(%i0)
+[00000946]    <block>
+[00000947]    vm.cond_br %i0, ^0000097C(), ^00000956()
+[00000956]    <block>
+[00000957]    vm.global.store.ref %R1, .refs[2] : !hal.buffer
+[00000962]    %r0 = vm.call @module.__init()
+[0000096E]    vm.global.store.ref %R0, .refs[3] : !hal.command_buffer
+[00000979]    vm.return 
+[0000097C]    <block>
+[0000097D]    vm.discard.refs %r1
+[00000982]    vm.fail %i0, "failed to wait on timepoint"
+
