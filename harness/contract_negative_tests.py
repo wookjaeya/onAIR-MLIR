@@ -5806,6 +5806,80 @@ def bp_marker():
     return bp.FIXTURE_MARKER
 
 
+def ci_record_discipline_cases(tmp):
+    """D34 discipline: a version that reports regression counts must also report CI.
+
+    v0.32.1 onward, each version records the three CI legs with their conditions instead of
+    guessing. v0.49 skipped it -- and the CI it did not record was RED for three commits in a
+    row (D81). The two failures hide each other: not reading CI is also not noticing that CI
+    is red, and the `full` leg plus the development container were green because they have
+    numpy, so nothing local could show it.
+
+    The condition was NARROWED by measurement, not by argument. A first version demanded a CI
+    record from every version entry and flagged six -- but several of those record CI in
+    CLAUDE.md or in their EVIDENCE file rather than in CHANGELOG, and one (v0.44.2) is a
+    documentation-only version whose test count did not move, so demanding CI of it is a
+    type-(B) over-rejection. Measured across the three places a version can record it, the
+    honest rule is: **if a version entry states a regression count (NNN/NNN), the test suite
+    changed, so a CI measurement must exist somewhere.** Under that rule exactly four versions
+    were missing (v0.43, v0.44, v0.44.1, v0.45.1) and v0.44.2 is correctly exempt.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    changelog = read(os.path.join(repo, "CHANGELOG.md"))
+    claude = read(os.path.join(repo, "CLAUDE.md"))
+
+    def vkey(v):
+        return tuple(int(x) for x in v.split("."))
+
+    heads = [(m.start(), m.group(1)) for m in re.finditer(r"^## \[v([0-9.]+)\]", changelog, re.M)]
+    sections = []
+    for i, (pos, ver) in enumerate(heads):
+        end = heads[i + 1][0] if i + 1 < len(heads) else len(changelog)
+        sections.append((ver, changelog[pos:end]))
+
+    def records_ci(ver, body):
+        if "CI 실측" in body:
+            return True
+        m = re.search(r"\*\*v%s(?:에서|/)" % re.escape(ver), claude)
+        if m:
+            nxt = re.search(r"\n\*\*v[0-9]", claude[m.end():])
+            blk = claude[m.start(): m.end() + (nxt.start() if nxt else 2000)]
+            if "CI 실측" in blk:
+                return True
+        import glob as _glob                                        # noqa: PLC0415
+        for p in _glob.glob(os.path.join(repo, "docs", "EVIDENCE_v%s_*.md" % ver)):
+            if "CI 실측" in read(p):
+                return True
+        return False
+
+    FIRST = vkey("0.32.1")
+    missing, exempt = [], []
+    for ver, body in sections:
+        if vkey(ver) < FIRST:
+            continue
+        if not re.search(r"\d{3}/\d{3}", body):
+            exempt.append(ver)                 # no test-count change claimed -> CI not demanded
+            continue
+        if not records_ci(ver, body):
+            missing.append(ver)
+    results.append(Result("d34: every version that states a regression count also records a CI "
+                          "measurement somewhere (CHANGELOG / CLAUDE.md / its EVIDENCE); "
+                          "exempt (no count stated): %s" % (", ".join(exempt) or "none"),
+                          not missing,
+                          "" if not missing else "missing: %s" % ", ".join(missing)))
+
+    # positive control: the scan must be able to see a version that states a count and records no CI
+    probe = "## [v9.99] - x\nsome text 123/123 checks\n"
+    ph = [(m.start(), m.group(1)) for m in re.finditer(r"^## \[v([0-9.]+)\]", probe, re.M)]
+    seen = [v for (pos, v) in ph
+            if vkey(v) >= FIRST and re.search(r"\d{3}/\d{3}", probe) and "CI 실측" not in probe]
+    results.append(Result("d34: the scan detects a count-stating version with no CI record "
+                          "(positive control -- a check that can never fire is not a check)",
+                          seen == ["9.99"], "got %r" % (seen,)))
+    return results
+
+
 def result_skip_hygiene_cases(tmp):
     """D81: a Result whose verdict is None must be marked skip=True.
 
@@ -7105,6 +7179,7 @@ def main():
         all_results += e44_budget_provenance_cases(tmp)
         all_results += e48_real_inputs_aarch64_cases(tmp)
         all_results += result_skip_hygiene_cases(tmp)
+        all_results += ci_record_discipline_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

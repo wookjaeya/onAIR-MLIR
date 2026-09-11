@@ -988,10 +988,37 @@
               "locator": "source.note",
               "status": "present",
               "value": "real_example images are home/exp1000/mocks/pictures at that commit (the only public examples); synthetic samples are coverage only and are never real data"
+            },
+            {
+              "path": "results/e45_real_inputs/cells/smartcam/fixture/manifest.json",
+              "locator": "counts",
+              "status": "present",
+              "value": {
+                "real_example": 19
+              }
             }
           ],
-          "grade": "MIXED — 실이미지 3 + 합성 32 + 상수 경계 2",
-          "note": "실이미지 3장은 공개 저장소의 예제(mocks/pictures)이지 평가셋이 아니다."
+          "grade": "REAL+SYNTHETIC — E45 실입력 19 + 초기 fixture 실입력 3 + 합성·경계 34",
+          "note": "실이미지 3장은 공개 저장소의 예제(mocks/pictures)이지 평가셋이 아니다.",
+          "derived": {
+            "counts": {
+              "legacy": {
+                "edge": 2,
+                "real_example": 3,
+                "synthetic": 32
+              },
+              "real": {
+                "real_example": 19
+              }
+            },
+            "real_samples_by_set": {
+              "e45_real_fixture": 19,
+              "initial_fixture": 3
+            },
+            "why_not_summed": "두 집합은 등급이 다를 수 있다(SmartCam: tier A 무손실 PNG 3장 vs tier B 0.3x 축소 JPEG 19장). 합치면 그 구분이 사라진다 — 가드레일이 금지하는 바로 그 문장이 된다.",
+            "derived_by": "harness/mk_evidence_linkage.py::derive_input_reality (E49/D82)",
+            "unavailable": null
+          }
         },
         "verified_property": {
           "sources": [
@@ -1709,9 +1736,35 @@
               "locator": "cells.b2_resnet.semantic_grade",
               "status": "present",
               "value": "SYNTHETIC-ONLY -- no real evaluation data for this model in this environment, so no accuracy is claimed and this cell is a weaker grade of semantic evidence than SmartCam's (which included 3 real images)"
+            },
+            {
+              "path": "results/e45_real_inputs/cells/b2_resnet/fixture/manifest.json",
+              "locator": "counts",
+              "status": "present",
+              "value": {
+                "real_cifar10": 200
+              }
             }
           ],
-          "grade": "SYNTHETIC-ONLY — 합성 32 + 상수 경계 2, 실데이터 0"
+          "grade": "REAL+SYNTHETIC — E45 실입력 200 + 합성·경계 34",
+          "derived": {
+            "counts": {
+              "legacy": {
+                "edge": 2,
+                "synthetic": 32
+              },
+              "real": {
+                "real_cifar10": 200
+              }
+            },
+            "real_samples_by_set": {
+              "e45_real_fixture": 200,
+              "initial_fixture": 0
+            },
+            "why_not_summed": "두 집합은 등급이 다를 수 있다(SmartCam: tier A 무손실 PNG 3장 vs tier B 0.3x 축소 JPEG 19장). 합치면 그 구분이 사라진다 — 가드레일이 금지하는 바로 그 문장이 된다.",
+            "derived_by": "harness/mk_evidence_linkage.py::derive_input_reality (E49/D82)",
+            "unavailable": null
+          }
         },
         "verified_property": {
           "sources": [
@@ -2421,9 +2474,35 @@
               "locator": "cells.b3_deepae.semantic_grade",
               "status": "present",
               "value": "SYNTHETIC-ONLY -- no real evaluation data for this model in this environment, so no accuracy is claimed and this cell is a weaker grade of semantic evidence than SmartCam's (which included 3 real images)"
+            },
+            {
+              "path": "results/e45_real_inputs/cells/b3_deepae/fixture/manifest.json",
+              "locator": "counts",
+              "status": "present",
+              "value": {
+                "real_ad01": 34
+              }
             }
           ],
-          "grade": "SYNTHETIC-ONLY — 합성 32 + 상수 경계 2, 실데이터 0"
+          "grade": "REAL+SYNTHETIC — E45 실입력 34 + 합성·경계 34",
+          "derived": {
+            "counts": {
+              "legacy": {
+                "edge": 2,
+                "synthetic": 32
+              },
+              "real": {
+                "real_ad01": 34
+              }
+            },
+            "real_samples_by_set": {
+              "e45_real_fixture": 34,
+              "initial_fixture": 0
+            },
+            "why_not_summed": "두 집합은 등급이 다를 수 있다(SmartCam: tier A 무손실 PNG 3장 vs tier B 0.3x 축소 JPEG 19장). 합치면 그 구분이 사라진다 — 가드레일이 금지하는 바로 그 문장이 된다.",
+            "derived_by": "harness/mk_evidence_linkage.py::derive_input_reality (E49/D82)",
+            "unavailable": null
+          }
         },
         "verified_property": {
           "sources": [

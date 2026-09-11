@@ -17,7 +17,7 @@
 |---|---|---|
 | model_reality | FLIGHT-ARTIFACT | `results/p1_smartcam_feasibility/source_manifest.json`:`status_in_this_repo`; `results/p1_smartcam_feasibility/source_manifest.json`:`original_artifact.modified` |
 | weights_origin | TRAINED (원본 비행 모델에 베이킹됨) | `results/p1_smartcam_feasibility/source_manifest.json`:`source.path` |
-| input_reality | MIXED — 실이미지 3 + 합성 32 + 상수 경계 2 | `results/e31_smartcam_equivalence/fixture/manifest.json`:`counts`; `results/e31_smartcam_equivalence/fixture/manifest.json`:`source.note` |
+| input_reality | REAL+SYNTHETIC — E45 실입력 19 + 초기 fixture 실입력 3 + 합성·경계 34 | `results/e31_smartcam_equivalence/fixture/manifest.json`:`counts`; `results/e31_smartcam_equivalence/fixture/manifest.json`:`source.note`; `results/e45_real_inputs/cells/smartcam/fixture/manifest.json`:`counts` |
 | verified_property | 의미 동치(전체 출력) + 계약·admission + HAL peak ≤ 승인 예산 | `results/e31_smartcam_equivalence/summary.json`:`verdict`; `results/e36_aarch64_cfs/summary.json`:`verdicts` |
 | not_claimed | — | `results/e31_smartcam_equivalence/summary.json`:`not_claimed`; `results/e36_aarch64_cfs/summary.json`:`not_claimed` |
 
@@ -188,7 +188,7 @@
 |---|---|---|
 | model_reality | PUBLIC-PRETRAINED (MLPerf Tiny 참조 모델) | `results/e34_two_models/summary.json`:`originals_preserved.repo`; `results/e34_two_models/summary.json`:`originals_preserved.files[0].source_path` |
 | weights_origin | TRAINED (MLCommons가 배포한 trained_models) | `results/e34_two_models/summary.json`:`originals_preserved.files[0].source_path` |
-| input_reality | SYNTHETIC-ONLY — 합성 32 + 상수 경계 2, 실데이터 0 | `results/e34_two_models/b2_resnet/fixture/manifest.json`:`counts`; `results/e34_two_models/summary.json`:`cells.b2_resnet.semantic_grade` |
+| input_reality | REAL+SYNTHETIC — E45 실입력 200 + 합성·경계 34 | `results/e34_two_models/b2_resnet/fixture/manifest.json`:`counts`; `results/e34_two_models/summary.json`:`cells.b2_resnet.semantic_grade`; `results/e45_real_inputs/cells/b2_resnet/fixture/manifest.json`:`counts` |
 | verified_property | 의미 동치(전체 출력) + 계약·admission + HAL peak ≤ 승인 예산 | `results/e36b_aarch64_models/summary.json`:`models.b2_resnet.semantics_cfs_aarch64.verdict`; `results/e36b_aarch64_models/summary.json`:`verdicts` |
 | not_claimed | — | `results/e34_two_models/summary.json`:`not_claimed`; `results/e36b_aarch64_models/summary.json`:`not_claimed` |
 
@@ -311,7 +311,7 @@
 |---|---|---|
 | model_reality | PUBLIC-PRETRAINED (MLPerf Tiny 참조 모델) | `results/e34_two_models/summary.json`:`originals_preserved.repo`; `results/e34_two_models/summary.json`:`originals_preserved.files[1].source_path` |
 | weights_origin | TRAINED (MLCommons가 배포한 trained_models) | `results/e34_two_models/summary.json`:`originals_preserved.files[1].source_path` |
-| input_reality | SYNTHETIC-ONLY — 합성 32 + 상수 경계 2, 실데이터 0 | `results/e34_two_models/b3_deepae/fixture/manifest.json`:`counts`; `results/e34_two_models/summary.json`:`cells.b3_deepae.semantic_grade` |
+| input_reality | REAL+SYNTHETIC — E45 실입력 34 + 합성·경계 34 | `results/e34_two_models/b3_deepae/fixture/manifest.json`:`counts`; `results/e34_two_models/summary.json`:`cells.b3_deepae.semantic_grade`; `results/e45_real_inputs/cells/b3_deepae/fixture/manifest.json`:`counts` |
 | verified_property | 의미 동치(전체 출력) + 계약·admission + HAL peak ≤ 승인 예산 | `results/e36b_aarch64_models/summary.json`:`models.b3_deepae.semantics_cfs_aarch64.verdict`; `results/e36b_aarch64_models/summary.json`:`verdicts` |
 | not_claimed | — | `results/e34_two_models/summary.json`:`not_claimed`; `results/e36b_aarch64_models/summary.json`:`not_claimed` |
 
