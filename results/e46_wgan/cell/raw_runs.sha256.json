@@ -8,6 +8,11 @@
   "oracle_tflite.json": {
    "bytes": 40864067,
    "sha256": "e8d79183ec1c190bd5fea80e76c25659947a71f5ea6e2ee9b0d1ba3c02e17c0f"
+  },
+  "iree_x86_64.json": {
+   "bytes": 40861850,
+   "sha256": "e25f830d32d0c24752c2c4f721296a9fd76d8e683a4f0fdc07731ce9105aee3a"
   }
- }
+ },
+ "derived_without_vendoring": "results/e46_wgan/cell/headroom.json was computed from these two files before they were removed; comparison.json is the verdict and is committed."
 }

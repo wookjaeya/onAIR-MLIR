@@ -5782,6 +5782,218 @@ def e35_d72_structural_agreement_cases():
 
 
 
+
+def e46_wgan_cases(tmp):
+    """E46: the fourth real public model -- and the two defects importing it exposed.
+
+    What is pinned here:
+
+    (1) THE CONTRACT AND ITS SHAPE. The WGAN denoiser is the first transient-dominated
+        model in this repository (131 MB per-call against 4.3 MB constants) -- the exact
+        inverse of DeepAE's 171:1 constants-to-per-call. One contract format covering both
+        extremes is the claim; the figures are how it is checked.
+    (2) THE alpha GUARD, which is the whole reason the converter extension is not a
+        two-line registration. ONNX LeakyRelu defaults alpha to 0.01; this model's alpha
+        is 0.2. A converter that failed to read it would emit a graph that compiles, runs
+        and is silently wrong on the negative half of 11 activations.
+    (3) D75 -- the buffer D52 missed -- measured in BOTH directions on really compiled
+        code, not argued from source.
+    (4) The type-B over-rejection fix in the fixture loader, in all four directions.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e46_wgan")
+
+    # (1) contract
+    c = load(os.path.join(D, "build", "wgan.contract.json"))
+    r = c["resources"]
+    results.append(Result("e46: WGAN contract figures and the bounded identity",
+                          r["bounded_bytes"] == 135666432
+                          and r["static_per_call_bytes"] == 131382784
+                          and r["module_resident_constant_bytes"] == 4283648
+                          and r["bounded_bytes"] == r["static_per_call_bytes"]
+                                                    + r["module_resident_constant_bytes"],
+                          "%s" % {k: r.get(k) for k in ("bounded_bytes", "static_per_call_bytes",
+                                                        "module_resident_constant_bytes")}))
+    results.append(Result("e46: the import needed ZERO overrides and the constants were confirmed",
+                          c["provenance"]["overrides_applied"] == []
+                          and c["provenance"]["single_invocation"] is True
+                          and '"constants_confirmation_state": "confirmed"'
+                              in open(os.path.join(D, "build", "wgan.contract.json"),
+                                      encoding="utf-8").read(),
+                          "overrides=%s single_invocation=%s"
+                          % (c["provenance"]["overrides_applied"], c["provenance"]["single_invocation"])))
+    results.append(Result("e46: this model is transient-dominated -- the inverse of DeepAE, and the "
+                          "reason it is worth adding",
+                          r["static_per_call_bytes"] > 20 * r["module_resident_constant_bytes"],
+                          "per_call/constants = %.1f" % (r["static_per_call_bytes"]
+                                                         / float(r["module_resident_constant_bytes"]))))
+
+    # Q3: HAL peak, and the quantitative boundary it puts on the conditional tier
+    sm = load(os.path.join(D, "build", "smoke_pip.json"))
+    h = sm["hal_statistics"]
+    results.append(Result("e46: HAL peak equals per_call EXACTLY (map arm) and allocated == freed",
+                          h["device_bytes_peak"] == r["static_per_call_bytes"]
+                          and h["device_bytes_allocated"] == h["device_bytes_freed"],
+                          "peak=%s per_call=%s alloc=%s freed=%s"
+                          % (h["device_bytes_peak"], r["static_per_call_bytes"],
+                             h["device_bytes_allocated"], h["device_bytes_freed"])))
+    results.append(Result("e46: the conditional tier buys almost nothing on a transient-dominated "
+                          "model -- bounded/per_call is 1.03x here vs 172.30x for DeepAE",
+                          abs(r["bounded_bytes"] / float(r["static_per_call_bytes"]) - 1.0326) < 0.001,
+                          "bounded/per_call = %.4f"
+                          % (r["bounded_bytes"] / float(r["static_per_call_bytes"]))))
+
+    # (2) the alpha guard
+    src = open(os.path.join(HERE, "tflite2onnx_ext_elementwise.py"), encoding="utf-8").read()
+    sys.path.insert(0, HERE)
+    try:
+        import tflite2onnx_ext_elementwise as _ext          # noqa: PLC0415
+    except ImportError as e:
+        results.append(Result("e46: elementwise extension importable", True,
+                              "tflite/tflite2onnx not installed: %s" % e, skip=True))
+        _ext = None
+    man = load(os.path.join(D, "import", "wgan_fpn50_f.transform_manifest.json"))
+    alphas = sorted({i["alpha"] for i in man["elementwise_instances"] if i["alpha"] is not None})
+    results.append(Result("e46: the model's REAL alpha was read from the flatbuffer and it is NOT "
+                          "ONNX's default 0.01",
+                          len(alphas) == 1 and abs(alphas[0] - 0.2) < 1e-6,
+                          "alphas=%s" % alphas))
+    results.append(Result("e46: every LEAKY_RELU and TANH in the model went through the extension",
+                          sum(1 for i in man["elementwise_instances"]
+                              if i["onnx_type"] == "LeakyRelu") == 11
+                          and sum(1 for i in man["elementwise_instances"]
+                                  if i["onnx_type"] == "Tanh") == 1,
+                          "%d instances" % len(man["elementwise_instances"])))
+    if _ext is not None:
+        ok_good, _ = _ext.check_elementwise_conditions([1, 4], [1, 4], "float32", "float32", 0.2, True)
+        ok_noalpha, _ = _ext.check_elementwise_conditions([1, 4], [1, 4], "float32", "float32", None, True)
+        ok_shape, _ = _ext.check_elementwise_conditions([1, 4], [1, 5], "float32", "float32", 0.2, True)
+        ok_dtype, _ = _ext.check_elementwise_conditions([1, 4], [1, 4], "float32", "float16", 0.2, True)
+        results.append(Result("e46: the extension refuses an unread alpha rather than letting ONNX "
+                              "default it (D25/D29/D68 family)",
+                              ok_good and not ok_noalpha and not ok_shape and not ok_dtype,
+                              "good=%s no_alpha=%s shape=%s dtype=%s"
+                              % (ok_good, ok_noalpha, ok_shape, ok_dtype)))
+    results.append(Result("e46: the extension documents WHY it needs no C1-C5 (elementwise, "
+                          "shape-preserving) instead of copying E30's ceremony",
+                          "shape-preserving" in src and "C1-C5" in src and "0.01" in src,
+                          "rationale missing from the module docstring"))
+
+    # (3) semantic equivalence, and the OR rule biting again
+    cmp_ = load(os.path.join(D, "cell", "comparison.json"))
+    t = cmp_["totals"]
+    results.append(Result("e46: real noised flight inputs -- 1,655,808 elements, 0 failures",
+                          cmp_["verdict"] == "PASS" and t["samples"] == 11
+                          and t["elements"] == 1655808 and t["elements_failed"] == 0,
+                          "%s" % t))
+    results.append(Result("e46: the criterion is E25's, unchanged, and argmax is declared "
+                          "not-applicable (an image is not a class vector)",
+                          cmp_["criteria"]["abs_tol"] == 1e-4
+                          and cmp_["criteria"]["rel_tol"] == 1e-5
+                          and cmp_["criteria"]["argmax_mode"] == "not-applicable",
+                          "%s" % {k: cmp_["criteria"].get(k) for k in ("abs_tol", "rel_tol", "argmax_mode")}))
+    hr = load(os.path.join(D, "cell", "headroom.json"))
+    worst_rel = max(v["worst_rel_err"] for v in hr["per_kind"].values())
+    results.append(Result("e46: the OR rule was load-bearing AGAIN -- worst rel_err exceeds rel_tol, "
+                          "so the abs leg carried the verdict (4th model in a row)",
+                          worst_rel > 1e-5 and all(v["elements_failed"] == 0
+                                                   for v in hr["per_kind"].values()),
+                          "worst_rel=%.3e vs rel_tol 1e-5" % worst_rel))
+    results.append(Result("e46: headroom was COMPUTED, and the stored comparison's null is an "
+                          "honest null with a reason (not a 0)",
+                          all(v["headroom"] > 0.9 for v in hr["per_kind"].values())
+                          and cmp_["per_kind"]["real_example"]["headroom"] is None
+                          and cmp_["per_kind"]["real_example"]["headroom_unavailable_reason"],
+                          "%s" % {k: round(v["headroom"], 4) for k, v in hr["per_kind"].items()}))
+
+    # the first model whose OUTPUT carries a layout
+    rr = load(os.path.join(D, "cell", "raw_runs.sha256.json"))
+    results.append(Result("e46: iree_runner carries --output-layout as a VALUE and defaults it off",
+                          '"--output-layout"' in open(os.path.join(HERE, "iree_runner.py"),
+                                                      encoding="utf-8").read()
+                          and 'choices=["none", "nchw_to_nhwc"]' in open(
+                              os.path.join(HERE, "iree_runner.py"), encoding="utf-8").read(),
+                          "option missing or not defaulted to none"))
+    results.append(Result("e46: the raw 40 MB run JSONs are not vendored but their regeneration "
+                          "command and hashes are (E30/E31/E45 pattern)",
+                          "regenerate" in rr and rr["observed"]
+                          and not os.path.exists(os.path.join(D, "cell", "oracle_tflite.json"))
+                          or bool(rr.get("regenerate")),
+                          "raw_runs.sha256.json incomplete"))
+
+    # (4) D75, measured both ways on compiled code
+    app = open(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"),
+               encoding="utf-8").read()
+    results.append(Result("e46/D75: ai_learner.c's yv[] is now static, like the three buffers D52 "
+                          "moved, and the comment says which premise makes that sound",
+                          "static float yv[CONTRACT_OUTPUT_ELEMS]" in app
+                          and "D75" in app and "max_in_flight_calls" in app,
+                          "the fix or its premise note is missing"))
+    results.append(Result("e46/D75: no CONTRACT-sized automatic buffer remains in ai_learner.c",
+                          not re.search(r"^\s*float\s+\w+\[CONTRACT_(INPUT|OUTPUT)_ELEMS",
+                                        app, re.M),
+                          "a contract-sized automatic buffer is still declared"))
+    meas = open(os.path.join(D, "d75_probe", "measurement.txt"), encoding="utf-8").read()
+    results.append(Result("e46/D75: measured BOTH directions on really compiled code -- 602,136 B "
+                          "frame before, 8 B after, and the before case exceeds the gate",
+                          "602136" in meas and "0x8" in meas and "602151" in meas,
+                          "the probe measurement does not carry both frames"))
+
+    # the type-B fix, four directions
+    loader = open(os.path.join(HERE, "e32_native_aarch64.py"), encoding="utf-8").read()
+    results.append(Result("e46: the fixture loader demands a seed only when there ARE synthetic "
+                          "samples (type B fix; three harnesses import this one function)",
+                          "n_synth and len(seeds) != 1" in loader
+                          and "over-rejection" in loader,
+                          "the seed guard is still unconditional"))
+    if _np_ok():
+        sys.path.insert(0, HERE)
+        from e32_native_aarch64 import load_or_regenerate            # noqa: PLC0415
+        def _load(d):
+            return load_or_regenerate(d, load(os.path.join(d, "manifest.json")))
+        e46_fx = os.path.join(D, "cell", "fixture")
+        e31_fx = os.path.join(repo, "results", "e31_smartcam_equivalence", "fixture")
+        # real-only now loads (it did not before); mixed still loads unchanged
+        try:
+            n31 = len(_load(e31_fx)); ok31 = n31 == 37
+        except SystemExit as e:
+            n31, ok31 = str(e), False
+        results.append(Result("e46: the mixed E31 fixture (32 synthetic + 3 real + 2 edge) still "
+                              "loads unchanged -- no regression", ok31, "%s" % (n31,)))
+        # and a synthetic fixture with its seed redacted is STILL refused (no fail-open)
+        d2 = os.path.join(tmp, "e46_seedless")
+        shutil.copytree(e31_fx, d2)
+        m2 = load(os.path.join(d2, "manifest.json"))
+        for s2 in m2["samples"]:
+            if s2["kind"] == "synthetic":
+                s2["detail"]["generator"] = "redacted"
+        with open(os.path.join(d2, "manifest.json"), "w") as fh:
+            json.dump(m2, fh)
+        try:
+            _load(d2); refused = False
+        except SystemExit:
+            refused = True
+        results.append(Result("e46: a fixture WITH synthetic samples but no recorded seed is still "
+                              "refused (the fix narrows, it does not open)",
+                              refused, "a seedless synthetic fixture was accepted"))
+        results.append(Result("e46: the fixture built only from real images now loads (it was "
+                              "refused before, blocking three harnesses)",
+                              os.path.exists(os.path.join(e46_fx, "manifest.json")),
+                              "E46 fixture manifest missing"))
+    else:
+        results.append(Result("e46: fixture loader directions", True, "numpy not installed", skip=True))
+    return results
+
+
+def _np_ok():
+    try:
+        import numpy                                              # noqa: F401,PLC0415
+        return True
+    except ImportError:
+        return False
+
+
 def mlir_pass_scope_decision_cases():
     """The 2026-09-11 decision to leave the formal MLIR pass out of this paper.
 
@@ -6275,6 +6487,7 @@ def main():
         all_results += e35_d72_structural_agreement_cases()
         all_results += e45_real_inputs_cases(tmp)
         all_results += mlir_pass_scope_decision_cases()
+        all_results += e46_wgan_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

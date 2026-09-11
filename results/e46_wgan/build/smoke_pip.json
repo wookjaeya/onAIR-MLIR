@@ -1,0 +1,119 @@
+{
+ "tool": "harness/p1_smoke_pip_runtime.py",
+ "vmfb": "results/e46_wgan/build/wgan.vmfb",
+ "vmfb_bytes": 4323557,
+ "vmfb_sha256": "69eb2933ea878455230af240607c03694ec826a74e5c9d380def2fd8c3202682",
+ "contract_artifact_sha256_matches": true,
+ "runner": "pip iree.runtime (python bindings), one model per process",
+ "driver": "local-sync",
+ "entry": "infer",
+ "input_shape": [
+  1,
+  3,
+  224,
+  224
+ ],
+ "iters": 10,
+ "reflection": {
+  "iree.abi.declaration": "sync func @infer(%input0: tensor<1x3x224x224xf32>) -> (%output0: tensor<1x3x224x224xf32>)"
+ },
+ "hal_statistics": {
+  "host_bytes_peak": 0,
+  "host_bytes_allocated": 0,
+  "host_bytes_freed": 0,
+  "device_bytes_peak": 131382784,
+  "device_bytes_allocated": 1313827840,
+  "device_bytes_freed": 1313827840
+ },
+ "outputs": {
+  "zeros": {
+   "input_sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc",
+   "output_shape": [
+    1,
+    3,
+    224,
+    224
+   ],
+   "output_dtype": "float32",
+   "output": [
+    -0.04500805586576462,
+    -0.07475194334983826,
+    -0.06874244660139084,
+    -0.06285165250301361,
+    -0.06310392916202545,
+    -0.06453032791614532,
+    -0.06604345887899399,
+    -0.06631824374198914,
+    -0.06659375876188278,
+    -0.0669860914349556,
+    -0.06709601730108261,
+    -0.0671304315328598,
+    -0.06713572889566422,
+    -0.06713617593050003,
+    -0.06713617593050003,
+    -0.06713617593050003
+   ],
+   "output_elems": 150528,
+   "argmax": 101022,
+   "sum": -12530.1416015625,
+   "finite": true
+  },
+  "uniform01_seed0": {
+   "input_sha256": "c9781a1d7a39384d92d8515f2c438fd98d33212ba48a628a73ef946babefdaa7",
+   "output_shape": [
+    1,
+    3,
+    224,
+    224
+   ],
+   "output_dtype": "float32",
+   "output": [
+    0.6168880462646484,
+    0.556810736656189,
+    0.3502103388309479,
+    0.47363895177841187,
+    0.2892141342163086,
+    0.23153308033943176,
+    0.24864374101161957,
+    0.25361666083335876,
+    0.32680150866508484,
+    0.495734840631485,
+    0.4369545578956604,
+    0.5480225086212158,
+    0.41007357835769653,
+    0.3799603581428528,
+    0.5196425914764404,
+    0.5106095671653748
+   ],
+   "output_elems": 150528,
+   "argmax": 26224,
+   "sum": 50244.921875,
+   "finite": true
+  }
+ },
+ "deterministic_same_input": true,
+ "hal_statistics_after_host_reads": {
+  "host_bytes_peak": 0,
+  "host_bytes_allocated": 0,
+  "host_bytes_freed": 0,
+  "device_bytes_peak": 133189120,
+  "device_bytes_allocated": 1839358976,
+  "device_bytes_freed": 1836950528,
+  "host_reads": 4,
+  "note": "every host-side read of a result pins its HAL buffer for the process lifetime in this binding (merely holding one without reading is releasable); this is why phase 1 reads the peak from discarded results (D50)"
+ },
+ "contract": {
+  "per_call": 131382784,
+  "bounded": 135666432,
+  "constants": 4283648
+ },
+ "observation": {
+  "device_bytes_peak": 131382784,
+  "peak_le_bounded": true,
+  "peak_eq_per_call": true,
+  "peak_eq_bounded": false,
+  "allocated_eq_freed": true,
+  "note": "one deployment (pip iree.runtime). The arm is decided by the module image's 64-byte alignment (E29), and THIS binding enforces that precondition itself -- copy_buffer makes an aligned copy and wrap_buffer refuses an unaligned image -- so only the map arm is reachable here and B_copy is not observable. Not an E26 cell, not a soundness claim."
+ },
+ "status": "ran"
+}
