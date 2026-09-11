@@ -4,7 +4,7 @@ NASA cFS/OnAIR AI 플러그인을 MLIR/IREE로 컴파일하고, 컴파일러의 
 정적 메모리 계약으로 배치 전 admission 판정을 수행하는 연구용 저장소.
 
 **시작점**: [`CLAUDE.md`](./CLAUDE.md) — 프로젝트 컨텍스트, 작업 규율, 환경 구축, 현재 상태.
-**현재 버전**: v0.41 (`git tag` 대신 커밋 이력·[`CHANGELOG.md`](./CHANGELOG.md)로 확인 — 태그 푸시는 이 실행 환경의 정책 제약으로 보류 중).
+**현재 버전**: v0.42 (`git tag` 대신 커밋 이력·[`CHANGELOG.md`](./CHANGELOG.md)로 확인 — **원격 저장소에는 태그가 하나도 없다**: `git ls-remote --tags origin`이 빈 결과이고, 이 실행 환경에서 태그 푸시는 403으로 거부된다. `v0.42`를 붙이려면 로컬 클론에서 `git tag -a v0.42 <main의 병합 커밋> && git push origin v0.42`를 직접 실행해야 한다).
 
 **연구의 최종 주장과 7개 구분**(예산 / 계약 범위 / 무조건·조건부 정책 / 실행 타깃 / OnAIR / MLIR 기여):
 [`EVIDENCE_v0.41_E37.md`](./docs/EVIDENCE_v0.41_E37.md) §2. 짧게 말하면 — **부분 메모리 계약을 컴파일
