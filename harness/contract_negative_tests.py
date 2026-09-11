@@ -5781,6 +5781,46 @@ def e35_d72_structural_agreement_cases():
 
 
 
+
+def mlir_pass_scope_decision_cases():
+    """The 2026-09-11 decision to leave the formal MLIR pass out of this paper.
+
+    A scope decision and a measurement are different things, and this repository has
+    confused them before in the other direction (D65: a correction that lived only in
+    prose while the machine-readable places still carried the retracted statement).
+    The hazard here is the mirror image -- a later reader finding "정규 MLIR pass 제외
+    확정" and reading it as "we measured that building it changes nothing". No such
+    experiment exists, so the guardrail forbidding that sentence must SURVIVE the
+    decision, not be replaced by it. These cases pin both halves.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    scope = open(os.path.join(repo, "docs", "ASSUMPTIONS_AND_SCOPE.md"),
+                 encoding="utf-8").read()
+    claude = open(os.path.join(repo, "CLAUDE.md"), encoding="utf-8").read()
+
+    results.append(Result("mlir-pass scope: the decision is recorded in ASSUMPTIONS_AND_SCOPE "
+                          "with its date and its reason",
+                          "정규 MLIR pass" in scope and "2026-09-11" in scope
+                          and "하지 않는다" in scope,
+                          "decision section missing from ASSUMPTIONS_AND_SCOPE.md"))
+    results.append(Result("mlir-pass scope: the record states explicitly that the decision is "
+                          "NOT a measurement",
+                          "그런 실험은 없다" in scope or "실측이 아니다" in scope,
+                          "the scope document does not distinguish decision from measurement"))
+    results.append(Result("mlir-pass scope: the guardrail forbidding the unmeasured claim "
+                          "still stands in CLAUDE.md",
+                          '정규 pass를 만들어도 결과가 바뀌지 않음을 실측했다' in claude
+                          and "pass를 구현해 비교한 실험은 **없다**" in claude,
+                          "the guardrail was removed or reworded away"))
+    results.append(Result("mlir-pass scope: CLAUDE.md still names the current implementation "
+                          "correctly (post-processing verifier, not a pass)",
+                          "post-processing verifier" in claude
+                          and '"정규 pass"가 아니다' in claude,
+                          "the naming correction (F4/N6/S5) was lost"))
+    return results
+
+
 def e45_real_inputs_cases(tmp):
     """E45: real inputs, and the things about them that must not be misread.
 
@@ -6234,6 +6274,7 @@ def main():
         all_results += e41_analysis_domain_cases(tmp)
         all_results += e35_d72_structural_agreement_cases()
         all_results += e45_real_inputs_cases(tmp)
+        all_results += mlir_pass_scope_decision_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
