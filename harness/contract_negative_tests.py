@@ -5725,6 +5725,61 @@ def e41_analysis_domain_cases(tmp):
     return results
 
 
+# ----------------------------------------------------------------------------
+# D72 (v0.44.1): E35's "24/24 verdicts agree" is a corollary, not a measurement
+# ----------------------------------------------------------------------------
+def e35_d72_structural_agreement_cases():
+    """The number is real; its INDEPENDENCE is not, and the source says so.
+
+    e35_baseline_policy_matrix.py skips any model whose three figures disagree, and
+    feeds both levels the same three numbers AND the same bound_method. So
+    `verdicts_disagreeing: 0` cannot come out otherwise. These cases pin that fact in
+    the machine-readable place, so the 24/24 is never re-quoted as 24 independent
+    trials -- the E35 plan (SS4-2) had pre-registered that a disagreeing cell "would be
+    the core of this experiment", and the implementation cannot produce one.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    src = open(os.path.join(HERE, "e35_baseline_policy_matrix.py")).read()
+    results.append(Result("d72: the matrix still skips models whose three figures disagree "
+                          "(so 0 disagreeing cells is structural)",
+                          'if not same_numbers or b_level.get("bounded_bytes") is None:' in src
+                          and "continue" in src.split('if not same_numbers')[1][:120],
+                          "guard not found as expected"))
+    results.append(Result("d72: both levels are decided with the SAME bound_method read from the contract",
+                          src.count('method = res["bound_method"]') == 1
+                          and src.count("as_contract(") >= 3,
+                          "method=%d as_contract=%d" % (src.count('method = res["bound_method"]'),
+                                                        src.count("as_contract("))))
+    # the corollary, demonstrated rather than asserted
+    sys.path.insert(0, HERE)
+    import admission_policy as ap
+    from e35_baseline_policy_matrix import as_contract, bands
+    c = as_contract(618856, 309416, 309440, "static_from_stream_layout")
+    b = as_contract(618856, 309416, 309440, "static_from_stream_layout")
+    diffs = sum(1 for _, budget in bands(618856, 309416) for cond in (False, True)
+                if ap.decide(c, budget, allow_conditional_map=cond)["verdict"]
+                != ap.decide(b, budget, allow_conditional_map=cond)["verdict"])
+    results.append(Result("d72: with identical inputs no band/policy combination can disagree",
+                          c == b and diffs == 0, "identical=%s diffs=%d" % (c == b, diffs)))
+    # what E35 actually measured is still there and still 4/4
+    summ = load(os.path.join(repo, "results", "e35_fair_baseline", "summary.json"))["totals"]
+    results.append(Result("d72: the real measurement (three figures + kernel stack, 4/4) is unchanged",
+                          summ["models_where_three_figures_agree"] == 4
+                          and summ["models_where_kernel_stack_agrees"] == 4
+                          and summ["models_total"] == 4,
+                          "%s" % summ))
+    # the erratum must exist where a machine reader looks, not only in prose (D65)
+    ev = open(os.path.join(repo, "docs", "EVIDENCE_v0.38_E35.md"), encoding="utf-8").read()
+    results.append(Result("d72: EVIDENCE_v0.38_E35 carries the erratum narrowing the 24/24 claim",
+                          "D72" in ev and "따름정리" in ev, "erratum section missing"))
+    claude = open(os.path.join(repo, "CLAUDE.md"), encoding="utf-8").read()
+    results.append(Result("d72: CLAUDE.md no longer presents 24/24 as an independent measurement",
+                          "24/24" not in claude or "따름정리" in claude,
+                          "CLAUDE.md still quotes 24/24 without the corollary note"))
+    return results
+
+
 def e38_optin_witness_cases(tmp):
     """E38: the conditional opt-in must be recorded independently of the verdict.
 
@@ -5978,6 +6033,7 @@ def main():
         all_results += e38_optin_witness_cases(tmp)
         all_results += e40_analysis_domain_cases(tmp)
         all_results += e41_analysis_domain_cases(tmp)
+        all_results += e35_d72_structural_agreement_cases()
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
