@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.47**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.48**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
 
 **중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
 
@@ -996,6 +996,38 @@ NHWC다. 기존 셋은 출력이 클래스 점수(3·10)나 rank-2(640)라 *"출
 **없으므로** 플래그만 켜면 D53/D54를 Python 경로에서 재현한다 — **켜지 않았다**).
 
 
+**v0.48에서 완료된 것 (E44, `docs/EVIDENCE_v0.48_E44.md`)**: **예산 출처(budget provenance)** — 로드맵
+§6.2. 사전 고정 기준은 `docs/plans/E44_budget_provenance.md`(커밋 `2aa93cf`, 측정 이전).
+요구된 **세 필드 중 실제로 부족한 것은 하나**였고, 그 하나도 계약 필드로 신설하지 않았다.
+`budget_source`는 **이미 있었고**(`ai_learner.c` 8회 · 요약 생성기 4개 · 시험 **5곳이 pin**),
+`budget_scope`는 **이미 세 곳**(`resources.scope` · `accounting_rules.excluded`(E40) · admission
+`per_app_local_budget`)에 있어 **네 번째 이름은 D65의 형태**라 만들지 않았다. 남은 `reservation_semantics`는
+개념이 E39a의 사전 등록 축 **A5**로 이미 있었으므로 **반대로 갔다 — A5를 저장소에서 유도**한다.
+**Q1**: 네 행이 전부 자기 예산의 출처를 말한다 — OnAIR `deployment_config`/`none`(실행) ·
+native `argv`(재빌드 후 실행) · cFS `override`(E38 보관 로그 인용). **`none`은 `null`이 아니다** —
+*"선언 자체가 없다"*를 말하는 값이고 `budget_source_note`가 그 문장을 함께 싣는다(부재를 값으로 적되
+**어떤 부재인지** 적는다). **Q2·Q3**: `harness/budget_provenance.py`가 예약 능력이 있는 호출 8종
+(`mlock`·`mlockall`·`MAP_POPULATE`·`MAP_LOCKED`·`CFE_ES_PoolCreate`·`CFE_ES_GetPoolBuf`·
+`CFE_ES_RegisterCDS`·`OS_MemPoolCreate`)을 소스 **85파일**에서 세어 **0건 → `declared`**이고, 표에는
+값과 근거가 함께 실린다. **hit가 있으면 `enforced`로 올리지 않고 `unknown`**이다 — 호출이 **있다**는 것과
+그 호출이 **이** 예산을 예약한다는 것은 다르고, 그 구분은 **E28/D52가 게이트에 대해 배운 것**과 같다
+(게이트가 도는 것 ≠ 게이트가 계약의 수를 쓰는 것). 스캐너가 **소스만** 읽는 이유가 이 실험 중 실제로
+나왔다: 감사가 *"`CFE_TBL` 0회"*라 보고했는데 직접 grep하니 **15건**이었고 **전부 cFS 부팅 로그**였다 —
+로그를 세는 스캐너였다면 이 앱이 쓰지 않는 테이블 서비스를 보고했을 것이다. **Q4**: 값 개명 **0건**,
+시험 pin 5곳 무수정 통과, 비교표 diff **1 insertion / 1 deletion**(이 연구 행의 A5 칸만). **Q5**: 과잉 거부 0 —
+`budget_source`는 보고 필드이지 게이트가 아니다. **방법론 — 같은 생성기가 두 번 틀렸다**: 첫 glob이 한 단계 깊어
+cFS 행에 *"기록 없음"*을 냈는데 그 줄은 `results/e38_optin_record/cells/cond_positive.log`에 **있었다**
+(**D51** — *"볼 수 없었다"*를 *"보았더니 없더라"*로 기록). 넓힌 glob은 이번엔 **정렬 순서상 먼저인**
+파일을 집었고 그것이 **D61(b)를 재현하려고 보관하는 결함 로그**였다 — 주장은 참이었지만 한 행 안에서
+`detail`과 `cell`이 **서로 다른 말을 했다**(**D65의 기계 판독끼리 판본**). 인용을 의도적으로 바꾸고
+(E38 셀 우선, 폴백이면 `cited_from: fallback_scan`으로 적는다) 보관 로그 **21개**라는 수도 함께 싣는다.
+native 재빌드가 덮은 추적 `native/contract_gen.h`는 되돌렸다. 신규 가드 4건 전부 revert 시 실패.
+이 컨테이너 **690/690 → 710/710**, 계약 스키마 변경 0.
+**교훈**: ***요구된 필드가 이미 있는지 먼저 세어 보라 — 없는 줄 알고 더하면, 같은 사실이 서로를
+대조하지 않는 두 자리에 살게 된다.***
+**하지 않음(명시)**: `budget_scope` 신설 · 계약 스키마 변경 · 로드맵 enum 채택 · cFS 셀 재실행(인용) ·
+AArch64에서의 native/OnAIR 예산 출처(x86-64에서만 실행).
+
 **이로써 §10 단계 1~5가 전부 닫혔다**(단계 2는 E36, 단계 4는 E36b). 여덟 번째 검토의 **§10 마무리 4단계**도
 닫혔다 — 1(E37 보고 원자료 재확인) · 2(조건부 opt-in 독립 기록 = E38) · 3(결정 문서 4곳 정정, 저장소 밖
 문서라 커밋 대상 아님) · 4(범위 완료 확정). 다음 작업은 **연구 책임자 결정 대기** — 논문 초고 착수 /
@@ -1315,6 +1347,12 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
   그래서 O0의 메모리를 **아예 재지 않았다**
 - *"O0~O3 네 셀을 측정했다"* → **둘은 측정이고 둘은 인용이다**(O2 = E33 `p_admit`, O3 = `p_deny`).
   요약 표가 그 구분을 싣는다
+- *"예산이 물리 RAM을 예약한다 / 예산이 cFS 테이블에서 온다 / 임무 설정이 예산을 정한다"* →
+  **전부 근거가 없다**(E44). 예산은 앱에 **부여한 값**이고, 예약 능력이 있는 호출은 소스 85파일에서
+  **0건**이며(`harness/budget_provenance.py`), `CFE_TBL` 15건은 전부 **cFS 부팅 로그**다.
+  기전의 있는 그대로의 이름은 `macro`·`override`·`argv`·`deployment_config`·`none`이다
+- *"예약 호출이 있으면 예산이 강제된다"* → **그 승격은 하지 않는다**(E44). 호출이 **있다**는 것과
+  그 호출이 **이** 예산을 예약한다는 것은 다르므로 스캐너는 `enforced`가 아니라 **`unknown`**을 낸다
 
 중심 주장 문장은 `docs/EVIDENCE_v0.9_E14_stage1.md` §11.8의 정오표 반영 개정판을 그대로 쓴다
 (이 파일 맨 위에 인용됨) — 재편은 **다음에 무엇을 할지**의 순서를 바꾼 것이지 기존 판정을
@@ -1486,6 +1524,10 @@ scripts/
   73_console.sh                       게스트 양방향 시리얼 콘솔 (emergency-mode 등 ssh 안 될 때)
   99_bootstrap_all.sh              ★ 전체 순서 실행 (x86-64 기준; aarch64는 60-62, 70-73 별도 실행)
 harness/                    실험 스크립트
+  budget_provenance.py        ★ E44: 예약 능력이 있는 호출 8종(mlock·mlockall·MAP_POPULATE·MAP_LOCKED·
+                               CFE_ES_PoolCreate·CFE_ES_GetPoolBuf·CFE_ES_RegisterCDS·OS_MemPoolCreate)을 **소스만**
+                               훑어 E39a 비교표의 A5를 유도한다(로그를 세면 cFS 부팅 로그의 CFE_TBL 15건을 오보고한다 — 실제 사례).
+                               0건이면 `declared`, hit가 있으면 **`enforced`가 아니라 `unknown`**(호출의 존재 ≠ 이 예산의 예약, E28/D52)
   optin_witness.py            ★ E38: 빌드 산출물(`ai_learner.so`)에서 조건부 opt-in을 읽는다 — 소스도 빌드 명령도
                                아니라 **최종 바이너리**를 본다. `AI_LEARNER_Init`에서 `CONTRACT_PER_CALL_BYTES`(또는 −1)와의
                                비교가 조건부 분기로 이어지는지 찾는다. **양성 대조 선행**: 같은 매처가 무조건 `bounded`

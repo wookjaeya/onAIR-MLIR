@@ -229,3 +229,36 @@ MLIR conditional.
 
 TFLM Bazel 빌드 우회(`grpc` 의존성 오버라이드 연쇄)는 **재개 대상이 아니다.** 노동집약적이고
 핵심 논증을 바꾸지 않는다. `CLAUDE.md`의 TFLM 착수 이력은 이력으로만 남긴다.
+
+## 예산의 의미 — **선언이지 예약이 아니다** (E44, 2026-09-11)
+
+로드맵 §6이 이 구분을 요구했다: *"테이블 값은 그 자체로 물리 RAM을 예약하지 않으므로
+`declared budget`으로 표시해야 한다."*
+
+> **이 연구의 예산은 앱에 부여한 수(數)이며, 어떤 경로도 그 크기의 물리 메모리를 예약하지 않는다.**
+> admission은 계약이 요구하는 양과 그 수를 **비교**할 뿐이다.
+
+**이 문장은 선언이 아니라 유도된 값이다.** `harness/budget_provenance.py`가 소스 트리에서
+예약 능력이 있는 호출(`mlock`·`mlockall`·`MAP_POPULATE`·`MAP_LOCKED`·`CFE_ES_PoolCreate`·
+`CFE_ES_GetPoolBuf`·`CFE_ES_RegisterCDS`·`OS_MemPoolCreate`)을 세고, **0건일 때만** `declared`다.
+E39a의 사전 등록 축 **A5**가 그 값을 그대로 싣는다(전에는 손으로 쓴 산문이었다 — D65의 형태).
+
+**호출이 발견되면 `enforced`로 올리지 않고 `unknown`으로 낮춘다.** 호출이 있다는 것과 그 호출이
+**이 예산을** 예약한다는 것은 다르고, 그 구분은 E28/D52가 게이트에 대해 배운 것과 같다.
+
+### 예산의 출처는 배포 경로마다 다르고, 각 경로가 스스로 말한다
+
+| 경로 | `budget_source` | 기전 |
+|---|---|---|
+| cFS 앱 | `macro` / `override` | 컴파일 타임 매크로, 또는 초기화 시 런타임 오버라이드(E36) |
+| native 실행기 | `argv` | 명령행 인자 `argv[2]` |
+| OnAIR 플러그인 | `deployment_config` / `none` | 배포 JSON의 `budget_bytes`, 또는 선언 없음 |
+
+**로드맵 §6.2의 어휘를 채택하지 않았다.** `cFS table`은 이 저장소에 구현이 없고(`CFE_TBL`은
+cFS 부팅 로그에만 나오고 소스 사용 0), `mission configuration`은 실제로는 CMake 매크로다.
+있는 그대로의 기전을 이름으로 쓴다.
+
+**`budget_scope`도 신설하지 않았다** — 계약의 `resources.scope`, `accounting_rules.excluded`(E40),
+admission 레코드의 `"scope":"per_app_local_budget"`이 이미 그것을 싣는다. 한 개념에 네 번째
+이름을 붙이는 것이 D65가 명명한 형태다.
+

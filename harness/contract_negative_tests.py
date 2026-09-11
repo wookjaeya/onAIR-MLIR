@@ -5784,6 +5784,144 @@ def e35_d72_structural_agreement_cases():
 
 
 
+
+def e44_budget_provenance_cases(tmp):
+    """E44: every deployment path says where its budget came from, and A5 is DERIVED.
+
+    Three things are pinned, and two of them are things this experiment DID NOT do:
+
+    (1) all three deployment paths label their budget, measured from records they wrote;
+    (2) `budget_scope` was NOT added and the existing `budget_source` values were NOT
+        renamed -- renaming would have broken five pins for no gain, and a fourth name
+        for one concept is D65's pattern;
+    (3) axis A5 is computed from the source tree instead of typed, and a reservation hit
+        would downgrade it to `unknown` rather than promote it to `enforced`.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e44_budget_provenance")
+    summ = load(os.path.join(D, "summary.json"))
+    by = {r["path"]: r for r in summ["paths"]}
+
+    for label, src, mech in (
+            ("OnAIR plugin (budget declared)", "deployment_config", "OnAIR deployment JSON"),
+            ("OnAIR plugin (no budget)", "none", "OnAIR deployment JSON"),
+            ("native executor", "argv", "argv[2]"),
+            ("cFS app", "override", "compile-time macro, or runtime override (E36)")):
+        r = by.get(label, {})
+        results.append(Result("e44: %s labels its budget as %r" % (label, src),
+                              r.get("readable") is True and r.get("budget_source") == src
+                              and r.get("mechanism") == mech,
+                              "%s" % {k: r.get(k) for k in ("readable", "budget_source", "mechanism")}))
+    results.append(Result("e44: every path labels its budget (none is silent)",
+                          summ["all_paths_label_their_budget"] is True,
+                          "%s" % [(r["path"], r.get("budget_source")) for r in summ["paths"]]))
+
+    # what was deliberately NOT done
+    nar = summ["what_was_narrowed"]
+    results.append(Result("e44: budget_scope was NOT added -- three existing carriers are named",
+                          "NOT ADDED" in nar["budget_scope"] and "resources.scope" in nar["budget_scope"],
+                          "%s" % nar.get("budget_scope")))
+    results.append(Result("e44: reservation_semantics was NOT added as a contract field; A5 is "
+                          "derived instead",
+                          "NOT ADDED" in nar["reservation_semantics"]
+                          and "DERIVED" in nar["reservation_semantics"],
+                          "%s" % nar.get("reservation_semantics")))
+    results.append(Result("e44: the roadmap's enum was rejected on measured grounds (cFS table has "
+                          "no implementation; mission configuration is a CMake macro)",
+                          "CFE_TBL" in nar["roadmap_enum_rejected"]
+                          and "CMake macro" in nar["roadmap_enum_rejected"],
+                          "%s" % nar.get("roadmap_enum_rejected")))
+    # the existing values were not renamed -- the five pins still read macro/override
+    src_txt = open(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"),
+                   encoding="utf-8").read()
+    results.append(Result("e44: the cFS app's existing budget_source values are unchanged "
+                          "(macro / override) so the five pins keep reading",
+                          'g.budget_source = "macro"' in src_txt
+                          and 'g.budget_source = "override"' in src_txt,
+                          "a cFS budget_source value was renamed"))
+
+    # A5 is derived, and the scanner never promotes
+    a5 = summ["a5_axis"]
+    results.append(Result("e44/A5: derived as %r from %s source files with %d reservation hits"
+                          % (a5["verdict"], a5["files_scanned"], a5["hits"]),
+                          a5["verdict"] == "declared" and a5["hits"] == 0
+                          and a5["files_scanned"] > 50 and a5["derived_in_table"] is True,
+                          "%s" % {k: a5.get(k) for k in ("verdict", "hits", "files_scanned",
+                                                         "derived_in_table")}))
+    results.append(Result("e44/A5: the prior-art table prints the derived value AND its basis, "
+                          "not a typed string",
+                          a5["table_cell"] and "budget_provenance.py" in a5["table_cell"],
+                          "%s" % a5.get("table_cell")))
+    gen = open(os.path.join(HERE, "mk_prior_art_table.py"), encoding="utf-8").read()
+    results.append(Result("e44/A5: mk_prior_art_table.py no longer carries a literal A5 verdict",
+                          '"A5": "**declared**' not in gen and "a5_reservation" in gen,
+                          "the literal A5 string is still there"))
+    scan = open(os.path.join(HERE, "budget_provenance.py"), encoding="utf-8").read()
+    results.append(Result("e44/A5: a reservation hit downgrades to `unknown` and NEVER promotes "
+                          "to `enforced` (E28/D52's distinction)",
+                          '"unknown"' in scan and "never yields `enforced`" in scan
+                          and 'return "enforced"' not in scan,
+                          "the scanner can promote to enforced"))
+    results.append(Result("e44/A5: the scan reads sources only -- logs are not code (CFE_TBL's 15 "
+                          "hits were all in cFS boot logs)",
+                          "why_sources_only" in scan and "boot logs" in scan,
+                          "the scanner does not record why it skips logs"))
+    # and it actually behaves that way on a synthetic hit
+    sys.path.insert(0, HERE)
+    import budget_provenance as bp                                 # noqa: PLC0415
+    v_clean, _ = bp.verdict([])
+    v_hit, _ = bp.verdict([{"call": "mlock", "file": "x.c", "line": 1, "text": "mlock(p, n);"}])
+    results.append(Result("e44/A5: verdict() is declared on zero hits and unknown on one -- "
+                          "demonstrated, not asserted",
+                          v_clean == "declared" and v_hit == "unknown",
+                          "clean=%s hit=%s" % (v_clean, v_hit)))
+
+    # the scope document carries the statement where a reader looks
+    scope = open(os.path.join(repo, "docs", "ASSUMPTIONS_AND_SCOPE.md"), encoding="utf-8").read()
+    results.append(Result("e44: ASSUMPTIONS_AND_SCOPE states that the budget is declared, not "
+                          "reserved, and says the value is derived",
+                          "선언이지 예약이 아니다" in scope and "budget_provenance.py" in scope
+                          and "unknown" in scope,
+                          "the scope document does not carry the budget semantics"))
+
+    # The generator's SECOND mistake, pinned. cfs_row() takes the first archived log
+    # carrying budget_source; sorted-first landed on results/e36_aarch64_cfs/
+    # cache_leak_bug/deny_B_minus_1.log -- a log kept BECAUSE it reproduces D61(b)
+    # (a leaked CMake cache value turned a must-deny cell into ADMIT_CONDITIONAL_MAP).
+    # The claim stayed true (that record does carry the field), but the row's `detail`
+    # said "cited from E38's re-run cells" while `cell` pointed elsewhere: two fields
+    # of one row disagreeing is D65's shape. The citation is deliberate now.
+    cfs = [by.get("cFS app")] if by.get("cFS app") else []
+    cited = cfs[0].get("cell", "") if cfs else ""
+    frm = cfs[0].get("cited_from") if cfs else None
+    results.append(Result("e44: the cFS row cites an E38 re-run cell deliberately (%s), not "
+                          "whatever log sorted first" % frm,
+                          frm == "e38_rerun" and "e38_optin_record/cells/" in cited,
+                          "cited_from=%r cell=%r" % (frm, cited)))
+    results.append(Result("e44: the cFS row never cites a defect-reproduction log as if it were "
+                          "a normal cell",
+                          "cache_leak_bug" not in cited and "prefix_bug" not in cited,
+                          "the cited cell is a reproduction of a known defect: %r" % cited))
+    results.append(Result("e44: the cFS row says HOW MANY archived logs carry budget_source "
+                          "-- \"we found one\" and \"only one exists\" differ",
+                          isinstance(cfs[0].get("archived_logs_carrying_budget_source"), int)
+                          and cfs[0]["archived_logs_carrying_budget_source"] >= 1 if cfs else False,
+                          "the count is missing from the cFS row"))
+
+    # native/contract_gen.h is a BUILD ARTIFACT (build.sh regenerates it every time, and
+    # says so). Rebuilding the native executor for E44 overwrote the tracked copy with
+    # the default example contract; that regeneration is not part of this experiment and
+    # was restored. The tracked header must stay the canonical_e25 one the rest of the
+    # repository assumes.
+    hdr = open(os.path.join(repo, "native", "contract_gen.h"), encoding="utf-8").read()
+    results.append(Result("e44: the tracked native/contract_gen.h was not overwritten by this "
+                          "experiment's rebuild (it stays canonical_e25)",
+                          'CONTRACT_MODEL_NAME "canonical_e25"' in hdr,
+                          "the tracked generated header is not the canonical_e25 one"))
+    return results
+
+
 def e43_pure_onair_cases(tmp):
     """E42/E43: the pure-OnAIR baseline, and what it is NOT allowed to say.
 
@@ -6603,6 +6741,7 @@ def main():
         all_results += mlir_pass_scope_decision_cases()
         all_results += e46_wgan_cases(tmp)
         all_results += e43_pure_onair_cases(tmp)
+        all_results += e44_budget_provenance_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

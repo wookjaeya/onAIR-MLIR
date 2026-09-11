@@ -27,6 +27,7 @@ This repo's own row is derived from the repository, not typed in.
 """
 import json
 import os
+import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -34,8 +35,19 @@ D = os.path.join(ROOT, "results", "e39_prior_art")
 AX = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"]
 
 
+def a5_reservation():
+    """A5 is derived, not typed. Runs the scanner as a subprocess so the table cannot
+    accidentally depend on this module's import-time state."""
+    out = os.path.join(D, "a5_reservation_scan.json")
+    subprocess.run([sys.executable, os.path.join(ROOT, "harness", "budget_provenance.py"),
+                    "--out", out], capture_output=True, text=True, check=False)
+    with open(out, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def this_work_row():
     """Derive the onAIR-MLIR row from the repository itself (contract + app source)."""
+    a5 = a5_reservation()
     cpath = os.path.join(ROOT, "results", "p1_smartcam_feasibility", "build", "smartcam.contract.json")
     c = json.load(open(cpath))
     r = c["resources"]
@@ -57,7 +69,16 @@ def this_work_row():
         "A3": "예 (bound_method=%s)" % r.get("bound_method"),
         "A4": "**예 — 런타임 자원 획득 전 ADMIT/NOT_ADMITTED**" if gate_before_runtime is not False
               else "예 (순서는 소스에서 재확인 필요)",
-        "A5": "**declared** (예산은 앱에 부여한 값이며 물리 RAM을 예약하지 않는다)",
+        # E44: A5 used to be this literal string while its neighbours A2/A3 read from the
+        # contract. A fact in a place no guard re-checks is D65's shape, so it is DERIVED
+        # now -- harness/budget_provenance.py scans the source for reservation-capable calls
+        # and the value plus its basis are printed together. A hit downgrades to `unknown`;
+        # it never promotes to `enforced` (a call existing is not that call reserving THIS
+        # budget -- the E28/D52 distinction).
+        "A5": "**%s** — %s (예약 호출 %d건 / 소스 %d파일, `harness/budget_provenance.py`)"
+              % (a5["verdict"], "예산은 앱에 부여한 값이며 물리 RAM을 예약하지 않는다"
+                 if a5["verdict"] == "declared" else a5["reason"],
+                 len(a5["hits"]), a5["files_scanned"]),
         "A6": "**cFS 앱 + NASA 공식 OnAIR 로더**",
         "A7": "AArch64 QEMU 게스트 cFS · x86-64 cFS · qemu-user",
         "A8": "**예 — 같은 회계 영역의 HAL 관측 피크와 대조**",

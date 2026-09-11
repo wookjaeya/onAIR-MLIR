@@ -267,12 +267,30 @@ class Plugin(AIPlugin):
 
     def _decide_admission(self):
         """Decide BEFORE the artifact is opened, so a refusal never touches the runtime."""
+        # E44: say WHERE the budget came from. The cFS app has recorded `budget_source`
+        # since E36 ("macro" | "override") and native_learner records "argv"; this path
+        # took its budget from the deployment JSON and labelled nothing, so one of the
+        # three deployment paths could not state its budget's provenance.
+        #
+        # The value names the mechanism that exists, not the roadmap's
+        # {mission configuration, cFS table, experiment override}: "cFS table" has no
+        # implementation here (CFE_TBL appears only in cFS boot logs, never in source)
+        # and "mission configuration" would promote a config file into a claim.
+        #
+        # `budget_scope` is deliberately NOT added -- resources.scope,
+        # accounting_rules.excluded (E40) and "scope":"per_app_local_budget" already
+        # carry it, and a fourth name for one concept is D65's pattern.
         if self.budget_bytes is None:
             self.admission = {"verdict": "NOT_EVALUATED", "admitted_budget_bytes": None,
+                              "budget_source": "none",
+                              "budget_source_note": "this deployment declares no budget_bytes, "
+                                                    "so there is nothing to source",
                               "reason": "no budget_bytes configured for this deployment"}
             return
         self.admission = ap.decide(self.contract, int(self.budget_bytes),
                                    allow_conditional_map=self.allow_conditional_map)
+        self.admission["budget_source"] = "deployment_config"
+        self.admission["budget_source_detail"] = self.deployment.get("source")
         if not ap.admitted(self.admission["verdict"]):
             raise ContractViolation("admission %s -- %s"
                                     % (self.admission["verdict"], self.admission["reason"]))

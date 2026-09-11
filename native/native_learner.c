@@ -172,11 +172,25 @@ int main(int argc, char** argv) {
   const char* verdict = !GATE_BOUND_KNOWN ? "UNKNOWN_BOUND"
                       : (bounded <= budget ? "ADMIT"
                       : (g.conditional_map ? "ADMIT_CONDITIONAL_MAP" : "NOT_ADMITTED"));
+  /* E44: say WHERE this budget came from. The cFS app has recorded `budget_source`
+   * since E36 ("macro" | "override"); this executor took its budget from argv[2] and
+   * labelled nothing, so two of the three deployment paths could state their budget's
+   * provenance and one could not. The value is the mechanism that actually exists --
+   * not the roadmap's {mission configuration, cFS table, experiment override}, whose
+   * "cFS table" has no implementation here (CFE_TBL appears only in cFS boot logs,
+   * never in source) and whose "mission configuration" would promote a CMake macro
+   * into a claim this repository cannot support.
+   *
+   * `budget_scope` is deliberately NOT added: the contract already carries
+   * resources.scope, accounting_rules.excluded (E40) and the admission record's
+   * "scope":"per_app_local_budget". A fourth name for one concept is D65's pattern. */
+  const char* budget_source = "argv";
   printf("{\"stage\":\"admission\",\"verdict\":\"%s\",\"model\":\"%s\",\"target\":\"%s\","
-         "\"bounded_bytes\":%ld,\"budget_bytes\":%ld,\"per_call\":%ld,\"constants\":%ld,"
+         "\"bounded_bytes\":%ld,\"budget_bytes\":%ld,\"budget_source\":\"%s\","
+         "\"per_call\":%ld,\"constants\":%ld,"
          "\"kernel_stack_bytes\":%ld,\"bound_known\":%s,"
          "\"conditional_map_requested\":%s,\"conditional_map_applied\":%s}\n",
-         verdict, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, bounded, budget,
+         verdict, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, bounded, budget, budget_source,
          (long)CONTRACT_PER_CALL_BYTES, (long)CONTRACT_CONST_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES,
          GATE_BOUND_KNOWN ? "true" : "false",
          g.conditional_map_requested ? "true" : "false",
