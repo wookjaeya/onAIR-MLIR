@@ -1,0 +1,473 @@
+{
+  "experiment": "E41",
+  "what_this_is": "a measurement of behaviour OUTSIDE analysis_domain.required_premises, not a gate. The contract states nothing about these runs; the point is whether the premises are load-bearing.",
+  "driver": "local-sync",
+  "threads_probed": [
+    1,
+    2,
+    4
+  ],
+  "repeats": 3,
+  "single_call_peak_equals_per_call": true,
+  "premise_is_load_bearing": true,
+  "cells_exceeding_bounded": [
+    {
+      "model": "b2_resnet",
+      "threads": 4,
+      "hold_outputs": false,
+      "peak": 1237664,
+      "bounded_bytes": 618856
+    },
+    {
+      "model": "b2_resnet",
+      "threads": 4,
+      "hold_outputs": true,
+      "peak": 1237664,
+      "bounded_bytes": 618856
+    },
+    {
+      "model": "smartcam",
+      "threads": 2,
+      "hold_outputs": false,
+      "peak": 18764184,
+      "bounded_bytes": 18222796
+    },
+    {
+      "model": "smartcam",
+      "threads": 4,
+      "hold_outputs": false,
+      "peak": 37528368,
+      "bounded_bytes": 18222796
+    },
+    {
+      "model": "smartcam",
+      "threads": 2,
+      "hold_outputs": true,
+      "peak": 18764184,
+      "bounded_bytes": 18222796
+    },
+    {
+      "model": "smartcam",
+      "threads": 4,
+      "hold_outputs": true,
+      "peak": 37528368,
+      "bounded_bytes": 18222796
+    }
+  ],
+  "cells": [
+    {
+      "threads": 1,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 309416,
+      "allocated": 309416,
+      "freed": 309416,
+      "per_call_bytes": 309416,
+      "bounded_bytes": 618856,
+      "peak_within_per_call": true,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b2_resnet",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        309416,
+        309416,
+        309416
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 2,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 618832,
+      "allocated": 618832,
+      "freed": 618832,
+      "per_call_bytes": 309416,
+      "bounded_bytes": 618856,
+      "peak_within_per_call": false,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b2_resnet",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        618832,
+        618832,
+        618832
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 4,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 1237664,
+      "allocated": 1237664,
+      "freed": 1237664,
+      "per_call_bytes": 309416,
+      "bounded_bytes": 618856,
+      "peak_within_per_call": false,
+      "peak_within_bounded": false,
+      "errors": [],
+      "model": "b2_resnet",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        1237664,
+        1237664,
+        1237664
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 1,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 309416,
+      "allocated": 309416,
+      "freed": 309376,
+      "per_call_bytes": 309416,
+      "bounded_bytes": 618856,
+      "peak_within_per_call": true,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b2_resnet",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        309416,
+        309416,
+        309416
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 2,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 618832,
+      "allocated": 618832,
+      "freed": 618752,
+      "per_call_bytes": 309416,
+      "bounded_bytes": 618856,
+      "peak_within_per_call": false,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b2_resnet",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        618832,
+        618832,
+        618832
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 4,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 1237664,
+      "allocated": 1237664,
+      "freed": 1237504,
+      "per_call_bytes": 309416,
+      "bounded_bytes": 618856,
+      "peak_within_per_call": false,
+      "peak_within_bounded": false,
+      "errors": [],
+      "model": "b2_resnet",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        1237664,
+        1237664,
+        1237664
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 1,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 6208,
+      "allocated": 6208,
+      "freed": 6208,
+      "per_call_bytes": 6208,
+      "bounded_bytes": 1069632,
+      "peak_within_per_call": true,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b3_deepae",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        6208,
+        6208,
+        6208
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 2,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 12416,
+      "allocated": 12416,
+      "freed": 12416,
+      "per_call_bytes": 6208,
+      "bounded_bytes": 1069632,
+      "peak_within_per_call": true,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b3_deepae",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        6208,
+        12416,
+        12416
+      ],
+      "deterministic": false
+    },
+    {
+      "threads": 4,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 18624,
+      "allocated": 24832,
+      "freed": 24832,
+      "per_call_bytes": 6208,
+      "bounded_bytes": 1069632,
+      "peak_within_per_call": true,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b3_deepae",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        6208,
+        18624,
+        18624
+      ],
+      "deterministic": false
+    },
+    {
+      "threads": 1,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 6208,
+      "allocated": 6208,
+      "freed": 3648,
+      "per_call_bytes": 6208,
+      "bounded_bytes": 1069632,
+      "peak_within_per_call": true,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b3_deepae",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        6208,
+        6208,
+        6208
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 2,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 12416,
+      "allocated": 12416,
+      "freed": 7296,
+      "per_call_bytes": 6208,
+      "bounded_bytes": 1069632,
+      "peak_within_per_call": false,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b3_deepae",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        8768,
+        12416,
+        8768
+      ],
+      "deterministic": false
+    },
+    {
+      "threads": 4,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 13888,
+      "allocated": 24832,
+      "freed": 14592,
+      "per_call_bytes": 6208,
+      "bounded_bytes": 1069632,
+      "peak_within_per_call": false,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "b3_deepae",
+      "vmfb": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.vmfb",
+      "contract": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        13888,
+        13888,
+        13888
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 1,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 9382092,
+      "allocated": 9382092,
+      "freed": 9382092,
+      "per_call_bytes": 9382092,
+      "bounded_bytes": 18222796,
+      "peak_within_per_call": true,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "smartcam",
+      "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+      "contract": "results/p1_smartcam_feasibility/build/smartcam.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        9382092,
+        9382092,
+        9382092
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 2,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 18764184,
+      "allocated": 18764184,
+      "freed": 18764184,
+      "per_call_bytes": 9382092,
+      "bounded_bytes": 18222796,
+      "peak_within_per_call": false,
+      "peak_within_bounded": false,
+      "errors": [],
+      "model": "smartcam",
+      "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+      "contract": "results/p1_smartcam_feasibility/build/smartcam.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        18764184,
+        18764184,
+        18764184
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 4,
+      "hold_outputs": false,
+      "driver": "local-sync",
+      "peak": 37528368,
+      "allocated": 37528368,
+      "freed": 37528368,
+      "per_call_bytes": 9382092,
+      "bounded_bytes": 18222796,
+      "peak_within_per_call": false,
+      "peak_within_bounded": false,
+      "errors": [],
+      "model": "smartcam",
+      "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+      "contract": "results/p1_smartcam_feasibility/build/smartcam.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        37528368,
+        37528368,
+        37528368
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 1,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 9382092,
+      "allocated": 9382092,
+      "freed": 9382080,
+      "per_call_bytes": 9382092,
+      "bounded_bytes": 18222796,
+      "peak_within_per_call": true,
+      "peak_within_bounded": true,
+      "errors": [],
+      "model": "smartcam",
+      "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+      "contract": "results/p1_smartcam_feasibility/build/smartcam.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        9382092,
+        9382092,
+        9382092
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 2,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 18764184,
+      "allocated": 18764184,
+      "freed": 18764160,
+      "per_call_bytes": 9382092,
+      "bounded_bytes": 18222796,
+      "peak_within_per_call": false,
+      "peak_within_bounded": false,
+      "errors": [],
+      "model": "smartcam",
+      "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+      "contract": "results/p1_smartcam_feasibility/build/smartcam.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        18764184,
+        18764184,
+        18764184
+      ],
+      "deterministic": true
+    },
+    {
+      "threads": 4,
+      "hold_outputs": true,
+      "driver": "local-sync",
+      "peak": 37528368,
+      "allocated": 37528368,
+      "freed": 37528320,
+      "per_call_bytes": 9382092,
+      "bounded_bytes": 18222796,
+      "peak_within_per_call": false,
+      "peak_within_bounded": false,
+      "errors": [],
+      "model": "smartcam",
+      "vmfb": "results/p1_smartcam_feasibility/build/smartcam.vmfb",
+      "contract": "results/p1_smartcam_feasibility/build/smartcam.contract.json",
+      "repeats": 3,
+      "peaks_observed": [
+        37528368,
+        37528368,
+        37528368
+      ],
+      "deterministic": true
+    }
+  ]
+}

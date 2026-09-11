@@ -91,8 +91,19 @@ def main():
     # the official ini, with absolute paths substituted into the template
     with open(a.template, encoding="utf-8") as f:
         ini = f.read()
+    # E41: the telemetry file is per-cell, not per-template. It used to be hardcoded
+    # to smartcam_replay, so the archived E33 p_legacy cell -- which needs the 9-field
+    # legacy_mlp.csv -- could not be regenerated from repository contents: a fresh run
+    # fed it 2 fields and the plugin refused. The cell says which telemetry it needs.
+    telemetry = dep["deployments"][a.deployment].get("telemetry")
+    if not telemetry:
+        raise SystemExit("onair_integration_check: deployment %r declares no `telemetry` "
+                         "(which configs/onair_data/<name>.csv to feed OnAIR); refusing to "
+                         "guess -- a wrong telemetry file changes what the cell measured"
+                         % a.deployment)
     ini = (ini.replace("ONAIR_MLIR_DATA_DIR", os.path.abspath(a.data_dir))
               .replace("ONAIR_MLIR_PLUGIN_DIR", os.path.abspath(a.plugin_dir))
+              .replace("ONAIR_MLIR_TELEMETRY", telemetry)
               .replace("'smartcam':", "'%s':" % a.deployment))
     cell_ini = os.path.join(os.path.abspath(a.out), "onair.ini")
     with open(cell_ini, "w", encoding="utf-8") as f:

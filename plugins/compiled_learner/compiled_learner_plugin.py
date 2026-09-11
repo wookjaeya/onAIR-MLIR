@@ -73,6 +73,7 @@ import numpy as np
 
 from onair.src.ai_components.ai_plugin_abstract.ai_plugin import AIPlugin
 
+from . import artifact_binding as ab
 from .artifact_binding import ArtifactBindingError, verify_artifact_binding
 
 _HARNESS = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
@@ -161,6 +162,7 @@ class Plugin(AIPlugin):
             self.bound_us = self.contract.get("timing", {}).get("execution_bound_us")
             self.bound_boundary = self.contract.get("timing", {}).get("boundary")
             self._validate_inputs_against_headers()
+            self._check_declared_driver()
             self._decide_admission()
             self._load_artifact()
             self.active = True
@@ -249,6 +251,19 @@ class Plugin(AIPlugin):
         fx = self.deployment.get("fixture_dir")
         if not fx or not os.path.isdir(fx):
             raise ContractViolation("file_replay mode needs an existing fixture_dir (got %r)" % fx)
+
+    def _check_declared_driver(self):
+        """E41: refuse a deployment driver the contract does not declare.
+
+        The rule itself lives in artifact_binding.check_declared_driver() -- a pure,
+        stdlib-only function, so it can be exercised without standing up OnAIR (the
+        same shape as the artifact hash/size gate next to it). Refuses BEFORE the
+        runtime is created, like every other binding check here.
+        """
+        try:
+            ab.check_declared_driver(self.contract, self.driver)
+        except ab.DeclaredDriverError as e:
+            raise ContractViolation(str(e))
 
     def _decide_admission(self):
         """Decide BEFORE the artifact is opened, so a refusal never touches the runtime."""

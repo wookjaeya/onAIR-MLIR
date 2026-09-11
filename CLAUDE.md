@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.43**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.44**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
 
 **중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
 
@@ -824,6 +824,31 @@ composite(vww pad 64·bigact pad 32), `T`의 "보수적 합"은 계약 전부가
 드리프트까지 침묵시킨다). **Q1~Q4 전부 PASS**, revert 시 생성기가 **rc=1로 작성 자체를 거부**.
 이 컨테이너 **570/570 → 598/598**(FAIL 0 · SKIP 0).
 **다음은 E41**(분석 영역 음성 시험) — 계획서 §3이 다섯 조건의 형태를 측정 전에 고정해 뒀다.
+
+**v0.44에서 완료된 것 (E41, `docs/EVIDENCE_v0.44_E41.md`)**: 로드맵 §5.3-4의 **다섯 조건 음성 시험**.
+사전 고정 기준은 `docs/plans/E40_E41_analysis_domain.md` §3(측정 이전). **다섯 중 둘은 일부러 게이트로
+만들지 않았고 그 이유를 기록한다** — 조건 3(동시 호출)은 이 저장소가 출하하는 **어느 배포도 만들 수 없고**
+(두 C 실행기에 `pthread_create`/`CFE_ES_CreateChildTask`/`OS_TaskCreate` 0건, OnAIR은
+`agent.py` 메인 루프 한 곳에서만 플러그인을 부른다), 시험하려고 비행 앱에 동시성을 심는 것이 곧 회귀다.
+조건 4(출력 보유)는 문자 그대로 강제하면 D50 조건의 b2_resnet 피크 **309,576**이 그 셀 예산 **618,856**의
+**50.0%**인데 거부된다(유형 B) — 실제로 무는 조건부 계층에서는 **D59가 이미 보고**한다.
+**전제는 장식이 아니다**: `harness/e41_domain_probe.py`가 **셀마다 별도 프로세스**로(HAL 통계가 프로세스
+전역이라 첫 판이 그 오염을 재현했다 — deepae N=1이 6,208 대신 1,237,664) N 스레드 동시 호출을 재서,
+**N=1 피크가 세 모델 모두 `per_call`과 정확히 일치**하고 **SmartCam은 동시 호출 2개만으로 `bounded`를 넘는다**
+(18,764,184 > 18,222,796)는 것을 실측했다. D50과 분리 확인(N=1에서 보유/해제 피크 동일), 빠른 모델은
+비결정적이라 **N배는 상한이지 법칙이 아니다**. **신설 게이트는 조건 5뿐**: `gen_contract_header.py`가
+`validity.driver` 기본값 `"local-sync"`를 **단언**하던 fail-open을 닫고(`target.driver`도 읽고 둘 다 없으면
+거부), OnAIR 플러그인이 배포 설정의 driver를 계약 선언과 대조한다
+(`artifact_binding.check_declared_driver`, stdlib 전용 순수 함수). legacy fixture(`validity: null`)가
+거부되지 않도록 `analysis_domain.derived` → `validity` → `target` 순으로 읽는다(D31 유형 회피).
+공식 OnAIR 경로에서 **admission·binding보다 먼저** 발화한다(`smartcam_wrong_driver`: active=false·추론 0·둘 다 null).
+**선언 검사이지 "다른 driver가 위험하다"가 아니다** — N=1 HAL 피크는 `local-sync`/`local-task`에서 바이트 동일이었다.
+**D71(재현성)**: E33의 `p_legacy` 셀은 ini 템플릿이 telemetry 파일을 하드코딩해 **저장소 내용만으로
+재생성할 수 없었다**(9필드가 필요한데 2필드가 들어가 정당하게 거부됐다). **대조 실행**으로 E41 변경과
+무관함을 먼저 확정한 뒤, 배포마다 `telemetry`를 선언하게 하고 **선언이 없으면 추측하지 않고 거부**하도록
+고쳤다 — 고친 뒤 E33 값(`active=true`·추론 4회·`NOT_EVALUATED`)과 일치한다.
+**R1·R3·R4·R5·R6 PASS**, 보관 14개 헤더 바이트 불변, OnAIR 4셀 전부 E33 값과 동일(과잉 거부 0).
+이 컨테이너 **598/598 → 617/617**.
 
 **이로써 §10 단계 1~5가 전부 닫혔다**(단계 2는 E36, 단계 4는 E36b). 여덟 번째 검토의 **§10 마무리 4단계**도
 닫혔다 — 1(E37 보고 원자료 재확인) · 2(조건부 opt-in 독립 기록 = E38) · 3(결정 문서 4곳 정정, 저장소 밖

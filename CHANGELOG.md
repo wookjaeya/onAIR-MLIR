@@ -2,6 +2,36 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.44] — E41: 분석 영역 다섯 조건 — 무엇이 게이트이고 무엇이 아닌가
+
+**출처.** 로드맵 §5.3-4. 사전 고정 기준은 `docs/plans/E40_E41_analysis_domain.md` §3(커밋 `9b7d5ba`, 측정 이전).
+
+**다섯 중 둘은 일부러 게이트로 만들지 않았고, 그 이유를 기록한다.** 조건 3(둘 이상 in-flight)은
+이 저장소가 출하하는 **어느 배포도 만들 수 없다**(두 C 실행기에 `pthread_create`/`CFE_ES_CreateChildTask`/
+`OS_TaskCreate` 0건, OnAIR은 메인 루프 한 곳에서만 플러그인을 부른다) — 부재를 단언하려고 비행 앱에
+동시성을 심는 것이 곧 회귀다. 조건 4(출력 보유)는 문자 그대로 강제하면 D50 조건의 b2_resnet 피크
+309,576이 그 셀 예산 618,856의 **50.0%**인데 거부된다(유형 B); 실제로 무는 조건부 계층에서는 D59가 이미 보고한다.
+
+**전제는 장식이 아니다(측정).** `harness/e41_domain_probe.py`가 셀마다 **별도 프로세스**로
+(HAL 통계는 프로세스 전역 — 첫 판이 그 오염을 재현했다) N개 스레드 동시 호출의 피크를 잰다.
+N=1 피크는 세 모델 모두 `per_call`과 **정확히** 같고, **SmartCam은 동시 호출 2개만으로 `bounded`를 넘는다**
+(18,764,184 > 18,222,796). D50과 분리 확인(N=1에서 보유/해제 피크 동일). 빠른 모델은 비결정적이라
+**N배는 상한이지 법칙이 아니다**.
+
+**신설 게이트는 조건 5뿐이다.** `gen_contract_header.py`가 `validity.driver` 기본값 `"local-sync"`를
+**단언**하던 fail-open을 닫고(`target.driver`도 읽고, 둘 다 없으면 거부), OnAIR 플러그인이 배포 설정의
+driver를 계약 선언과 대조한다(`artifact_binding.check_declared_driver`, stdlib 전용 순수 함수).
+legacy fixture(`validity: null`)가 거부되지 않도록 `analysis_domain.derived` → `validity` → `target`
+순으로 읽는다(D31 유형 회피). 공식 OnAIR 경로에서 **admission·binding보다 먼저** 발화한다.
+**선언 검사이지 "다른 driver가 위험하다"가 아니다** — N=1 HAL 피크는 두 driver에서 바이트 동일이었다.
+
+**정정: E33의 `p_legacy` 셀은 저장소 내용만으로 재생성할 수 없었다(D71).** ini 템플릿이 telemetry 파일을
+하드코딩해 9필드가 필요한 셀에 2필드가 들어갔다. 대조 실행으로 E41 변경과 무관함을 먼저 확정한 뒤,
+배포마다 `telemetry`를 선언하게 하고 **선언이 없으면 거부**하도록 고쳤다. 고친 뒤 E33 값과 일치한다.
+
+**판정.** R1·R3·R4·R5·R6 PASS(R2는 형태 규정). 보관 14개 헤더 바이트 불변, OnAIR 4셀 전부 E33 값과 동일.
+`contract_negative_tests.py` **598/598 → 617/617**(이 컨테이너 실측, FAIL 0 · SKIP 0).
+
 ## [v0.43] — E40: 정적 상한의 분석 영역과 회계 규칙을 계약이 스스로 말하게 한다
 
 **출처.** 아홉 번째 외부 로드맵 `docs/reviews/ONAIR_MLIR_ADDITIONAL_RESEARCH_AND_BASELINE_PLAN.md` §5.

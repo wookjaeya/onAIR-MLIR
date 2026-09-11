@@ -5579,6 +5579,152 @@ def e40_analysis_domain_cases(tmp):
     return results
 
 
+# ----------------------------------------------------------------------------
+# E41: the analysis domain's five conditions -- which are gates, which are not
+# ----------------------------------------------------------------------------
+def e41_analysis_domain_cases(tmp):
+    """Pre-fixed in docs/plans/E40_E41_analysis_domain.md SS3 BEFORE any of it was measured.
+
+    Two of the five conditions are deliberately NOT gates, and these cases pin the
+    reason as much as the behaviour -- a later reader must not "finish the job" by
+    turning them into refusals:
+      * 2+ in-flight calls: no shipped deployment can reach it, and building the
+        hazard into a flight app to assert it is absent would be the regression;
+      * output held past the next call: enforcing it literally rejects an honest run
+        at 50% of its budget (measured).
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e41_analysis_domain")
+    sys.path.insert(0, os.path.join(repo, "plugins", "compiled_learner"))
+    import artifact_binding as ab
+
+    # ---- the premise measurement (condition 3) -------------------------------
+    probe_path = os.path.join(root, "probe.json")
+    if not os.path.isfile(probe_path):
+        results.append(Result("e41: probe.json preserved", False, "missing %s" % probe_path))
+        return results
+    probe = load(probe_path)
+    cells = probe["cells"]
+    singles = [c for c in cells if c["threads"] == 1]
+    results.append(Result("e41: one in-flight call peaks at exactly per_call (every model, both hold modes)",
+                          bool(singles) and all(c["peak"] == c["per_call_bytes"] for c in singles),
+                          "%s" % [(c["model"], c["hold_outputs"], c["peak"], c["per_call_bytes"])
+                                  for c in singles if c["peak"] != c["per_call_bytes"]]))
+    over = probe["cells_exceeding_bounded"]
+    smart2 = [c for c in over if c["model"] == "smartcam" and c["threads"] == 2]
+    results.append(Result("e41: the single-in-flight premise is load-bearing (SmartCam exceeds bounded at N=2)",
+                          bool(smart2) and smart2[0]["peak"] == 18764184
+                          and smart2[0]["bounded_bytes"] == 18222796,
+                          "%s" % smart2))
+    # concurrency, not retention, is the mechanism (D50 separated)
+    by_key = {(c["model"], c["threads"], c["hold_outputs"]): c["peak"] for c in cells}
+    same = [(m, n) for (m, n, h) in by_key if h is False
+            and (m, n, True) in by_key and by_key[(m, n, False)] != by_key[(m, n, True)]
+            and n == 1]
+    results.append(Result("e41: at one in-flight call, holding the output does not change the peak (D50 separated)",
+                          not same, "differing: %s" % same))
+    nondet = [c for c in cells if not c["deterministic"]]
+    results.append(Result("e41: non-determinism is recorded, not averaged away (N x per_call is an upper bound)",
+                          all(len(set(c["peaks_observed"])) > 1 for c in nondet)
+                          and all(len(set(c["peaks_observed"])) == 1 for c in cells if c["deterministic"]),
+                          "%d non-deterministic cell(s)" % len(nondet)))
+
+    # ---- condition 3 is unreachable in every shipped deployment --------------
+    for rel in ("native/native_learner.c", "native/cfs_app/fsw/src/ai_learner.c"):
+        src = open(os.path.join(repo, rel)).read()
+        hits = [k for k in ("pthread_create", "CFE_ES_CreateChildTask", "OS_TaskCreate") if k in src]
+        results.append(Result("e41: %s creates no thread or child task (condition 3 unreachable)"
+                              % os.path.basename(rel), not hits, "%s" % hits))
+
+    # ---- condition 4 is not a gate, and the number says why ------------------
+    b2 = load(os.path.join(repo, "results", "e26_boundary_utility", "x86_64",
+                           "ext_b2_resnet", "b2_resnet.contract.json"))["resources"]
+    results.append(Result("e41: enforcing condition 4 literally would reject an honest run at 50% of budget",
+                          309576 <= b2["bounded_bytes"] and 309576 > b2["static_per_call_bytes"],
+                          "D50 peak 309576 vs bounded %d / per_call %d"
+                          % (b2["bounded_bytes"], b2["static_per_call_bytes"])))
+
+    # ---- condition 5: the header generator ----------------------------------
+    base = load(os.path.join(repo, "results", "e26_boundary_utility", "x86_64",
+                             "ext_b3_deepae", "b3_deepae.contract.json"))
+    for label, mutate in (
+            ("no driver declared anywhere", lambda c: (c["validity"].pop("driver", None),
+                                                       c["target"].pop("driver", None))),
+            ("validity.driver != target.driver", lambda c: c["validity"].__setitem__("driver", "local-task"))):
+        c = json.loads(json.dumps(base))
+        mutate(c)
+        src = os.path.join(tmp, "e41_drv.json")
+        hdr = os.path.join(tmp, "e41_drv.h")
+        if os.path.exists(hdr):
+            os.remove(hdr)
+        with open(src, "w") as f:
+            json.dump(c, f)
+        rc, _, err = run([PY, GEN_HEADER, src, hdr])
+        results.append(Result("e41: header generator refuses -- %s" % label,
+                              rc != 0 and not os.path.exists(hdr),
+                              "rc=%d wrote_header=%s err=%s" % (rc, os.path.exists(hdr), err.strip()[:140])))
+
+    # ---- condition 5: the OnAIR plugin's pure check --------------------------
+    legacy = load(os.path.join(repo, "plugins", "compiled_learner", "runtime", "contract.json"))
+    smart = load(os.path.join(repo, "results", "p1_smartcam_feasibility", "build",
+                              "smartcam.contract.json"))
+    def drv(contract, deployment_driver):
+        try:
+            return ab.check_declared_driver(contract, deployment_driver)
+        except ab.DeclaredDriverError as e:
+            return e
+    results.append(Result("e41: the legacy fixture (validity=null, target.driver set) is NOT rejected "
+                          "(over-rejection guard, D31 shape)",
+                          drv(legacy, "local-sync") == "local-sync", "%s" % drv(legacy, "local-sync")))
+    results.append(Result("e41: an undeclared deployment driver is refused",
+                          isinstance(drv(smart, "local-task"), ab.DeclaredDriverError),
+                          "%s" % drv(smart, "local-task")))
+    results.append(Result("e41: a contract declaring no driver is refused (absence is not agreement, D29)",
+                          isinstance(drv({"validity": None, "target": {}}, "local-sync"),
+                                     ab.DeclaredDriverError),
+                          "%s" % drv({"validity": None, "target": {}}, "local-sync")))
+
+    # ---- the official OnAIR cells -------------------------------------------
+    summ_path = os.path.join(root, "summary.json")
+    if not os.path.isfile(summ_path):
+        results.append(Result("e41: summary.json present", False, "missing %s" % summ_path))
+        return results
+    summ = load(summ_path)
+    cellmap = summ["onair_cells"]
+    e33 = {"smartcam": (True, 5), "smartcam_deny": (False, 0),
+           "smartcam_mismatch": (False, 0), "legacy_mlp": (True, 4)}
+    for name, (active, infer) in e33.items():
+        c = cellmap.get(name) or {}
+        results.append(Result("e41: OnAIR cell %s still matches its E33 values under the new gate" % name,
+                              c.get("active") is active and c.get("inferences") == infer
+                              and c.get("returncode") == 0 and c.get("plugin_constructed") is True
+                              and c.get("onair_core_unmodified") is True,
+                              "active=%s inferences=%s rc=%s" % (c.get("active"), c.get("inferences"),
+                                                                 c.get("returncode"))))
+    w = cellmap.get("smartcam_wrong_driver") or {}
+    results.append(Result("e41: the new gate fires in the official OnAIR path, before admission and binding",
+                          w.get("active") is False and w.get("inferences") == 0
+                          and w.get("admission_verdict") is None and w.get("binding_verdict") is None
+                          and "driver" in (w.get("inactive_reason") or "") and w.get("returncode") == 0,
+                          "active=%s admission=%s binding=%s reason=%s"
+                          % (w.get("active"), w.get("admission_verdict"), w.get("binding_verdict"),
+                             (w.get("inactive_reason") or "")[:90])))
+
+    # ---- the cell must say which telemetry it feeds OnAIR -------------------
+    deps = load(os.path.join(repo, "configs", "deployments", "onair_deployments.json"))["deployments"]
+    missing = [n for n, d in deps.items() if not d.get("telemetry")]
+    results.append(Result("e41: every OnAIR deployment declares its telemetry file "
+                          "(E33's p_legacy cell could not be regenerated without this)",
+                          not missing, "%s" % missing))
+    data_dir = os.path.join(repo, "configs", "onair_data")
+    absent = [n for n, d in deps.items()
+              if d.get("telemetry") and not os.path.isfile(os.path.join(data_dir, d["telemetry"] + ".csv"))]
+    results.append(Result("e41: every declared telemetry file exists in configs/onair_data",
+                          not absent, "%s" % absent))
+    return results
+
+
 def e38_optin_witness_cases(tmp):
     """E38: the conditional opt-in must be recorded independently of the verdict.
 
@@ -5831,6 +5977,7 @@ def main():
         all_results += e37_peak_vs_budget_cases()
         all_results += e38_optin_witness_cases(tmp)
         all_results += e40_analysis_domain_cases(tmp)
+        all_results += e41_analysis_domain_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
