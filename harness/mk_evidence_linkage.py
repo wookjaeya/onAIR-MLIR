@@ -41,6 +41,12 @@ ITEMS = {
     "5": "전체 출력 비교 결과",
     "6": "HAL peak와 해당 정책의 승인 예산 비교",
     "7": "각 결과를 생성한 명령·원시 로그·판정 스크립트",
+    # E48 SS3.1: 항목 8은 1~7의 개명이 아니다. 1~7은 **합성 또는 혼합 입력**으로 밟은 셀을
+    # 가리키고(E31 fixture 는 실이미지 3 + 합성 32 + 경계 2), 8은 **공개 실데이터만**으로
+    # 같은 경로를 다시 밟은 셀을 가리킨다. 이 저장소가 E45에서 등급으로 분리한 축
+    # (모델의 실제성 / 가중치 / **입력의 실제성** / 검증한 성질) 중 세 번째가 바로 이것이라,
+    # 같은 사실이 두 자리에 사는 D65 가 아니라 서로 다른 사실이다.
+    "8": "공개 실입력으로 같은 경로를 다시 밟은 기록 (AArch64 native·cFS, E48)",
 }
 
 
@@ -154,6 +160,8 @@ E34 = "results/e34_two_models"
 E36 = "results/e36_aarch64_cfs"
 E36B = "results/e36b_aarch64_models"
 E26 = "results/e26_boundary_utility"
+E45 = "results/e45_real_inputs"
+E48 = "results/e48_real_inputs_aarch64"
 
 CELLS = {
     "smartcam": {
@@ -217,6 +225,22 @@ CELLS = {
             (E36 + "/summary.json", "cells.cond_positive.peak_within_admitted_budget"),
             (E36 + "/summary.json", "cells.cond_positive.admission_mode"),
         ],
+        "8": [
+            (E45 + "/cells/smartcam/fixture/manifest.json", "counts"),
+            (E48 + "/smartcam/staged_inputs.json", "samples"),
+            (E48 + "/smartcam/staged_inputs.json", "sha256_inputs_bin"),
+            (E48 + "/smartcam/staged_inputs.json", "manifest_hashes_verified"),
+            (E48 + "/smartcam/staged_inputs.json", "fixture_manifest_source"),
+            (E48 + "/summary.json", "models.smartcam.semantics_native_aarch64.verdict"),
+            (E48 + "/summary.json", "models.smartcam.semantics_native_aarch64.elements_failed"),
+            (E48 + "/summary.json", "models.smartcam.semantics_cfs_aarch64.verdict"),
+            (E48 + "/summary.json", "models.smartcam.x86_64_pip_runtime_E45.verdict"),
+            (E48 + "/summary.json", "models.smartcam.verdict_agrees_with_x86"),
+            (E48 + "/summary.json", "models.smartcam.cfs_admit_B.verdict"),
+            (E48 + "/summary.json", "models.smartcam.cfs_admit_B.inferences"),
+            (E48 + "/summary.json", "models.smartcam.cfs_deny_B_minus_1.verdict"),
+            (E48 + "/summary.json", "models.smartcam.cfs_deny_B_minus_1.inferences"),
+        ],
     },
     "b2_resnet": {
         "display": "MLPerf Tiny ResNet (CIFAR-10 image classification)",
@@ -269,6 +293,22 @@ CELLS = {
             (E36B + "/summary.json", "models.b2_resnet.cfs_admit.peak_within_admitted_budget"),
             (E36B + "/summary.json", "models.b2_resnet.cfs_admit.admission_mode"),
         ],
+        "8": [
+            (E45 + "/cells/b2_resnet/fixture/manifest.json", "counts"),
+            (E48 + "/b2_resnet/staged_inputs.json", "samples"),
+            (E48 + "/b2_resnet/staged_inputs.json", "sha256_inputs_bin"),
+            (E48 + "/b2_resnet/staged_inputs.json", "manifest_hashes_verified"),
+            (E48 + "/b2_resnet/staged_inputs.json", "fixture_manifest_source"),
+            (E48 + "/summary.json", "models.b2_resnet.semantics_native_aarch64.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.semantics_native_aarch64.elements_failed"),
+            (E48 + "/summary.json", "models.b2_resnet.semantics_cfs_aarch64.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.x86_64_pip_runtime_E45.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.verdict_agrees_with_x86"),
+            (E48 + "/summary.json", "models.b2_resnet.cfs_admit_B.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.cfs_admit_B.inferences"),
+            (E48 + "/summary.json", "models.b2_resnet.cfs_deny_B_minus_1.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.cfs_deny_B_minus_1.inferences"),
+        ],
     },
     "b3_deepae": {
         "display": "MLPerf Tiny Deep AutoEncoder (anomaly detection)",
@@ -320,6 +360,22 @@ CELLS = {
             (E36B + "/summary.json", "models.b3_deepae.cfs_admit.budget"),
             (E36B + "/summary.json", "models.b3_deepae.cfs_admit.peak_within_admitted_budget"),
             (E36B + "/summary.json", "models.b3_deepae.cfs_admit.admission_mode"),
+        ],
+        "8": [
+            (E45 + "/cells/b3_deepae/fixture/manifest.json", "counts"),
+            (E48 + "/b3_deepae/staged_inputs.json", "samples"),
+            (E48 + "/b3_deepae/staged_inputs.json", "sha256_inputs_bin"),
+            (E48 + "/b3_deepae/staged_inputs.json", "manifest_hashes_verified"),
+            (E48 + "/b3_deepae/staged_inputs.json", "fixture_manifest_source"),
+            (E48 + "/summary.json", "models.b3_deepae.semantics_native_aarch64.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.semantics_native_aarch64.elements_failed"),
+            (E48 + "/summary.json", "models.b3_deepae.semantics_cfs_aarch64.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.x86_64_pip_runtime_E45.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.verdict_agrees_with_x86"),
+            (E48 + "/summary.json", "models.b3_deepae.cfs_admit_B.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.cfs_admit_B.inferences"),
+            (E48 + "/summary.json", "models.b3_deepae.cfs_deny_B_minus_1.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.cfs_deny_B_minus_1.inferences"),
         ],
     },
 }
@@ -778,7 +834,11 @@ def main(argv=None):
     with open(md_path, "w", encoding="utf-8") as fh:
         fh.write(md)
     t = data["totals"]
-    print("%s\n%s\n21셀 중 present %d / 그 외 %d" % (js_path, md_path, t["present"], t["not_present"]))
+    # E48: the cell count used to be the literal 21 here while the total came from the data,
+    # so adding item 8 printed "21셀 중 present 24" -- a line that contradicts itself. Print
+    # what was counted.
+    print("%s\n%s\n%d셀 중 present %d / 그 외 %d"
+          % (js_path, md_path, t["cells"], t["present"], t["not_present"]))
     for c in data["cells_not_present"]:
         print("   - %s 항목 %s: %s %s" % (c["model"], c["item"], c["status"], c["unresolved"]))
     return 0

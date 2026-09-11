@@ -2,6 +2,39 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.50] — 2026-09-11 — E48: 공개 실입력의 AArch64 종단 실행
+
+사전 고정 기준 `docs/plans/E48_real_inputs_aarch64_cfs.md`(커밋 `4cd26f5`, **측정 이전**).
+판정 기준은 E25에서 **변경 없이 승계** — 원소별 `abs ≤ 1e-4` OR `rel ≤ 1e-5`, 기준값은 원본
+`.tflite`를 LiteRT로 돌린 출력.
+
+E45가 x86-64 pip `iree.runtime`에서만 밟았던 세 모델의 공개 실입력을 **AArch64 native(qemu-user)와
+AArch64 cFS 게스트**에서 다시 밟았다. **판정이 세 모델 전부 x86-64와 같다**:
+
+| 모델 | 실입력 | x86-64 (E45) | AArch64 native | AArch64 cFS |
+|---|---|---|---|---|
+| ResNet | 실 CIFAR-10 200장 | PASS 0/2,000 | **PASS 0/2,000** | **PASS 0/2,000** |
+| SmartCam | 실 썸네일 19장 | PASS 0/57 | **PASS 0/57** | **PASS 0/57** |
+| DeepAE | 실 log-mel 34창 | FAIL 94/21,760 | **FAIL 46/21,760** | **FAIL 46/21,760** |
+
+**Q5 관측**: DeepAE는 두 ISA가 **정확히 같은 한 샘플**에서 실패하고 argmax도 같다(517 == 517) —
+다른 것은 실패 원소 수뿐이다. 계획 §7이 측정 전에 고정한 대로 *"그 FAIL은 x86 전용 현상이 아니다"*
+까지만 쓰고 원인 귀속은 하지 않는다(R2/E49). **기준은 고치지 않았다**(D74 그대로).
+
+계약 세 수치는 합성 셀(E36b·E32)과 **동일**하고, `B`→ADMIT · `B−1`→NOT_ADMITTED(추론 0)이며,
+`peak_within_admitted_budget`이 세 셀 전부 true다.
+
+**정정: D80** — `runtime_created` 기대 키가 **양방향으로** 틀려 있었다. E16이 스택 확인을 자원 획득
+**이전**으로 옮긴 뒤 거부 셀도 항상 `stack` 레코드를 남기는데, 그 키는 그 레코드를 "런타임이
+만들어졌다"로 읽고 있었다 — 정직한 거부 셀이 구조적으로 FAIL이고(유형 B), 반대로 `True`를 기대하는
+셀은 런타임 없이도 통과한다(유형 A). 이 키를 쓰는 셀이 **E14 이후 한 번도 실행되지 않아** 드러나지
+않았다. `mem_init`으로 고쳤고 **보관 3셀의 판정은 불변**이다.
+
+신규 도구: `harness/mk_e25_inputs.py`(fixture → 게스트 재생 파일, 샘플마다 manifest 해시 대조) ·
+`harness/mk_e48_summary.py`. `e14_cfs_scenarios.py`에 `stage`/`fetch`/`env`를 신설해 **입력 스테이징과
+예산 오버라이드가 러너 코드 안으로** 들어왔다(E32/E36b는 손으로 했다). 연결표는 새로 만들지 않고
+`mk_evidence_linkage.py`에 **항목 8**(입력의 실제성 축)을 더했다.
+
 ## [v0.49] — 2026-09-11 — E47: 외부 검토 2건 검증, 그리고 그 검증이 찾은 결함 3건
 
 두 검토(`RESEARCH_STATUS_REVIEW_v048.md` 기준 `35bc851` · `ONAIR_MLIR_RESEARCH_AND_EXPERIMENT_REVIEW_v048.md`

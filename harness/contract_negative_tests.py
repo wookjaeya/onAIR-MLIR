@@ -2652,10 +2652,23 @@ def e37_evidence_linkage_cases():
 
     data = load(linkage)
     t = data["totals"]
-    _ok = t["cells"] == 21 and t["not_present"] == 0
-    results.append(Result("e37: all 21 cells (3 models x 7 items) resolve", _ok,
+    # E48: the cell count used to be the literal 21 here, so adding item 8 failed a check whose
+    # NAME still said "21 cells" -- a test that pins a number the generator is supposed to
+    # derive. Pin the INVARIANT (every model covers every item, nothing unresolved) and read
+    # the shape from the table, then assert the shape separately so a silently SHRINKING table
+    # still fails.
+    n_models, n_items = len(data["models"]), len(data["items"])
+    _ok = (t["cells"] == n_models * n_items and t["not_present"] == 0 and t["present"] == t["cells"])
+    results.append(Result("e37: all %d cells (%d models x %d items) resolve"
+                          % (t["cells"], n_models, n_items), _ok,
                           "" if _ok else "not_present=%s %s" % (t["not_present"],
                                                                 data["cells_not_present"])))
+
+    _ok = n_models >= 3 and n_items >= 8
+    results.append(Result("e48: the linkage table still covers at least the three real models and "
+                          "the eight items (7 from E37 + item 8, the real-input axis) -- a table "
+                          "that quietly loses a row must fail, not just one that fails to resolve",
+                          _ok, "" if _ok else "models=%d items=%d" % (n_models, n_items)))
 
     # D55: every raw path the table cites must be in the repository AND tracked.
     cited = set()
@@ -5793,6 +5806,144 @@ def bp_marker():
     return bp.FIXTURE_MARKER
 
 
+def e48_real_inputs_aarch64_cases(tmp):
+    """E48: 공개 실입력을 AArch64 native·cFS 에서 다시 밟은 셀들과, 그 과정이 드러낸 D80.
+
+    고정하는 것 넷:
+
+    (1) **D80 — `runtime_created` 기대 키의 양방향 오작동.** E16 이 스택 확인을 자원 획득
+        이전으로 옮긴 뒤 모든 거부 셀이 `stack` 레코드를 남기는데, 이 키는 그 레코드를
+        "런타임이 만들어졌다"로 읽고 있었다. 정직한 NOT_ADMITTED 셀이 구조적으로 FAIL 이고
+        (유형 B), 반대로 True 를 기대하는 셀은 런타임 없이도 통과한다(유형 A). E14 이후 이
+        키를 쓴 셀이 한 번도 실행되지 않아 드러나지 않았다.
+    (2) 그 수정이 **보관된 E14 셀 세 개의 판정을 바꾸지 않는다** — 그 로그에는 `stack` 도
+        `mem_init` 도 없다.
+    (3) 실입력 셀의 판정이 x86-64(E45)와 **같다**: ResNet PASS · SmartCam PASS ·
+        DeepAE FAIL. 세 번째는 기준을 고치지 않고 그대로 보고한다(D74).
+    (4) 계약 세 수치는 **입력과 무관**하다 — 같은 AArch64 계약이 합성 셀(E36b/E32)과 실입력
+        셀에서 같은 값을 싣는다.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e48_real_inputs_aarch64")
+    sys.path.insert(0, HERE)
+
+    # --- (1)/(2) D80: the expectation key itself, exercised on synthetic records ---
+    from e14_cfs_scenarios import check_expect  # noqa: PLC0415
+
+    refused = {"admission": ["NOT_ADMITTED"], "binding": [],
+               "stack": {"kernel_stack_accounted": True}, "last_run": None,
+               "mem_init": None, "last_mem": None}
+    _ok = check_expect(refused, {"runtime_created": False}) == []
+    results.append(Result("e48/D80: a refused cell that emitted only a pre-admission `stack` "
+                          "record satisfies runtime_created=False (it used to fail -- type B)",
+                          _ok, "" if _ok else str(check_expect(refused, {"runtime_created": False}))))
+
+    _ok = check_expect(refused, {"runtime_created": True}) != []
+    results.append(Result("e48/D80: and the same record does NOT satisfy runtime_created=True -- "
+                          "the stack record alone must never witness a runtime (type A)", _ok, ""))
+
+    ran = dict(refused, admission=["ADMIT"], mem_init={"hal_peak": 1}, last_mem={"hal_peak": 1})
+    _ok = (check_expect(ran, {"runtime_created": True}) == []
+           and check_expect(ran, {"runtime_created": False}) != [])
+    results.append(Result("e48/D80: `mem_init` (emitted after the session and input buffer exist, "
+                          "before any inference) is what witnesses the runtime", _ok, ""))
+
+    src = read(os.path.join(HERE, "e14_cfs_scenarios.py"))
+    _ok = 'bool(res.get("last_run")) or bool(res.get("stack"))' not in src
+    results.append(Result("e48/D80: the old `last_run or stack` approximation is gone from the "
+                          "source, not merely shadowed", _ok, ""))
+
+    # archived E14 cells keep their stored verdicts under the fixed key
+    e14 = os.path.join(repo, "results", "e14_aarch64_qemu", "cfs", "summary.json")
+    if not os.path.exists(e14):
+        results.append(Result("e48/D80: archived E14 cfs summary present", False, "missing %s" % e14))
+    else:
+        cells = [sc for sc in load(e14).get("scenarios", [])
+                 if "runtime_created" in (sc.get("expect") or {})]
+        _ok = len(cells) == 3 and all(sc.get("pass") is True and check_expect(sc, sc["expect"]) == []
+                                      for sc in cells)
+        results.append(Result("e48/D80: the three archived E14 cells that use this key keep their "
+                              "stored PASS when re-judged by the fixed rule (no verdict moved)",
+                              _ok, "" if _ok else json.dumps([c["id"] for c in cells])))
+
+    # --- (3)/(4) the measured cells ---
+    sp = os.path.join(D, "summary.json")
+    if not os.path.exists(sp):
+        results.append(Result("e48: summary present", False, "missing %s" % sp))
+        return results
+    s = load(sp)
+    m = s["models"]
+
+    for name, want in (("b2_resnet", "PASS"), ("smartcam", "PASS"), ("b3_deepae", "FAIL")):
+        b = m[name]
+        nat = b["semantics_native_aarch64"].get("verdict")
+        cfs = b["semantics_cfs_aarch64"].get("verdict")
+        x86 = b["x86_64_pip_runtime_E45"].get("verdict")
+        _ok = nat == want and cfs == want and x86 == want
+        results.append(Result("e48: %s -- AArch64 native=%s, AArch64 cFS=%s, x86-64(E45)=%s, "
+                              "all %s" % (name, nat, cfs, x86, want), _ok,
+                              "" if _ok else json.dumps({"native": nat, "cfs": cfs, "x86": x86})))
+
+    _ok = (m["b3_deepae"]["semantics_native_aarch64"].get("verdict") == "FAIL"
+           and (m["b3_deepae"]["semantics_native_aarch64"].get("elements_failed") or 0) > 0)
+    results.append(Result("e48/D74: the DeepAE FAIL is reported as a FAIL on AArch64 too -- the "
+                          "criterion was not relaxed to make it pass", _ok, ""))
+
+    for name, cpath in (("b2_resnet", "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json"),
+                        ("b3_deepae", "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json"),
+                        ("smartcam", "results/e32_smartcam_aarch64/build/smartcam.contract.json")):
+        res = load(os.path.join(repo, cpath))["resources"]
+        c = m[name]["contract"]
+        _ok = (c["bounded_bytes"] == res["bounded_bytes"]
+               and c["bounded_bytes"] == c["static_per_call_bytes"] + c["module_resident_constant_bytes"]
+               and m[name]["cfs_admit_B"].get("budget") == res["bounded_bytes"]
+               and m[name]["cfs_admit_B"].get("admitted_budget_bytes") == res["bounded_bytes"])
+        results.append(Result("e48/Q2: %s -- the real-input cell judges on the SAME contract "
+                              "numbers as the synthetic cells (bounded=%d)"
+                              % (name, res["bounded_bytes"]), _ok,
+                              "" if _ok else json.dumps({"contract": c, "admit": m[name]["cfs_admit_B"]})[:240]))
+
+        _ok = (m[name]["cfs_admit_B"].get("verdict") == "ADMIT"
+               and (m[name]["cfs_admit_B"].get("inferences") or 0) > 0
+               and m[name]["cfs_deny_B_minus_1"].get("verdict") == "NOT_ADMITTED"
+               and m[name]["cfs_deny_B_minus_1"].get("inferences") == 0)
+        results.append(Result("e48/Q3: %s -- B admits and infers, B-1 refuses with zero inferences"
+                              % name, _ok,
+                              "" if _ok else json.dumps({"admit": m[name]["cfs_admit_B"],
+                                                         "deny": m[name]["cfs_deny_B_minus_1"]})[:240]))
+
+        _ok = m[name]["cfs_admit_B"].get("peak_within_admitted_budget") is True
+        results.append(Result("e48/Q4: %s -- the peak is checked against the budget the run was "
+                              "APPROVED on, not merely against bounded (D53/D59)" % name, _ok, ""))
+
+    # the inputs that were replayed are the ones the E45 manifest names
+    for name, n in (("b2_resnet", 200), ("b3_deepae", 34), ("smartcam", 19)):
+        st = m[name].get("staged_inputs") or {}
+        _ok = (st.get("samples") == n and st.get("manifest_hashes_verified") == n
+               and m[name].get("replay_samples") == n)
+        results.append(Result("e48: %s replayed %d real inputs and every one was hashed against "
+                              "the E45 fixture manifest first (plan SS6 P1)" % (name, n), _ok,
+                              "" if _ok else json.dumps(st)[:200]))
+
+    # the staging wiring is in code, and the wipe cannot delete what it just staged
+    rsrc = read(os.path.join(HERE, "e14_cfs_scenarios.py"))
+    _ok = ('wipe = f"rm -f' in rsrc and rsrc.index("wipe = ") < rsrc.index("scp_to(lp,")
+           and "verified_on_guest" in rsrc)
+    results.append(Result("e48: the equivalence-input wipe runs BEFORE staging and the staged file "
+                          "is read back off the guest -- the first version deleted what it staged "
+                          "and only the app's e25_mode record caught it", _ok, ""))
+
+    # the replay-file builder refuses a fixture that does not match its manifest
+    mk = read(os.path.join(HERE, "mk_e25_inputs.py"))
+    _ok = ("hashlib.sha256(arr.tobytes()).hexdigest()" in mk
+           and "refusing: %s sha256" in mk and "contract_input_elems" in mk)
+    results.append(Result("e48: mk_e25_inputs hashes the ARRAY bytes (as the manifest does) and "
+                          "refuses both a hash mismatch and a wrong element count", _ok, ""))
+
+    return results
+
+
 def e44_budget_provenance_cases(tmp):
     """E44: every deployment path says where its budget came from, and A5 is DERIVED.
 
@@ -6878,6 +7029,7 @@ def main():
         all_results += e46_wgan_cases(tmp)
         all_results += e43_pure_onair_cases(tmp)
         all_results += e44_budget_provenance_cases(tmp)
+        all_results += e48_real_inputs_aarch64_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
