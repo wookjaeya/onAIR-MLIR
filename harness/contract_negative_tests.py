@@ -5977,6 +5977,17 @@ def ci_record_discipline_cases(tmp):
     honest rule is: **if a version entry states a regression count (NNN/NNN), the test suite
     changed, so a CI measurement must exist somewhere.** Under that rule exactly four versions
     were missing (v0.43, v0.44, v0.44.1, v0.45.1) and v0.44.2 is correctly exempt.
+
+    D85 (v0.51.1): the first version of this guard asked only whether the STRING "CI 실측"
+    occurs anywhere, and it failed on the very commit that shipped it -- v0.51 passed with zero
+    CI numbers because D83's own correction prose says "D34 규율(CI 실측 기록)이 ... 빠졌다".
+    A mention is not a record. Both sides were then fixed, each narrowed by measurement:
+    the satisfy side demands both reduced-leg names plus >= 3 NNN/NNN counts within one record
+    (measured minimum across 22 versions: 3), with one named waiver for the single version whose
+    commit has no CI run at all; and the demand side reads the same three places the satisfy side
+    reads, since asking only CHANGELOG let a version state its count elsewhere and never be asked
+    (widening it newly demands v0.46 and v0.47, both of which already record CI -- over-rejection 0).
+    Reverting either direction fails: string-presence -> 1 FAIL, dropping the waiver -> 2 FAIL.
     """
     results = []
     repo = os.path.dirname(HERE)
@@ -5992,27 +6003,75 @@ def ci_record_discipline_cases(tmp):
         end = heads[i + 1][0] if i + 1 < len(heads) else len(changelog)
         sections.append((ver, changelog[pos:end]))
 
-    def records_ci(ver, body):
-        if "CI 실측" in body:
-            return True
+    # D85: the first version of this guard asked only whether the STRING "CI 실측" occurs.
+    # That is a mention, not a record -- and it fired immediately: v0.51 (the very commit that
+    # shipped this guard) passed it without a single CI number, because D83's own correction
+    # prose contains the words "D34 규율(CI 실측 기록)이 ... 빠졌다". A rule satisfied by text
+    # ABOUT the rule is not a rule. Same family as D65 (a correction that reaches only the
+    # prose) and D77 (the code implementing a rule being scanned by it).
+    #
+    # The shape was NARROWED BY MEASUREMENT, not by argument. Scanning every 420-char window
+    # starting at "CI 실측" across all three recording sites for the 22 versions from v0.32.1
+    # on: every genuine record carries BOTH reduced-leg names and >= 3 NNN/NNN counts
+    # (measured minimum 3, at v0.49; every other genuine record has 4 or 5). Exactly one
+    # version carries no numbers -- v0.44.1, whose record states that commit fb904ff has no
+    # independent CI run at all, established by an exhaustive query over 203 runs.
+    #
+    # So absence-of-a-run is NOT matched by a regex: prose can always say "no run exists" about
+    # some other commit, which is precisely how the broken version passed (the D83 text says it
+    # about fb904ff). It is a named waiver instead, carrying its commit and its reason, and the
+    # waived version's documentation must still state that reason -- a silent waiver would be
+    # the fail-open again.
+    NO_CI_RUN = {"0.44.1": ("fb904ff", "독립 CI run이 없다 (push·pull_request run 203개 전수 조회)")}
+    LEG_NAMES = ("without-iree", "stdlib-only")
+
+    def _ci_sources(ver, body):
+        out = [body]
         m = re.search(r"\*\*v%s(?:에서|/)" % re.escape(ver), claude)
         if m:
             nxt = re.search(r"\n\*\*v[0-9]", claude[m.end():])
-            blk = claude[m.start(): m.end() + (nxt.start() if nxt else 2000)]
-            if "CI 실측" in blk:
-                return True
+            out.append(claude[m.start(): m.end() + (nxt.start() if nxt else 2000)])
         import glob as _glob                                        # noqa: PLC0415
-        for p in _glob.glob(os.path.join(repo, "docs", "EVIDENCE_v%s_*.md" % ver)):
-            if "CI 실측" in read(p):
-                return True
+        for path in _glob.glob(os.path.join(repo, "docs", "EVIDENCE_v%s_*.md" % ver)):
+            out.append(read(path))
+        return out
+
+    def records_ci(ver, body):
+        for txt in _ci_sources(ver, body):
+            for m in re.finditer("CI 실측", txt):
+                w = txt[m.start(): m.start() + 420]
+                if all(leg in w for leg in LEG_NAMES) and len(re.findall(r"\d{3}/\d{3}", w)) >= 3:
+                    return True
+        if ver in NO_CI_RUN:
+            commit, reason = NO_CI_RUN[ver]
+            # the waiver is not self-certifying: the version must say it itself
+            for txt in _ci_sources(ver, body):
+                if commit in txt and "독립" in txt and "run" in txt:
+                    return True
         return False
 
     FIRST = vkey("0.32.1")
+    # D85 (second half): the NEWEST entry cannot record its own CI -- the run does not exist
+    # until the commit is pushed. Measured, not argued: `git log -- CHANGELOG.md` shows CI is
+    # always written by a LATER commit (six dedicated "docs: ... CI 실측 기록" commits, and
+    # v0.50's run 204 was written by d16ad73, not by 0ab7cca). Demanding it of the head entry
+    # is therefore a type-(B) over-rejection of a physically impossible record. The ratchet
+    # still closes: the next version's commit makes this one demanded, which is exactly how
+    # v0.51's missing record surfaced the moment v0.51.1 was added.
+    head_version = sections[0][0] if sections else None
     missing, exempt = [], []
     for ver, body in sections:
         if vkey(ver) < FIRST:
             continue
-        if not re.search(r"\d{3}/\d{3}", body):
+        if ver == head_version and not records_ci(ver, body):
+            exempt.append("%s (head: its CI run does not exist yet)" % ver)
+            continue
+        # D85: the demand side reads the SAME three places the satisfy side does. It used to
+        # read CHANGELOG alone, so a version that stated its count only in CLAUDE.md was never
+        # asked for CI at all -- the asymmetry is itself a fail-open. Widening it was measured
+        # first: exactly two versions (v0.46, v0.47) become demanded and both already record
+        # CI, so over-rejection is 0.
+        if not any(re.search(r"\d{3}/\d{3}", txt) for txt in _ci_sources(ver, body)):
             exempt.append(ver)                 # no test-count change claimed -> CI not demanded
             continue
         if not records_ci(ver, body):
@@ -6031,6 +6090,31 @@ def ci_record_discipline_cases(tmp):
     results.append(Result("d34: the scan detects a count-stating version with no CI record "
                           "(positive control -- a check that can never fire is not a check)",
                           seen == ["9.99"], "got %r" % (seen,)))
+
+    # D85 positive control: this is the exact text that defeated the first version of the guard.
+    # A version whose only occurrence of the phrase is a CORRECTION ABOUT the discipline -- no
+    # leg names, no three-leg counts -- must read as missing. Without this case the narrowing
+    # above is unfalsifiable: it would pass whether or not it actually narrowed anything.
+    mention_only = ("## [v9.98] - x\n이 컨테이너 **750/750 → 768/768**.\n"
+                    "**정정: D83** — D34 규율(CI 실측 기록)이 네 버전에서 빠졌다. "
+                    "`fb904ff`는 독립 run이 없음을 run 203개 전수 조회로 확인했다.\n")
+    fired = not records_ci("9.98", mention_only)
+    results.append(Result("d85: a version that only MENTIONS the CI discipline (correction prose, "
+                          "no leg names, no three-leg counts) is recorded as missing -- the "
+                          "condition that let v0.51 ship with zero CI numbers",
+                          fired, "" if fired else "mention-only text still counted as a record"))
+
+    # and the other direction (type B): a real record must still be accepted, including the one
+    # historical version that legitimately has no run at all.
+    real = ("## [v9.97] - x\n**CI 실측**(커밋 `abc1234`, run 999, 3레그 success): `full` "
+            "**763/763 + 3 SKIP** · `without-iree` **600/600 + 33 SKIP** · `stdlib-only` "
+            "**600/600 + 33 SKIP**.\n")
+    ok_real = records_ci("9.97", real)
+    ok_hist = records_ci("0.44.1", dict(sections).get("0.44.1", ""))
+    results.append(Result("d85: a real three-leg record is accepted, and so is v0.44.1's honest "
+                          "'no independent run exists' record (no over-rejection)",
+                          ok_real and ok_hist,
+                          "real=%s v0.44.1=%s" % (ok_real, ok_hist)))
     return results
 
 
