@@ -95,6 +95,14 @@ _CONT = r"(?:(?!\n\s*(?:%[\w.]+[,\s]|\}))[\s\S])*?"
 _KNOWN_ENTRY_OPS = {"resource.alloca", "resource.pack", "resource.dealloca",
                     "resource.subview",
                     "tensor.import", "tensor.export"}
+
+# E40: the same whitelist in the spelling the contract publishes. Emitted into
+# `analysis_domain.derived.supported_resource_ops` by make_contract.py -- IMPORTED,
+# never retyped there, so the contract cannot drift from the code that enforces it
+# (D65: a fact that lives in two places gets corrected in one). mlir_alloc_walk.py
+# keeps its own independent copy on purpose (E19's two-implementation design); that
+# the two agree is asserted by a test, not by sharing a symbol.
+SUPPORTED_RESOURCE_OPS = tuple(sorted("stream." + op for op in _KNOWN_ENTRY_OPS))
 _OP_RE = re.compile(r"stream\.(resource|tensor)\.([A-Za-z_]+)")
 
 

@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.42**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.43**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
 
 **중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
 
@@ -799,6 +799,31 @@ sha256이 그 셀의 빌드 기록과 일치한다(**E36에 없던 로그↔바�
 **전부 나타난다** — 보관 JSON 판독·소스 텍스트 검사·게스트 raw log 판독이라 툴체인 없이 실제로 돈다.
 **교훈**: D61이 *"판정에 쓴 설정을 판정 자신이 기록하게 하라"*였다면 이것은 ***"기록해야 할 설정 목록에
 그 설정이 실제로 들어 있는지, 그리고 그 기록이 판정과 독립인지 확인하라"***다.
+
+**v0.43에서 완료된 것 (E40, `docs/EVIDENCE_v0.43_E40.md`)**: 아홉 번째 외부 로드맵
+(`docs/reviews/ONAIR_MLIR_ADDITIONAL_RESEARCH_AND_BASELINE_PLAN.md`) §5가 요구한 **정적 상한의 분석 영역·
+회계 규칙 공식화**. 사전 고정 기준은 `docs/plans/E40_E41_analysis_domain.md`(커밋 `9b7d5ba`, 구현 이전).
+**처방 3건 중 둘이 새 결함을 심는다**는 것을 착수 전 조사에서 실측해 좁혀 채택했다 — (1) 구조적 walker를
+**정본 값 출처**로 바꾸면 `dense_sum`이 사라져 D17 정렬 패딩 carve-out(원장에 **과잉 거부**로 기록된 결함)이
+무력화되고 `--allow-missing-structural-checker`가 구현 불가능해진다(walker는 이미 필수이고 불일치 시 계약이
+생성되지 않으므로 *이미* 권위다), (2) `analysis_domain` 8키 평면 나열은 4키가 **순수 rename**이라 D65를
+재발시킨다. **D70(잠재 fail-open)**: `make_contract.py`의 전제 목록 첫 항목이 **리터럴** `"static shapes"`라,
+`all_static=false`·`bound_method=NONE`·`unresolved_sizes=['%1','%6','%5']`인 `contract.dynamic.*`가
+`bound_assumptions[0]`·`validity.assumptions[0]`에 그 문자열을 싣고 있었다 — 읽는 코드가 저장소에 한 곳도
+없어 오늘까지는 산문 부정확이지만, 처방대로 기계 판독 필드로 승격하면 **거부하려고 만든 바로 그 계약에
+기계 판독 가능한 거짓 단언**이 실린다. 리터럴을 `all_static`에서 **유도**로 바꾸고 보관 2개 계약의 4 leaf를
+정정했다(수치 불변·헤더 바이트 불변). 신설한 `analysis_domain`은 **`derived`(도구가 계산한 사실)** 와
+**`required_premises`(배포가 지켜야 할 조건 — `max_in_flight_calls:1`, `output_lifetime`)** 로 나눠 싣는다.
+**`derived.constant_policy`가 map/copy 두 분기와 64바이트 정렬 전제를 처음으로 선언한다** — 착수 전 조사에서
+계약 **19개 중 0개**가 그것을 언급하지 않음을 확인했고, 계약이 두 상한을 싣고 배포가 그중 하나를 고르게
+하면서 **작은 쪽이 유효한 조건을 말하지 않고 있었다**(D53/D54의 계약 층 판본). `accounting_rules`는 이름과
+코드의 어긋남을 적는다 — `O`는 external alloca **슬랩**(multiout 선언 48 B vs 실제 128 B), `C`는 **packed**
+composite(vww pad 64·bigact pad 32), `T`의 "보수적 합"은 계약 전부가 slab ≤1이라 **공허**. 가드
+`analysis_domain_drift()`는 불일치 시 계약을 **쓰지 않고**, 회귀 diff는 새 블록을 **SUBTREE**로 제외한다
+(`IGNORE_PROVENANCE_KEYS`는 마지막 경로 성분 비교라 `driver`·`entry`를 넣었다면 `target.driver`·`model.entry`
+드리프트까지 침묵시킨다). **Q1~Q4 전부 PASS**, revert 시 생성기가 **rc=1로 작성 자체를 거부**.
+이 컨테이너 **570/570 → 598/598**(FAIL 0 · SKIP 0).
+**다음은 E41**(분석 영역 음성 시험) — 계획서 §3이 다섯 조건의 형태를 측정 전에 고정해 뒀다.
 
 **이로써 §10 단계 1~5가 전부 닫혔다**(단계 2는 E36, 단계 4는 E36b). 여덟 번째 검토의 **§10 마무리 4단계**도
 닫혔다 — 1(E37 보고 원자료 재확인) · 2(조건부 opt-in 독립 기록 = E38) · 3(결정 문서 4곳 정정, 저장소 밖

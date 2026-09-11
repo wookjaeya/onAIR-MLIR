@@ -2,6 +2,42 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.43] — E40: 정적 상한의 분석 영역과 회계 규칙을 계약이 스스로 말하게 한다
+
+**출처.** 아홉 번째 외부 로드맵 `docs/reviews/ONAIR_MLIR_ADDITIONAL_RESEARCH_AND_BASELINE_PLAN.md` §5.
+사전 고정 기준은 `docs/plans/E40_E41_analysis_domain.md`(커밋 `9b7d5ba`, **구현 이전**).
+
+**정정: 계약이 서로 모순되는 두 선언을 싣고 있었다(D70).** `make_contract.py`의 전제 목록 첫 항목이
+리터럴 `"static shapes"`였기 때문에, `all_static=false` · `bound_method=NONE` ·
+`unresolved_sizes=['%1','%6','%5']`인 `contract.dynamic.{x86_64,aarch64}.json`이
+`bound_assumptions[0]`·`validity.assumptions[0]`에 `"static shapes"`를 선언하고 있었다.
+`bound_assumptions`를 읽는 코드가 저장소에 한 곳도 없어 오늘까지는 산문 부정확이지만, 로드맵 §5.3-3이
+요구한 대로 기계 판독 필드로 승격하면 **거부하려고 만든 바로 그 계약에 기계 판독 가능한 거짓 단언**이
+실린다. 리터럴을 `all_static`에서 유도로 바꾸고, 보관 두 계약의 4 leaf를 정정했다(수치 불변, 헤더 바이트 불변).
+
+**로드맵 처방 3건 중 둘을 좁혀 채택했다(근거는 계획서 §0, 측정 이전에 고정).**
+(1) 구조적 walker를 **정본 값 출처**로 바꾸지 않았다 — walker의 `_extract_constants`는 packed만
+합산하므로 `dense_sum`이 사라지고 D17 정렬 패딩 carve-out(원장에 **과잉 거부**로 기록된 결함)이
+무력화된다. walker는 이미 필수이고 불일치 시 계약이 생성되지 않으므로 *이미* 권위다.
+(2) `analysis_domain`을 평면 8키로 싣지 않았다 — 4키가 순수 rename이라 D65를 재발시킨다.
+대신 **`derived`(도구가 계산한 사실)** 와 **`required_premises`(배포가 지켜야 할 조건)** 로 나눴다.
+
+**신설.** `analysis_domain.derived.constant_policy`가 **map/copy 두 분기와 64바이트 정렬 전제**를
+선언한다 — 착수 전 조사에서 계약 **19개 중 0개**가 그것을 언급하지 않음을 확인했다. 계약이 두 개의 상한을
+싣고 배포가 그중 하나를 고르게 하면서 **작은 쪽이 유효한 조건을 말하지 않고 있었다**(D53/D54의 계약 층 판본).
+`accounting_rules`는 `O`(external alloca 슬랩, multiout에서 선언 48 B vs 실제 128 B) · `C`(packed
+composite, vww pad 64 · bigact pad 32) · `T`(각 slab은 정확값이고 slab이 전부 ≤1이라 "보수적 합"은 공허)의
+**실제 규칙**을 적는다.
+
+**가드.** `analysis_domain_drift()`가 `derived`의 모든 값을 원천 필드와 재대조하고, 하나라도 어긋나면
+계약을 **쓰지 않는다**. 회귀 diff에서는 새 블록을 `IGNORE_PROVENANCE_SUBTREES`로 제외했다 —
+`IGNORE_PROVENANCE_KEYS`는 마지막 경로 성분 비교라 `driver`·`entry`를 넣었다면 `target.driver`·
+`model.entry`의 드리프트까지 침묵시켰을 것이다. 제외한 자리는 모델별 전용 pin으로 고정했다.
+
+**판정.** Q1~Q4 전부 PASS. 계약 수치 diff 0, 헤더 14/14 바이트 불변, `dynamic`의
+`derived.static_shapes=false`. revert 시 생성기가 **rc=1로 작성 자체를 거부**한다.
+`contract_negative_tests.py` **570/570 → 598/598**(이 컨테이너 실측, FAIL 0 · SKIP 0).
+
 ## [v0.42] — E38: 조건부 opt-in 설정을 판정과 독립적으로 기록한다
 
 **출처.** 여덟 번째 외부 검토 `docs/reviews/DECISIONS_v0_41_INTEGRATED_REVIEW.md`(§4.1 · 실행 순서 §10-2)가

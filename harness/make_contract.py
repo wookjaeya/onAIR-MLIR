@@ -920,8 +920,86 @@ def build_contract(a, extra_args):
     # ---- assemble -------------------------------------------------------------
     first_in = tensor_json(sig["inputs"][0]) if sig["inputs"] else None
     first_out = tensor_json(sig["outputs"][0]) if sig["outputs"] else None
-    assumptions = ["static shapes", "single in-flight call (no concurrency)",
+    # E40: DERIVED, not a literal. Until now the first element was the constant
+    # string "static shapes", so contract.dynamic.* declared it while
+    # interface.all_static was False, bound_method was NONE and unresolved_sizes
+    # was non-empty. Nothing read the list, so it was an inert prose inaccuracy --
+    # but the moment it is published as a machine-readable premise it becomes a
+    # false assertion on exactly the contract this repo built to be refused.
+    assumptions = [("static shapes" if all_static else
+                    "NON-static shapes: no bound is stated (see resources.unresolved_sizes)"),
+                   "single in-flight call (no concurrency)",
                    "%s driver" % a.driver, "entry function @%s only" % a.entry]
+
+    # ---- E40: the analysis domain and the accounting rules, machine-readable ------
+    # The roadmap (SS5.2/SS5.3) asked for an `analysis_domain` block. It is emitted as
+    # two SEPARATE halves on purpose:
+    #   derived            -- facts this tool computed from the compiler output. Every
+    #                         one of them is re-read from the SAME variable that feeds
+    #                         the existing field, never retyped (D65), and a guard below
+    #                         refuses the contract if a derived value ever disagrees with
+    #                         its source.
+    #   required_premises  -- conditions the DEPLOYMENT must uphold. They are not facts
+    #                         about the model and this tool cannot check them; publishing
+    #                         them as "derived" would be the exact fail-open this block
+    #                         exists to remove.
+    _per_call = (io_b + transient_b) if all_static else None
+    _bounded = (io_b + transient_b + const_b) if all_static else None
+    analysis_domain = {
+        "derived": {
+            "static_shapes": bool(all_static),
+            "driver": a.driver,
+            "entry": a.entry,
+            "supported_resource_ops": list(smb.SUPPORTED_RESOURCE_OPS),
+            "unknown_operation_policy": "UNKNOWN_BOUND",
+            "constant_policy": {
+                "arms": ["map_if_module_image_64byte_aligned", "copy_otherwise"],
+                "map_arm_bound_bytes": _per_call,
+                "copy_arm_bound_bytes": _bounded,
+                "declared_bound_is": "copy_arm (bounded_bytes is the max of the two arms)",
+                "map_arm_precondition":
+                    "the module image pointer handed to the runtime is 64-byte aligned "
+                    "(IREE_HAL_HEAP_BUFFER_ALIGNMENT, runtime/src/iree/base/config.h). E29 measured "
+                    "this to be the sole decider over 8 models x 8 alignment classes. A deployment "
+                    "that admits on the map arm must VERIFY the precondition before creating the "
+                    "runtime, not assume it (D53/D54): admitting on one quantity and checking "
+                    "another is how both of those defects happened.",
+            },
+        },
+        "required_premises": {
+            "max_in_flight_calls": 1,
+            "output_lifetime": "released_before_next_call",
+            "note":
+                "conditions the deployment must uphold; this tool cannot check them from the "
+                "compiler output. Both are load-bearing, not decorative: with N overlapping calls "
+                "the HAL peak rises to at most N x per_call (measured), and the two C deployments "
+                "plus the OnAIR loop uphold them by being single-threaded, not by being checked.",
+        },
+    }
+    accounting_rules = {
+        "per_call_bytes": "inputs + outputs + transient_slabs, all post-layout",
+        "inputs": "stream.tensor.import into !stream.resource<external>",
+        "outputs":
+            "stream.resource.alloca of kind <external>: the ALLOCATED SLAB, not the sum of the "
+            "output tensors. For a multi-output model IREE packs the results into one slab and "
+            "splits it with subviews, so this over-counts (measured: a 128 B slab for 32+16 B of "
+            "outputs). Over-counting is sound; the name 'output buffer' would not be accurate.",
+        "transient":
+            "stream.resource.alloca of kind <transient>. Each slab size is EXACT post-layout -- "
+            "alignment and lifetime reuse are already resolved inside it. Summing several slabs "
+            "would be conservative, but every contract in this repository has at most one.",
+        "constants":
+            "the PACKED #util.composite<Nxi8> buffer size, which includes packing/alignment "
+            "padding, not the dense per-tensor sum (measured padding: 64 B and 32 B on two models).",
+        "bounded_bytes": "per_call_bytes + constants (the copy arm; see analysis_domain)",
+        "non_allocating_ops":
+            "stream.resource.subview / stream.resource.dealloca / stream.tensor.export contribute "
+            "no bytes. subview is CHECKED for containment rather than trusted (D49).",
+        "excluded":
+            "IREE runtime context (VM, HAL device, module tables), the task stack, cFS/OSAL "
+            "memory, wrapper I/O and file-load temporaries. See resources.scope -- this exclusion "
+            "is the 'partial' in 'partial per-app model-execution memory contract'.",
+    }
 
     resources = {
         "memory_boundary": MEMORY_BOUNDARY,
@@ -1015,6 +1093,8 @@ def build_contract(a, extra_args):
             "extra_args": extra_args,
         },
         "resources": resources,
+        "analysis_domain": analysis_domain,
+        "accounting_rules": accounting_rules,
         "timing": {
             "boundary": "L1_kernel",
             "execution_bound_us": None,
@@ -1080,8 +1160,65 @@ def build_contract(a, extra_args):
     }
     contract["provenance"].update(entry_prov)
     contract["provenance"]["mlir_sha256"] = contract["model"]["sha256"]
+
+    # E40 drift guard: every `analysis_domain.derived` value must still equal the
+    # field it was derived from. Without this the block is precisely the D65 failure
+    # -- one fact in two places, only one of which gets corrected. This is a refusal,
+    # not a note: a contract whose own two statements disagree must not be written.
+    _drift = analysis_domain_drift(contract)
+    if _drift:
+        raise SystemExit("make_contract: analysis_domain drifted from its sources; refusing to write:"
+                         "\n  - " + "\n  - ".join(_drift))
     return contract
 
+
+
+def analysis_domain_drift(contract):
+    """E40: every `analysis_domain.derived` value re-checked against its source field.
+
+    Returns a list of human-readable drift descriptions (empty == agrees). Kept a
+    plain function so a test can drive it with a tampered contract without having to
+    run a compile -- the guard that refuses the contract calls this.
+    """
+    d = (contract.get("analysis_domain") or {}).get("derived")
+    if not isinstance(d, dict):
+        return ["analysis_domain.derived is missing"]
+    res = contract.get("resources") or {}
+    drift = []
+    if d.get("static_shapes") != (res.get("bound_method") != BOUND_METHOD_NONE):
+        drift.append("analysis_domain.derived.static_shapes=%r vs resources.bound_method=%r"
+                     % (d.get("static_shapes"), res.get("bound_method")))
+    tgt_drv = (contract.get("target") or {}).get("driver")
+    val_drv = (contract.get("validity") or {}).get("driver")
+    if d.get("driver") != tgt_drv or d.get("driver") != val_drv:
+        drift.append("analysis_domain.derived.driver=%r vs target.driver=%r vs validity.driver=%r"
+                     % (d.get("driver"), tgt_drv, val_drv))
+    mdl_entry = (contract.get("model") or {}).get("entry")
+    val_entry = (contract.get("validity") or {}).get("entry")
+    if d.get("entry") != mdl_entry or d.get("entry") != val_entry:
+        drift.append("analysis_domain.derived.entry=%r vs model.entry=%r vs validity.entry=%r"
+                     % (d.get("entry"), mdl_entry, val_entry))
+    cp = d.get("constant_policy") or {}
+    if (cp.get("map_arm_bound_bytes") != res.get("static_per_call_bytes")
+            or cp.get("copy_arm_bound_bytes") != res.get("bounded_bytes")):
+        drift.append("analysis_domain.derived.constant_policy arms=%r/%r vs resources per_call=%r bounded=%r"
+                     % (cp.get("map_arm_bound_bytes"), cp.get("copy_arm_bound_bytes"),
+                        res.get("static_per_call_bytes"), res.get("bounded_bytes")))
+    # the prose assumption list and the machine-readable flag must agree. Without this
+    # the two can drift back apart silently, which is the exact state E40 found:
+    # bound_assumptions[0] said "static shapes" on a contract that states no bound.
+    asm = (res.get("bound_assumptions") or [None])[0]
+    val_asm = ((contract.get("validity") or {}).get("assumptions") or [None])[0]
+    if not isinstance(asm, str) or asm.startswith("static shapes") != bool(d.get("static_shapes")):
+        drift.append("resources.bound_assumptions[0]=%r contradicts "
+                     "analysis_domain.derived.static_shapes=%r" % (asm, d.get("static_shapes")))
+    elif val_asm != asm:
+        drift.append("validity.assumptions[0]=%r != resources.bound_assumptions[0]=%r" % (val_asm, asm))
+    if d.get("supported_resource_ops") != list(smb.SUPPORTED_RESOURCE_OPS):
+        drift.append("analysis_domain.derived.supported_resource_ops=%r disagrees with "
+                     "static_mem_bound.SUPPORTED_RESOURCE_OPS=%r"
+                     % (d.get("supported_resource_ops"), list(smb.SUPPORTED_RESOURCE_OPS)))
+    return drift
 
 
 def validate(contract, schema_path):

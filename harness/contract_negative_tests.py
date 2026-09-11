@@ -1284,7 +1284,15 @@ IGNORE_PROVENANCE_KEYS = {
 # contract (e.g. resources.dispatches), so the whole subtree is excluded from
 # the "contract unchanged" diff by path instead, and checked separately below
 # (asserting it is actually present and agrees, not just absent from the diff).
-IGNORE_PROVENANCE_SUBTREES = {"structural_walker"}
+# E40: `analysis_domain` and `accounting_rules` are two more subtrees the 14 stored
+# (pre-E40) contracts never had. They are excluded BY SUBTREE, not by bare leaf name,
+# and the distinction is not stylistic: IGNORE_PROVENANCE_KEYS is matched against the
+# LAST path component, so putting "driver" or "entry" there to silence
+# analysis_domain.derived.driver would also silence target.driver and model.entry --
+# a fail-open in the one check that exists to catch drift. Their values are pinned
+# instead by analysis_domain_cases() below, per the E24b/D39 + E24/N2 + E24c/F3
+# precedent (exclusion from the diff must be paired with dedicated pinning).
+IGNORE_PROVENANCE_SUBTREES = {"structural_walker", "analysis_domain", "accounting_rules"}
 
 
 def flatten(d, prefix=()):
@@ -1377,6 +1385,29 @@ def regression_check(root, tmp):
             else:
                 results.append(Result("regression: %s/%s structural cross-check skipped (iree.compiler.ir unavailable in this environment)" % (tgt, model),
                                       avail is False, "available=%s" % avail))
+            # E40: the analysis_domain / accounting_rules subtrees are excluded from
+            # the diff above (the 14 stored contracts predate them), so they are pinned
+            # HERE instead -- on the production path, per model, re-checked against the
+            # regenerated contract's own source fields. Exclusion without pinning is how
+            # a new block becomes an unchecked second source of truth (D65).
+            import make_contract as _mc
+            _c = load(new_contract)
+            _drift = _mc.analysis_domain_drift(_c)
+            _ad = (_c.get("analysis_domain") or {})
+            _prem = _ad.get("required_premises") or {}
+            _pin_ok = (not _drift
+                       and _ad.get("derived", {}).get("static_shapes")
+                           == (_c["resources"]["bound_method"] != "NONE")
+                       and _prem.get("max_in_flight_calls") == 1
+                       and _prem.get("output_lifetime") == "released_before_next_call"
+                       and "max_in_flight_calls" not in (_ad.get("derived") or {})
+                       and isinstance(_c.get("accounting_rules"), dict)
+                       and _c["accounting_rules"].get("bounded_bytes"))
+            results.append(Result("regression: %s/%s analysis_domain agrees with its sources" % (tgt, model),
+                                  bool(_pin_ok),
+                                  "drift=%s static_shapes=%s premises=%s accounting=%s"
+                                  % (_drift, _ad.get("derived", {}).get("static_shapes"),
+                                     sorted(_prem), bool(_c.get("accounting_rules")))))
             if not ok:
                 continue
             new_hdr = os.path.join(tmp, "regress.%s.%s.h" % (model, tgt))
@@ -5434,6 +5465,120 @@ def rodata_label_cases():
 E38_DIR = "results/e38_optin_record"
 
 
+# ----------------------------------------------------------------------------
+# E40: the analysis domain and the accounting rules, published machine-readably
+# ----------------------------------------------------------------------------
+def e40_analysis_domain_cases(tmp):
+    """The roadmap (SS5.2/SS5.3) asked for an `analysis_domain` block in the contract.
+
+    These cases pin the two things that made the literal prescription unsafe:
+      * the premises must be DERIVED, not retyped -- until E40 the first assumption
+        was the literal string "static shapes", so contract.dynamic.* declared it
+        while bound_method was NONE. Inert while nothing read it; a machine-readable
+        false assertion the moment it is published;
+      * the block must not become a second source of truth (D65), so every derived
+        value is re-checked against the field it came from and a disagreement is a
+        REFUSAL, not a note.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    import make_contract as mc
+
+    base = load(os.path.join(repo, "results", "e14_aarch64_qemu", "x86_64",
+                             "contracts", "contract.conv2d.x86_64.json"))
+
+    def with_domain(**over):
+        c = json.loads(json.dumps(base))
+        r = c["resources"]
+        d = {"static_shapes": r["bound_method"] != "NONE",
+             "driver": c["target"]["driver"],
+             "entry": c["model"]["entry"],
+             "supported_resource_ops": list(smb.SUPPORTED_RESOURCE_OPS),
+             "unknown_operation_policy": "UNKNOWN_BOUND",
+             "constant_policy": {"map_arm_bound_bytes": r["static_per_call_bytes"],
+                                 "copy_arm_bound_bytes": r["bounded_bytes"]}}
+        d.update(over)
+        c["analysis_domain"] = {"derived": d, "required_premises": {"max_in_flight_calls": 1}}
+        return c
+
+    results.append(Result("e40: a consistent analysis_domain reports no drift (over-rejection guard)",
+                          mc.analysis_domain_drift(with_domain()) == [],
+                          "%s" % mc.analysis_domain_drift(with_domain())))
+    for label, over in (("static_shapes", {"static_shapes": False}),
+                        ("driver", {"driver": "local-task"}),
+                        ("entry", {"entry": "not_infer"}),
+                        ("supported_resource_ops", {"supported_resource_ops": ["stream.resource.alloca"]}),
+                        ("constant_policy arms", {"constant_policy": {"map_arm_bound_bytes": 1,
+                                                                      "copy_arm_bound_bytes": 2}})):
+        drift = mc.analysis_domain_drift(with_domain(**over))
+        results.append(Result("e40: drift in %s is reported (D65 guard)" % label,
+                              bool(drift) and label.split()[0] in " ".join(drift),
+                              "drift=%s" % drift))
+    # the prose list and the flag must not drift apart again -- that split IS the state
+    # E40 found (bound_assumptions[0] == "static shapes" on a contract stating no bound)
+    _c = with_domain()
+    _c["resources"]["bound_assumptions"] = ["NON-static shapes: ..."] + _c["resources"]["bound_assumptions"][1:]
+    _d = mc.analysis_domain_drift(_c)
+    results.append(Result("e40: prose assumptions[0] contradicting the static_shapes flag is drift",
+                          any("bound_assumptions[0]" in x for x in _d), "drift=%s" % _d))
+    _c2 = with_domain()
+    _c2["validity"]["assumptions"] = ["static shapes (reworded)"] + _c2["validity"]["assumptions"][1:]
+    _d2 = mc.analysis_domain_drift(_c2)
+    results.append(Result("e40: validity.assumptions[0] diverging from resources.bound_assumptions[0] is drift",
+                          any("validity.assumptions[0]" in x for x in _d2), "drift=%s" % _d2))
+    results.append(Result("e40: a missing analysis_domain block is itself drift (absence is not agreement)",
+                          mc.analysis_domain_drift(base) == ["analysis_domain.derived is missing"],
+                          "%s" % mc.analysis_domain_drift(base)))
+
+    # the source no longer carries the unconditional literal
+    src = open(MAKE_CONTRACT).read()
+    results.append(Result("e40: make_contract no longer hardcodes \"static shapes\" as assumptions[0]",
+                          'assumptions = ["static shapes"' not in src
+                          and 'if all_static else' in src.split("assumptions = [")[1][:400],
+                          "literal still present" if 'assumptions = ["static shapes"' in src else ""))
+
+    # no contract anywhere may claim static shapes while stating no bound
+    liars = []
+    for f in sorted(glob.glob(os.path.join(repo, "results", "**", "*.json"), recursive=True)
+                    + glob.glob(os.path.join(repo, "contracts", "contract.*.json"))
+                    + glob.glob(os.path.join(repo, "plugins", "**", "contract.json"), recursive=True)):
+        try:
+            c = load(f)
+        except Exception:
+            continue
+        if not isinstance(c, dict) or "resources" not in c:
+            continue
+        asm = (c["resources"] or {}).get("bound_assumptions") or []
+        if asm and asm[0] == "static shapes" and (c["resources"] or {}).get("bound_method") == "NONE":
+            liars.append(os.path.relpath(f, repo))
+    results.append(Result("e40: no stored contract declares \"static shapes\" while bound_method=NONE",
+                          not liars, "%s" % liars[:3]))
+
+    # the two extractors' whitelists must still agree (E19 keeps them independent
+    # on purpose; the contract publishes only one of them)
+    try:
+        import mlir_alloc_walk as maw
+        walk_ops = set(maw.KNOWN_ENTRY_OPS)
+    except Exception as e:
+        walk_ops = None
+        results.append(Result("e40: mlir_alloc_walk whitelist readable", False, str(e)[:160]))
+    if walk_ops is not None:
+        results.append(Result("e40: published supported_resource_ops == both extractors' whitelists",
+                              set(smb.SUPPORTED_RESOURCE_OPS) == walk_ops,
+                              "published=%s walker=%s" % (sorted(smb.SUPPORTED_RESOURCE_OPS), sorted(walk_ops))))
+
+    # the corrected archived contracts
+    for tgt in ("x86_64", "aarch64"):
+        c = load(os.path.join(repo, "results", "e14_aarch64_qemu", tgt, "contracts",
+                              "contract.dynamic.%s.json" % tgt))
+        a0 = (c["resources"]["bound_assumptions"] or [""])[0]
+        v0 = (c["validity"]["assumptions"] or [""])[0]
+        results.append(Result("e40: archived %s/dynamic no longer declares static shapes (correction)" % tgt,
+                              a0.startswith("NON-static shapes") and v0 == a0,
+                              "resources=%r validity=%r" % (a0[:40], v0[:40])))
+    return results
+
+
 def e38_optin_witness_cases(tmp):
     """E38: the conditional opt-in must be recorded independently of the verdict.
 
@@ -5685,6 +5830,7 @@ def main():
         all_results += e37_guest_rerun_cases()
         all_results += e37_peak_vs_budget_cases()
         all_results += e38_optin_witness_cases(tmp)
+        all_results += e40_analysis_domain_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
