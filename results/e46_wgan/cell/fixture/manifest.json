@@ -1,0 +1,474 @@
+{
+ "tool": "harness/model_fixture.py",
+ "experiment": "E46 (OPS-SAT WGAN denoiser, REAL noised flight thumbnails, G1)",
+ "input_shape": [
+  1,
+  224,
+  224,
+  3
+ ],
+ "layout_defect": "none",
+ "layout_defect_note": "none -- the entry tensor is produced by transpose, verified to round-trip",
+ "preprocessing": {
+  "resize": {
+   "to": [
+    224,
+    224
+   ],
+   "resample": "BILINEAR",
+   "note": "applied ONCE here so both paths receive identical tensors; this is NOT a claim that it matches the flight software's own resizer"
+  },
+  "normalisation": {
+   "formula": "(pixel - mean) / std",
+   "mean": 0.0,
+   "std": 255.0,
+   "note": "the ORIGINAL model's own config values; the model's internal MUL/SUB completes the range, so do not normalise again outside"
+  },
+  "layout": {
+   "nhwc": "original TFLite input",
+   "nchw": "imported IREE entry input",
+   "operation": "numpy transpose(0,3,1,2)",
+   "verified": "round trip nchw.transpose(0,2,3,1) == nhwc for every sample; and transpose != reshape asserted for these shapes"
+  }
+ },
+ "source": {
+  "repo": "https://github.com/georgeslabreche/opssat-onboard-image-denoiser",
+  "commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+  "note": "REAL inputs: testset/noised, already 224x224 so NO resize is applied (the model's input resolution equals the image resolution). Preprocessing pixel/255 confirmed from the author's onboard C++ (tools/denoiser/src/denoiser.cpp:649)."
+ },
+ "counts": {
+  "edge": 2,
+  "real_example": 9
+ },
+ "total_samples": 11,
+ "samples": [
+  {
+   "sample_id": "img_msec_1536095035794_2_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1536095035794_2_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "12cad35177499567bfe4008c4a1025f7163dafc34578e05c7128b5265a961e6e"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1536095035794_2_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "ff92b3170f152fd59dabe5ab20918e4817cd82dc3471db6270a82fce7a5336a0"
+   },
+   "value_range": [
+    0.04313725605607033,
+    0.8666666746139526
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1536095035794_2_thumbnail.jpeg",
+    "source_sha256": "818a9181d8916c534b81fe54b12b761bf5fb5c3790d5dc758a1cc2d723520fb4"
+   }
+  },
+  {
+   "sample_id": "img_msec_1595796409478_1_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1595796409478_1_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "e2b53089822dc5653b251b91b0cd24f6e435dc143b7948ff4d309e7ab1866cf7"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1595796409478_1_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "28be1381b8c5a8cdd20aac8a2a94401e945389f617db07b3ab8f4227e5fc5a15"
+   },
+   "value_range": [
+    0.07450980693101883,
+    0.7843137383460999
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1595796409478_1_thumbnail.jpeg",
+    "source_sha256": "3637fa2c7ec5727f18b2549993ff0d0acfe09ff8f13990d2734648bd10dcd611"
+   }
+  },
+  {
+   "sample_id": "img_msec_1595796767320_1_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1595796767320_1_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "d71d44bb5fda221e2fba8de8f7a0d6e9914f414eb2ca31a69aea6739f5e63260"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1595796767320_1_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "5386d86a5b538e03876dd9d9907675fe5cf360c7f58bf834895e459675f2b42c"
+   },
+   "value_range": [
+    0.06666667014360428,
+    0.8549019694328308
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1595796767320_1_thumbnail.jpeg",
+    "source_sha256": "41ad8b493f5e5c2a0c266349533d861fbf3dfeebb34c65f9fc603be554bf0c41"
+   }
+  },
+  {
+   "sample_id": "img_msec_1597433874681_2_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1597433874681_2_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "3a73f4622a31a2625f8b0a328af4ed4a19b612467b809fad9bb620ae544ee762"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1597433874681_2_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "67fbe91e186f93519132d3feb2cccc78ada35c5d02587bdbddea0203b67887ce"
+   },
+   "value_range": [
+    0.0784313753247261,
+    0.6196078658103943
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1597433874681_2_thumbnail.jpeg",
+    "source_sha256": "68d7eec7f44df5c7009a1514ec4cdfbd6c77fba12bbf274e0d06f5de2dd65e28"
+   }
+  },
+  {
+   "sample_id": "img_msec_1597977418041_2_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1597977418041_2_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "1784de9f91ff5e548bed05bdd9d905eebdb0a47f5f5c3f0ecff402e869304bee"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1597977418041_2_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "c4b1a9cbf0eb878d1cc923e585871ff982fb0bf0fdaa5544a44fd80e5de35a73"
+   },
+   "value_range": [
+    0.06666667014360428,
+    0.8705882430076599
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1597977418041_2_thumbnail.jpeg",
+    "source_sha256": "9d12066f0db8383ea8c772584dd326bff10fc68aebf9cb8547c9a052406a98aa"
+   }
+  },
+  {
+   "sample_id": "img_msec_1598399412981_2_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1598399412981_2_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "a6b3c286f647908edfbfbb87a557cd4d59cc05444218461bb275696067b3d25a"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1598399412981_2_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "9da553d49f1a6649ad26f082465484c94f7f708d31a62e4baae72f52d2ad9f8e"
+   },
+   "value_range": [
+    0.08627451211214066,
+    0.9333333373069763
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1598399412981_2_thumbnail.jpeg",
+    "source_sha256": "17cab90c3fcbbf0be6c92adab2ef09870468525c72f360a58feed17dba0b1513"
+   }
+  },
+  {
+   "sample_id": "img_msec_1598399450660_2_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1598399450660_2_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "3a434e65efee40d77181f9b678cb543a51ddf4c3d519d793600960af02c4a0b3"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1598399450660_2_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "f980c5b4b5019052eae7debdf5cb379ad48cf587a43493b34b1472469115145d"
+   },
+   "value_range": [
+    0.10980392247438431,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1598399450660_2_thumbnail.jpeg",
+    "source_sha256": "c92896749430f2f53229c0e6dd8a3cc9f53cbd0b375f4a87f4f06278b5698d30"
+   }
+  },
+  {
+   "sample_id": "img_msec_1604269082071_2_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1604269082071_2_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "dd80c53132c787bf662a409bba927850af78adeea306f2f50409dbf06177be82"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1604269082071_2_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "6fbacbd8664701e5dc2c7603ec490a3259f3efa76370bec1e19b41f4961cb525"
+   },
+   "value_range": [
+    0.06666667014360428,
+    0.572549045085907
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1604269082071_2_thumbnail.jpeg",
+    "source_sha256": "9e6fabeaa8334d2c91a301449417acb7ba61308d0118bced1f85367a50d3ab81"
+   }
+  },
+  {
+   "sample_id": "img_msec_1606689546581_2_thumbnail",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1606689546581_2_thumbnail.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "561b77a037d08b71aef41c775d518a23a956822f96973e0da8f862e340be5c72"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1606689546581_2_thumbnail.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "0ab81c0c65f911735e8b7c6a239248651c8375c394b14484aca44ec98344cbeb"
+   },
+   "value_range": [
+    0.12941177189350128,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     224,
+     224
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e46_wgan/inputs/img_msec_1606689546581_2_thumbnail.jpeg",
+    "source_sha256": "9977c1e79076097b5ceaf707b1b78f5fb6ab6eae28ec96d4b02bd064a8b0e89c"
+   }
+  },
+  {
+   "sample_id": "edge_zeros",
+   "kind": "edge",
+   "nhwc": {
+    "file": "inputs/edge_zeros.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc"
+   },
+   "nchw": {
+    "file": "inputs/edge_zeros.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "ad8c5f4d30e45b2a50f7f4d1f347f64d613c6fbcd92c54ca746ab077f402d8cc"
+   },
+   "value_range": [
+    0.0,
+    0.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "note": "all 0.0"
+   }
+  },
+  {
+   "sample_id": "edge_ones",
+   "kind": "edge",
+   "nhwc": {
+    "file": "inputs/edge_ones.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "fb446ff86f61c7dfadb0cc01a6ad2d5923a13392df002e8e869c9ee50ba0aafa"
+   },
+   "nchw": {
+    "file": "inputs/edge_ones.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "fb446ff86f61c7dfadb0cc01a6ad2d5923a13392df002e8e869c9ee50ba0aafa"
+   },
+   "value_range": [
+    1.0,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "note": "all 1.0 (the top of the [0,1] range this preprocessing produces)"
+   }
+  }
+ ]
+}

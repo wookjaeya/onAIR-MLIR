@@ -1,0 +1,78 @@
+{
+ "tool": "harness/p1_tflite_inventory.py",
+ "schema_package": {
+  "tflite": "2.18.0"
+ },
+ "file": {
+  "path": "results/e46_wgan/original/wgan_fpn50_f.tflite",
+  "bytes": 4299472,
+  "sha256": "c865589f4b5e28f17524266fedd7e3db245c5301ffd317c3756842f6a4ae1ebe"
+ },
+ "schema_version": 3,
+ "description": "MLIR Converted.",
+ "subgraphs": 1,
+ "inventory_complete": true,
+ "inputs": [
+  {
+   "index": 0,
+   "name": "serving_default_input_1:0",
+   "shape": [
+    1,
+    224,
+    224,
+    3
+   ],
+   "shape_signature": [
+    -1,
+    224,
+    224,
+    3
+   ],
+   "dtype": "FLOAT32"
+  }
+ ],
+ "outputs": [
+  {
+   "index": 57,
+   "name": "StatefulPartitionedCall:0",
+   "shape": [
+    1,
+    224,
+    224,
+    3
+   ],
+   "shape_signature": [
+    -1,
+    224,
+    224,
+    3
+   ],
+   "dtype": "FLOAT32"
+  }
+ ],
+ "operators": {
+  "total": 31,
+  "distinct": 6,
+  "histogram": {
+   "CONV_2D": 12,
+   "LEAKY_RELU": 11,
+   "ADD": 4,
+   "RESIZE_BILINEAR": 2,
+   "MUL": 1,
+   "TANH": 1
+  },
+  "custom": []
+ },
+ "sensitive_instances": [],
+ "static_shapes": {
+  "tensors": 58,
+  "dynamic_tensors": 0,
+  "examples": [],
+  "note": "shape (concrete) is what the flatbuffer executes with; shape_signature may carry -1 for a batch the exporter left symbolic"
+ },
+ "cfs_interface_fit": {
+  "single_f32_in_single_f32_out_static": true,
+  "input_elems": 150528,
+  "output_elems": 150528
+ }
+}

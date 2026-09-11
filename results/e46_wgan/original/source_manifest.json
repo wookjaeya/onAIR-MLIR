@@ -1,0 +1,150 @@
+{
+ "tool": "E46 manual preservation (D43)",
+ "repo": "https://github.com/georgeslabreche/opssat-onboard-image-denoiser",
+ "commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+ "commit_date": "2023-12-17 19:49:35 -0500",
+ "model": {
+  "path": "models/wgans/wgan_fpn50_f.tflite",
+  "bytes": 4299472,
+  "sha256": "c865589f4b5e28f17524266fedd7e3db245c5301ffd317c3756842f6a4ae1ebe",
+  "variant": "_f (full frame). The review named _p; E46 §1 records why _f was chosen instead."
+ },
+ "sibling_p": {
+  "path": "models/wgans/wgan_fpn50_p.tflite",
+  "sha256": "5258e859e5ca968f6200e97269fe48ff6adcb197c3e221a1c03e9c0acd940c83",
+  "note": "matches the pre-check recorded in docs/ASSUMPTIONS_AND_SCOPE.md:161 byte for byte"
+ },
+ "flight_logs": [
+  "opssat_smartcam_20230929_050440.log",
+  "opssat_smartcam_20230929_064844.log",
+  "opssat_smartcam_20231014_111202.log",
+  "opssat_smartcam_20231015_103500.log",
+  "opssat_smartcam_20231016_113001.log",
+  "opssat_smartcam_metadata_20230929_050440.csv",
+  "opssat_smartcam_metadata_20230929_064844.csv",
+  "opssat_smartcam_metadata_20231014_111202.csv",
+  "opssat_smartcam_metadata_20231015_103500.csv",
+  "opssat_smartcam_metadata_20231016_113001.csv"
+ ],
+ "eval_images": {
+  "noised": {
+   "img_msec_1536095035794_2_thumbnail.jpeg": {
+    "bytes": 131649,
+    "sha256": "818a9181d8916c534b81fe54b12b761bf5fb5c3790d5dc758a1cc2d723520fb4"
+   },
+   "img_msec_1595796409478_1_thumbnail.jpeg": {
+    "bytes": 131711,
+    "sha256": "3637fa2c7ec5727f18b2549993ff0d0acfe09ff8f13990d2734648bd10dcd611"
+   },
+   "img_msec_1595796767320_1_thumbnail.jpeg": {
+    "bytes": 133450,
+    "sha256": "41ad8b493f5e5c2a0c266349533d861fbf3dfeebb34c65f9fc603be554bf0c41"
+   },
+   "img_msec_1597433874681_2_thumbnail.jpeg": {
+    "bytes": 131694,
+    "sha256": "68d7eec7f44df5c7009a1514ec4cdfbd6c77fba12bbf274e0d06f5de2dd65e28"
+   },
+   "img_msec_1597977418041_2_thumbnail.jpeg": {
+    "bytes": 132596,
+    "sha256": "9d12066f0db8383ea8c772584dd326bff10fc68aebf9cb8547c9a052406a98aa"
+   },
+   "img_msec_1598399412981_2_thumbnail.jpeg": {
+    "bytes": 133150,
+    "sha256": "17cab90c3fcbbf0be6c92adab2ef09870468525c72f360a58feed17dba0b1513"
+   },
+   "img_msec_1598399450660_2_thumbnail.jpeg": {
+    "bytes": 135843,
+    "sha256": "c92896749430f2f53229c0e6dd8a3cc9f53cbd0b375f4a87f4f06278b5698d30"
+   },
+   "img_msec_1604269082071_2_thumbnail.jpeg": {
+    "bytes": 130847,
+    "sha256": "9e6fabeaa8334d2c91a301449417acb7ba61308d0118bced1f85367a50d3ab81"
+   },
+   "img_msec_1606689546581_2_thumbnail.jpeg": {
+    "bytes": 144855,
+    "sha256": "9977c1e79076097b5ceaf707b1b78f5fb6ab6eae28ec96d4b02bd064a8b0e89c"
+   }
+  },
+  "original": {
+   "img_msec_1536095035794_2_thumbnail.jpeg": {
+    "bytes": 37294,
+    "sha256": "448c644a48fc55161ded42817e77ced830275747ebbbf2f0524b952b223529a1"
+   },
+   "img_msec_1595796409478_1_thumbnail.jpeg": {
+    "bytes": 13154,
+    "sha256": "511fe06694572ab1681083a4eaed42b0b4e8211339cd4513c4d7002c02996de5"
+   },
+   "img_msec_1595796767320_1_thumbnail.jpeg": {
+    "bytes": 20743,
+    "sha256": "5d798951b758ffed167f473ff20f8166e8ca092fdd31826c740dad18f02ceaf5"
+   },
+   "img_msec_1597433874681_2_thumbnail.jpeg": {
+    "bytes": 12582,
+    "sha256": "ca5de93328b045298efc82dcaff7b8867bbc59640480122be59141f3c234264a"
+   },
+   "img_msec_1597977418041_2_thumbnail.jpeg": {
+    "bytes": 34493,
+    "sha256": "a628588d8bdf4f4e2ba1e7ff90a8c0f8f1d4390c3709d32f95483ab2545b4635"
+   },
+   "img_msec_1598399412981_2_thumbnail.jpeg": {
+    "bytes": 45302,
+    "sha256": "59c3e1939eb887cb15ef2b097919023fcd93cf269952df80615a5170be07d951"
+   },
+   "img_msec_1598399450660_2_thumbnail.jpeg": {
+    "bytes": 62335,
+    "sha256": "73a24d781f785ca99cae84da30d6a20b667e9f2c5c2154fe132ecb370a3838af"
+   },
+   "img_msec_1604269082071_2_thumbnail.jpeg": {
+    "bytes": 41212,
+    "sha256": "0fbb70009e7c9e34a5b0207d8c4edfbadd6f491fe878b0aa03c8b2b5fbc1a1e6"
+   },
+   "img_msec_1606689546581_2_thumbnail.jpeg": {
+    "bytes": 144043,
+    "sha256": "0ffe50609502fd2fc3f56d8874541e8f03c1399bdd1414c5ea7f656d0c9a49ba"
+   }
+  },
+  "denoised_wgan_full": {
+   "img_msec_1536095035794_2_thumbnail.jpeg": {
+    "bytes": 60913,
+    "sha256": "dc404b9fc23aa512cf4813fb797741fb52f8c14f5a8b0862882d331daabc86bd"
+   },
+   "img_msec_1595796409478_1_thumbnail.jpeg": {
+    "bytes": 61591,
+    "sha256": "6e7feb67ebeee7b0e1f3e46d5800c784c876a9af5e02d4952c18f1f03fea2a69"
+   },
+   "img_msec_1595796767320_1_thumbnail.jpeg": {
+    "bytes": 63983,
+    "sha256": "1a5dabfd4c859526f5d92a066085cd16db504a506708d877114fe66eb4cc8280"
+   },
+   "img_msec_1597433874681_2_thumbnail.jpeg": {
+    "bytes": 61383,
+    "sha256": "968c719df67de41912464c451a2a7bb166151f6de0d72ed6b4fe7bd8c84e7afd"
+   },
+   "img_msec_1597977418041_2_thumbnail.jpeg": {
+    "bytes": 62954,
+    "sha256": "af717b3faa04640649464a110786d1efb45d2a1df34f9ef4d15a172fcbb8e604"
+   },
+   "img_msec_1598399412981_2_thumbnail.jpeg": {
+    "bytes": 63996,
+    "sha256": "53f1cc25ea0faf4151accd30b19e78c2b6d549aba695bda657e7ffaf79a78620"
+   },
+   "img_msec_1598399450660_2_thumbnail.jpeg": {
+    "bytes": 67459,
+    "sha256": "d6a748e2fd02f80be53cc87e1e289d29069b9309e96bbcc6370363b6d8d5497b"
+   },
+   "img_msec_1604269082071_2_thumbnail.jpeg": {
+    "bytes": 60443,
+    "sha256": "ffc2259d01e3bc5da0c8c3c140c39b865bddb1e0e04bde4ef273e31984dcae6a"
+   },
+   "img_msec_1606689546581_2_thumbnail.jpeg": {
+    "bytes": 101316,
+    "sha256": "b266c8d7234e6063884d83893bdbc3ee28fff6929a6b4e3134e52f356556f662"
+   }
+  }
+ },
+ "licence": {
+  "file": "LICENSE",
+  "note": "see results/e45_real_inputs/smartcam/licences/ -- the MIT grant covers the software; the imagery is credited to ESA by the repository itself"
+ },
+ "denoised_is_not_an_oracle": "the published denoised JPEGs are re-encodes; using them as a numeric reference would measure JPEG round-trip error, not model equivalence (plan §3.2)"
+}
