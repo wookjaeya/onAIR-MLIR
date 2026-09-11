@@ -1,0 +1,61 @@
+{
+ "experiment": "E38",
+ "cell": "x86_64_cross_check",
+ "question": "D61 fixed the stale-shared-CMake-cache hazard in scripts/51_build_cfs_aarch64.sh only.  scripts/50_wire_cfs_ai_learner.sh had the same `${VAR:+-D...}` shape against build-native_std, which is equally persistent.  Does passing the flag unconditionally actually clear a cached 1, and does the witness read x86-64?",
+ "contract": {
+  "model": "canonical_e25",
+  "per_call_bytes": 65580,
+  "bounded_bytes": 786476,
+  "note": "whatever contract_gen.h the tree already carried -- this cell is about the build knob, not about a model"
+ },
+ "steps": [
+  {
+   "step": "step1_conditional",
+   "env": "ALLOW_CONDITIONAL_MAP=1",
+   "expected": "1",
+   "witnessed": "1",
+   "isa": "x86-64",
+   "binary_sha256": "177ce3441d72bf67c5ed4c5f7a4e345b52ab2dae5c604f6a23cdd84a6b4cf763",
+   "binary_bytes": 785896,
+   "conditional_compare_sites": [
+    {
+     "addr": "0x8934",
+     "value": 65579,
+     "function": "AI_LEARNER_Init",
+     "materialised_at": "0x8934"
+    }
+   ],
+   "positive_control_site_count": 3,
+   "note": "the opt-in build"
+  },
+  {
+   "step": "step2_unset_after_conditional",
+   "env": "(unset)",
+   "expected": "0",
+   "witnessed": "0",
+   "isa": "x86-64",
+   "binary_sha256": "67d6ada5cd0e3c4827412334555d86085873c3cb071e13ff06e1776eb3c275e4",
+   "binary_bytes": 785888,
+   "conditional_compare_sites": [],
+   "positive_control_site_count": 3,
+   "note": "THE D61(b) CONDITION: the very next build leaves the variable unset, against the same persistent build-native_std tree whose CMakeCache.txt still holds 1.  Before the fix `${AI_LEARNER_ALLOW_CONDITIONAL_MAP:+-D...}` passed nothing here and the stale 1 survived."
+  },
+  {
+   "step": "step3_unset_again",
+   "env": "(unset)",
+   "expected": "0",
+   "witnessed": "0",
+   "isa": "x86-64",
+   "binary_sha256": "67d6ada5cd0e3c4827412334555d86085873c3cb071e13ff06e1776eb3c275e4",
+   "binary_bytes": 785888,
+   "conditional_compare_sites": [],
+   "positive_control_site_count": 3,
+   "note": "repeat, and it leaves the shared tree at the default for whatever runs next"
+  }
+ ],
+ "verdict": "PASS",
+ "also_shows": "the witness's x86-64 branch works on a real binary -- it found `cmp $65579` (= per_call - 1) inside AI_LEARNER_Init plus 3 positive-control sites, the same shape it finds as mov/movk + cmp on AArch64",
+ "not_claimed": [
+  "nothing about this model's memory behaviour; no cFS run was made for this cell"
+ ]
+}

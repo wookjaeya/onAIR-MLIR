@@ -1,0 +1,180 @@
+{
+ "experiment": "E38",
+ "title": "the conditional opt-in, recorded independently of the verdict it decides",
+ "trigger": "docs/reviews/DECISIONS_v0_41_INTEGRATED_REVIEW.md SS4.1 / SS10-2",
+ "why_rerun": "SS10-2 says to connect the two conditional cells to an independent record and to re-run them ONLY if none exists.  None existed: build.log has no `CONDITIONAL` line, the two E36 trees' build_info app_knobs are byte-identical and omit the flag, and the archived CMakeLists spells it as an unexpanded ${AI_LEARNER_ALLOW_CONDITIONAL_MAP}.  So these two cells were re-run -- and only these two.",
+ "retroactive_evidence": {
+  "note": "the archived E36 binaries DO differ exactly at the opt-in branch, which shows the build-time control was real; what was missing was the run-time link from a log to a binary, and that is what the re-run supplies",
+  "dir": "results/e38_optin_record/e36_binaries"
+ },
+ "contract": {
+  "bounded": 18222796,
+  "per_call": 9382092,
+  "constants": 8840704,
+  "source": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+  "note": "not regenerated -- E32's single-invocation artefacts are reused"
+ },
+ "trees": {
+  "e38_smartcam": {
+   "built_utc": "2026-09-10T23:27:57Z",
+   "AI_LEARNER_ALLOW_CONDITIONAL_MAP": 0,
+   "ai_learner_compile_defines": [
+    "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=0",
+    "-DAI_LEARNER_BUDGET_BYTES=18222797",
+    "-DAI_LEARNER_REPORT_EVERY=1",
+    "-DAI_LEARNER_STACK_BASE_BYTES=262144",
+    "-DIREE_ALLOCATOR_SYSTEM_CTL=iree_allocator_libc_ctl",
+    "-DSIMULATION=aarch64-linux-gnu",
+    "-D_XOPEN_SOURCE=600"
+   ],
+   "ai_learner_so_sha256": "32db6e4d5ba2866543743dffe6862f4e1a330244deef3b8ba2968457a105e791",
+   "ai_learner_so_bytes": 861472,
+   "core_cpu1_sha256": "7e51a713270ce51e3813dc1011a580f43b8022a661cdc486e1366332b89aa1ae",
+   "contract_header_sha256": "14f8f6b1c684529b49c417e088c52bcbc193bcfd14e8daa77d2b45e84eb861c7",
+   "model_vmfb_matches_header": true,
+   "optin_witness_state": "0",
+   "build_info": "results/e38_optin_record/trees/e38_smartcam.build_info.json",
+   "optin_witness": "results/e38_optin_record/trees/e38_smartcam.optin_witness.json",
+   "deployed_on_guest": {
+    "path": "/home/ubuntu/e38_smartcam/cpu1",
+    "ai_learner_so_sha256": "32db6e4d5ba2866543743dffe6862f4e1a330244deef3b8ba2968457a105e791",
+    "core_cpu1_sha256": "7e51a713270ce51e3813dc1011a580f43b8022a661cdc486e1366332b89aa1ae",
+    "matches_build_info": true,
+    "note": "this is the link E36 lacked: the .so the guest actually loaded, hashed on the guest, tied to the build record that names the opt-in it was built with"
+   }
+  },
+  "e38_smartcam_cond": {
+   "built_utc": "2026-09-10T23:27:31Z",
+   "AI_LEARNER_ALLOW_CONDITIONAL_MAP": 1,
+   "ai_learner_compile_defines": [
+    "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=1",
+    "-DAI_LEARNER_BUDGET_BYTES=18222797",
+    "-DAI_LEARNER_REPORT_EVERY=1",
+    "-DAI_LEARNER_STACK_BASE_BYTES=262144",
+    "-DIREE_ALLOCATOR_SYSTEM_CTL=iree_allocator_libc_ctl",
+    "-DSIMULATION=aarch64-linux-gnu",
+    "-D_XOPEN_SOURCE=600"
+   ],
+   "ai_learner_so_sha256": "d8d2838870c331fc6eb84c8775720256bae4d4e9e8051cba96ab53559cd52645",
+   "ai_learner_so_bytes": 861504,
+   "core_cpu1_sha256": "7e51a713270ce51e3813dc1011a580f43b8022a661cdc486e1366332b89aa1ae",
+   "contract_header_sha256": "14f8f6b1c684529b49c417e088c52bcbc193bcfd14e8daa77d2b45e84eb861c7",
+   "model_vmfb_matches_header": true,
+   "optin_witness_state": "1",
+   "build_info": "results/e38_optin_record/trees/e38_smartcam_cond.build_info.json",
+   "optin_witness": "results/e38_optin_record/trees/e38_smartcam_cond.optin_witness.json",
+   "deployed_on_guest": {
+    "path": "/home/ubuntu/e38_smartcam_cond/cpu1",
+    "ai_learner_so_sha256": "d8d2838870c331fc6eb84c8775720256bae4d4e9e8051cba96ab53559cd52645",
+    "core_cpu1_sha256": "7e51a713270ce51e3813dc1011a580f43b8022a661cdc486e1366332b89aa1ae",
+    "matches_build_info": true,
+    "note": "this is the link E36 lacked: the .so the guest actually loaded, hashed on the guest, tied to the build record that names the opt-in it was built with"
+   }
+  },
+  "_note": "built by scripts/51_build_cfs_aarch64.sh with ALLOW_CONDITIONAL_MAP=1 first and =0 second, on purpose: the shared arch build tree is what made D61's stale-cache defect possible, so the order that would expose it is the order used."
+ },
+ "cells": {
+  "cond_positive": {
+   "log": "results/e38_optin_record/cells/cond_positive.log",
+   "build_config": {
+    "allow_conditional_map": 1,
+    "contract_bounded_bytes": 18222796,
+    "contract_per_call_bytes": 9382092,
+    "contract_const_bytes": 8840704,
+    "contract_bound_known": true,
+    "contract_artifact_sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"
+   },
+   "build_config_precedes_admission": true,
+   "verdict": "ADMIT_CONDITIONAL_MAP",
+   "budget_bytes": 9382092,
+   "budget_source": "override",
+   "inferences": 17,
+   "run_records": 17,
+   "run_records_unparseable": 0,
+   "hal_peak": 9382092,
+   "admitted_budget_bytes": 9382092,
+   "peak_within_admitted_budget": true,
+   "admission_mode": "conditional_map",
+   "budget_invalid_event": false,
+   "exit": "124",
+   "ai_learner_so_sha256": "d8d2838870c331fc6eb84c8775720256bae4d4e9e8051cba96ab53559cd52645",
+   "optin_witness": {
+    "allow_conditional_map_state": "1",
+    "binary_sha256": "d8d2838870c331fc6eb84c8775720256bae4d4e9e8051cba96ab53559cd52645",
+    "conditional_compare_sites": [
+     {
+      "addr": "0x7644",
+      "value": 9382091,
+      "function": "AI_LEARNER_Init",
+      "materialised_at": "0x763c"
+     }
+    ],
+    "method": "disassembly: compare against CONTRACT_PER_CALL_BYTES in the admission path"
+   },
+   "map_branch": {
+    "module_ptr_mod64": 0,
+    "hal_peak_after_append": 0,
+    "arm": "map",
+    "admission_mode": "conditional_map"
+   }
+  },
+  "cond_denied_without_optin": {
+   "log": "results/e38_optin_record/cells/cond_denied_without_optin.log",
+   "build_config": {
+    "allow_conditional_map": 0,
+    "contract_bounded_bytes": 18222796,
+    "contract_per_call_bytes": 9382092,
+    "contract_const_bytes": 8840704,
+    "contract_bound_known": true,
+    "contract_artifact_sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"
+   },
+   "build_config_precedes_admission": true,
+   "verdict": "NOT_ADMITTED",
+   "budget_bytes": 9382092,
+   "budget_source": "override",
+   "inferences": 0,
+   "run_records": 0,
+   "run_records_unparseable": 0,
+   "hal_peak": null,
+   "admitted_budget_bytes": null,
+   "peak_within_admitted_budget": null,
+   "admission_mode": null,
+   "budget_invalid_event": false,
+   "exit": "124",
+   "ai_learner_so_sha256": "32db6e4d5ba2866543743dffe6862f4e1a330244deef3b8ba2968457a105e791",
+   "optin_witness": {
+    "allow_conditional_map_state": "0",
+    "binary_sha256": "32db6e4d5ba2866543743dffe6862f4e1a330244deef3b8ba2968457a105e791",
+    "conditional_compare_sites": [],
+    "method": "disassembly: compare against CONTRACT_PER_CALL_BYTES in the admission path"
+   },
+   "cfs_alive_after_refusal": {
+    "exit_app_logged": true,
+    "apps_loaded_after": [
+     "cs",
+     "ds",
+     "fm",
+     "hk",
+     "hs",
+     "md",
+     "mm",
+     "sc"
+    ],
+    "log_lines_after_exit": 61
+   }
+  }
+ },
+ "verdicts": {
+  "Q1_setting_recorded_before_verdict": "PASS",
+  "Q2_binary_witnesses_same_setting": "PASS",
+  "Q3_control_still_a_control": "PASS",
+  "Q4_e36_measurements_unchanged": "PASS",
+  "Q5_guest_binary_matches_build_record": "PASS",
+  "optin_independently_recorded": true
+ },
+ "not_claimed": [
+  "E36's other five cells were not re-run -- they do not depend on the opt-in, and their archived results stand as evidence of the commit that produced them",
+  "the inference COUNT is timeout-dependent, not an invariant; only the deterministic values (setting, verdict, budget, peak, arm) are compared with E36",
+  "nothing about accuracy, latency, or any model other than SmartCam"
+ ]
+}

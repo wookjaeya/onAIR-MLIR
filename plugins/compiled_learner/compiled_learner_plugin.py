@@ -52,10 +52,15 @@ Design points carried over and the reasons they exist:
 * The entry point and the call ABI come from the contract and are checked against
   the module's actual exports, rather than being hardcoded to `infer(x, *weights)`.
 
-* Every output element is preserved for verification (`last_output`), and the
-  result buffer is released each call. Returning only `score`/`argmax` would make
-  a 640-output autoencoder unverifiable, and E31 measured that argmax alone accepts
-  a wrong layout on 92% of samples.
+* Every output element is preserved for verification (`last_output`), and the Python
+  reference to the result is dropped each call (`del out`). Returning only
+  `score`/`argmax` would make a 640-output autoencoder unverifiable, and E31 measured
+  that argmax alone accepts a wrong layout on 92% of samples.
+  NOTE (v0.38.1 / D60): dropping the reference is NOT the same as observing the device
+  buffer released, and this docstring used to say "released". That is withdrawn: the
+  status is MEMORY RELEASE NOT VERIFIED on this path -- E33's own runs report unreleased
+  nanobind instances at interpreter shutdown and no HAL peak was measured here. The
+  opposite ("this leaks") may not be written either. See docs/EVIDENCE_v0.36_E33.md SS10.
 """
 
 import json

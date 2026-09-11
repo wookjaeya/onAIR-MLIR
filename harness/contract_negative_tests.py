@@ -172,6 +172,19 @@ def write_json(obj, path):
     return path
 
 
+def read(path):
+    with open(path, errors="replace") as f:
+        return f.read()
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 # ----------------------------------------------------------------------------
 # in-process unit checks on static_mem_bound.parse_alloc_ir (D13 R2)
 # ----------------------------------------------------------------------------
@@ -2567,6 +2580,383 @@ def e36b_aarch64_models_cases():
     results.append(Result("e36b D62: and a byte count that does not divide by that arity is an "
                           "explicit refusal, never a silent truncation", _ok,
                           "" if _ok else "the native runner no longer refuses a non-dividing output blob"))
+    return results
+
+
+E37_DIR = os.path.join(os.path.dirname(HERE), "results", "evidence_linkage")
+
+
+def e37_evidence_linkage_cases():
+    """E37: the three-model evidence linkage table, and what it must never be allowed to become.
+
+    The table's whole value is that a reader can walk from a claim to the raw file and the
+    judging code.  Two ways that value can quietly evaporate, both of which this repository
+    has already been bitten by, are pinned here:
+
+      * D55 -- a document cites a raw log that is not in the repository.  Every path the table
+        names must exist AND be git-tracked, or the table is citing something a fresh clone
+        will not have.
+      * D29 -- a missing key read as a zero.  The first version of the generator resolved each
+        admission cell as ONE parent object, so E36b's DENY cells passing without `inferences`
+        looked like a filled cell.  Adversarial verification caught it.  The locators are now
+        per-sub-key, and this test pins that: if any item-4 locator loses its sub-key suffix,
+        the granularity has regressed to the version that could not see the gap.
+
+    A null is not automatically a gap, and that distinction is the third thing pinned here: on
+    a refused cell there IS no approved budget, and on a BUDGET_INVALID cell there is no
+    admission record at all -- those nulls are licensed by a POSITIVE signal in the same
+    record (the verdict, or budget_invalid_event), never by absence."""
+    results = []
+    root = os.path.dirname(HERE)
+    linkage = os.path.join(E37_DIR, "linkage.json")
+
+    if not os.path.exists(linkage):
+        results.append(Result("e37: linkage table present", False, "missing %s" % linkage))
+        return results
+
+    rc, out, err = run([sys.executable, os.path.join(HERE, "mk_evidence_linkage.py"), "--check"])
+    results.append(Result("e37: the linkage table regenerates from the raw data unchanged "
+                          "(no value in it was typed by hand)", rc == 0,
+                          "" if rc == 0 else (out + err).strip()[:300]))
+
+    data = load(linkage)
+    t = data["totals"]
+    _ok = t["cells"] == 21 and t["not_present"] == 0
+    results.append(Result("e37: all 21 cells (3 models x 7 items) resolve", _ok,
+                          "" if _ok else "not_present=%s %s" % (t["not_present"],
+                                                                data["cells_not_present"])))
+
+    # D55: every raw path the table cites must be in the repository AND tracked.
+    cited = set()
+    for m in data["models"].values():
+        for num, item in m["items"].items():
+            for src in item.get("sources", []):
+                cited.add(src["path"])
+            for e in item.get("entries", []):
+                for k in ("raw", "script"):
+                    if e.get(k):
+                        cited.add(e[k])
+    missing = [p for p in sorted(cited) if not os.path.exists(os.path.join(root, p))]
+    results.append(Result("e37: every path the table cites exists on disk", not missing,
+                          "" if not missing else "missing: %s" % missing[:4]))
+    untracked = []
+    for p in sorted(cited):
+        if os.path.exists(os.path.join(root, p)):
+            r = subprocess.run(["git", "-C", root, "ls-files", "--error-unmatch", p],
+                               capture_output=True, text=True)
+            if r.returncode != 0:
+                untracked.append(p)
+    results.append(Result("e37: and every one of them is git-tracked (D55: a table that cites "
+                          "an untracked file does not survive a fresh clone)", not untracked,
+                          "" if not untracked else "untracked: %s" % untracked[:4]))
+
+    # D29: a null that no positive signal licenses is a gap, not a value.
+    unlicensed = []
+    for name, m in data["models"].items():
+        for num, item in m["items"].items():
+            for src in item.get("sources", []):
+                if src["status"] == "null_value":
+                    unlicensed.append("%s/%s %s" % (name, num, src["locator"]))
+    results.append(Result("e37: no cell is filled with an unlicensed null (a null is only a "
+                          "value when a positive signal in the same record allows it)",
+                          not unlicensed, "" if not unlicensed else str(unlicensed[:4])))
+
+    # The granularity fix itself. Item 4 must be resolved per sub-key, never per parent object.
+    coarse = []
+    for name, m in data["models"].items():
+        for src in m["items"]["4"].get("sources", []):
+            leaf = src["locator"].rsplit(".", 1)[-1]
+            if leaf not in ("verdict", "budget_bytes", "budget_source", "inferences", "hal_peak",
+                            "admitted_budget_bytes", "peak_within_admitted_budget",
+                            "admission_mode"):
+                coarse.append("%s: %s" % (name, src["locator"]))
+    results.append(Result("e37: item 4 is resolved per sub-key, not per parent object -- the "
+                          "granularity that let E36b's missing `inferences` pass as filled",
+                          not coarse, "" if not coarse else str(coarse[:4])))
+
+    # E36b's DENY cells must actually carry the field whose absence started this.
+    b = os.path.join(E36B_DIR, "summary.json")
+    if os.path.exists(b):
+        bs = load(b)
+        gaps = [m for m in ("b2_resnet", "b3_deepae")
+                if "inferences" not in bs["models"][m]["cfs_deny_B_minus_1"]]
+        results.append(Result("e37: E36b's DENY cells record `inferences` explicitly (0), so a "
+                              "reader never has to infer 'no inference' from an absent key",
+                              not gaps, "" if not gaps else "still absent for %s" % gaps))
+        zero = [m for m in ("b2_resnet", "b3_deepae")
+                if bs["models"][m]["cfs_deny_B_minus_1"].get("inferences") != 0]
+        results.append(Result("e37: and the value derived from the guest log is 0", not zero,
+                              "" if not zero else str(zero)))
+
+    # Reproduction check (mandatory work C): the judging step re-run on the final code.
+    rep = os.path.join(E37_DIR, "reproduce_check.json")
+    if not os.path.exists(rep):
+        results.append(Result("e37: reproduce_check present", False, "missing %s" % rep))
+    else:
+        rp = load(rep)
+        _ok = rp.get("verdict") == "PASS" and rp["totals"]["differing"] == 0 \
+            and rp["totals"]["tool_error"] == 0
+        results.append(Result("e37: re-judging every archived cell with the FINAL code gives the "
+                              "stored verdict (%d cells)" % rp["totals"]["cells"], _ok,
+                              "" if _ok else json.dumps(rp["totals"])))
+        # The table must READ that result, not restate it.
+        by_cell = {c["cell"]: c.get("identical") for c in rp["cells"]}
+        wrong = []
+        for name, m in data["models"].items():
+            for e in m["items"]["7"].get("entries", []):
+                if e.get("rejudge_cell"):
+                    if e.get("rejudged_at_final_version") != by_cell.get(e["rejudge_cell"]):
+                        wrong.append("%s/%s" % (name, e["rejudge_cell"]))
+        results.append(Result("e37: the table's re-judge column is read from the check's own "
+                              "output, not asserted independently", not wrong,
+                              "" if not wrong else str(wrong[:4])))
+    return results
+
+
+def e37_truncated_record_cases():
+    """E37 / D68: a record the parser could not read is not a record that is not there.
+
+    The E36b summary generator this experiment wrote counted `run` records with
+    `except ValueError: continue`, so DeepAE -- whose run lines carry a 640-element output
+    array and are cut at 766 characters -- was recorded as `run_records: 0` while SEVEN such
+    records sat in the log.  The generator's own docstring said "absence is not zero".  This is
+    D51's shape again: "could not see it" written down as "looked and there was nothing".
+
+    Pinned from both ends: the truncated lines really are in the archived log (so the condition
+    is real, not a paraphrase), and the summary reports them as observed-but-unparseable rather
+    than as absent."""
+    results = []
+    log = os.path.join(E36B_DIR, "cfs", "deepae_admit_B.log")
+    if not os.path.exists(log):
+        results.append(Result("e37/d68: deepae admit log present", False, log))
+        return results
+
+    seen = unparsed = 0
+    for line in open(log, encoding="utf-8", errors="replace"):
+        i = line.find('{"app":"AI_LEARNER"')
+        if i < 0:
+            continue
+        frag = line[i:].strip()
+        if '"stage":"run"' not in frag:
+            continue
+        seen += 1
+        try:
+            json.loads(frag)
+        except ValueError:
+            unparsed += 1
+    _ok = seen > 0 and unparsed == seen
+    results.append(Result("e37/d68: the archived DeepAE log really does carry run records whose "
+                          "payload is truncated (%d of %d)" % (unparsed, seen), _ok,
+                          "" if _ok else "seen=%d unparsed=%d" % (seen, unparsed)))
+
+    summ = os.path.join(E36B_DIR, "summary.json")
+    if os.path.exists(summ):
+        cell = load(summ)["models"]["b3_deepae"]["cfs_admit"]
+        _ok = cell.get("run_records") == seen
+        results.append(Result("e37/d68: and the summary counts them as observed (%d), not as 0 -- "
+                              "a payload the parser cannot read still proves the record existed"
+                              % seen, _ok, "" if _ok else "run_records=%s" % cell.get("run_records")))
+        _ok = cell.get("run_records_unparseable") == unparsed
+        results.append(Result("e37/d68: the summary says how many it could not parse, so the "
+                              "reader is never handed a silent count", _ok,
+                              "" if _ok else "unparseable=%s" % cell.get("run_records_unparseable")))
+        deny = load(summ)["models"]["b3_deepae"]["cfs_deny_B_minus_1"]
+        _ok = deny.get("run_records") == 0 and deny.get("run_records_unparseable") == 0
+        results.append(Result("e37/d68: and a genuinely empty cell still reads 0/0 -- the fix did "
+                              "not turn 'no records' into 'unknown'", _ok,
+                              "" if _ok else json.dumps(deny)))
+
+    for gen in ("mk_e36_summary.py", "mk_e36b_summary.py"):
+        txt = open(os.path.join(HERE, gen), encoding="utf-8", errors="replace").read()
+        _ok = "__unparsed__" in txt and "record_count" in txt
+        results.append(Result("e37/d68: %s counts unparseable records instead of dropping them"
+                              % gen, _ok, "" if _ok else "still drops them silently"))
+    return results
+
+
+def e37_guest_rerun_cases():
+    """E37 §5: the one cell that genuinely needed the guest again, and what it settled.
+
+    E32's SmartCam cFS equivalence cell was produced by `ai_learner.c` BEFORE D61 added the
+    runtime budget resolver, and E36's no-override regression cell did not exercise that path
+    (`e25_mode active=false` in all seven E36 cells; only E32's A_admit.log has it true).  So it
+    was the single cell whose currency could not be settled from archived material -- everything
+    else was re-judged in place.  It was re-run on the final code and the result is compared,
+    element for element, against the pre-D61 run: same verdict, same totals, same worst element.
+
+    The comparison direction matters.  This does NOT say "D61 was harmless" in general; it says
+    this cell's numbers did not move, which is the only thing the cell can testify to."""
+    results = []
+    d = os.path.join(os.path.dirname(HERE), "results", "e37_evidence_consolidation",
+                     "s_cfs_post_d61")
+    summ = os.path.join(d, "summary.json")
+    if not os.path.exists(summ):
+        results.append(Result("e37/rerun: the re-run cell is preserved", False, "missing %s" % summ))
+        return results
+    js = load(summ)
+
+    rec = js.get("app_records", {})
+    _ok = (rec.get("e25_mode") or {}).get("active") is True
+    results.append(Result("e37/rerun: the app itself testifies the equivalence mode was ON -- the "
+                          "whole reason this cell needed re-running is that E36's cells had it off",
+                          _ok, "" if _ok else json.dumps(rec.get("e25_mode"))))
+    eq = rec.get("e25_equivalence") or {}
+    _ok = eq.get("inputs") == 5 and eq.get("completed") == 5
+    results.append(Result("e37/rerun: five inputs replayed, five completed", _ok,
+                          "" if _ok else json.dumps(eq)))
+    adm = rec.get("admission") or {}
+    _ok = adm.get("verdict") == "ADMIT" and adm.get("budget_source") == "macro"
+    results.append(Result("e37/rerun: and it ran through the same admission gate (the budget "
+                          "resolver D61 added reports which budget it judged on)", _ok,
+                          "" if _ok else json.dumps(adm)))
+
+    m = js.get("matches_e32_pre_d61", {})
+    for key in ("verdict", "totals", "worst_element"):
+        _ok = m.get(key) is True
+        results.append(Result("e37/rerun: %s is identical to the pre-D61 run" % key, _ok,
+                              "" if _ok else "differs"))
+
+    cmpf = os.path.join(d, "comparison.json")
+    if os.path.exists(cmpf):
+        c = load(cmpf)
+        _ok = c.get("verdict") == "PASS" and (c.get("totals") or {}).get("elements_failed") == 0
+        results.append(Result("e37/rerun: judged by the same pre-fixed criteria, not a new rule",
+                              _ok and (c.get("criteria") or {}).get("abs_tol") == 1e-4,
+                              "" if _ok else json.dumps(c.get("totals"))))
+
+    raw = os.path.join(d, "s_cfs_equiv.log")
+    tracked = subprocess.run(["git", "-C", os.path.dirname(HERE), "ls-files", "--error-unmatch",
+                              os.path.relpath(raw, os.path.dirname(HERE))],
+                             capture_output=True, text=True).returncode == 0
+    results.append(Result("e37/rerun: the guest raw log is committed (D55 -- a cited log that is "
+                          "not in the repository does not survive a fresh clone)",
+                          os.path.exists(raw) and tracked,
+                          "" if tracked else "raw log present but untracked"))
+    return results
+
+
+def e37_peak_vs_budget_cases():
+    """E37 §5b: "the peak fit in the budget" and "the bound was tight" are different sentences.
+
+    The completeness critic caught the claim sentence flattening these.  Measured: on the
+    unconditional cells the observed HAL peak is 51.5% / 50.0% / 0.6% of the budget it was
+    approved on; exactly ONE cell reaches 100.0%, and it is the conditional one.  The slack is
+    not evidence of tightness -- it is E29b making the app 64-byte-align its own blob so the map
+    arm is taken; the same DeepAE measured on the x86-64 source-built runtime takes the copy arm
+    and reports 1,069,632 (E26f).
+
+    So this pins two things at once: every admitted cell really is within its approved budget
+    (the claim), and the ratios really do vary (the qualifier).  If a later change made every
+    cell sit at 100%, the second check fails and someone has to look -- because that would mean
+    the arm changed, not that the contract got tighter."""
+    results = []
+    cells = []
+    e36 = os.path.join(E36_DIR, "summary.json")
+    if os.path.exists(e36):
+        for name, c in load(e36)["cells"].items():
+            if c.get("hal_peak") is not None and c.get("admitted_budget_bytes"):
+                cells.append(("smartcam/" + name, c["hal_peak"], c["admitted_budget_bytes"],
+                              c.get("admission_mode")))
+    e36b = os.path.join(E36B_DIR, "summary.json")
+    if os.path.exists(e36b):
+        for m, blk in load(e36b)["models"].items():
+            c = blk.get("cfs_admit") or {}
+            if c.get("hal_peak") is not None and c.get("admitted_budget_bytes"):
+                cells.append((m + "/cfs_admit", c["hal_peak"], c["admitted_budget_bytes"],
+                              c.get("admission_mode")))
+    if not cells:
+        results.append(Result("e37/peak: admitted cells present", False, "no cells found"))
+        return results
+
+    over = ["%s %d>%d" % (n, p, b) for n, p, b, _ in cells if p > b]
+    results.append(Result("e37/peak: every admitted cell's observed peak is within the budget it "
+                          "was approved on (%d cells)" % len(cells), not over,
+                          "" if not over else str(over)))
+
+    ratios = {n: p / float(b) for n, p, b, _ in cells}
+    at_bound = [n for n, r in ratios.items() if abs(r - 1.0) < 1e-9]
+    _ok = len(at_bound) == 1 and "cond_positive" in at_bound[0]
+    results.append(Result("e37/peak: exactly one cell sits AT its budget and it is the "
+                          "conditional one -- the rest have slack, so 'within budget' must not "
+                          "be quoted as tightness", _ok,
+                          "" if _ok else "cells at bound: %s" % at_bound))
+
+    spread = max(ratios.values()) - min(ratios.values())
+    results.append(Result("e37/peak: the ratios really do vary (%.1f%%..%.1f%%) -- if they all "
+                          "collapsed to one value the try_map arm changed, not the contract"
+                          % (100 * min(ratios.values()), 100 * max(ratios.values())),
+                          spread > 0.5, "spread=%.3f" % spread))
+
+    for doc in ("docs/EVIDENCE_v0.41_E37.md", "CLAUDE.md"):
+        txt = open(os.path.join(os.path.dirname(HERE), doc), encoding="utf-8",
+                   errors="replace").read()
+        _ok = "tightness의" in txt and "승인 근거 예산 이하" in txt
+        results.append(Result("e37/peak: %s states the bound as 'within the approved budget' and "
+                              "says outright that this is not a tightness claim" % doc, _ok,
+                              "" if _ok else "the qualifier is missing"))
+    return results
+
+
+def e37_d60_extension_cases():
+    """E37: the D60 erratum, extended to the places the first pass did not reach.
+
+    v0.38.1 retracted "released" in the evidence document.  Reading the raw data again for the
+    linkage table showed the retracted wording still standing in two machine-readable places a
+    later reader would take as current -- the summary the document cites, and the plugin's own
+    docstring.  A retraction that lives only in prose gets restored by the next person who reads
+    the source.  It also showed the guard pinned only `p_admit` while `p_legacy` carries the
+    same condition, and that the ledger's instance breakdown was miscounted.
+
+    The correspondence between leaked instances and inference count is recorded here as a
+    measurement, NOT as grounds to flip the verdict: the status stays MEMORY RELEASE NOT
+    VERIFIED in both directions until someone measures the HAL peak on this path."""
+    results = []
+    root = os.path.dirname(HERE)
+
+    counts = {}
+    for cell, expect_inf in (("p_admit", 5), ("p_legacy", 4)):
+        rj = os.path.join(E33_DIR, cell, "run.json")
+        if not os.path.exists(rj):
+            results.append(Result("e37/d60: %s raw run.json present" % cell, False, rj))
+            continue
+        tail = load(rj).get("stderr_tail", "") or ""
+        hbv = len(re.findall(r'leaked instance .* of type "[^"]*HalBufferView"', tail))
+        mm = len(re.findall(r'leaked instance .* of type "[^"]*MappedMemory"', tail))
+        counts[cell] = (hbv, mm)
+        _ok = hbv > 0 and mm > 0
+        results.append(Result("e37/d60: %s also reports unreleased runtime objects (the guard "
+                              "used to pin only p_admit)" % cell, _ok,
+                              "" if _ok else "HalBufferView=%d MappedMemory=%d" % (hbv, mm)))
+        _ok = hbv == expect_inf and mm == expect_inf
+        results.append(Result("e37/d60: %s -- one of each per inference (%d), recorded as a "
+                              "measurement and NOT as grounds to un-retract" % (cell, expect_inf),
+                              _ok, "" if _ok else "HalBufferView=%d MappedMemory=%d" % (hbv, mm)))
+
+    if "p_admit" in counts:
+        hbv, mm = counts["p_admit"]
+        log = open(os.path.join(root, "EXPERIMENT_LOG.md"), encoding="utf-8",
+                   errors="replace").read()
+        _ok = ("HalBufferView %d · MappedMemory %d" % (hbv, mm)) in log
+        results.append(Result("e37/d60: the defect ledger's instance breakdown matches the raw "
+                              "count (it said 6/4; the file says %d/%d)" % (hbv, mm), _ok,
+                              "" if _ok else "ledger does not carry the counted breakdown"))
+
+    summ = os.path.join(E33_DIR, "summary.json")
+    if os.path.exists(summ):
+        v = load(summ).get("verdicts", {})
+        _ok = "Q4_note_erratum" in v and "NOT VERIFIED" in v.get("Q4_note_erratum", "")
+        results.append(Result("e37/d60: the raw summary the evidence cites carries the erratum "
+                              "beside the retracted sentence, so a machine-readable consumer "
+                              "cannot read the withdrawn half as current", _ok,
+                              "" if _ok else "no Q4_note_erratum in verdicts"))
+
+    plug = os.path.join(root, "plugins", "compiled_learner", "compiled_learner_plugin.py")
+    if os.path.exists(plug):
+        txt = open(plug, encoding="utf-8", errors="replace").read()
+        _ok = "result buffer is released each call" not in txt and "NOT VERIFIED" in txt
+        results.append(Result("e37/d60: the plugin docstring no longer asserts the retracted "
+                              "release (a retraction only in prose gets restored from source)",
+                              _ok, "" if _ok else "the docstring still asserts release"))
     return results
 
 
@@ -5040,6 +5430,209 @@ def rodata_label_cases():
     return results
 
 
+
+E38_DIR = "results/e38_optin_record"
+
+
+def e38_optin_witness_cases(tmp):
+    """E38: the conditional opt-in must be recorded independently of the verdict.
+
+    E36 ran two cells at the same budget -- one that admitted conditionally and one that
+    refused -- and the ONLY thing that said which build had served which cell was the
+    verdict itself.  Reading the verdict to learn the setting and then citing the verdict
+    as evidence about the setting is circular (eighth external review SS4.1, confirmed
+    against the repository: build.log has no `CONDITIONAL` line, and the two trees'
+    build_info.json `app_knobs` are byte-identical).
+
+    These cases pin all three records the fix adds -- the binary witness, the build-time
+    knob, the run-time `build_config` line -- and, just as importantly, pin the FINDING:
+    the archived E36 app_knobs stay identical, so nobody can quietly retouch the archive
+    and make the gap disappear.
+    """
+    results, objdump = [], shutil.which("aarch64-linux-gnu-objdump")
+    bindir = os.path.join(E38_DIR, "e36_binaries")
+    plain = os.path.join(bindir, "e36_smartcam.ai_learner.so")
+    cond = os.path.join(bindir, "e36_smartcam_cond.ai_learner.so")
+    PER_CALL, BOUNDED = 9382092, 18222796
+
+    # --- the finding itself, from the archived build records (no toolchain needed) ---
+    bi_p = os.path.join(bindir, "e36_smartcam.build_info.json")
+    bi_c = os.path.join(bindir, "e36_smartcam_cond.build_info.json")
+    if not (os.path.exists(bi_p) and os.path.exists(bi_c)):
+        results.append(Result("e38: archived E36 build_info pair present", False,
+                              "missing %s / %s" % (bi_p, bi_c)))
+        return results
+    kp, kc = load(bi_p)["app_knobs"], load(bi_c)["app_knobs"]
+    _ok = kp == kc and "AI_LEARNER_ALLOW_CONDITIONAL_MAP" not in kp
+    results.append(Result("e38: the two E36 trees' archived app_knobs are byte-identical and omit "
+                          "the opt-in -- the gap the fix closes, kept as evidence", _ok,
+                          "" if _ok else json.dumps([kp, kc])[:240]))
+    _ok = (load(bi_p)["exe"]["ai_learner_so_sha256"] == sha256_file(plain)
+           and load(bi_c)["exe"]["ai_learner_so_sha256"] == sha256_file(cond)
+           and sha256_file(plain) != sha256_file(cond))
+    results.append(Result("e38: each archived .so matches the sha256 its own build_info recorded, "
+                          "and the two differ -- the binaries are the ones E36 shipped", _ok, "")
+                   if _ok else Result("e38: archived .so sha256 matches its build_info", False,
+                                      "%s / %s" % (sha256_file(plain)[:16], sha256_file(cond)[:16])))
+
+    # --- the binary witness itself (needs the cross objdump) ---
+    if not objdump:
+        results.append(Result("e38: witness reads the opt-in off the archived E36 binaries",
+                              True, "aarch64-linux-gnu-objdump not installed", skip=True))
+        results.append(Result("e38: witness answers `undetermined`, never `false`, when its "
+                              "positive control fails", True,
+                              "aarch64-linux-gnu-objdump not installed", skip=True))
+    else:
+        for label, so, want in (("no opt-in", plain, "0"), ("opt-in", cond, "1")):
+            rc, out, err = run([sys.executable, "harness/optin_witness.py", so,
+                                "--per-call", str(PER_CALL), "--bounded", str(BOUNDED)])
+            rec = json.loads(out) if out.strip().startswith("{") else {}
+            _ok = rc == 0 and rec.get("allow_conditional_map_state") == want
+            results.append(Result("e38: the archived E36 %s binary itself witnesses "
+                                  "AI_LEARNER_ALLOW_CONDITIONAL_MAP=%s -- no run verdict consulted"
+                                  % (label, want), _ok,
+                                  "" if _ok else (out or err)[:240]))
+        rc, out, _ = run([sys.executable, "harness/optin_witness.py", cond,
+                          "--per-call", str(PER_CALL), "--bounded", str(BOUNDED)])
+        rec = json.loads(out)
+        site = (rec.get("conditional_compare_sites") or [{}])[0]
+        _ok = site.get("function") == "AI_LEARNER_Init" and site.get("value") == PER_CALL - 1
+        results.append(Result("e38: and the site it found is the admission compare in "
+                              "AI_LEARNER_Init against CONTRACT_PER_CALL_BYTES", _ok,
+                              "" if _ok else json.dumps(site)[:200]))
+
+        # fail-closed: with a bogus `bounded` the positive control cannot pass, and the
+        # answer must be `undetermined` -- NOT `false` (D25/D29: absence is not a value).
+        rc, out, _ = run([sys.executable, "harness/optin_witness.py", plain,
+                          "--per-call", str(PER_CALL), "--bounded", "424242"])
+        rec = json.loads(out)
+        _ok = rec.get("allow_conditional_map_state") == "undetermined" and "positive control" in rec.get("reason", "")
+        results.append(Result("e38: witness answers `undetermined`, never `false`, when its "
+                              "positive control fails", _ok, "" if _ok else json.dumps(rec)[:220]))
+
+    # --- the run-time record: emitted before any gate, so refusing cells carry it too ---
+    src = read("native/cfs_app/fsw/src/ai_learner.c")
+    i_cfg, i_budget = src.find('\\"stage\\":\\"build_config\\"'), src.find("if (!AI_LEARNER_ResolveBudget())")
+    _ok = 0 < i_cfg < i_budget
+    results.append(Result("e38: ai_learner.c emits `build_config` (with allow_conditional_map) "
+                          "BEFORE the budget gate, so a refusing cell records the setting too",
+                          _ok, "" if _ok else "build_config at %d, budget gate at %d" % (i_cfg, i_budget)))
+
+    nsrc = read("native/native_learner.c")
+    _ok = ("conditional_map_requested" in nsrc
+           and '\\"conditional_map_requested\\":%s,\\"conditional_map_applied\\":%s' in nsrc)
+    results.append(Result("e38: native_learner.c records the REQUESTED opt-in next to the applied "
+                          "one -- its silent reset left no trace otherwise", _ok, ""))
+
+    bsh = read("scripts/51_build_cfs_aarch64.sh")
+    _ok = ('"AI_LEARNER_ALLOW_CONDITIONAL_MAP": num("ALLOW_COND")' in bsh
+           and "ai_learner_compile_defines" in bsh and '"optin_witness"' in bsh)
+    results.append(Result("e38: the build script records the opt-in, the actual -D list and the "
+                          "binary witness in build_info.json", _ok, ""))
+    _ok = "--expect" in bsh and "optin_witness.py" in bsh
+    results.append(Result("e38: and it FAILS THE BUILD when the shipped binary disagrees with the "
+                          "requested opt-in (--expect), not just when the -D was missing", _ok, ""))
+
+    # D61 was fixed in script 51 only; script 50 had the same `${VAR:+-D...}` shape against the
+    # same kind of persistent, shared CMake tree.  Both must pass the flag unconditionally.
+    for script in ("scripts/50_wire_cfs_ai_learner.sh", "scripts/51_build_cfs_aarch64.sh"):
+        t = read(script)
+        _ok = ("${AI_LEARNER_ALLOW_CONDITIONAL_MAP:+" not in t
+               and "${ALLOW_CONDITIONAL_MAP:+" not in t
+               and '-DAI_LEARNER_ALLOW_CONDITIONAL_MAP="$ALLOW_CONDITIONAL_MAP"' in t)
+        results.append(Result("e38/D61: %s always passes the opt-in explicitly (a shared CMake cache "
+                              "makes `unset` mean `last build's value`, not `default`)"
+                              % os.path.basename(script), _ok, ""))
+
+    # --- the re-run cells: each carries its own setting, ahead of its own verdict ---
+    sp = os.path.join(E38_DIR, "summary.json")
+    if not os.path.exists(sp):
+        results.append(Result("e38: re-run summary present", False, "missing %s" % sp))
+        return results
+    s = load(sp)
+    for cell, want_optin, want_verdict in (("cond_positive", 1, "ADMIT_CONDITIONAL_MAP"),
+                                           ("cond_denied_without_optin", 0, "NOT_ADMITTED")):
+        c = s["cells"][cell]
+        _ok = (c["build_config"]["allow_conditional_map"] == want_optin
+               and c["verdict"] == want_verdict
+               and c["build_config_precedes_admission"] is True)
+        results.append(Result("e38: the re-run %s cell states its own opt-in (=%d) in the raw log "
+                              "before its verdict (%s)" % (cell, want_optin, want_verdict), _ok,
+                              "" if _ok else json.dumps(c)[:260]))
+        _ok = c["optin_witness"]["allow_conditional_map_state"] == str(want_optin) \
+            and c["optin_witness"]["binary_sha256"] == c["ai_learner_so_sha256"]
+        results.append(Result("e38: and the binary that produced it witnesses the same value "
+                              "(%s)" % cell, _ok, "" if _ok else json.dumps(c.get("optin_witness"))[:220]))
+
+    cp, cd = s["cells"]["cond_positive"], s["cells"]["cond_denied_without_optin"]
+    _ok = (cp["budget_bytes"] == cd["budget_bytes"] == 9382092
+           and cp["ai_learner_so_sha256"] != cd["ai_learner_so_sha256"])
+    results.append(Result("e38: the control is real -- same budget, different binaries, opposite "
+                          "verdicts, and the difference is now recorded rather than inferred", _ok,
+                          "" if _ok else json.dumps([cp.get("budget_bytes"), cd.get("budget_bytes")])))
+
+    _ok = (cp["hal_peak"] == 9382092 and cp["peak_within_admitted_budget"] is True
+           and cd["inferences"] == 0)
+    results.append(Result("e38: and the E36 measurements are unchanged by the added record "
+                          "(peak = per_call exactly; the control cell still runs zero inferences)",
+                          _ok, "" if _ok else json.dumps([cp, cd])[:260]))
+
+    _ok = all(s["cells"][c]["build_config"]["contract_artifact_sha256"]
+              == "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"
+              for c in ("cond_positive", "cond_denied_without_optin"))
+    results.append(Result("e38: both re-run cells name the same E32 artifact in their own "
+                          "build_config -- one model, two settings, not two models", _ok, ""))
+
+    for t in ("e38_smartcam", "e38_smartcam_cond"):
+        dep = s["trees"][t].get("deployed_on_guest", {})
+        _ok = dep.get("matches_build_info") is True
+        results.append(Result("e38: the .so the guest loaded for %s hashes to the one its build "
+                              "record names -- the log-to-binary link E36 lacked" % t, _ok,
+                              "" if _ok else json.dumps(dep)[:200]))
+
+    # --- x86-64 cross-check: the same stale-cache hazard, cleared and witnessed ---
+    xp = os.path.join(E38_DIR, "x86_64_cross_check", "summary.json")
+    if not os.path.exists(xp):
+        results.append(Result("e38: x86-64 cross-check summary present", False, "missing %s" % xp))
+    else:
+        x = load(xp)
+        by = {st["step"]: st for st in x["steps"]}
+        _ok = all(st["witnessed"] == st["expected"] for st in x["steps"]) and x["verdict"] == "PASS"
+        results.append(Result("e38/D61: on x86-64, an unset opt-in after a =1 build produces a binary "
+                              "that witnesses 0 -- the stale CMake cache is actually cleared", _ok,
+                              "" if _ok else json.dumps(x["steps"])[:240]))
+        _ok = (by["step1_conditional"]["isa"] == "x86-64"
+               and by["step1_conditional"]["conditional_compare_sites"]
+               and by["step1_conditional"]["conditional_compare_sites"][0]["value"] == 65579
+               and by["step1_conditional"]["positive_control_site_count"] >= 1)
+        results.append(Result("e38: the witness's x86-64 branch works on a real binary (cmp against "
+                              "per_call-1 in AI_LEARNER_Init), not only the AArch64 mov/movk form",
+                              _ok, "" if _ok else json.dumps(by["step1_conditional"])[:240]))
+        _ok = (by["step1_conditional"]["binary_sha256"] != by["step2_unset_after_conditional"]["binary_sha256"]
+               and by["step2_unset_after_conditional"]["binary_sha256"]
+               == by["step3_unset_again"]["binary_sha256"])
+        results.append(Result("e38: and the two unset builds are byte-identical to each other and "
+                              "different from the opt-in build", _ok, ""))
+
+    # --- native path: the same gap, the same fix, measured ---
+    np_ = os.path.join(E38_DIR, "native_requested_vs_applied.json")
+    if not os.path.exists(np_):
+        results.append(Result("e38: native requested-vs-applied record present", False, "missing %s" % np_))
+        return results
+    n = load(np_)["cells"]
+    k = n["conditional_requested_but_budget_covers_bounded"]
+    _ok = (k["conditional_map_requested"] is True and k["conditional_map_applied"] is False
+           and k["verdict"] == "ADMIT")
+    results.append(Result("e38: native_learner records a requested opt-in that was NOT applied "
+                          "(verdict ADMIT) -- the state its silent reset used to erase", _ok,
+                          "" if _ok else json.dumps(k)[:200]))
+    _ok = (n["conditional_requested_budget_per_call"]["conditional_map_applied"] is True
+           and n["conditional_not_requested_budget_per_call"]["verdict"] == "NOT_ADMITTED"
+           and n["unconditional_budget_bounded"]["conditional_map_requested"] is False)
+    results.append(Result("e38: and the other three native cells are unchanged -- the added field "
+                          "reports, it does not decide", _ok, "" if _ok else json.dumps(n)[:240]))
+    return results
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -5086,6 +5679,12 @@ def main():
         all_results += e33_e35_errata_cases()
         all_results += e36_aarch64_cfs_cases()
         all_results += e36b_aarch64_models_cases()
+        all_results += e37_evidence_linkage_cases()
+        all_results += e37_d60_extension_cases()
+        all_results += e37_truncated_record_cases()
+        all_results += e37_guest_rerun_cases()
+        all_results += e37_peak_vs_budget_cases()
+        all_results += e38_optin_witness_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

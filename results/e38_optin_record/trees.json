@@ -1,0 +1,59 @@
+{
+ "e38_smartcam": {
+  "built_utc": "2026-09-10T23:27:57Z",
+  "AI_LEARNER_ALLOW_CONDITIONAL_MAP": 0,
+  "ai_learner_compile_defines": [
+   "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=0",
+   "-DAI_LEARNER_BUDGET_BYTES=18222797",
+   "-DAI_LEARNER_REPORT_EVERY=1",
+   "-DAI_LEARNER_STACK_BASE_BYTES=262144",
+   "-DIREE_ALLOCATOR_SYSTEM_CTL=iree_allocator_libc_ctl",
+   "-DSIMULATION=aarch64-linux-gnu",
+   "-D_XOPEN_SOURCE=600"
+  ],
+  "ai_learner_so_sha256": "32db6e4d5ba2866543743dffe6862f4e1a330244deef3b8ba2968457a105e791",
+  "ai_learner_so_bytes": 861472,
+  "core_cpu1_sha256": "7e51a713270ce51e3813dc1011a580f43b8022a661cdc486e1366332b89aa1ae",
+  "contract_header_sha256": "14f8f6b1c684529b49c417e088c52bcbc193bcfd14e8daa77d2b45e84eb861c7",
+  "model_vmfb_matches_header": true,
+  "optin_witness_state": "0",
+  "build_info": "results/e38_optin_record/trees/e38_smartcam.build_info.json",
+  "optin_witness": "results/e38_optin_record/trees/e38_smartcam.optin_witness.json",
+  "deployed_on_guest": {
+   "path": "/home/ubuntu/e38_smartcam/cpu1",
+   "ai_learner_so_sha256": "32db6e4d5ba2866543743dffe6862f4e1a330244deef3b8ba2968457a105e791",
+   "core_cpu1_sha256": "7e51a713270ce51e3813dc1011a580f43b8022a661cdc486e1366332b89aa1ae",
+   "matches_build_info": true,
+   "note": "this is the link E36 lacked: the .so the guest actually loaded, hashed on the guest, tied to the build record that names the opt-in it was built with"
+  }
+ },
+ "e38_smartcam_cond": {
+  "built_utc": "2026-09-10T23:27:31Z",
+  "AI_LEARNER_ALLOW_CONDITIONAL_MAP": 1,
+  "ai_learner_compile_defines": [
+   "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=1",
+   "-DAI_LEARNER_BUDGET_BYTES=18222797",
+   "-DAI_LEARNER_REPORT_EVERY=1",
+   "-DAI_LEARNER_STACK_BASE_BYTES=262144",
+   "-DIREE_ALLOCATOR_SYSTEM_CTL=iree_allocator_libc_ctl",
+   "-DSIMULATION=aarch64-linux-gnu",
+   "-D_XOPEN_SOURCE=600"
+  ],
+  "ai_learner_so_sha256": "d8d2838870c331fc6eb84c8775720256bae4d4e9e8051cba96ab53559cd52645",
+  "ai_learner_so_bytes": 861504,
+  "core_cpu1_sha256": "7e51a713270ce51e3813dc1011a580f43b8022a661cdc486e1366332b89aa1ae",
+  "contract_header_sha256": "14f8f6b1c684529b49c417e088c52bcbc193bcfd14e8daa77d2b45e84eb861c7",
+  "model_vmfb_matches_header": true,
+  "optin_witness_state": "1",
+  "build_info": "results/e38_optin_record/trees/e38_smartcam_cond.build_info.json",
+  "optin_witness": "results/e38_optin_record/trees/e38_smartcam_cond.optin_witness.json",
+  "deployed_on_guest": {
+   "path": "/home/ubuntu/e38_smartcam_cond/cpu1",
+   "ai_learner_so_sha256": "d8d2838870c331fc6eb84c8775720256bae4d4e9e8051cba96ab53559cd52645",
+   "core_cpu1_sha256": "7e51a713270ce51e3813dc1011a580f43b8022a661cdc486e1366332b89aa1ae",
+   "matches_build_info": true,
+   "note": "this is the link E36 lacked: the .so the guest actually loaded, hashed on the guest, tied to the build record that names the opt-in it was built with"
+  }
+ },
+ "_note": "built by scripts/51_build_cfs_aarch64.sh with ALLOW_CONDITIONAL_MAP=1 first and =0 second, on purpose: the shared arch build tree is what made D61's stale-cache defect possible, so the order that would expose it is the order used."
+}

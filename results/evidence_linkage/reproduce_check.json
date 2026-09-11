@@ -1,0 +1,260 @@
+{
+  "tool": "harness/e37_reproduce_check.py",
+  "experiment": "E37",
+  "question": "최종 고정 코드로 보관 원자료를 다시 판정했을 때 결과가 그대로인가 (필수 작업 C)",
+  "what_is_reproduced": "보관된 원시 산출물에서 판정까지의 계산 전부. E36b 두 셀은 게스트가 쓴 outputs.bin 에서 시작한다.",
+  "what_is_not_reproduced": "게스트 부팅·cFS 기동·추론 자체. 이 PASS를 '게스트를 다시 돌렸다'로 읽으면 안 된다.",
+  "cells": [
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 37,
+        "elements": 111,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "real_example": 3,
+          "synthetic": 32
+        }
+      },
+      "worst_abs": 5.364418029785156e-07,
+      "cell": "e31_smartcam_x86_64",
+      "status": "rejudged",
+      "stored": "results/e31_smartcam_equivalence/comparison.json",
+      "note": ""
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 37,
+        "elements": 111,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "real_example": 3,
+          "synthetic": 32
+        }
+      },
+      "worst_abs": 1.2516975402832031e-06,
+      "cell": "e32_smartcam_native_aarch64",
+      "status": "rejudged",
+      "stored": "results/e32_smartcam_aarch64/native/comparison.json",
+      "note": ""
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 5,
+        "elements": 15,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "real_example": 3
+        }
+      },
+      "worst_abs": 1.2516975402832031e-06,
+      "cell": "e32_smartcam_cfs_aarch64",
+      "status": "rejudged",
+      "stored": "results/e32_smartcam_aarch64/cfs/comparison.json",
+      "note": ""
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 5,
+        "elements": 15,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "real_example": 3
+        }
+      },
+      "worst_abs": 5.364418029785156e-07,
+      "cell": "e33_onair_p_admit",
+      "status": "rejudged",
+      "stored": "results/e33_onair_official/p_admit/comparison.json",
+      "note": "공식 OnAIR 로더 셀 — 판정만 재계산(로더 재실행 아님)"
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 34,
+        "elements": 340,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        }
+      },
+      "worst_abs": 1.9669532775878906e-06,
+      "cell": "e34_b2_resnet_x86_64",
+      "status": "rejudged",
+      "stored": "results/e34_two_models/b2_resnet/comparison.json",
+      "note": ""
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 34,
+        "elements": 340,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        }
+      },
+      "worst_abs": 1.9371509552001953e-06,
+      "cell": "e36b_b2_resnet_native_aarch64",
+      "status": "rejudged",
+      "stored": "results/e36b_aarch64_models/b2_resnet/comparison_aarch64.json",
+      "note": "qemu-user AArch64 실행기의 보관 출력에서 판정만 재계산"
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 34,
+        "elements": 340,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        }
+      },
+      "worst_abs": 1.9371509552001953e-06,
+      "cell": "e36b_b2_resnet_cfs_aarch64",
+      "status": "rejudged",
+      "stored": "results/e36b_aarch64_models/b2_resnet/comparison_cfs_aarch64.json",
+      "note": "게스트가 쓴 outputs.bin 에서 arity·순서·해시 대조를 거쳐 판정까지 재계산"
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 34,
+        "elements": 21760,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        }
+      },
+      "worst_abs": 4.38690185546875e-05,
+      "cell": "e34_b3_deepae_x86_64",
+      "status": "rejudged",
+      "stored": "results/e34_two_models/b3_deepae/comparison.json",
+      "note": ""
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 34,
+        "elements": 21760,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        }
+      },
+      "worst_abs": 3.814697265625e-05,
+      "cell": "e36b_b3_deepae_native_aarch64",
+      "status": "rejudged",
+      "stored": "results/e36b_aarch64_models/b3_deepae/comparison_aarch64.json",
+      "note": "qemu-user AArch64 실행기의 보관 출력에서 판정만 재계산"
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 34,
+        "elements": 21760,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        }
+      },
+      "worst_abs": 3.814697265625e-05,
+      "cell": "e36b_b3_deepae_cfs_aarch64",
+      "status": "rejudged",
+      "stored": "results/e36b_aarch64_models/b3_deepae/comparison_cfs_aarch64.json",
+      "note": "게스트가 쓴 outputs.bin 에서 arity·순서·해시 대조를 거쳐 판정까지 재계산"
+    },
+    {
+      "cell": "e35_policy_matrix",
+      "status": "regenerated",
+      "stored": "results/e35_fair_baseline/summary.json",
+      "identical": true,
+      "differing_keys": [],
+      "totals": {
+        "cells": 24,
+        "verdicts_agreeing": 24,
+        "verdicts_disagreeing": 0,
+        "models_where_three_figures_agree": 4,
+        "models_where_kernel_stack_agrees": 4,
+        "models_total": 4
+      }
+    },
+    {
+      "identical": true,
+      "differing_keys": [],
+      "verdict": "PASS",
+      "totals": {
+        "samples": 5,
+        "elements": 15,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "real_example": 3
+        }
+      },
+      "worst_abs": 1.2516975402832031e-06,
+      "cell": "e37_s_cfs_equivalence_post_d61",
+      "status": "rejudged",
+      "stored": "results/e37_evidence_consolidation/s_cfs_post_d61/comparison.json",
+      "note": "D61 이후 코드로 게스트에서 실제 재실행한 셀 (§5)"
+    },
+    {
+      "cell": "e36_summary_from_guest_logs",
+      "status": "regenerated_in_place",
+      "stored": "results/e36_aarch64_cfs/summary.json",
+      "identical": true,
+      "differing_keys": []
+    }
+  ],
+  "totals": {
+    "cells": 13,
+    "identical": 13,
+    "differing": 0,
+    "tool_error": 0
+  },
+  "verdict": "PASS"
+}

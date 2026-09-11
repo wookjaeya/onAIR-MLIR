@@ -7,25 +7,45 @@ happened -- E32's D59 is the reason: a cell that reports the number it was appro
 the only kind that can be checked afterwards.  `budget_source` in particular exists so a
 run can testify which budget it judged on, and it is what caught two defects in the change
 that introduced it (SS6 of the evidence)."""
-import json, os, re, sys
+import json
+import os
+import re
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CELL_DIR = os.path.join(ROOT, "results", "e36_aarch64_cfs", "smartcam")
 
 
 def stages(path):
+    """앱이 스스로 stdout 에 남긴 JSON 레코드를 읽는다 (하네스의 기대가 아니라).
+
+    D68: 파싱하지 못한 줄을 **버리면 안 된다.** DeepAE의 `run` 레코드는 640원소 출력 배열
+    때문에 766자에서 잘려 JSON 으로 파싱되지 않는데, 이전 판은 `except ValueError: continue`
+    로 조용히 버려 `run_records: 0` 을 적었다 — 레코드가 7건 실재하는데도다. "볼 수 없었다"를
+    "보았더니 없더라"로 바꿔 기록한 것이고(D51), 하필 이 파일 자신이 *"absence is not zero"*
+    라고 쓰고 있었다. 이제 잘린 줄도 stage 이름만 뽑아 **따로 센다**."""
     out = {}
+    unparsed = {}
     for line in open(path, encoding="utf-8", errors="replace"):
         i = line.find('{"app":"AI_LEARNER"')
         if i < 0:
             continue
+        frag = line[i:].strip()
         try:
-            rec = json.loads(line[i:].strip())
+            rec = json.loads(frag)
         except ValueError:
+            m = re.search(r'"stage":"([A-Za-z0-9_]+)"', frag)
+            if m:
+                unparsed[m.group(1)] = unparsed.get(m.group(1), 0) + 1
             continue
         out.setdefault(rec.get("stage"), []).append(rec)
+    out["__unparsed__"] = unparsed
     return out
 
+
+def record_count(st, stage):
+    """그 stage 의 레코드가 몇 건 있었는가 — 페이로드가 잘려도 **있었다는 사실은 센다**."""
+    return len(st.get(stage, [])) + st.get("__unparsed__", {}).get(stage, 0)
 
 def cell(name):
     p = os.path.join(CELL_DIR, name + ".log")
@@ -42,7 +62,8 @@ def cell(name):
         "budget_bytes": adm.get("budget") if adm else None,
         "budget_source": adm.get("budget_source") if adm else None,
         "inferences": mem.get("completed") if mem else 0,
-        "run_records": len(st.get("run", [])),
+        "run_records": record_count(st, "run"),
+        "run_records_unparseable": st.get("__unparsed__", {}).get("run", 0),
         "hal_peak": mem.get("hal_peak") if mem else None,
         "admitted_budget_bytes": mem.get("admitted_budget_bytes") if mem else None,
         "peak_within_admitted_budget": mem.get("peak_within_admitted_budget") if mem else None,

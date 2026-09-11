@@ -1,134 +1,218 @@
 {
- "experiment": "E36b",
- "title": "ResNet and DeepAE on AArch64 -- the SS10 stage-4 cells E34 declared out of scope",
- "plan": "docs/plans/E36_aarch64_cfs_completion.md SS3.3 (committed before measurement, f3ac80c)",
- "models": {
-  "b2_resnet": {
-   "contract": {
-    "bounded_bytes": 618856,
-    "static_per_call_bytes": 309416,
-    "module_resident_constant_bytes": 309440
-   },
-   "contract_identical_to_x86_64": true,
-   "kernel_stack_bytes": {
-    "aarch64": 1232,
-    "x86_64": 439
-   },
-   "overrides_applied": [],
-   "semantics_native_aarch64": {
-    "verdict": "PASS",
-    "samples": 34,
-    "elements": 340,
-    "elements_failed": 0,
-    "argmax_failed": 0,
-    "by_kind": {
-     "edge": 2,
-     "synthetic": 32
+  "experiment": "E36b",
+  "title": "ResNet and DeepAE on AArch64 -- the SS10 stage-4 cells E34 declared out of scope",
+  "plan": "docs/plans/E36_aarch64_cfs_completion.md SS3.3 (committed before measurement, f3ac80c)",
+  "generated_by": "harness/mk_e36b_summary.py (E37: every number re-derived from the guest logs, the contracts and the comparison JSONs; the hand-written original omitted `inferences` on the DENY cells, and absence is not zero)",
+  "budget_key_note": "`budget` and `budget_bytes` are the same quantity -- E36 uses the latter name, the hand-written E36b used the former, and both are emitted so either reader works. `admitted_budget_bytes` is the budget the run was APPROVED on and is what the peak is checked against (D53/D59); on a refused cell there is no approval, so it is null.",
+  "models": {
+    "b2_resnet": {
+      "contract": {
+        "bounded_bytes": 618856,
+        "static_per_call_bytes": 309416,
+        "module_resident_constant_bytes": 309440
+      },
+      "contract_identical_to_x86_64": true,
+      "kernel_stack_bytes": {
+        "aarch64": 1232,
+        "x86_64": 439
+      },
+      "overrides_applied": [],
+      "semantics_native_aarch64": {
+        "verdict": "PASS",
+        "samples": 34,
+        "elements": 340,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        },
+        "worst_abs": 1.9371509552001953e-06,
+        "comparison": "results/e36b_aarch64_models/b2_resnet/comparison_aarch64.json"
+      },
+      "semantics_cfs_aarch64": {
+        "verdict": "PASS",
+        "samples": 34,
+        "elements": 340,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        },
+        "worst_abs": 1.9371509552001953e-06,
+        "comparison": "results/e36b_aarch64_models/b2_resnet/comparison_cfs_aarch64.json"
+      },
+      "cfs_admit": {
+        "verdict": "ADMIT",
+        "budget": 618856,
+        "budget_bytes": 618856,
+        "budget_source": "macro",
+        "inferences": 45,
+        "run_records": 9,
+        "run_records_unparseable": 0,
+        "hal_peak": 309416,
+        "admitted_budget_bytes": 618856,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "unconditional",
+        "budget_invalid_event": false,
+        "exit": "124",
+        "log": "results/e36b_aarch64_models/cfs/resnet_admit_B.log",
+        "map_branch": {
+          "module_ptr_mod64": 0,
+          "hal_peak_after_append": 0,
+          "arm": "map",
+          "admission_mode": "unconditional"
+        }
+      },
+      "cfs_deny_B_minus_1": {
+        "verdict": "NOT_ADMITTED",
+        "budget": 618855,
+        "budget_bytes": 618855,
+        "budget_source": "override",
+        "inferences": 0,
+        "run_records": 0,
+        "run_records_unparseable": 0,
+        "hal_peak": null,
+        "admitted_budget_bytes": null,
+        "peak_within_admitted_budget": null,
+        "admission_mode": null,
+        "budget_invalid_event": false,
+        "exit": "124",
+        "log": "results/e36b_aarch64_models/cfs/resnet_deny_Bm1.log",
+        "cfs_alive_after_refusal": {
+          "exit_app_logged": true,
+          "apps_loaded_after": [
+            "cf",
+            "cs",
+            "ds",
+            "fm",
+            "hk",
+            "hs",
+            "md",
+            "mm",
+            "sc"
+          ],
+          "log_lines_after_exit": 74
+        }
+      },
+      "equivalence_log": "results/e36b_aarch64_models/cfs/resnet_equiv.log"
+    },
+    "b3_deepae": {
+      "contract": {
+        "bounded_bytes": 1069632,
+        "static_per_call_bytes": 6208,
+        "module_resident_constant_bytes": 1063424
+      },
+      "contract_identical_to_x86_64": true,
+      "kernel_stack_bytes": {
+        "aarch64": 16,
+        "x86_64": 32
+      },
+      "overrides_applied": [],
+      "semantics_native_aarch64": {
+        "verdict": "PASS",
+        "samples": 34,
+        "elements": 21760,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        },
+        "worst_abs": 3.814697265625e-05,
+        "comparison": "results/e36b_aarch64_models/b3_deepae/comparison_aarch64.json"
+      },
+      "semantics_cfs_aarch64": {
+        "verdict": "PASS",
+        "samples": 34,
+        "elements": 21760,
+        "elements_failed": 0,
+        "argmax_failed": 0,
+        "by_kind": {
+          "edge": 2,
+          "synthetic": 32
+        },
+        "worst_abs": 3.814697265625e-05,
+        "comparison": "results/e36b_aarch64_models/b3_deepae/comparison_cfs_aarch64.json"
+      },
+      "cfs_admit": {
+        "verdict": "ADMIT",
+        "budget": 1069632,
+        "budget_bytes": 1069632,
+        "budget_source": "macro",
+        "inferences": 35,
+        "run_records": 7,
+        "run_records_unparseable": 7,
+        "hal_peak": 6208,
+        "admitted_budget_bytes": 1069632,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "unconditional",
+        "budget_invalid_event": false,
+        "exit": "124",
+        "log": "results/e36b_aarch64_models/cfs/deepae_admit_B.log",
+        "map_branch": {
+          "module_ptr_mod64": 0,
+          "hal_peak_after_append": 0,
+          "arm": "map",
+          "admission_mode": "unconditional"
+        }
+      },
+      "cfs_deny_B_minus_1": {
+        "verdict": "NOT_ADMITTED",
+        "budget": 1069631,
+        "budget_bytes": 1069631,
+        "budget_source": "override",
+        "inferences": 0,
+        "run_records": 0,
+        "run_records_unparseable": 0,
+        "hal_peak": null,
+        "admitted_budget_bytes": null,
+        "peak_within_admitted_budget": null,
+        "admission_mode": null,
+        "budget_invalid_event": false,
+        "exit": "124",
+        "log": "results/e36b_aarch64_models/cfs/deepae_deny_Bm1.log",
+        "cfs_alive_after_refusal": {
+          "exit_app_logged": true,
+          "apps_loaded_after": [
+            "cf",
+            "cs",
+            "ds",
+            "fm",
+            "hk",
+            "hs",
+            "md",
+            "mm",
+            "sc"
+          ],
+          "log_lines_after_exit": 70
+        }
+      },
+      "equivalence_log": "results/e36b_aarch64_models/cfs/deepae_equiv.log"
     }
-   },
-   "semantics_cfs_aarch64": {
-    "verdict": "PASS",
-    "samples": 34,
-    "elements": 340,
-    "elements_failed": 0,
-    "argmax_failed": 0,
-    "by_kind": {
-     "edge": 2,
-     "synthetic": 32
-    }
-   },
-   "cfs_admit": {
-    "verdict": "ADMIT",
-    "budget": 618856,
-    "budget_source": "macro",
-    "inferences": 45,
-    "hal_peak": 309416,
-    "peak_within_admitted_budget": true,
-    "admission_mode": "unconditional",
-    "log": "results/e36b_aarch64_models/cfs/resnet_admit_B.log"
-   },
-   "cfs_deny_B_minus_1": {
-    "verdict": "NOT_ADMITTED",
-    "budget": 618855,
-    "budget_source": "override",
-    "log": "results/e36b_aarch64_models/cfs/resnet_deny_Bm1.log"
-   },
-   "equivalence_log": "results/e36b_aarch64_models/cfs/resnet_equiv.log"
   },
-  "b3_deepae": {
-   "contract": {
-    "bounded_bytes": 1069632,
-    "static_per_call_bytes": 6208,
-    "module_resident_constant_bytes": 1063424
-   },
-   "contract_identical_to_x86_64": true,
-   "kernel_stack_bytes": {
-    "aarch64": 16,
-    "x86_64": 32
-   },
-   "overrides_applied": [],
-   "semantics_native_aarch64": {
-    "verdict": "PASS",
-    "samples": 34,
-    "elements": 21760,
-    "elements_failed": 0,
-    "argmax_failed": 0,
-    "by_kind": {
-     "edge": 2,
-     "synthetic": 32
-    }
-   },
-   "semantics_cfs_aarch64": {
-    "verdict": "PASS",
-    "samples": 34,
-    "elements": 21760,
-    "elements_failed": 0,
-    "argmax_failed": 0,
-    "by_kind": {
-     "edge": 2,
-     "synthetic": 32
-    }
-   },
-   "cfs_admit": {
-    "verdict": "ADMIT",
-    "budget": 1069632,
-    "budget_source": "macro",
-    "inferences": 35,
-    "hal_peak": 6208,
-    "peak_within_admitted_budget": true,
-    "admission_mode": "unconditional",
-    "log": "results/e36b_aarch64_models/cfs/deepae_admit_B.log"
-   },
-   "cfs_deny_B_minus_1": {
-    "verdict": "NOT_ADMITTED",
-    "budget": 1069631,
-    "budget_source": "override",
-    "log": "results/e36b_aarch64_models/cfs/deepae_deny_Bm1.log"
-   },
-   "equivalence_log": "results/e36b_aarch64_models/cfs/deepae_equiv.log"
-  }
- },
- "harness_reuse": {
-  "new_model_specific_harnesses": 0,
-  "model_specific_branches": 0,
-  "generalised": [
-   "harness/e32_native_aarch64.py (output arity from the contract, D62)",
-   "harness/e32_cfs_outputs.py (same, D62)"
-  ],
-  "note": "stage 4's criterion is that no NEW per-model harness is written. Two existing runners still carried SmartCam's output arity as a literal and had to be generalised the way E34 generalised model_fixture.py and e31_compare.py -- by taking the shape as a VALUE from the contract, not by branching on the model."
- },
- "verdicts": {
-  "Q3_contract_numbers_isa_independent": "PASS",
-  "Q3_semantics_native_aarch64": "PASS",
-  "Q3_semantics_cfs_aarch64": "PASS",
-  "Q3_budget_boundary": "PASS",
-  "Q3_harness_reuse": "PASS (0 new harnesses; 2 generalised)",
-  "stage_4_complete": true
- },
- "not_claimed": [
-  "accuracy: synthetic inputs, no evaluation set (E34 SS5 grade unchanged)",
-  "latency/throughput: FUNCTIONAL_ONLY host under qemu",
-  "OnAIR for these two models: not run",
-  "the inference count is timeout-dependent, not an invariant"
- ]
+  "harness_reuse": {
+    "new_model_specific_harnesses": 0,
+    "model_specific_branches": 0,
+    "generalised": [
+      "harness/e32_native_aarch64.py (output arity from the contract, D62)",
+      "harness/e32_cfs_outputs.py (same, D62)"
+    ],
+    "note": "stage 4's criterion is that no NEW per-model harness is written. Two existing runners still carried SmartCam's output arity as a literal and had to be generalised the way E34 generalised model_fixture.py and e31_compare.py -- by taking the shape as a VALUE from the contract, not by branching on the model."
+  },
+  "verdicts": {
+    "Q3_contract_numbers_isa_independent": "PASS",
+    "Q3_semantics_native_aarch64": "PASS",
+    "Q3_semantics_cfs_aarch64": "PASS",
+    "Q3_budget_boundary": "PASS",
+    "Q3_harness_reuse": "PASS (0 new harnesses; 2 generalised)",
+    "stage_4_complete": true
+  },
+  "not_claimed": [
+    "accuracy: synthetic inputs, no evaluation set (E34 SS5 grade unchanged)",
+    "latency/throughput: FUNCTIONAL_ONLY host under qemu",
+    "OnAIR for these two models: not run",
+    "the inference count is timeout-dependent, not an invariant"
+  ]
 }

@@ -59,13 +59,47 @@ CM
 
 make native_std.prep
 ARCH_DIR="build-native_std/native/default_cpu1"
-if [ -n "${AI_LEARNER_BUDGET_BYTES:-}" ] || [ -n "${AI_LEARNER_STACK_BASE_BYTES:-}" ] || [ -n "${AI_LEARNER_ALLOW_CONDITIONAL_MAP:-}" ]; then
-  cmake ${AI_LEARNER_BUDGET_BYTES:+-DAI_LEARNER_BUDGET_BYTES="$AI_LEARNER_BUDGET_BYTES"} \
-        ${AI_LEARNER_STACK_BASE_BYTES:+-DAI_LEARNER_STACK_BASE_BYTES="$AI_LEARNER_STACK_BASE_BYTES"} \
-        ${AI_LEARNER_ALLOW_CONDITIONAL_MAP:+-DAI_LEARNER_ALLOW_CONDITIONAL_MAP="$AI_LEARNER_ALLOW_CONDITIONAL_MAP"} \
-        "$ARCH_DIR"
-fi
+# D61 / E38: ALWAYS pass the conditional opt-in explicitly. build-native_std is a persistent
+# tree shared across invocations, so `${VAR:+-D...}` does NOT mean "previous default" -- it
+# means "whatever the last build left in CMakeCache.txt". Script 51 was fixed for this in E36;
+# this one had the same shape. Default 0: every existing x86-64 deployment keeps the
+# unconditional decision byte for byte.
+ALLOW_CONDITIONAL_MAP="${AI_LEARNER_ALLOW_CONDITIONAL_MAP:-0}"
+cmake ${AI_LEARNER_BUDGET_BYTES:+-DAI_LEARNER_BUDGET_BYTES="$AI_LEARNER_BUDGET_BYTES"} \
+      ${AI_LEARNER_STACK_BASE_BYTES:+-DAI_LEARNER_STACK_BASE_BYTES="$AI_LEARNER_STACK_BASE_BYTES"} \
+      -DAI_LEARNER_ALLOW_CONDITIONAL_MAP="$ALLOW_CONDITIONAL_MAP" \
+      "$ARCH_DIR"
 make native_std.install
+
+# E38: verify the opt-in reached the compile AND the shipped binary, the same two ways
+# script 51 does -- a stale cache must fail the BUILD, not surface as a cell that quietly
+# admitted (or refused) with a setting nobody recorded.
+CC_JSON="$ARCH_DIR/compile_commands.json"
+if [ -f "$CC_JSON" ]; then
+  AI_CMD="$(python3 - "$CC_JSON" <<'PYCC'
+import json,sys
+for e in json.load(open(sys.argv[1])):
+    if e["file"].endswith("ai_learner.c"): print(e["command"]); break
+PYCC
+)"
+  case "$AI_CMD" in
+    *"-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP"*) ;;
+    *) echo "ERROR: AI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP did not reach the ai_learner.c compile (stale CMakeCache?): $AI_CMD" >&2; exit 1;;
+  esac
+else
+  echo "NOTE: no $CC_JSON -- skipping the compile-command check (the binary witness below still runs)"
+fi
+HDR_PER_CALL="$(sed -n 's/^#define[[:space:]]\+CONTRACT_PER_CALL_BYTES[[:space:]]\+\([0-9-]\+\).*/\1/p' "$CONTRACT_HEADER" | head -1)"
+HDR_BOUNDED="$(sed -n 's/^#define[[:space:]]\+CONTRACT_BOUNDED_BYTES[[:space:]]\+\([0-9-]\+\).*/\1/p' "$CONTRACT_HEADER" | head -1)"
+if [ -n "${HDR_PER_CALL:-}" ] && [ "${HDR_PER_CALL}" -gt 0 ] 2>/dev/null; then
+  python3 "$BENCH_DIR/harness/optin_witness.py" "build-native_std/exe/cpu1/cf/ai_learner.so" \
+    --per-call "$HDR_PER_CALL" --bounded "$HDR_BOUNDED" --expect "$ALLOW_CONDITIONAL_MAP" \
+    --out "build-native_std/exe/cpu1/optin_witness.json" >/dev/null \
+    || { echo "ERROR: the built ai_learner.so does not witness AI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP" >&2; exit 1; }
+  echo "optin witness: ai_learner.so shows AI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP"
+else
+  echo "NOTE: contract has no positive CONTRACT_PER_CALL_BYTES -- the conditional tier cannot apply, no witness to read"
+fi
 
 MODEL_SRC="${MODEL_VMFB:-$BENCH_DIR/native/model_16384_baked.vmfb}"
 EXE_DIR="build-native_std/exe/cpu1"

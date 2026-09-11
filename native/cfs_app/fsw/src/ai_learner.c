@@ -284,6 +284,23 @@ static void* AI_LEARNER_AllocModuleImage(size_t n, int* out_mod64) {
 static int32 AI_LEARNER_Init(void) {
   CFE_EVS_Register(NULL, 0, CFE_EVS_EventFilter_BINARY);
 
+  /* E38: the build-time settings this run will be judged under, recorded BEFORE
+   * any gate runs, so every raw log carries them whatever the verdict turns out
+   * to be.  D61 made the resolved budget say where it came from for exactly this
+   * reason; the conditional opt-in was left out, and E36's two conditional cells
+   * ended up with nothing but their own verdicts (ADMIT_CONDITIONAL_MAP vs
+   * NOT_ADMITTED) to say which build had served them -- reading the verdict to
+   * learn the setting and then citing the verdict as evidence about the setting
+   * is circular.  A refusing cell emits this line too: that is the point. */
+  AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"build_config\",\"model\":\"%s\","
+                  "\"allow_conditional_map\":%d,\"contract_bounded_bytes\":%ld,"
+                  "\"contract_per_call_bytes\":%ld,\"contract_const_bytes\":%ld,"
+                  "\"contract_bound_known\":%s,\"contract_artifact_sha256\":\"%s\"}\n",
+                  CONTRACT_MODEL_NAME, (int)AI_LEARNER_ALLOW_CONDITIONAL_MAP,
+                  (long)CONTRACT_BOUNDED_BYTES, (long)CONTRACT_PER_CALL_BYTES,
+                  (long)CONTRACT_CONST_BYTES,
+                  CONTRACT_BOUND_KNOWN ? "true" : "false", CONTRACT_ARTIFACT_SHA256);
+
   /* Budget first: every gate below reports against it, so it must exist before
    * anything can be judged -- and a malformed override must stop the app before
    * it acquires anything (same ordering rule as the stack gate, D15). */
