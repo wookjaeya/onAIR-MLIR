@@ -5806,6 +5806,75 @@ def bp_marker():
     return bp.FIXTURE_MARKER
 
 
+def result_skip_hygiene_cases(tmp):
+    """D81: a Result whose verdict is None must be marked skip=True.
+
+    `Result.__repr__` prints FAIL for ok=None unless skip is set, and main() counts it as a
+    failure. So an unmarked None is not a neutral placeholder -- it is a false FAIL, which is
+    exactly what D24/D32 taught this repository to refuse: a missing optional package must not
+    be recorded as a broken check. E47 introduced one anyway (numpy), and it turned both reduced
+    CI legs red for two commits while the full leg stayed green.
+
+    The scan is over the AST, not the text. A first version matched the source with a regex and
+    immediately flagged its OWN pattern literals -- the D77 shape, where the code that implements
+    a rule is itself scanned by it. An AST walk sees calls, so a string that merely looks like
+    one is not a call.
+    """
+    import ast as _ast                                              # noqa: PLC0415
+    results = []
+    path = os.path.join(HERE, "contract_negative_tests.py")
+    src_lines = read(path).splitlines()
+    tree = _ast.parse("\n".join(src_lines))
+
+    # This function's OWN body is excluded, because its positive control below has to BE an
+    # unmarked None to prove the scan can see one -- the D77 shape again, where the code that
+    # implements a rule gets scanned by it. The exclusion is by function, it is stated here, and
+    # every skipped call is listed verbatim in the result, so the waiver costs visibility
+    # rather than buying silence. Anything outside this one function is still checked.
+    me = next((n for n in _ast.walk(tree)
+               if isinstance(n, _ast.FunctionDef) and n.name == "result_skip_hygiene_cases"), None)
+    lo, hi = (me.lineno, me.end_lineno) if me else (0, -1)
+
+    bad, waived = [], []
+    for node in _ast.walk(tree):
+        if not isinstance(node, _ast.Call):
+            continue
+        fn = node.func
+        if not (isinstance(fn, _ast.Name) and fn.id == "Result"):
+            continue
+        if len(node.args) < 2:
+            continue
+        verdict = node.args[1]
+        if not (isinstance(verdict, _ast.Constant) and verdict.value is None):
+            continue
+        if any(kw.arg == "skip" for kw in node.keywords):
+            continue
+        entry = (node.lineno, src_lines[node.lineno - 1].strip()[:120])
+        (waived if lo <= node.lineno <= hi else bad).append(entry)
+
+    results.append(Result("d81: every Result(..., None, ...) call outside this guard is marked "
+                          "skip=True (an unmarked None prints FAIL -- 'could not look' recorded "
+                          "as 'looked and it was wrong', D24/D32); waived here: %s"
+                          % ("; ".join("line %d: %s" % w for w in waived) or "none"), not bad,
+                          "" if not bad else "; ".join("line %d: %s" % b for b in bad)))
+
+    # the flag must still do what the name says, or the scan above guards nothing
+    results.append(Result("d81: Result(skip=True) prints SKIP while Result(ok=None) without it "
+                          "prints FAIL -- the distinction the scan relies on",
+                          "SKIP" in repr(Result("x", None, "", skip=True))
+                          and "FAIL" in repr(Result("x", None, "")), ""))
+
+    # and the scan must be able to SEE such a call, or it is vacuous
+    probe = _ast.parse('Result("p", None, "why")\nResult("q", None, "why", skip=True)\n')
+    seen = [n for n in _ast.walk(probe)
+            if isinstance(n, _ast.Call) and isinstance(n.func, _ast.Name) and n.func.id == "Result"
+            and isinstance(n.args[1], _ast.Constant) and n.args[1].value is None
+            and not any(kw.arg == "skip" for kw in n.keywords)]
+    results.append(Result("d81: the scan actually detects an unmarked None (positive control -- "
+                          "a check that can never fire is not a check)", len(seen) == 1, ""))
+    return results
+
+
 def e48_real_inputs_aarch64_cases(tmp):
     """E48: 공개 실입력을 AArch64 native·cFS 에서 다시 밟은 셀들과, 그 과정이 드러낸 D80.
 
@@ -6194,8 +6263,13 @@ def e44_budget_provenance_cases(tmp):
         _np = None
     b2 = os.path.join(repo, "results", "e45_real_inputs", "b2_resnet")
     if _np is None:
+        # D81 (E48): this was `Result(..., None, "numpy not installed")` with no skip=True, so a
+        # missing optional package printed FAIL and turned both reduced CI legs red -- "could not
+        # look" recorded as "looked and it was wrong". That is D32's exact shape, in a guard added
+        # by the very experiment (E47) that fixed D79 for saying one thing and checking another.
+        # The `skip` flag exists for this and was not passed.
         results.append(Result("e47/D79: the archived ResNet selection is order-correct 200/200",
-                              None, "numpy not installed"))
+                              None, "numpy not installed", skip=True))
     else:
         lab = _np.load(os.path.join(b2, "inputs", "cifar10_perf200_labels.npy")).tolist()
         import csv as _csv                                         # noqa: PLC0415
@@ -7030,6 +7104,7 @@ def main():
         all_results += e43_pure_onair_cases(tmp)
         all_results += e44_budget_provenance_cases(tmp)
         all_results += e48_real_inputs_aarch64_cases(tmp)
+        all_results += result_skip_hygiene_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
