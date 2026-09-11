@@ -287,6 +287,18 @@ spacecraft's SmartCam and credited to ESA."*). MIT 본문과 ESA 크레딧 문�
 **revert-and-confirm-fail**: `--layout-defect`를 되돌리면 §3.1의 재생성 시험이 실패하고, `per_kind`를
 되돌리면 §3의 탐지율 대조가 성립하지 않는다.
 
+### §7.1 회귀 실측
+
+이 컨테이너 **623/623 → 650/650**(신규 27건, FAIL 0 · SKIP 0).
+
+**CI 실측**(커밋 `3bc7efe`, run 180, 3레그 success): `full` **645/645 + 3 SKIP** ·
+`without-iree` **488/488 + 29 SKIP** · `stdlib-only` **488/488 + 29 SKIP**.
+이 컨테이너(**650/650 + 0 SKIP**)와 `full`의 차이 **5건**은 전부 설명된다 — PyYAML 미설치 1건(D34) ·
+`aarch64-linux-gnu-objdump` 미설치로 **정직하게 SKIP되는 2건** · 그 툴체인이 없으면 분기가 아예 없어
+**존재하지 않는 2건**(E38이 확립한 설명 그대로). 축소 두 레그가 464→488로 **정확히 +24**이고 SKIP이
+28→29로 +1이라, E45 신규 27건 중 **numpy를 요구하는 결함 주입기 재생성 3건이 1개의 정직한 SKIP으로
+접히고 나머지 24건이 전부 나타난다**.
+
 ---
 
 ## §8 하지 않은 것 (명시)
