@@ -5780,6 +5780,205 @@ def e35_d72_structural_agreement_cases():
     return results
 
 
+
+def e45_real_inputs_cases(tmp):
+    """E45: real inputs, and the things about them that must not be misread.
+
+    Four kinds of claim are pinned here.
+
+    (1) The VERDICTS as measured, including the one that failed. b3_deepae is a FAIL on
+        real inputs while its archived synthetic cell is a PASS, and the pre-fixed
+        criterion is the SAME one. A later reader must not be able to find a repository
+        where that FAIL quietly became a PASS because a tolerance moved.
+    (2) The ACQUISITION POSITION per model: the ad01 bytes are not vendored (the
+        distributor forbids redistribution in writing) and no accuracy is claimed for any
+        of the three, for reasons that differ per model and are recorded per model.
+    (3) The DEFECT INJECTOR is real and reproduces what E31/E34 reported by hand. Before
+        E45 neither experiment's negative control could be rebuilt from repository
+        contents at all -- the strongest evidence they have rested on an artifact nobody
+        could regenerate (D43).
+    (4) The SmartCam fidelity tiers stay separate. 19 lossy 614x583 thumbnails are not
+        the same evidence as 3 lossless 2048x1944 raws and must never be added into one
+        "real images: 22".
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e45_real_inputs")
+    summ = load(os.path.join(D, "summary.json"))
+
+    # (1) verdicts, exactly as measured
+    for name, verdict, samples, elements, failed in (
+            ("b2_resnet", "PASS", 200, 2000, 0),
+            ("b3_deepae", "FAIL", 34, 21760, 94),
+            ("smartcam", "PASS", 19, 57, 0)):
+        c = summ["cells"][name]["real_inputs"]
+        results.append(Result("e45: %s real-input cell is %s (%d samples, %d/%d elements failed)"
+                              % (name, verdict, samples, failed, elements),
+                              c["verdict"] == verdict and c["samples"] == samples
+                              and c["elements"] == elements and c["elements_failed"] == failed,
+                              "%s" % {k: c.get(k) for k in
+                                      ("verdict", "samples", "elements", "elements_failed")}))
+    # the criterion is the inherited one, in the stored comparisons themselves
+    for name in ("b2_resnet", "b3_deepae", "smartcam"):
+        c = summ["cells"][name]["real_inputs"]
+        results.append(Result("e45: %s was judged with the E25 criterion unchanged "
+                              "(abs 1e-4 / rel 1e-5)" % name,
+                              c["abs_tol"] == 1e-4 and c["rel_tol"] == 1e-5,
+                              "abs=%s rel=%s" % (c["abs_tol"], c["rel_tol"])))
+    # the FAIL must stay a FAIL: same inputs, same criterion, the archived synthetic cell PASSes
+    results.append(Result("e45: b3_deepae FAILs on real inputs while its archived SYNTHETIC cell "
+                          "PASSes under the same criterion",
+                          summ["cells"]["b3_deepae"]["real_inputs"]["verdict"] == "FAIL"
+                          and summ["cells"]["b3_deepae"]["archived_prior_cell"]["verdict"] == "PASS",
+                          "real=%s synthetic=%s"
+                          % (summ["cells"]["b3_deepae"]["real_inputs"]["verdict"],
+                             summ["cells"]["b3_deepae"]["archived_prior_cell"]["verdict"])))
+
+    # (2) acquisition position
+    ad = summ["acquisition"]["b3_deepae"]
+    results.append(Result("e45: the ad01 bytes are NOT vendored in-tree (the distributor forbids "
+                          "redistribution)",
+                          ad["bytes_vendored_in_tree"] is False, "%s" % ad.get("bytes_vendored_in_tree")))
+    b3m = load(os.path.join(D, "b3_deepae", "manifest.json"))
+    results.append(Result("e45: b3 manifest quotes EEMBC's own redistribution statement and the "
+                          "purge timeline read from git",
+                          "cannot redistribute" in b3m["why_not_vendored"]["statement"]
+                          and len(b3m["why_not_vendored"]["purge_timeline_read_from_git"]) == 3,
+                          "timeline=%d" % len(b3m["why_not_vendored"].get("purge_timeline_read_from_git", []))))
+    results.append(Result("e45: b3 window bytes are absent from the tree but their sha256 are "
+                          "recorded (D43 as reproducibility, not byte storage)",
+                          not os.path.exists(os.path.join(D, "b3_deepae", "inputs"))
+                          and len(b3m["samples"]) == 34
+                          and all(r.get("window_sha256") for r in b3m["samples"]),
+                          "inputs dir present or a window sha256 is missing"))
+    b2m = load(os.path.join(D, "b2_resnet", "manifest.json"))
+    results.append(Result("e45: the CIFAR-10 route is gated on the md5 torchvision records for "
+                          "the canonical file, not on a mirror URL",
+                          b2m["upstream"]["test_batch_md5"] == "40351d587109b95175f43aff81a1287e"
+                          and "torchvision" in b2m["upstream"]["md5_attested_by"]
+                          and b2m["upstream"]["mirror_is_official"] is False,
+                          "%s" % b2m["upstream"].get("test_batch_md5")))
+    results.append(Result("e45: the CIFAR-10 subset is MLPerf Tiny's own selector, not one this "
+                          "project invented",
+                          b2m["subset"]["chosen_by_this_project"] is False
+                          and b2m["subset"]["per_class"] == [20] * 10
+                          and b2m["cross_check"]["filename_and_label_matched"] == "200/200",
+                          "%s" % b2m["subset"]))
+    # no accuracy is claimed anywhere, and the reason is per-model
+    for name, key in (("b2_resnet", "scope_note"), ("smartcam", "why_no_accuracy")):
+        m = load(os.path.join(D, name, "manifest.json"))
+        results.append(Result("e45: %s manifest states why no accuracy is claimed" % name,
+                              bool(m.get(key)), "missing %s" % key))
+    scm = load(os.path.join(D, "smartcam", "manifest.json"))
+    results.append(Result("e45: the SmartCam labels are recorded as circular (the label IS the "
+                          "model's own argmax), so no accuracy can rest on them",
+                          "circular_labels" in scm["why_no_accuracy"]
+                          and "argmax" in scm["why_no_accuracy"]["circular_labels"],
+                          "circularity not recorded"))
+
+    # (3) the defect injector
+    src = open(os.path.join(HERE, "model_fixture.py"), encoding="utf-8").read()
+    results.append(Result("e45: model_fixture.py carries the layout defect injector and defaults "
+                          "it OFF",
+                          '"--layout-defect"' in src and 'default="none"' in src
+                          and 'choices=["none", "reshape"]' in src,
+                          "injector missing or not defaulted off"))
+    fx = load(os.path.join(D, "cells", "smartcam", "fixture", "manifest.json"))
+    results.append(Result("e45: a non-defective fixture records layout_defect=none at top level",
+                          fx.get("layout_defect") == "none", "%s" % fx.get("layout_defect")))
+    # the injector must actually reproduce the FAIL E31 archived by hand
+    try:
+        import numpy as _np                                   # noqa: PLC0415 - optional probe
+    except ImportError:
+        _np = None
+    if _np is not None:
+        F = os.path.join(repo, "results", "e31_smartcam_equivalence", "fixture")
+        man = load(os.path.join(F, "manifest.json"))
+        real = [s for s in man["samples"] if s["kind"] == "real_example"]
+        d = os.path.join(tmp, "e45_negctl")
+        _np.save(os.path.join(tmp, "e45_real.npy"),
+                 _np.stack([_np.load(os.path.join(F, s["nhwc"]["file"]))[0] for s in real]))
+        with open(os.path.join(tmp, "e45_ids.json"), "w") as fh:
+            json.dump([s["sample_id"] for s in real], fh)
+        rc, _, err = run([PY, os.path.join(HERE, "model_fixture.py"), "--out", d,
+                          "--tensors", os.path.join(tmp, "e45_real.npy"),
+                          "--tensor-ids", os.path.join(tmp, "e45_ids.json"),
+                          "--tensor-kind", "regen_real", "--synthetic", "32", "--seed", "31",
+                          "--edge", "--layout", "nhwc_to_nchw", "--layout-defect", "reshape",
+                          # the archived .nhwc.npy are ALREADY preprocessed, so the identity
+                          # transform is what reproduces them -- passing the image-path std
+                          # here would divide them a second time
+                          "--height", "224", "--width", "224", "--mean", "0", "--std", "1"])
+        built = rc == 0 and os.path.exists(os.path.join(d, "manifest.json"))
+        results.append(Result("e45: the injector rebuilds E31's negative-control fixture from "
+                              "repository contents", built, "rc=%d %s" % (rc, err[-200:])))
+        if built:
+            fxm = load(os.path.join(d, "manifest.json"))
+            arch = load(os.path.join(F, "manifest.json"))
+            ab = {s["sample_id"]: s for s in arch["samples"]}
+            # the INPUT side must be identical to the archived fixture; only the entry tensor differs
+            same_in = all(s["nhwc"]["sha256"] == ab[s["sample_id"]]["nhwc"]["sha256"]
+                          for s in fxm["samples"] if s["sample_id"] in ab)
+            diff_entry = any(s["nchw"]["sha256"] != ab[s["sample_id"]]["nchw"]["sha256"]
+                             for s in fxm["samples"] if s["sample_id"] in ab)
+            results.append(Result("e45: the rebuilt fixture has the SAME inputs as the archive and "
+                                  "a DIFFERENT entry tensor (that is the defect)",
+                                  same_in and diff_entry,
+                                  "same_inputs=%s entry_differs=%s" % (same_in, diff_entry)))
+            results.append(Result("e45: the defective fixture labels itself at top level and per "
+                                  "sample, so a PASS read from it cannot be mistaken for evidence",
+                                  fxm.get("layout_defect") == "reshape"
+                                  and all(s.get("layout_defect") == "reshape" for s in fxm["samples"])
+                                  and "FAIL" in fxm.get("layout_defect_note", ""),
+                                  "%s" % fxm.get("layout_defect")))
+    else:
+        results.append(Result("e45: injector rebuilds E31's negative control", True,
+                              "numpy not installed", skip=True))
+
+    # the measured contrast the negative control exists to show
+    det = {(r["cell"], r["inputs"]): r for r in summ["negative_control_detection"]}
+    for cell, real_n, synth_n in (("b2_resnet", 180, 0), ("smartcam", 18, 3)):
+        r, a = det[(cell, "real_inputs")], det[(cell, "archived_prior_cell")]
+        results.append(Result("e45: %s layout defect -- argmax caught %d/%d on real inputs vs "
+                              "%d/%d on the archived fixture"
+                              % (cell, real_n, r.get("samples", 0), synth_n, a.get("samples", 0)),
+                              r.get("argmax_failed") == real_n and a.get("argmax_failed") == synth_n,
+                              "real=%s archived=%s" % (r.get("argmax_failed"), a.get("argmax_failed"))))
+    results.append(Result("e45: on the archived b2 fixture argmax alone would have passed the "
+                          "broken layout on EVERY sample (0/34) -- the reason real inputs matter",
+                          det[("b2_resnet", "archived_prior_cell")]["argmax_failed"] == 0
+                          and summ["negative_control"]["b2_resnet"]["archived_prior_cell"]["verdict"] == "FAIL",
+                          "%s" % det[("b2_resnet", "archived_prior_cell")]))
+
+    # (4) fidelity tiers stay separate
+    results.append(Result("e45: SmartCam tiers are recorded separately (19 lossy thumbnails are "
+                          "not 3 lossless raws) and the manifest forbids merging them",
+                          scm["fidelity_tiers"]["B_thumbnail_jpeg"]["count"] == 19
+                          and scm["fidelity_tiers"]["A_raw_png"]["count"] == 3
+                          and "do_not_merge_tiers" in scm,
+                          "A=%s B=%s" % (scm["fidelity_tiers"]["A_raw_png"]["count"],
+                                         scm["fidelity_tiers"]["B_thumbnail_jpeg"]["count"])))
+    results.append(Result("e45: every ground-edited SmartCam image was excluded by BYTES, with the "
+                          "EXIF tag recorded per file",
+                          scm["counts"]["excluded_ground_edited"] == 26
+                          and all(e.get("exif_software") for e in scm["excluded"]
+                                  if e["reason"] == "ground-edited"),
+                          "%s" % scm["counts"]))
+    results.append(Result("e45: the new SmartCam images do not overlap the three already in E31",
+                          scm["disjointness"]["sha256_overlap_with_tier_A"] == []
+                          and scm["disjointness"]["sample_id_overlap_with_tier_A"] == [],
+                          "%s" % scm["disjointness"]))
+
+    # the acquisition tool refuses rather than guesses
+    fsrc = open(os.path.join(HERE, "fetch_real_inputs.py"), encoding="utf-8").read()
+    results.append(Result("e45: the fetcher distinguishes SKIP (unreachable) from FAIL (wrong "
+                          "bytes) and never writes on a digest mismatch",
+                          "EXIT_SKIP" in fsrc and "digest_mismatch" in fsrc
+                          and "def fetch_gated" in fsrc,
+                          "refusal paths missing"))
+    return results
+
+
 def e38_optin_witness_cases(tmp):
     """E38: the conditional opt-in must be recorded independently of the verdict.
 
@@ -6034,6 +6233,7 @@ def main():
         all_results += e40_analysis_domain_cases(tmp)
         all_results += e41_analysis_domain_cases(tmp)
         all_results += e35_d72_structural_agreement_cases()
+        all_results += e45_real_inputs_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

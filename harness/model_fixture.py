@@ -91,10 +91,36 @@ def main():
     # unchanged (a rank-2 autoencoder has no layout to convert). Adding a third mode
     # must stay a value here rather than an `if model == ...` anywhere downstream.
     ap.add_argument("--layout", choices=["nhwc_to_nchw", "none"], default="nhwc_to_nchw")
+    # E45: a DELIBERATE defect injector, in-tree for the same reason harness/corrupt_vmfb.py
+    # is: E31 and E34 both report a negative control (reshape instead of transpose) whose
+    # fixture cannot be regenerated from repository contents, so the strongest evidence those
+    # experiments have -- that argmax alone would have passed a broken layout -- rests on an
+    # artifact nobody can rebuild (D43). This flag rebuilds it.
+    # It is loud on purpose: the manifest records `layout_defect` at top level and every
+    # sample row carries it, so a defective fixture can never be mistaken for a good one.
+    ap.add_argument("--layout-defect", choices=["none", "reshape"], default="none",
+                    help="DEFECT INJECTION. `reshape` builds the entry tensor with reshape "
+                         "instead of transpose -- the exact layout error E31/E34 use as their "
+                         "negative control. Never use this to produce a positive result.")
     ap.add_argument("--shape", type=int, nargs="*", default=None,
                     help="full input shape for --layout none (e.g. 1 640)")
     ap.add_argument("--experiment", default="E31 (P2: SmartCam semantic preservation)")
     ap.add_argument("--resample", default="BILINEAR")
+    # E45: real inputs arrive as a pre-built stack of tensors, not as image files -- a
+    # CIFAR-10 pickle and an ad01 feature .bin are not images and cannot go through
+    # `--images`. This is a VALUE (a path and a kind label), not a per-model branch: the
+    # same option serves b2 (uint8 NHWC images), b3 (float32 log-mel windows) and any
+    # future model, and everything after it is the code that already existed.
+    ap.add_argument("--tensors", default=None,
+                    help="path to a .npy stack of samples, leading axis = sample index; each "
+                         "slice must already have this fixture's sample shape")
+    ap.add_argument("--tensor-kind", default="real_dataset",
+                    help="the `kind` recorded for --tensors samples; the comparison reports "
+                         "results per kind, so this label must say what the data actually is")
+    ap.add_argument("--tensor-ids", default=None,
+                    help="optional JSON list of sample ids for --tensors (default: <kind>_NNN)")
+    ap.add_argument("--tensor-source", default="",
+                    help="provenance sentence recorded with every --tensors sample")
     ap.add_argument("--synthetic", type=int, default=0, help="count of uniform[0,1) samples (coverage only)")
     ap.add_argument("--seed", type=int, default=31)
     ap.add_argument("--edge", action="store_true", help="add all-zeros and all-ones samples")
@@ -145,6 +171,40 @@ def main():
             samples.append((sid, "real_example", nhwc, dict(meta, source_file=path,
                                                             source_sha256=sha256_bytes(open(path, "rb").read()))))
 
+    if a.tensors:
+        stack = np.load(a.tensors)
+        if stack.ndim < 2:
+            print("model_fixture: --tensors must have a leading sample axis", file=sys.stderr)
+            return 2
+        ids = None
+        if a.tensor_ids:
+            ids = json.load(open(a.tensor_ids, encoding="utf-8"))
+            if len(ids) != stack.shape[0]:
+                print("model_fixture: --tensor-ids has %d ids for %d samples"
+                      % (len(ids), stack.shape[0]), file=sys.stderr)
+                return 2
+        raw_dtype, raw_lo, raw_hi = str(stack.dtype), float(stack.min()), float(stack.max())
+        for k in range(stack.shape[0]):
+            one = np.ascontiguousarray(stack[k], dtype=np.float32)
+            # The entry takes one sample at a time; a stack slice may or may not carry the
+            # leading 1. Add it when it is missing rather than demanding one shape, because
+            # refusing an honest (200,32,32,3) stack would be an over-rejection.
+            if one.shape == tuple(sample_shape[1:]):
+                one = one[None, ...]
+            if one.shape != tuple(sample_shape):
+                print("model_fixture: --tensors sample %d has shape %s, fixture expects %s"
+                      % (k, list(one.shape), list(sample_shape)), file=sys.stderr)
+                return 2
+            # Same (x - mean)/std as the image path, so normalisation is recorded in ONE place
+            # and a fixture cannot end up with two different transforms depending on its source.
+            one = ((one - float(a.mean)) / float(a.std)).astype(np.float32)
+            sid = ids[k] if ids else "%s_%03d" % (a.tensor_kind, k)
+            samples.append((sid, a.tensor_kind, one,
+                            {"tensors_file": os.path.abspath(a.tensors), "index": k,
+                             "raw_dtype": raw_dtype, "raw_value_range": [raw_lo, raw_hi],
+                             "source": a.tensor_source,
+                             "note": "REAL data: this sample was not generated here"}))
+
     if a.synthetic:
         rng = np.random.default_rng(a.seed)
         for k in range(a.synthetic):
@@ -167,7 +227,13 @@ def main():
     rows = []
     for sid, kind, nhwc, meta in samples:
         if a.layout == "nhwc_to_nchw":
-            nchw = to_nchw(nhwc)                   # raises if the transpose is not a real transpose
+            if a.layout_defect == "reshape":
+                # Deliberately WRONG: same bytes, same shape, different element order. This is
+                # the control, and it must never be produced by accident -- hence the flag.
+                nchw = np.ascontiguousarray(
+                    nhwc.reshape(nhwc.shape[0], nhwc.shape[3], nhwc.shape[1], nhwc.shape[2]))
+            else:
+                nchw = to_nchw(nhwc)               # raises if the transpose is not a real transpose
             p_nhwc = os.path.join(in_dir, sid + ".nhwc.npy")
             p_nchw = os.path.join(in_dir, sid + ".nchw.npy")
             np.save(p_nhwc, nhwc); np.save(p_nchw, nchw)
@@ -186,6 +252,7 @@ def main():
             "nchw": {"file": os.path.relpath(p_nchw, a.out), "shape": list(nchw.shape),
                      "dtype": str(nchw.dtype), "sha256": sha256_bytes(nchw.tobytes())},
             "value_range": [float(nhwc.min()), float(nhwc.max())],
+            "layout_defect": a.layout_defect,
             "detail": meta,
         })
 
@@ -193,6 +260,12 @@ def main():
         "tool": "harness/model_fixture.py",
         "experiment": a.experiment,
         "input_shape": list(sample_shape),
+        "layout_defect": a.layout_defect,
+        "layout_defect_note": ("none -- the entry tensor is produced by transpose, verified to "
+                               "round-trip" if a.layout_defect == "none" else
+                               "DEFECTIVE ON PURPOSE: the entry tensor was produced by RESHAPE, "
+                               "not transpose. This fixture exists to make a comparison FAIL. "
+                               "A PASS read from it would be meaningless."),
         "preprocessing": ({
             "resize": {"to": [a.width, a.height], "resample": a.resample,
                        "note": "applied ONCE here so both paths receive identical tensors; this is NOT a "
