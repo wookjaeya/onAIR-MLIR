@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.41**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.42**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
 
 **중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
 
@@ -21,9 +21,10 @@ NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를
 > 주장이 아니다), 전체 출력이 원본 TFLite 실행기의 출력과 사전 고정한 기준
 > (원소별 `abs ≤ 1e-4` **또는** `rel ≤ 1e-5`)을 만족했다. SmartCam에서는 전제조건을 **측정으로**
 > 확인하는 조건부 정책이 같은 계약에서 **1.94배 작은 예산**(9,382,092 B)으로 완주했고, 같은 예산의
-> opt-in 없는 대조군은 거부됐다. 정보 수준 비교에서 **MLIR 수준이 더 정확한 수치나 더 강한 판정을
-> 주지는 않았다** — 같은 계약 범위·같은 조건부 지식에서 아티팩트만 보는 기준선과 판정이 **24/24
-> 일치**했다. 따라서 이 연구가 주장하는 것은 수치적 우위가 아니라 **MLIR 기반 계약 추출·연계 방법**이다.
+> opt-in 없는 대조군은 거부됐다. 정보 수준 비교에서 **현재 비교한 모델·도구·정책 조건에서는 MLIR
+> 기반 경로와 아티팩트 전용 경로의 수치·판정 차이가 관측되지 않았다** — 같은 계약 범위·같은 조건부
+> 지식에서 아티팩트만 보는 기준선과 판정이 **24/24 일치**했다(구현하지 않은 정규 pass의 효과를
+> 부정하는 근거로는 쓰지 않는다). 따라서 이 연구가 주장하는 것은 수치적 우위가 아니라 **MLIR 기반 계약 추출·연계 방법**이다.
 
 **7개 구분**(예산 / 계약 범위 / 무조건 정책 / 조건부 정책 / 실행 타깃 / OnAIR / MLIR 기여)의 확정된
 의미는 `docs/EVIDENCE_v0.41_E37.md` §2 표에 있다. **예산은 앱에 배정한 값이지 가용 RAM 탐지가 아니고,
@@ -761,8 +762,42 @@ D67(계약 키 오독), **D68(파싱 실패를 `0`으로 기록 — *"absence is
 차이 1건은 PyYAML 유무다(D34). 축소 레그가 398→403으로 **정확히 +5**라 §5b의 peak 가드 5건이
 **전부 나타난다**(신규 SKIP 0).
 
-**이로써 §10 단계 1~5가 전부 닫혔다**(단계 2는 E36, 단계 4는 E36b). 다음 작업은 **연구 책임자 결정
-대기** — 논문 초고 착수 / PR 병합 / v0.40 태그 / WGAN 반입 중 선택.
+**v0.42에서 완료된 것 (E38, `docs/EVIDENCE_v0.42_E38.md`)**: 여덟 번째 외부 검토
+(`docs/reviews/DECISIONS_v0_41_INTEGRATED_REVIEW.md` §4.1·§10-2)가 *"조건부 계층의 실행 결과가 opt-in이
+실제로 적용된 상태에서 얻은 것인지 **판정 결과와 독립적으로** 확인하라"*고 지적했다 — 판정에서 설정을
+역추정하고 그 판정을 다시 설정의 근거로 쓰면 순환이다. 검토가 정한 순서(기존 기록 조사 → 있으면 연결 →
+없을 때만 두 셀 재실행)를 그대로 따랐다. **D69: 독립 기록은 없었다** — `build.log`에 문자열 `CONDITIONAL`
+**0건**, 두 배포 트리의 `build_info.json` `app_knobs`가 **완전 동일**하고 그 키를 갖지 않으며, 보관
+`ai_learner.CMakeLists.txt`는 `${AI_LEARNER_ALLOW_CONDITIONAL_MAP}` **미전개 변수**, 게스트 raw log에 해당
+stage 없음. **E36 자신이 D61에서 세운 교훈의 목록에서 이 설정만 빠져 있었다.** 판정 수치는 바뀌지 않는
+**기록 결함**이다. **소급 증거**: 보관 두 `.so`가 `AI_LEARNER_Init`에서 **정확히 12개 명령** 다르고
+추가분이 `per_call − 1`(9,382,091 = 0x8F28CB)을 만들어 예산과 비교하는 그 분기다 — 빌드 시점 대조는
+실재했다. 그러나 **어느 바이너리가 어느 셀을 돌렸는지**가 여전히 없어 재실행으로 갔다.
+**세 기록 신설**: (1) 앱이 `build_config` stage를 **모든 게이트보다 먼저** 기록(거부 셀도 남긴다),
+(2) 빌드 스크립트가 knob과 `compile_commands.json`에서 뽑은 **실제 `-D` 목록**을 기록,
+(3) `harness/optin_witness.py`가 **산출물에서** 값을 읽어 요청값과 다르면 **빌드를 죽인다**.
+witness는 **양성 대조**(무조건 `bounded` 비교)가 먼저 잡혀야 `false`를 말하고 그 외엔 `undetermined`다
+(D25·D29 계열). **재실행은 두 셀만**: `cond_positive`(opt-in 1 → ADMIT_CONDITIONAL_MAP, 피크 **9,382,092**
+= 승인 근거 예산, `arm: map`)·`cond_denied_without_optin`(opt-in 0 → NOT_ADMITTED, 추론 0, 이후 cFS가
+앱 8개 계속 로드). 두 셀 모두 **89행**에서 설정을 기록하고 판정은 91·92행이며, 게스트에서 계산한 `.so`
+sha256이 그 셀의 빌드 기록과 일치한다(**E36에 없던 로그↔바이너리 링크**). E36의 결정론적 값 전부 불변.
+**native도 같은 계열**이었다 — 전제 미충족 시 opt-in을 조용히 되돌리므로 `conditional_map_requested`를
+분리했고 **requested=true·applied=false·verdict=ADMIT**(이전엔 흔적 0)를 실측 보존했다.
+**검토 §10-1 재확인**: 재판정 **13/13 동일**, 연결표 **21/21 present**(재생성 diff 0), 그리고 연결표가
+`present`로 적은 **198개 셀 전부**를 생성기와 무관한 감사기로 원자료에서 다시 읽어 **불일치 0** —
+그 감사기의 첫 판이 대괄호 locator를 못 읽어 8건을 오탐했고, 연결표가 아니라 **감사기의 결함**이었다.
+**같은 결함이 형제 스크립트에도** 있었다 — D61(b)가 `51_build_cfs_aarch64.sh`에서만 고쳐졌고
+`50_wire_cfs_ai_learner.sh`가 같은 `${VAR:+-D…}` 모양을 영속 `build-native_std` 트리에 쓰고 있었다(D62 계열).
+같은 방식으로 고치고 **세 번 빌드해 실측**했다(`=1` 다음의 미설정 빌드가 산출물에서 **0을 증언**).
+이 컨테이너 **544/544 → 570/570**(신규 26건), 보관 14개 계약 diff 0, revert-and-confirm-fail 4건.
+**교훈**: D61이 *"판정에 쓴 설정을 판정 자신이 기록하게 하라"*였다면 이것은 ***"기록해야 할 설정 목록에
+그 설정이 실제로 들어 있는지, 그리고 그 기록이 판정과 독립인지 확인하라"***다.
+
+**이로써 §10 단계 1~5가 전부 닫혔다**(단계 2는 E36, 단계 4는 E36b). 여덟 번째 검토의 **§10 마무리 4단계**도
+닫혔다 — 1(E37 보고 원자료 재확인) · 2(조건부 opt-in 독립 기록 = E38) · 3(결정 문서 4곳 정정, 저장소 밖
+문서라 커밋 대상 아님) · 4(범위 완료 확정). 다음 작업은 **연구 책임자 결정 대기** — 논문 초고 착수 /
+PR 병합 / 태그 정책 확정 / 검토 §5~§9의 **선택적** OnAIR 메모리 비교 실험 / WGAN 반입 중 선택.
+검토가 명시적으로 제외한 것: E38 이후의 모델 확장, WGAN, 새 MLIR pass, 논문 초고(그 문서 범위 밖).
 
 **옛 다음 작업(완료)**: **E36b — ResNet·DeepAE의 AArch64 확장** — 모델당 한 번의 `iree-compile`로 AArch64 vmfb·계약·헤더를
 만들고, 계약 수치를 x86-64와 대조하고, native(qemu-user)·cFS에서 전체 출력을 원본 TFLite oracle과 대조하고,
@@ -1129,7 +1164,12 @@ docs/
   EVIDENCE_v0.17_E22.md        F9 재현성 실제 확보 — 실제 git clone 재현(D24 크래시
                                버그 발견·수정), dump/ 커밋, requirements.txt·CI 신설
                                (§6 정오표: 그 시뮬레이션은 "모듈만 없는 환경"이었음, E23이 정정)
-  EVIDENCE_v0.38_E35.md       ★ 최신. 단계 5 — 공정한 기준선: 24셀 전부 판정 동일(불일치 0), 세 수치·커널 스택 4/4.
+  EVIDENCE_v0.42_E38.md       ★ 최신. E38/D69 — 조건부 opt-in이 어디에도 독립 기록되지 않아 판정이 설정의 유일한
+                               근거였다(순환). 세 기록 신설(런타임 `build_config` · 빌드 `-D` 목록 · 바이너리 witness),
+                               검토가 정한 대로 그 두 셀만 재실행. 보관 바이너리는 `Init`에서 정확히 12개 명령 차이
+  EVIDENCE_v0.41_E37.md       E37 — 주장 고정·증거 연결표·재현 확인·등급 분리 (§10 정오표: MLIR 문장을 관측 범위로
+                               좁힘, 조건부 셀 opt-in 근거의 순환을 E38이 해소)
+  EVIDENCE_v0.38_E35.md       ★ 단계 5 — 공정한 기준선: 24셀 전부 판정 동일(불일치 0), 세 수치·커널 스택 4/4.
                                결론은 MLIR 우위가 아니라 주장 범위의 축소 (§7 정오표: 4구성=3모델, 스택 일치는 독립성 근거 아님)
   EVIDENCE_v0.37_E34.md       단계 4 — ResNet·DeepAE 확장: 새 하네스 0·모델별 분기 0·재컴파일 0. DeepAE argmax는 상수라 변별력 0
   EVIDENCE_v0.36_E33.md       단계 3 — NASA OnAIR 공식 로더 4셀 PASS, 코어 변경 0
@@ -1199,6 +1239,12 @@ scripts/
   73_console.sh                       게스트 양방향 시리얼 콘솔 (emergency-mode 등 ssh 안 될 때)
   99_bootstrap_all.sh              ★ 전체 순서 실행 (x86-64 기준; aarch64는 60-62, 70-73 별도 실행)
 harness/                    실험 스크립트
+  optin_witness.py            ★ E38: 빌드 산출물(`ai_learner.so`)에서 조건부 opt-in을 읽는다 — 소스도 빌드 명령도
+                               아니라 **최종 바이너리**를 본다. `AI_LEARNER_Init`에서 `CONTRACT_PER_CALL_BYTES`(또는 −1)와의
+                               비교가 조건부 분기로 이어지는지 찾는다. **양성 대조 선행**: 같은 매처가 무조건 `bounded`
+                               비교를 찾지 못하면 `false`가 아니라 `undetermined`(D25·D29 계열). 게이트가 아니라 관측기
+  mk_e38_summary.py           ★ E38: 재실행 두 셀을 게스트 로그에서 유도해 Q1~Q5를 판정. 값은 앱이 스스로 남긴
+                               레코드에서만 읽는다(mk_e36_summary의 `stages()`를 그대로 재사용 — D68 포함)
   mk_evidence_linkage.py      ★ E37: 세 실물 모델 × 7항목 증거 연결표 생성기 — 값은 전부 원자료에서 읽고
                                못 읽은 셀은 사유와 함께 남긴다. admission 셀은 **하위 키마다** 확인한다(D63:
                                부모 객체 단위 resolve가 키 결손을 present로 통과시켰다). 거부·BUDGET_INVALID
@@ -1303,6 +1349,12 @@ results/e26_boundary_utility/  ★ E26 계열 전체: 사전 고정 기준(docs/
                              instrumentation_check/, x86_64|aarch64/{native,cfs,pip_runtime}/,
                              mlperf_tiny_{resnet,vww}_fixture/, x86_64/ext_b{2,3}_*/ (실물 워크로드
                              단일 호출 산출물 + 측정), aarch64/a5b_canonical/, comparison/, summary.json
+results/e38_optin_record/    ★ E38: `x86_64_cross_check/`(형제 스크립트의 같은 D61(b) 결함을 고치고 3단계 빌드로
+                             실측 — `=1` 다음의 미설정 빌드가 산출물에서 0을 증언) · `e36_binaries/`(E36이 실제로 출하한 두 `ai_learner.so` + 각각의
+                             build_info·CMakeLists·witness — 소급 판정을 in-tree에서 재현하기 위한 것이고, 두
+                             `app_knobs`가 동일하다는 **결함 자체**도 여기서 고정된다) · `cells/`(재실행 두 셀의 raw log) ·
+                             `trees/`(재빌드 두 트리의 build_info·witness) · `trees.json`(게스트에서 계산한 `.so` 해시까지) ·
+                             `native_requested_vs_applied.json` · `summary.json`
 results/evidence_linkage/   ★ E37: linkage.{json,md}(3모델 × 7항목, 원자료 참조 121건) +
                              reproduce_check.json(최종 코드 재판정 13셀). **직접 편집 금지** — 생성기 산출물
 results/e37_evidence_consolidation/s_cfs_post_d61/  ★ E37 §5: 게스트 재실행이 실제로 필요했던 유일한 셀
@@ -1388,6 +1440,8 @@ cd $HOME/onair-mlir-bench/ext/cFS/build-native_std/exe/cpu1 && ./core-cpu1   # A
 | 재컴파일한 vmfb의 해시가 이전과 다름 | **입력 MLIR 파일명이 vmfb 심볼명에 들어감** | 계약·덤프·배치 아티팩트는 한 번의 컴파일 호출에서 생성 |
 | 파일명·플래그를 똑같이 맞췄는데도 vmfb 해시가 매번 다름 | `iree-compile`이 스레딩 기본값에서 **바이트 재현적이지 않다**(E26e: 16-dispatch 모델 3회 = 3개 해시, `--mlir-disable-threading` 2회 = 동일). 계약 수치는 동일하고 아티팩트 동일성만 흔들린다 | 측정에 쓴 vmfb를 저장소에 **보존**한다(레시피만으로는 되돌아오지 않음). 재현성이 필요하면 `--mlir-disable-threading` |
 | EVIDENCE가 인용한 `results/**/*.log`가 저장소에 없음(시험은 green) | `.gitignore`의 `*.log`를 실험별 allowlist로만 되살려 새 실험 디렉터리의 로그가 조용히 무시됨(D55: E28·E29·E29b 9건) | `!results/**/*.log`(v0.32.1) + `cited_raw_logs_tracked_cases()`가 summary.json 인용 로그의 존재·추적을 검사. 새 실험을 커밋하기 전 `git status --short --ignored results`를 볼 것 |
+| 빌드 knob을 `env`로 안 주었는데 이전 빌드의 값이 살아 있음 | `${VAR:+-D...}`는 *"미설정 = 기본값"*이 아니라 *"미설정 = CMakeCache.txt에 남은 지난 값"*이다. `build-native_std`·`build-aarch64_std` 둘 다 호출 간 공유되는 영속 트리다(D61(b), E38에서 형제 스크립트도 같은 모양이었음을 확인) | 기본값을 **항상 명시 전달**하고, `compile_commands.json`에서 실제 도달을 확인하고, 산출물에서 `harness/optin_witness.py`로 되읽어 **빌드를 죽인다** |
+| 어떤 설정으로 얻은 판정인지 나중에 알 수 없음 | 그 설정이 텔레메트리·빌드 기록 어디에도 없으면 판정 자체가 유일한 근거가 되어 **순환**이 된다(D69) | 판정에 쓰는 설정은 **판정보다 먼저** 레코드로 남긴다 (`build_config` stage). 거부하는 셀도 남겨야 의미가 있다 |
 | HAL `device_bytes_peak`가 계약값보다 조금 큼(분류기가 `refutes_hypothesis`) | 반환된 출력 버퍼를 붙들고 있어 이전 호출분이 해제되지 않음(D50, E26e: per_call + 4×40 B) | 호출마다 결과를 놓아주고 `allocated == freed`인 상태에서 피크를 읽는다 |
 
 ## 이 컨테이너(claude.ai)에서 검증됐던 사실과의 관계

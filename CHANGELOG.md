@@ -2,6 +2,64 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.42] — E38: 조건부 opt-in 설정을 판정과 독립적으로 기록한다
+
+**출처.** 여덟 번째 외부 검토 `docs/reviews/DECISIONS_v0_41_INTEGRATED_REVIEW.md`(§4.1 · 실행 순서 §10-2)가
+*"조건부 계층의 실행 결과가 opt-in이 실제로 적용된 상태에서 얻은 것인지, 판정 결과와 **독립적으로** 확인하라"*고
+지적하고, *"기록이 없을 때만 두 셀을 재실행하라"*는 순서를 정했다. 그 순서를 그대로 따랐다.
+
+**정정: 독립 기록은 없었다(D69).** E36의 두 조건부 셀은 예산 9,382,092 B로 같고
+`AI_LEARNER_ALLOW_CONDITIONAL_MAP`만 다른데, 값이 남을 수 있는 자리가 전부 비어 있었다 —
+`build.log`에 문자열 `CONDITIONAL` **0건**, 두 배포 트리의 `build_info.json` `app_knobs`가 **완전 동일**하고
+그 키를 갖지 않으며, 보관 `ai_learner.CMakeLists.txt`는 `${AI_LEARNER_ALLOW_CONDITIONAL_MAP}` **미전개 변수**,
+게스트 raw log에 해당 stage가 없다. 즉 **그 설정을 말해 주는 것은 그 설정으로 얻은 판정뿐**이었다.
+E36 자신이 D61에서 *"판정에 쓴 설정을 판정 자신이 기록하게 하라"*를 세우고 `budget`·`budget_source`를
+그 이유로 넣었는데 **opt-in만 그 목록에서 빠져 있었다.** 판정 수치는 바뀌지 않는다 — **기록 결함**이다.
+
+**소급 증거(재실행을 대체하지는 않는다).** 보관 두 `.so`를 디스어셈블하니 `AI_LEARNER_Init`이
+**정확히 12개 명령** 다르고, 추가분이 `per_call − 1`(9,382,091 = 0x8F28CB)을 만들어 예산과 비교하는
+바로 그 분기다. 빌드 시점의 대조가 실재했다는 증거다. 그러나 **어느 바이너리가 어느 셀을 돌렸는지**는
+여전히 어디에도 없어서, 검토가 정한 (3)으로 갔다.
+
+**세 개의 독립 기록 신설.** (1) 앱이 `{"stage":"build_config","allow_conditional_map":N,…}`을
+**모든 게이트보다 먼저** 쓴다 — 거부하는 셀도 자기 설정을 남긴다. (2) `scripts/51_build_cfs_aarch64.sh`가
+knob과 `compile_commands.json`에서 뽑은 **실제 `-D` 목록**을 `build_info.json`에 기록한다.
+(3) `harness/optin_witness.py`가 **산출물에서** 값을 읽어 요청값과 다르면 **빌드를 죽인다**(`--expect`).
+witness는 양성 대조(무조건 `bounded` 비교)가 먼저 잡혀야만 `false`를 말하고, 그 외에는 **`undetermined`**다
+(D25·D29 계열: 관측 못 함 ≠ 관측했고 없음).
+
+**재실행은 두 셀만.** `cond_positive`(opt-in 1 → ADMIT_CONDITIONAL_MAP, 피크 **9,382,092** = 승인 근거
+예산, `arm: map`·`module_ptr_mod64: 0`·`hal_peak_after_append: 0`)과 `cond_denied_without_optin`
+(opt-in 0 → NOT_ADMITTED, 추론 0, 이후 같은 cFS가 앱 8개를 계속 로드). 두 셀 모두 **89행**에서 설정을
+기록하고 판정은 91·92행에 나온다. 게스트에서 계산한 `.so` sha256이 그 셀의 빌드 기록과 일치 —
+**E36에 없던 로그↔바이너리 링크**. E36의 결정론적 값은 전부 같다(추론 **횟수**는 timeout의 함수라 비교 대상이 아니다).
+
+**native도 같은 계열이었다.** `native_learner.c`는 전제 미충족 시 opt-in을 **조용히 되돌린다**.
+`conditional_map_requested`를 분리 기록했고, **requested=true · applied=false · verdict=ADMIT**
+(이전엔 흔적이 0이던 상태)를 실측해 보존했다.
+
+**검토 §10-1 재확인.** `e37_reproduce_check.py` **13/13 동일**, `mk_evidence_linkage.py` **21/21 present**
+(재생성 diff 0). 추가로 연결표가 `present`로 적은 **198개 셀 전부**를 생성기와 무관한 감사기로 원자료에서
+다시 읽어 **불일치 0**. 그 감사기의 첫 판이 대괄호 locator를 못 읽어 8건을 오탐했다 — 연결표가 아니라
+**감사기의 결함**이었다(D67·E35와 같은 순간).
+
+**정정(검토 §4.4): MLIR 관련 문장을 관측 범위로 좁혔다.** *"MLIR 수준이 더 정확한 수치나 더 강한 판정을
+주지 않는다"*는 일반 문장이 **구현하지 않은 정규 pass의 효과까지 부정하는 근거로 읽힐 수 있다**는 지적을
+근거 대조로 확인했다 — E27은 정상 조건 8/8, E35는 24/24이며 둘 다 **비교한 조건 안의 관측**이다.
+*"현재 비교한 모델·도구·정책 조건에서는 MLIR 기반 경로와 아티팩트 전용 경로의 수치·판정 차이가 관측되지
+않았다"*로 통일했다(`CLAUDE.md` §중심 주장 · `README.md` · `docs/EVIDENCE_v0.41_E37.md` §10 정오표).
+**판정은 불변**이고, 금지 주장 *"정규 pass를 만들어도 결과가 바뀌지 않음을 실측했다"*도 그대로다.
+
+**같은 결함이 형제 스크립트에도 있었다.** D61(b)는 `51_build_cfs_aarch64.sh`에서만 고쳐졌고,
+`50_wire_cfs_ai_learner.sh`가 같은 `${AI_LEARNER_ALLOW_CONDITIONAL_MAP:+-D…}` 모양을 똑같이 영속적인
+`build-native_std` 트리에 대해 쓰고 있었다(D62 계열). 같은 방식으로 고치고 **세 번 빌드해 실측**했다 —
+`=1` 다음의 미설정 빌드가 산출물에서 **0을 증언**한다(`results/e38_optin_record/x86_64_cross_check/`).
+부수로 witness의 **x86-64 분기가 실물에서 동작**함도 확인됐다(`cmp $65579` = `per_call` − 1).
+
+**회귀.** `harness/contract_negative_tests.py` **544/544 → 570/570**(이 컨테이너 실측, 신규 26건),
+보관 14개 계약 diff 0. revert-and-confirm-fail 4건 전부 실패 확인 — 그중 하나는 **보관 원자료를 나중에
+손보는 경우**를 막는 시험이다.
+
 ## [v0.41] — E37: 연구 최종 주장 고정 · 증거 연결 · 재현 확인 · 등급 분리
 
 **출처.** 열한 번째 외부 문서 `RESEARCH_COMPLETION_ACTIONS.md`(기준 커밋 `2aa0d68`)가 남은 과제를

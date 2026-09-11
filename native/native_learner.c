@@ -63,7 +63,7 @@ static struct {
   iree_runtime_session_t* session;
   iree_hal_buffer_view_t* x;
   void* blob; long blob_len;
-  int module_ptr_mod64; long hal_peak_after_append; int conditional_map;
+  int module_ptr_mod64; long hal_peak_after_append; int conditional_map; int conditional_map_requested;
   int cleanup_calls;
 } g;
 
@@ -153,6 +153,9 @@ int main(int argc, char** argv) {
                           "  after module append, refusing before any inference if the copy arm ran (E29).\n", argv[0]); return 2; }
   const char* vmfb_path = argv[1]; long budget = atol(argv[2]); int iters = atoi(argv[3]);
   { const char* cm = getenv("ONAIR_CONDITIONAL_MAP"); g.conditional_map = (cm && *cm == '1'); }
+  g.conditional_map_requested = g.conditional_map;   /* E38: what was asked for, kept
+      separate from what was applied -- the reset below is silent otherwise, and then
+      the run verdict is the only trace of the setting (circular, see ai_learner.c). */
   if (iters < 1) iters = 1;
 
   /* ---- admission (before touching the runtime or even the artifact) ---- */
@@ -171,10 +174,13 @@ int main(int argc, char** argv) {
                       : (g.conditional_map ? "ADMIT_CONDITIONAL_MAP" : "NOT_ADMITTED"));
   printf("{\"stage\":\"admission\",\"verdict\":\"%s\",\"model\":\"%s\",\"target\":\"%s\","
          "\"bounded_bytes\":%ld,\"budget_bytes\":%ld,\"per_call\":%ld,\"constants\":%ld,"
-         "\"kernel_stack_bytes\":%ld,\"bound_known\":%s}\n",
+         "\"kernel_stack_bytes\":%ld,\"bound_known\":%s,"
+         "\"conditional_map_requested\":%s,\"conditional_map_applied\":%s}\n",
          verdict, CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, bounded, budget,
          (long)CONTRACT_PER_CALL_BYTES, (long)CONTRACT_CONST_BYTES, (long)CONTRACT_KERNEL_STACK_BYTES,
-         GATE_BOUND_KNOWN ? "true" : "false");
+         GATE_BOUND_KNOWN ? "true" : "false",
+         g.conditional_map_requested ? "true" : "false",
+         g.conditional_map ? "true" : "false");
   if (!GATE_BOUND_KNOWN) {
     printf("{\"stage\":\"exit\",\"reason\":\"bound unknown: contract has no static bound; refused before artifact access\",\"cleanup_calls\":%d}\n", g.cleanup_calls);
     return 6;

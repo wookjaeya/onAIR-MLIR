@@ -172,6 +172,19 @@ def write_json(obj, path):
     return path
 
 
+def read(path):
+    with open(path, errors="replace") as f:
+        return f.read()
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 # ----------------------------------------------------------------------------
 # in-process unit checks on static_mem_bound.parse_alloc_ir (D13 R2)
 # ----------------------------------------------------------------------------
@@ -5417,6 +5430,209 @@ def rodata_label_cases():
     return results
 
 
+
+E38_DIR = "results/e38_optin_record"
+
+
+def e38_optin_witness_cases(tmp):
+    """E38: the conditional opt-in must be recorded independently of the verdict.
+
+    E36 ran two cells at the same budget -- one that admitted conditionally and one that
+    refused -- and the ONLY thing that said which build had served which cell was the
+    verdict itself.  Reading the verdict to learn the setting and then citing the verdict
+    as evidence about the setting is circular (eighth external review SS4.1, confirmed
+    against the repository: build.log has no `CONDITIONAL` line, and the two trees'
+    build_info.json `app_knobs` are byte-identical).
+
+    These cases pin all three records the fix adds -- the binary witness, the build-time
+    knob, the run-time `build_config` line -- and, just as importantly, pin the FINDING:
+    the archived E36 app_knobs stay identical, so nobody can quietly retouch the archive
+    and make the gap disappear.
+    """
+    results, objdump = [], shutil.which("aarch64-linux-gnu-objdump")
+    bindir = os.path.join(E38_DIR, "e36_binaries")
+    plain = os.path.join(bindir, "e36_smartcam.ai_learner.so")
+    cond = os.path.join(bindir, "e36_smartcam_cond.ai_learner.so")
+    PER_CALL, BOUNDED = 9382092, 18222796
+
+    # --- the finding itself, from the archived build records (no toolchain needed) ---
+    bi_p = os.path.join(bindir, "e36_smartcam.build_info.json")
+    bi_c = os.path.join(bindir, "e36_smartcam_cond.build_info.json")
+    if not (os.path.exists(bi_p) and os.path.exists(bi_c)):
+        results.append(Result("e38: archived E36 build_info pair present", False,
+                              "missing %s / %s" % (bi_p, bi_c)))
+        return results
+    kp, kc = load(bi_p)["app_knobs"], load(bi_c)["app_knobs"]
+    _ok = kp == kc and "AI_LEARNER_ALLOW_CONDITIONAL_MAP" not in kp
+    results.append(Result("e38: the two E36 trees' archived app_knobs are byte-identical and omit "
+                          "the opt-in -- the gap the fix closes, kept as evidence", _ok,
+                          "" if _ok else json.dumps([kp, kc])[:240]))
+    _ok = (load(bi_p)["exe"]["ai_learner_so_sha256"] == sha256_file(plain)
+           and load(bi_c)["exe"]["ai_learner_so_sha256"] == sha256_file(cond)
+           and sha256_file(plain) != sha256_file(cond))
+    results.append(Result("e38: each archived .so matches the sha256 its own build_info recorded, "
+                          "and the two differ -- the binaries are the ones E36 shipped", _ok, "")
+                   if _ok else Result("e38: archived .so sha256 matches its build_info", False,
+                                      "%s / %s" % (sha256_file(plain)[:16], sha256_file(cond)[:16])))
+
+    # --- the binary witness itself (needs the cross objdump) ---
+    if not objdump:
+        results.append(Result("e38: witness reads the opt-in off the archived E36 binaries",
+                              True, "aarch64-linux-gnu-objdump not installed", skip=True))
+        results.append(Result("e38: witness answers `undetermined`, never `false`, when its "
+                              "positive control fails", True,
+                              "aarch64-linux-gnu-objdump not installed", skip=True))
+    else:
+        for label, so, want in (("no opt-in", plain, "0"), ("opt-in", cond, "1")):
+            rc, out, err = run([sys.executable, "harness/optin_witness.py", so,
+                                "--per-call", str(PER_CALL), "--bounded", str(BOUNDED)])
+            rec = json.loads(out) if out.strip().startswith("{") else {}
+            _ok = rc == 0 and rec.get("allow_conditional_map_state") == want
+            results.append(Result("e38: the archived E36 %s binary itself witnesses "
+                                  "AI_LEARNER_ALLOW_CONDITIONAL_MAP=%s -- no run verdict consulted"
+                                  % (label, want), _ok,
+                                  "" if _ok else (out or err)[:240]))
+        rc, out, _ = run([sys.executable, "harness/optin_witness.py", cond,
+                          "--per-call", str(PER_CALL), "--bounded", str(BOUNDED)])
+        rec = json.loads(out)
+        site = (rec.get("conditional_compare_sites") or [{}])[0]
+        _ok = site.get("function") == "AI_LEARNER_Init" and site.get("value") == PER_CALL - 1
+        results.append(Result("e38: and the site it found is the admission compare in "
+                              "AI_LEARNER_Init against CONTRACT_PER_CALL_BYTES", _ok,
+                              "" if _ok else json.dumps(site)[:200]))
+
+        # fail-closed: with a bogus `bounded` the positive control cannot pass, and the
+        # answer must be `undetermined` -- NOT `false` (D25/D29: absence is not a value).
+        rc, out, _ = run([sys.executable, "harness/optin_witness.py", plain,
+                          "--per-call", str(PER_CALL), "--bounded", "424242"])
+        rec = json.loads(out)
+        _ok = rec.get("allow_conditional_map_state") == "undetermined" and "positive control" in rec.get("reason", "")
+        results.append(Result("e38: witness answers `undetermined`, never `false`, when its "
+                              "positive control fails", _ok, "" if _ok else json.dumps(rec)[:220]))
+
+    # --- the run-time record: emitted before any gate, so refusing cells carry it too ---
+    src = read("native/cfs_app/fsw/src/ai_learner.c")
+    i_cfg, i_budget = src.find('\\"stage\\":\\"build_config\\"'), src.find("if (!AI_LEARNER_ResolveBudget())")
+    _ok = 0 < i_cfg < i_budget
+    results.append(Result("e38: ai_learner.c emits `build_config` (with allow_conditional_map) "
+                          "BEFORE the budget gate, so a refusing cell records the setting too",
+                          _ok, "" if _ok else "build_config at %d, budget gate at %d" % (i_cfg, i_budget)))
+
+    nsrc = read("native/native_learner.c")
+    _ok = ("conditional_map_requested" in nsrc
+           and '\\"conditional_map_requested\\":%s,\\"conditional_map_applied\\":%s' in nsrc)
+    results.append(Result("e38: native_learner.c records the REQUESTED opt-in next to the applied "
+                          "one -- its silent reset left no trace otherwise", _ok, ""))
+
+    bsh = read("scripts/51_build_cfs_aarch64.sh")
+    _ok = ('"AI_LEARNER_ALLOW_CONDITIONAL_MAP": num("ALLOW_COND")' in bsh
+           and "ai_learner_compile_defines" in bsh and '"optin_witness"' in bsh)
+    results.append(Result("e38: the build script records the opt-in, the actual -D list and the "
+                          "binary witness in build_info.json", _ok, ""))
+    _ok = "--expect" in bsh and "optin_witness.py" in bsh
+    results.append(Result("e38: and it FAILS THE BUILD when the shipped binary disagrees with the "
+                          "requested opt-in (--expect), not just when the -D was missing", _ok, ""))
+
+    # D61 was fixed in script 51 only; script 50 had the same `${VAR:+-D...}` shape against the
+    # same kind of persistent, shared CMake tree.  Both must pass the flag unconditionally.
+    for script in ("scripts/50_wire_cfs_ai_learner.sh", "scripts/51_build_cfs_aarch64.sh"):
+        t = read(script)
+        _ok = ("${AI_LEARNER_ALLOW_CONDITIONAL_MAP:+" not in t
+               and "${ALLOW_CONDITIONAL_MAP:+" not in t
+               and '-DAI_LEARNER_ALLOW_CONDITIONAL_MAP="$ALLOW_CONDITIONAL_MAP"' in t)
+        results.append(Result("e38/D61: %s always passes the opt-in explicitly (a shared CMake cache "
+                              "makes `unset` mean `last build's value`, not `default`)"
+                              % os.path.basename(script), _ok, ""))
+
+    # --- the re-run cells: each carries its own setting, ahead of its own verdict ---
+    sp = os.path.join(E38_DIR, "summary.json")
+    if not os.path.exists(sp):
+        results.append(Result("e38: re-run summary present", False, "missing %s" % sp))
+        return results
+    s = load(sp)
+    for cell, want_optin, want_verdict in (("cond_positive", 1, "ADMIT_CONDITIONAL_MAP"),
+                                           ("cond_denied_without_optin", 0, "NOT_ADMITTED")):
+        c = s["cells"][cell]
+        _ok = (c["build_config"]["allow_conditional_map"] == want_optin
+               and c["verdict"] == want_verdict
+               and c["build_config_precedes_admission"] is True)
+        results.append(Result("e38: the re-run %s cell states its own opt-in (=%d) in the raw log "
+                              "before its verdict (%s)" % (cell, want_optin, want_verdict), _ok,
+                              "" if _ok else json.dumps(c)[:260]))
+        _ok = c["optin_witness"]["allow_conditional_map_state"] == str(want_optin) \
+            and c["optin_witness"]["binary_sha256"] == c["ai_learner_so_sha256"]
+        results.append(Result("e38: and the binary that produced it witnesses the same value "
+                              "(%s)" % cell, _ok, "" if _ok else json.dumps(c.get("optin_witness"))[:220]))
+
+    cp, cd = s["cells"]["cond_positive"], s["cells"]["cond_denied_without_optin"]
+    _ok = (cp["budget_bytes"] == cd["budget_bytes"] == 9382092
+           and cp["ai_learner_so_sha256"] != cd["ai_learner_so_sha256"])
+    results.append(Result("e38: the control is real -- same budget, different binaries, opposite "
+                          "verdicts, and the difference is now recorded rather than inferred", _ok,
+                          "" if _ok else json.dumps([cp.get("budget_bytes"), cd.get("budget_bytes")])))
+
+    _ok = (cp["hal_peak"] == 9382092 and cp["peak_within_admitted_budget"] is True
+           and cd["inferences"] == 0)
+    results.append(Result("e38: and the E36 measurements are unchanged by the added record "
+                          "(peak = per_call exactly; the control cell still runs zero inferences)",
+                          _ok, "" if _ok else json.dumps([cp, cd])[:260]))
+
+    _ok = all(s["cells"][c]["build_config"]["contract_artifact_sha256"]
+              == "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"
+              for c in ("cond_positive", "cond_denied_without_optin"))
+    results.append(Result("e38: both re-run cells name the same E32 artifact in their own "
+                          "build_config -- one model, two settings, not two models", _ok, ""))
+
+    for t in ("e38_smartcam", "e38_smartcam_cond"):
+        dep = s["trees"][t].get("deployed_on_guest", {})
+        _ok = dep.get("matches_build_info") is True
+        results.append(Result("e38: the .so the guest loaded for %s hashes to the one its build "
+                              "record names -- the log-to-binary link E36 lacked" % t, _ok,
+                              "" if _ok else json.dumps(dep)[:200]))
+
+    # --- x86-64 cross-check: the same stale-cache hazard, cleared and witnessed ---
+    xp = os.path.join(E38_DIR, "x86_64_cross_check", "summary.json")
+    if not os.path.exists(xp):
+        results.append(Result("e38: x86-64 cross-check summary present", False, "missing %s" % xp))
+    else:
+        x = load(xp)
+        by = {st["step"]: st for st in x["steps"]}
+        _ok = all(st["witnessed"] == st["expected"] for st in x["steps"]) and x["verdict"] == "PASS"
+        results.append(Result("e38/D61: on x86-64, an unset opt-in after a =1 build produces a binary "
+                              "that witnesses 0 -- the stale CMake cache is actually cleared", _ok,
+                              "" if _ok else json.dumps(x["steps"])[:240]))
+        _ok = (by["step1_conditional"]["isa"] == "x86-64"
+               and by["step1_conditional"]["conditional_compare_sites"]
+               and by["step1_conditional"]["conditional_compare_sites"][0]["value"] == 65579
+               and by["step1_conditional"]["positive_control_site_count"] >= 1)
+        results.append(Result("e38: the witness's x86-64 branch works on a real binary (cmp against "
+                              "per_call-1 in AI_LEARNER_Init), not only the AArch64 mov/movk form",
+                              _ok, "" if _ok else json.dumps(by["step1_conditional"])[:240]))
+        _ok = (by["step1_conditional"]["binary_sha256"] != by["step2_unset_after_conditional"]["binary_sha256"]
+               and by["step2_unset_after_conditional"]["binary_sha256"]
+               == by["step3_unset_again"]["binary_sha256"])
+        results.append(Result("e38: and the two unset builds are byte-identical to each other and "
+                              "different from the opt-in build", _ok, ""))
+
+    # --- native path: the same gap, the same fix, measured ---
+    np_ = os.path.join(E38_DIR, "native_requested_vs_applied.json")
+    if not os.path.exists(np_):
+        results.append(Result("e38: native requested-vs-applied record present", False, "missing %s" % np_))
+        return results
+    n = load(np_)["cells"]
+    k = n["conditional_requested_but_budget_covers_bounded"]
+    _ok = (k["conditional_map_requested"] is True and k["conditional_map_applied"] is False
+           and k["verdict"] == "ADMIT")
+    results.append(Result("e38: native_learner records a requested opt-in that was NOT applied "
+                          "(verdict ADMIT) -- the state its silent reset used to erase", _ok,
+                          "" if _ok else json.dumps(k)[:200]))
+    _ok = (n["conditional_requested_budget_per_call"]["conditional_map_applied"] is True
+           and n["conditional_not_requested_budget_per_call"]["verdict"] == "NOT_ADMITTED"
+           and n["unconditional_budget_bounded"]["conditional_map_requested"] is False)
+    results.append(Result("e38: and the other three native cells are unchanged -- the added field "
+                          "reports, it does not decide", _ok, "" if _ok else json.dumps(n)[:240]))
+    return results
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -5468,6 +5684,7 @@ def main():
         all_results += e37_truncated_record_cases()
         all_results += e37_guest_rerun_cases()
         all_results += e37_peak_vs_budget_cases()
+        all_results += e38_optin_witness_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

@@ -1,0 +1,42 @@
+{
+  "allow_conditional_map": true,
+  "method": "disassembly: compare against CONTRACT_PER_CALL_BYTES in the admission path",
+  "isa": "aarch64",
+  "elf_machine": "AArch64",
+  "objdump": "aarch64-linux-gnu-objdump",
+  "per_call_bytes": 9382092,
+  "bounded_bytes": 18222796,
+  "conditional_compare_sites": [
+    {
+      "addr": "0x7604",
+      "value": 9382091,
+      "function": "AI_LEARNER_Init",
+      "materialised_at": "0x75fc"
+    }
+  ],
+  "positive_control_sites": [
+    {
+      "addr": "0x75e8",
+      "value": 18222795,
+      "function": "AI_LEARNER_Init",
+      "materialised_at": "0x75e0"
+    },
+    {
+      "addr": "0x7f10",
+      "value": 18222796,
+      "function": "AI_LEARNER_Init",
+      "materialised_at": "0x7f08"
+    },
+    {
+      "addr": "0x8a68",
+      "value": 18222796,
+      "function": "AI_LEARNER_Infer",
+      "materialised_at": "0x8a60"
+    }
+  ],
+  "note": "ai_learner.c gates the conditional tier on a compile-time constant; at 0 the compare against CONTRACT_PER_CALL_BYTES is not emitted at all",
+  "allow_conditional_map_state": "1",
+  "binary": "/home/user/onAIR-MLIR/results/e38_optin_record/e36_binaries/e36_smartcam_cond.ai_learner.so",
+  "binary_sha256": "da9d67ce45f3d5514530771c452b5392bcc9463cbc4fdbe6dd5ec3c2583f88a3",
+  "binary_bytes": 861504
+}

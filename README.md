@@ -10,8 +10,9 @@ NASA cFS/OnAIR AI 플러그인을 MLIR/IREE로 컴파일하고, 컴파일러의 
 [`EVIDENCE_v0.41_E37.md`](./docs/EVIDENCE_v0.41_E37.md) §2. 짧게 말하면 — **부분 메모리 계약을 컴파일
 산출물에서 뽑아 앱에 부여한 예산과 비교해 실행 전에 허용 여부를 정하는 방법**이고, 세 공개 실물 모델
 (OPS-SAT SmartCam · MLPerf Tiny ResNet · Deep AutoEncoder)에서 AArch64 QEMU 게스트 cFS로 확인했다.
-**MLIR 수준이 더 정확한 수치나 더 강한 판정을 주지는 않는다** — 아티팩트만 보는 기준선과 판정이 24/24
-일치했다(E35). 주장하는 것은 수치적 우위가 아니라 **MLIR 기반 계약 추출·연계 방법**이다.
+**현재 비교한 모델·도구·정책 조건에서는 MLIR 기반 경로와 아티팩트 전용 경로의 수치·판정 차이가
+관측되지 않았다** — 아티팩트만 보는 기준선과 판정이 24/24 일치했다(E35). 구현하지 않은 정규 pass의
+효과를 부정하는 근거로는 쓰지 않는다. 주장하는 것은 수치적 우위가 아니라 **MLIR 기반 계약 추출·연계 방법**이다.
 
 **세 모델의 증거를 원본→계약→입력→cFS 판정→출력→HAL peak까지 한 표로**:
 [`results/evidence_linkage/linkage.md`](./results/evidence_linkage/linkage.md)(생성기 산출물, 직접 편집 금지).

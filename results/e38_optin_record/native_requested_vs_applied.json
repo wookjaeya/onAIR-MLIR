@@ -1,0 +1,47 @@
+{
+ "tool": "native/native_learner.c (built by native/build.sh from the E26f DeepAE contract)",
+ "experiment": "E38",
+ "question": "native_learner takes the conditional opt-in from an environment variable and, when the preconditions do not hold, resets it -- silently.  Before E38 the admission record carried only the verdict, so a requested-but-not-applied opt-in left no trace anywhere.  Does the record now separate the two?",
+ "contract": {
+  "path": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json",
+  "bounded": 1069632,
+  "per_call": 6208,
+  "constants": 1063424
+ },
+ "binary_note": "native/native_learner_* is .gitignored (it is a build product); the record below is reproduced by `cd native && IREE_SRC=... IREE_BUILD=... bash build.sh ../results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.contract.json e38check`",
+ "cells": {
+  "unconditional_budget_bounded": {
+   "env_ONAIR_CONDITIONAL_MAP": null,
+   "budget_bytes": 1069632,
+   "verdict": "ADMIT",
+   "conditional_map_requested": false,
+   "conditional_map_applied": false,
+   "rc": 0
+  },
+  "conditional_requested_budget_per_call": {
+   "env_ONAIR_CONDITIONAL_MAP": "1",
+   "budget_bytes": 6208,
+   "verdict": "ADMIT_CONDITIONAL_MAP",
+   "conditional_map_requested": true,
+   "conditional_map_applied": true,
+   "rc": 0
+  },
+  "conditional_not_requested_budget_per_call": {
+   "env_ONAIR_CONDITIONAL_MAP": null,
+   "budget_bytes": 6208,
+   "verdict": "NOT_ADMITTED",
+   "conditional_map_requested": false,
+   "conditional_map_applied": false,
+   "rc": 3
+  },
+  "conditional_requested_but_budget_covers_bounded": {
+   "env_ONAIR_CONDITIONAL_MAP": "1",
+   "budget_bytes": 1069632,
+   "verdict": "ADMIT",
+   "conditional_map_requested": true,
+   "conditional_map_applied": false,
+   "rc": 0
+  }
+ },
+ "key_cell": "conditional_requested_but_budget_covers_bounded: requested=true, applied=false, verdict=ADMIT -- exactly the state that used to be invisible"
+}

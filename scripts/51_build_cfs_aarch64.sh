@@ -260,6 +260,9 @@ grep -q -- "-DAI_LEARNER_BUDGET_BYTES=$BUDGET_BYTES\b" <<<"$AI_CMD" || die "AI_L
 # as a cell that quietly admitted what it was supposed to refuse.
 grep -q -- "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP\b" <<<"$AI_CMD" || die "AI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP did not reach the ai_learner.c compile (stale CMakeCache?): $AI_CMD"
 grep -q -- "-DAI_LEARNER_STACK_BASE_BYTES=$STACK_BASE_BYTES\b" <<<"$AI_CMD" || die "AI_LEARNER_STACK_BASE_BYTES did not reach the ai_learner.c compile"
+# E38: keep the -D list of the actual ai_learner.c compile, so build_info.json records the
+# settings this binary was built with instead of leaving them to be inferred from the run.
+AI_DEFINES="$(grep -o -- '-D[A-Za-z_][A-Za-z0-9_]*=[^ ]*' <<<"$AI_CMD" | tr '\n' ' ')"
 grep -q -- "-mcpu=cortex-a53" <<<"$AI_CMD" || die "-mcpu=cortex-a53 missing from the ai_learner.c compile"
 grep -q -- "apps_aarch64/ai_learner/fsw/src/ai_learner.c" <<<"$AI_CMD" || die "ai_learner.c was not taken from apps_aarch64/"
 HDR_SHA="$(hdr_macro CONTRACT_ARTIFACT_SHA256)"
@@ -283,6 +286,38 @@ rm -rf "$DEST/cpu1"
 cp -a "$EXE" "$DEST/cpu1"
 cp "$CONTRACT_HEADER" "$DEST/contract_gen.h"
 cp "$APPDIR/CMakeLists.txt" "$DEST/ai_learner.CMakeLists.txt"
+
+# E38: read the conditional opt-in back OUT of the binary we just built and refuse the
+# build if it disagrees with what was asked for.  The D61 check above proves the -D
+# reached the compile command; this one proves it reached the code, and it is the only
+# record that survives next to a shipped .so -- E36's two conditional cells had nothing
+# but their own run verdicts to say which build had served them.  A binary the witness
+# cannot read is "undetermined", never "0" (harness/optin_witness.py refuses to answer
+# `false` unless its positive control passes first).
+OPTIN_WITNESS="$DEST/optin_witness.json"
+HDR_PER_CALL="$(hdr_macro CONTRACT_PER_CALL_BYTES)"
+HDR_BOUNDED="$(hdr_macro CONTRACT_BOUNDED_BYTES)"
+if [ "$HDR_BOUND_KNOWN" = "0" ] || ! [ "${HDR_PER_CALL:-0}" -gt 0 ] 2>/dev/null; then
+  # No static bound to compare against: say so, do not record a value we did not read.
+  python3 - "$OPTIN_WITNESS" "$DEST/cpu1/cf/ai_learner.so" "$ALLOW_CONDITIONAL_MAP" <<'PYWITNESS' | tee -a "$LOG"
+import hashlib, json, os, sys
+out, so, want = sys.argv[1], sys.argv[2], sys.argv[3]
+h = hashlib.sha256(open(so, "rb").read()).hexdigest()
+json.dump({"allow_conditional_map": None, "allow_conditional_map_state": "undetermined",
+           "reason": "contract has no positive CONTRACT_PER_CALL_BYTES (UNKNOWN_BOUND); "
+                     "the conditional tier cannot apply, so there is no compare to witness",
+           "requested": want, "binary": os.path.abspath(so), "binary_sha256": h,
+           "binary_bytes": os.path.getsize(so)}, open(out, "w"), indent=2)
+open(out, "a").write("\n")
+print("optin witness: undetermined (UNKNOWN_BOUND contract), requested=%s" % want)
+PYWITNESS
+else
+  python3 "$BENCH_DIR/harness/optin_witness.py" "$DEST/cpu1/cf/ai_learner.so" \
+    --per-call "$HDR_PER_CALL" --bounded "$HDR_BOUNDED" \
+    --expect "$ALLOW_CONDITIONAL_MAP" --out "$OPTIN_WITNESS" >>"$LOG" 2>&1 \
+    || die "the built ai_learner.so does not witness AI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP (see $OPTIN_WITNESS)"
+  echo "== optin witness: ai_learner.so shows AI_LEARNER_ALLOW_CONDITIONAL_MAP=$ALLOW_CONDITIONAL_MAP ($OPTIN_WITNESS)" | tee -a "$LOG"
+fi
 VMFB_MATCH=null
 if [ -n "$MODEL_VMFB" ]; then
   [ -f "$MODEL_VMFB" ] || die "MODEL_VMFB not found: $MODEL_VMFB"
@@ -299,6 +334,7 @@ export BI_IREE_B="$IREE_B" BI_IREE_MACHINES="$IREE_MACHINES" BI_KNOB_ROUTE="$KNO
 export BI_HEADER="$CONTRACT_HEADER" BI_HEADER_SHA="$(sha256sum "$CONTRACT_HEADER" | cut -d' ' -f1)"
 export BI_MODEL="$(hdr_macro CONTRACT_MODEL_NAME)" BI_TRIPLE="$(hdr_macro CONTRACT_TARGET_TRIPLE)"
 export BI_BOUNDED="$(hdr_macro CONTRACT_BOUNDED_BYTES)" BI_BOUND_KNOWN="$(hdr_macro CONTRACT_BOUND_KNOWN)" BI_HDR_SHA="$HDR_SHA" BI_HDR_KERNEL="$HDR_KERNEL"
+export BI_ALLOW_COND="$ALLOW_CONDITIONAL_MAP" BI_AI_DEFINES="$AI_DEFINES" BI_OPTIN_WITNESS="$OPTIN_WITNESS"
 export BI_BUDGET="$BUDGET_BYTES" BI_STACK_BASE="$STACK_BASE_BYTES" BI_KERNEL="$KERNEL_STACK_BYTES" BI_STARTUP_STACK="$STARTUP_STACK" BI_REPORT_EVERY="$REPORT_EVERY"
 export BI_CORE_BYTES="$CORE_BYTES" BI_CORE_SHA="$CORE_SHA" BI_APP_BYTES="$APP_BYTES" BI_APP_SHA="$APP_SHA"
 export BI_CORE_NEEDED="$(needed "$DEST/cpu1/core-cpu1" | tr '\n' ' ')" BI_APP_NEEDED="$(needed "$DEST/cpu1/cf/ai_learner.so" | tr '\n' ' ')"
@@ -322,8 +358,14 @@ info = {
   "contract_header": {"path": g("HEADER"), "sha256": g("HEADER_SHA"), "model_name": g("MODEL"),
                       "target_triple": g("TRIPLE"), "bound_known": num("BOUND_KNOWN"), "bounded_bytes": num("BOUNDED"),
                       "artifact_sha256": g("HDR_SHA"), "kernel_stack_bytes_in_header": num("HDR_KERNEL")},
+  # E38: the opt-in used to be absent here, so two trees that differed only in it had
+  # byte-identical app_knobs.  Record the requested value, the -D list of the actual
+  # ai_learner.c compile, and what the built binary itself witnesses.
   "app_knobs": {"route": g("KNOB_ROUTE"), "AI_LEARNER_BUDGET_BYTES": num("BUDGET"),
-                "AI_LEARNER_STACK_BASE_BYTES": num("STACK_BASE"), "AI_LEARNER_REPORT_EVERY": num("REPORT_EVERY")},
+                "AI_LEARNER_STACK_BASE_BYTES": num("STACK_BASE"), "AI_LEARNER_REPORT_EVERY": num("REPORT_EVERY"),
+                "AI_LEARNER_ALLOW_CONDITIONAL_MAP": num("ALLOW_COND"),
+                "ai_learner_compile_defines": g("AI_DEFINES").split()},
+  "optin_witness": (json.load(open(g("OPTIN_WITNESS"))) if os.path.exists(g("OPTIN_WITNESS")) else None),
   "task_stack": {"stack_base_bytes": num("STACK_BASE"), "kernel_stack_bytes": num("KERNEL"),
                  "startup_script_stack_bytes": num("STARTUP_STACK"), "startup_line": g("STARTUP_LINE").strip(),
                  "note": "task-stack budget bucket (AAPCS64 frame of the dispatch functions), not part of the HAL contract"},
