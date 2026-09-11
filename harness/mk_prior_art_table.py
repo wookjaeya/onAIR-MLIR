@@ -10,9 +10,13 @@ evidence grade.
 
 What this table can and cannot support (docs/plans/E39_novelty_audit.md SS4, SS7)
 --------------------------------------------------------------------------------
-Every content-level value here is `search_summary` grade: it comes from the search tool's
-own summary prose, NOT from an abstract or a full text -- WebFetch is EGRESS_BLOCKED for
-every external host in this environment, so no source was read directly. The table therefore
+Each content cell is supported only to the extent its own grade says. Most are
+`search_summary`: the search tool's summary prose, not an abstract and not a full text
+(WebFetch is EGRESS_BLOCKED for every external host here). One row is
+`fulltext_partial`: Scholar Gateway returned verbatim chunks of the paper, and the row
+records WHICH chunks and how many exist -- partial full text is not a full-text check.
+E39a's first pass graded every row `search_summary` because it never tried that tool;
+that is corrected here rather than left standing. The table therefore
 supports "in this search range the combination was not observed" and never "prior work did
 not solve this". Accounting-boundary cells (A2) are left as 불명 unless the grade is
 `fulltext`, because that is the axis this repository itself got wrong three times
@@ -73,9 +77,11 @@ def main():
     out.append("# E39a — 선행연구 비교표 (생성물 · 직접 편집 금지)\n")
     out.append("생성기: `harness/mk_prior_art_table.py` · 입력: `works.json`, `searches.json` · "
                "사전 고정 축: `docs/plans/E39_novelty_audit.md`\n")
-    out.append("> **증거 등급 경고.** 이 표의 내용 칸은 전부 `search_summary` 등급이다 — "
-               "검색 도구가 써 준 요약에서 왔고 **초록도 원문도 직접 읽지 않았다**"
-               "(`WebFetch`가 전 외부 호스트에서 `EGRESS_BLOCKED`). "
+    out.append("> **증거 등급 경고.** 이 표의 내용 칸은 각 행의 `등급`이 말하는 만큼만 지지된다. "
+               "대부분은 `search_summary`(검색 도구가 써 준 요약; 초록도 원문도 직접 읽지 않았다 — "
+               "`WebFetch`가 전 외부 호스트에서 `EGRESS_BLOCKED`)이고, `fulltext_partial`은 "
+               "Scholar Gateway가 반환한 **일부 청크 본문**이다(받은 청크 번호와 전체 청크 수를 "
+               "각 행에 적었다). "
                "따라서 이 표는 *\"이 검색 범위에서 조합이 확인되지 않았다\"*까지만 지지하고, "
                "*\"선행연구가 해결하지 못했다\"*는 **지지하지 않는다**.\n")
     out.append("## 축\n")
@@ -104,7 +110,19 @@ def main():
     out.append("## 집계\n")
     out.append("- 수록 연구: **%d건**(이 연구 포함 %d)" % (len(works) - 1, len(works)))
     out.append("- `불명`으로 남긴 칸: **%d개** — 회계 경계(A2)는 원문 근거 없이는 단정하지 않는다" % unknown)
-    out.append("- `fulltext` 등급 칸: **0개** (이 환경의 상한)")
+    # E39a 정정: 등급을 세어서 적는다. 첫 판은 "0개"를 리터럴로 박아 두어, 실제로 원문을
+    # 일부 받은 뒤에도 표가 계속 0이라고 말했을 것이다 (D68 계열 — 세지 않고 적은 값).
+    grades = [ (w.get("A9") or {}).get("content") for w in works ]
+    n_full = sum(1 for g in grades if g == "fulltext")
+    n_part = sum(1 for g in grades if g == "fulltext_partial")
+    out.append("- `fulltext`(전체 원문) 등급 칸: **%d개** · `fulltext_partial`(부분 원문) 칸: **%d개**"
+               % (n_full, n_part))
+    if n_part:
+        out.append("  - 부분 원문은 Scholar Gateway가 반환한 청크 본문이며, 각 행의 "
+                   "`fulltext_source`에 받은 청크 번호와 전체 청크 수를 적었다. **전체 원문 대조가 아니다.**")
+    out.append("  - 이 코퍼스는 이 표의 IEEE·ACM·Elsevier·arXiv 항목을 담고 있지 않다(실측): "
+               "같은 도구에 이 주제를 물어도 그 논문들의 본문은 나오지 않는다. "
+               "따라서 나머지 행의 등급은 그대로다.")
     out.append("- 실행한 검색식: **%d건** (`searches.json`)" % len(searches["queries"]))
     out.append("")
     out.append("## 이 표가 지지하는 문장 / 지지하지 않는 문장\n")
@@ -124,8 +142,8 @@ def main():
     with open(p, "w", encoding="utf-8") as f:
         f.write("\n".join(out) + "\n")
     print(p)
-    print("  works=%d (+this) · 불명 cells=%d · fulltext cells=0 · queries=%d"
-          % (len(works) - 1, unknown, len(searches["queries"])))
+    print("  works=%d (+this) · 불명 cells=%d · fulltext=%d · fulltext_partial=%d · queries=%d"
+          % (len(works) - 1, unknown, n_full, n_part, len(searches["queries"])))
     return 0
 
 

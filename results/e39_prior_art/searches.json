@@ -21,5 +21,16 @@
   "MLIR compiler generated memory contract flight software admission decision before runtime initialization satellite",
   "ExecuTorch memory planning algorithm planned memory arena peak memory edge deployment"
  ],
- "note": "이 목록은 실제로 실행한 검색식이다. 구조화 DB(IEEE Xplore·ACM DL·Scopus·WoS) 안에서의 검색은 이 환경에서 실행할 수 없으므로 건수 기록이 없다 — 로드맵 §3.3-1이 요구한 형태를 충족하지 못한다."
+ "note": "이 목록은 실제로 실행한 검색식이다. 구조화 DB(IEEE Xplore·ACM DL·Scopus·WoS) 안에서의 검색은 이 환경에서 실행할 수 없으므로 건수 기록이 없다 — 로드맵 §3.3-1이 요구한 형태를 충족하지 못한다.",
+ "fulltext_tool": {
+  "name": "mcp__Scholar_Gateway__semanticSearch",
+  "executed_utc": "2026-09-11T01:53:48Z",
+  "why_added": "E39a의 첫 판은 이 도구를 쓰지 않은 채 모든 행을 `search_summary`로 등급 매기고 `fulltext 0건`을 저장소의 상한이라고 적었다. 실제로는 이 도구가 일부 논문의 원문 청크를 반환한다 — 등급을 내가 덜 써 본 결과였지 환경의 상한이 아니었다.",
+  "queries": [
+   "Does the NASA OnAIR cognitive architecture for spacecraft onboard artificial intelligence perform static memory admission or memory budget checking before running an AI model plugin?",
+   "Compiler-level static analysis of deep neural network memory requirements to prevent out-of-memory failures on embedded devices, using ONNX-MLIR or MLIR intermediate representation to compute peak memory before deployment"
+  ],
+  "measured_coverage": "1차 질의는 OnAIR 논문의 AI Magazine 공동 게재본(10.1002/aaai.70020, open access) 청크 1·3·5·10(전체 16)을 본문째 반환했다. 2차 질의는 이 표의 IEEE·ACM·Elsevier·arXiv 항목을 하나도 반환하지 않고 Wiley/ETRI 계열만 반환했다 — 즉 이 코퍼스는 나머지 행의 원문을 담고 있지 않다. 그래서 등급이 올라간 행은 1건뿐이다.",
+  "not_added_as_prior_art": "2차 질의가 반환한 10.1002/sys.70060(이종 가속기 클라우드 오케스트레이션, 비용 절감)은 온보드 정적 메모리 admission과 주제가 다르므로 표에 넣지 않았다."
+ }
 }

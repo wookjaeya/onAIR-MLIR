@@ -2,7 +2,7 @@
 
 생성기: `harness/mk_prior_art_table.py` · 입력: `works.json`, `searches.json` · 사전 고정 축: `docs/plans/E39_novelty_audit.md`
 
-> **증거 등급 경고.** 이 표의 내용 칸은 전부 `search_summary` 등급이다 — 검색 도구가 써 준 요약에서 왔고 **초록도 원문도 직접 읽지 않았다**(`WebFetch`가 전 외부 호스트에서 `EGRESS_BLOCKED`). 따라서 이 표는 *"이 검색 범위에서 조합이 확인되지 않았다"*까지만 지지하고, *"선행연구가 해결하지 못했다"*는 **지지하지 않는다**.
+> **증거 등급 경고.** 이 표의 내용 칸은 각 행의 `등급`이 말하는 만큼만 지지된다. 대부분은 `search_summary`(검색 도구가 써 준 요약; 초록도 원문도 직접 읽지 않았다 — `WebFetch`가 전 외부 호스트에서 `EGRESS_BLOCKED`)이고, `fulltext_partial`은 Scholar Gateway가 반환한 **일부 청크 본문**이다(받은 청크 번호와 전체 청크 수를 각 행에 적었다). 따라서 이 표는 *"이 검색 범위에서 조합이 확인되지 않았다"*까지만 지지하고, *"선행연구가 해결하지 못했다"*는 **지지하지 않는다**.
 
 ## 축
 
@@ -20,7 +20,7 @@
 
 | 연구 | A1 | A2 | A3 | A4 | A5 | A6 | A7 | A8 | 등급 |
 |---|---|---|---|---|---|---|---|---|---|
-| **OnAIR: Applications of the NASA On-Board Artificial Intelligence Research Platform** | 해당 없음 (플랫폼) | 불명 | 아니오 | 판정 없음 | 해당 없음 | cFS·OnAIR (본체) | 비행 SW / 위성·드론·로봇 | 아니오 | `search_summary` |
+| **OnAIR: Applications of the NASA On-Board Artificial Intelligence Research Platform** | 해당 없음 (플랫폼) | 불명 | 아니오 | 판정 없음 | 해당 없음 | cFS·OnAIR (본체) | 비행 SW / 위성·드론·로봇 | 아니오 | `fulltext_partial` |
 | **TinyIREE: An ML Execution Environment for Embedded Systems from Compilation to Deployment** | 컴파일러 IR (MLIR/IREE) | 불명 | 부분 (임베디드 배포 옵션) | 판정 없음 | 해당 없음 | 일반 임베디드 / bare-metal | MCU·CPU (LLVM ISA/ABI) | 아니오 | `search_summary` |
 | **MLIR: Scaling Compiler Infrastructure for Domain Specific Computation** | 컴파일러 IR | 불명 | 아니오 | 판정 없음 | 해당 없음 | 없음 | 전방위 | 아니오 | `search_summary` |
 | **TensorFlow Lite Micro: Embedded Machine Learning on TinyML Systems** | 배포 아티팩트 (FlatBuffer 모델) | 비영속 버퍼 재사용 계획 + 영속 메타데이터 + scratch. **주의**: `arena_used_bytes()`는 scratch를 포함하지 않는다(공개 이슈 #890) | 예 (arena 크기) | 판정 없음 (문서는 debugging only로 표기) | enforced (arena를 실제로 잡음) | 없음 (MCU 런타임) | MCU 정적 arena | 아니오 | `search_summary` |
@@ -40,7 +40,7 @@
 - URL: <https://ojs.aaai.org/index.php/AAAI/article/view/35156>
 - URL: <https://dl.acm.org/doi/10.1609/aaai.v39i28.35156>
 - 이 연구와의 관계: 이 연구가 올라타는 플랫폼 (경쟁 대상 아님)
-- 근거: 검색 요약: 온보드 지능 시스템의 전 생애주기 AI 연구를 가능하게 하는 오픈소스 파이프라인·인지 아키텍처 도구. 네 가지 활용 사례. 메모리 상한·admission 언급 없음
+- 근거: **부분 원문**(AI Magazine 공동 게재본 4/16 청크): 인지 아키텍처·플러그인 인터페이스·배치 사례를 서술하고, 메모리 상한이나 실행 전 admission은 반환된 청크 어디에도 없다. 이전 판의 근거는 검색 요약이었다(E39a 정정)
 
 ### TinyIREE: An ML Execution Environment for Embedded Systems from Compilation to Deployment
 - 위치: IEEE Micro 42(5) 2022, 9-16 · DOI 10.1109/MM.2022.3178068
@@ -117,7 +117,9 @@
 
 - 수록 연구: **11건**(이 연구 포함 12)
 - `불명`으로 남긴 칸: **10개** — 회계 경계(A2)는 원문 근거 없이는 단정하지 않는다
-- `fulltext` 등급 칸: **0개** (이 환경의 상한)
+- `fulltext`(전체 원문) 등급 칸: **0개** · `fulltext_partial`(부분 원문) 칸: **1개**
+  - 부분 원문은 Scholar Gateway가 반환한 청크 본문이며, 각 행의 `fulltext_source`에 받은 청크 번호와 전체 청크 수를 적었다. **전체 원문 대조가 아니다.**
+  - 이 코퍼스는 이 표의 IEEE·ACM·Elsevier·arXiv 항목을 담고 있지 않다(실측): 같은 도구에 이 주제를 물어도 그 논문들의 본문은 나오지 않는다. 따라서 나머지 행의 등급은 그대로다.
 - 실행한 검색식: **12건** (`searches.json`)
 
 ## 이 표가 지지하는 문장 / 지지하지 않는 문장
