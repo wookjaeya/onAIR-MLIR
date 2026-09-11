@@ -80,11 +80,35 @@ def main():
     dep["deployments"][a.deployment]["record_path"] = record
     # keep relative paths resolvable: the plugin resolves them against the config's dir
     cell_config = os.path.join(os.path.abspath(a.out), "deployment.json")
+    # E42/E43: this list used to be ("artifact_dir", "fixture_dir") -- the two keys the
+    # compiled_learner deployment happens to use. The LiteRT baseline declares `model_file`
+    # instead, and an unresolved `../..` path silently became `results/results/...` relative
+    # to the CELL directory. It refused with a clear message (the plugin reports refusals as
+    # state), but the harness had produced the wrong config in the first place.
+    #
+    # That is D62's pattern for the third time: a procedure set up for one deployment shape,
+    # applied to another, is the test of that procedure. So rather than only adding the key,
+    # the loop now REFUSES any `..`-relative path under a key it does not know how to resolve
+    # -- a new deployment key can no longer be silently mis-rooted.
+    #
+    # The set stays explicit rather than "anything ending in _file": `contract_file` is a bare
+    # filename joined to artifact_dir, and resolving it would make that join return the wrong
+    # absolute path. Over-generalising here would be its own defect.
+    PATH_KEYS = ("artifact_dir", "fixture_dir", "model_file")
+    cfg_dir = os.path.dirname(os.path.abspath(a.config))
     for name, d in dep["deployments"].items():
-        for key in ("artifact_dir", "fixture_dir"):
+        for key, val in d.items():
+            if not isinstance(val, str) or key in PATH_KEYS or key.startswith("_"):
+                continue
+            if val.startswith("..") or val.startswith("./"):
+                raise SystemExit(
+                    "onair_integration_check: deployment %r carries a config-relative path "
+                    "under %r (%r), which this harness does not know how to re-root. Add the "
+                    "key to PATH_KEYS or make the value absolute -- silently leaving it "
+                    "relative would re-root it against the cell directory." % (name, key, val))
+        for key in PATH_KEYS:
             if d.get(key) and not os.path.isabs(d[key]):
-                d[key] = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(a.config)),
-                                                       d[key]))
+                d[key] = os.path.normpath(os.path.join(cfg_dir, d[key]))
     with open(cell_config, "w", encoding="utf-8") as f:
         json.dump(dep, f, indent=1)
 

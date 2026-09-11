@@ -5783,6 +5783,120 @@ def e35_d72_structural_agreement_cases():
 
 
 
+
+def e43_pure_onair_cases(tmp):
+    """E42/E43: the pure-OnAIR baseline, and what it is NOT allowed to say.
+
+    The roadmap asked for four cells. Two of them already existed, so this experiment
+    MEASURES two and CITES two -- and the distinction is pinned here, because re-running
+    p_admit/p_deny and then counting four new cells is exactly the duplicate-evidence
+    inflation D72 corrected.
+
+    The other half of these cases guards the FRAMING. Pure OnAIR has no contract of this
+    research's kind; its null admission means "no such step on this path", never "the step
+    passed", and never "OnAIR is deficient" (roadmap 7.1, adopted verbatim in the plan).
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e43_pure_onair")
+    summ = load(os.path.join(D, "summary.json"))
+    rows = {r["id"]: r for r in summ["rows"]}
+
+    # the four paths, exactly as measured/cited
+    for pid, adm, runtime, infers in (("O0", None, True, 5), ("O1", "NOT_EVALUATED", True, 5),
+                                      ("O2", "ADMIT", True, 5), ("O3", "NOT_ADMITTED", False, 0)):
+        r = rows[pid]
+        results.append(Result("e43: %s -- admission %s, runtime_created=%s, %d inference(s)"
+                              % (pid, adm, runtime, infers),
+                              r["admission_verdict"] == adm and r["runtime_created"] is runtime
+                              and r["inferences"] == infers
+                              and r["official_loader_constructed"] is True
+                              and r["onair_core_unmodified"] is True,
+                              "%s" % {k: r.get(k) for k in ("admission_verdict", "runtime_created",
+                                                            "inferences", "onair_core_unmodified")}))
+    results.append(Result("e43: only O3 refuses before the runtime exists -- that difference IS "
+                          "what the proposed path adds",
+                          [rows[p]["runtime_created"] for p in ("O0", "O1", "O2", "O3")]
+                          == [True, True, True, False],
+                          "%s" % {p: rows[p]["runtime_created"] for p in ("O0", "O1", "O2", "O3")}))
+
+    # measured vs cited, and the cited cells' own limitations carried forward
+    results.append(Result("e43: two cells are MEASURED here and two are CITED -- not four new cells",
+                          summ["cells_measured_here"] == 2 and summ["cells_cited"] == 2
+                          and rows["O2"]["kind"].startswith("CITED")
+                          and rows["O0"]["kind"].startswith("MEASURED"),
+                          "measured=%s cited=%s" % (summ["cells_measured_here"], summ["cells_cited"])))
+    results.append(Result("e43: citing p_admit carries D60's limitation (nanobind leak; memory "
+                          "release NOT VERIFIED) rather than laundering it",
+                          "nanobind" in (rows["O2"]["known_limitation"] or "")
+                          and "NOT VERIFIED" in (rows["O2"]["known_limitation"] or ""),
+                          "O2 limitation missing"))
+    results.append(Result("e43: citing p_deny states that 'runtime not created' rests on the "
+                          "documented order, not on a recorded signal",
+                          "not on a recorded signal" in (rows["O3"]["known_limitation"] or "")
+                          or "rests on" in (rows["O3"]["known_limitation"] or ""),
+                          "O3 limitation missing"))
+
+    # O0's absences are by construction, and the plugin says so where a machine reads it
+    o0 = rows["O0"]
+    results.append(Result("e43: O0 has no contract and no admission gate, recorded as structural "
+                          "facts rather than as passes",
+                          o0["has_contract"] is False and o0["has_admission_gate"] is False
+                          and o0["admission_verdict"] is None,
+                          "%s" % {k: o0.get(k) for k in ("has_contract", "has_admission_gate",
+                                                         "admission_verdict")}))
+    src = open(os.path.join(repo, "plugins", "litert_learner",
+                            "litert_learner_plugin.py"), encoding="utf-8").read()
+    results.append(Result("e43: the baseline plugin forbids the two framings the roadmap forbids",
+                          "not a defect" in src.lower() or "none of those absences is a defect" in src.lower(),
+                          "the plugin does not state that its absences are not OnAIR defects"))
+    results.append(Result("e43: the baseline records NO memory figure (roadmap 7.5 -- different "
+                          "accounting boundaries must not be compared)",
+                          "rss" not in src.lower().replace("process rss", "")
+                          or "records NO memory figure" in src or "no memory figure at all" in src,
+                          "the baseline appears to record a memory figure"))
+    results.append(Result("e43: O0 runs the ORIGINAL .tflite, so its NHWC tensor comes from the "
+                          "same fixture as the sibling's NCHW one -- a value, not a branch",
+                          'sample_file_pattern' in src and 'nhwc' in src.lower(),
+                          "the layout choice is not a deployment value"))
+
+    # the harness path-key defect this experiment exposed
+    h = open(os.path.join(HERE, "onair_integration_check.py"), encoding="utf-8").read()
+    results.append(Result("e43: the harness resolves model_file too, and REFUSES a config-relative "
+                          "path under a key it cannot re-root (D62's pattern, third time)",
+                          "PATH_KEYS" in h and '"model_file"' in h
+                          and "does not know how to re-root" in h,
+                          "the harness still resolves only two hardcoded keys"))
+
+    # Q3: O0 reproduces the archived TFLite oracle bit for bit (same original, same LiteRT)
+    if _np_ok():
+        import numpy as _np                                        # noqa: PLC0415
+        recs = []
+        rp = os.path.join(D, "o0_pure_onair_litert", "plugin_records.jsonl")
+        with open(rp, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        recs.append(json.loads(line))
+                    except ValueError:
+                        pass
+        inf = [r for r in recs if r.get("event") == "inference"]
+        orc = {r["sample_id"]: r["output"] for r in
+               load(os.path.join(repo, "results", "e31_smartcam_equivalence",
+                                 "oracle_tflite.json"))["results"]}
+        worst = max((float(_np.abs(_np.asarray(orc[r["sample_id"]], dtype=_np.float64)
+                                   - _np.asarray(r["output"], dtype=_np.float64)).max())
+                     for r in inf if r["sample_id"] in orc), default=None)
+        results.append(Result("e43/Q3: O0's outputs are BIT-IDENTICAL to the archived TFLite "
+                              "oracle -- same original model, same interpreter",
+                              len(inf) == 5 and worst == 0.0,
+                              "n=%d worst_abs=%s" % (len(inf), worst)))
+    else:
+        results.append(Result("e43/Q3: O0 vs oracle", True, "numpy not installed", skip=True))
+    return results
+
+
 def e46_wgan_cases(tmp):
     """E46: the fourth real public model -- and the two defects importing it exposed.
 
@@ -6488,6 +6602,7 @@ def main():
         all_results += e45_real_inputs_cases(tmp)
         all_results += mlir_pass_scope_decision_cases()
         all_results += e46_wgan_cases(tmp)
+        all_results += e43_pure_onair_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

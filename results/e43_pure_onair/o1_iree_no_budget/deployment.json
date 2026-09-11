@@ -3,9 +3,9 @@
  "_scope": "budget_bytes is a per-app local budget, not a whole-computer figure, and the contract it is compared against covers IREE-HAL-owned allocations only.",
  "deployments": {
   "smartcam": {
-   "artifact_dir": "../../results/p1_smartcam_feasibility/build",
+   "artifact_dir": "/home/user/onAIR-MLIR/results/p1_smartcam_feasibility/build",
    "input_mode": "file_replay",
-   "fixture_dir": "../../results/e31_smartcam_equivalence/fixture",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
    "sample_file_pattern": "inputs/%s.nchw.npy",
    "call_abi": "input_only",
    "driver": "local-sync",
@@ -27,9 +27,9 @@
    "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused."
   },
   "smartcam_deny": {
-   "artifact_dir": "../../results/p1_smartcam_feasibility/build",
+   "artifact_dir": "/home/user/onAIR-MLIR/results/p1_smartcam_feasibility/build",
    "input_mode": "file_replay",
-   "fixture_dir": "../../results/e31_smartcam_equivalence/fixture",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
    "sample_file_pattern": "inputs/%s.nchw.npy",
    "call_abi": "input_only",
    "driver": "local-sync",
@@ -51,9 +51,9 @@
    "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused."
   },
   "smartcam_mismatch": {
-   "artifact_dir": "../../results/e33_onair_official/_mismatch_artifacts",
+   "artifact_dir": "/home/user/onAIR-MLIR/results/e33_onair_official/_mismatch_artifacts",
    "input_mode": "file_replay",
-   "fixture_dir": "../../results/e31_smartcam_equivalence/fixture",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
    "sample_file_pattern": "inputs/%s.nchw.npy",
    "call_abi": "input_only",
    "driver": "local-sync",
@@ -76,7 +76,7 @@
    "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused."
   },
   "legacy_mlp": {
-   "artifact_dir": "../../plugins/compiled_learner/runtime",
+   "artifact_dir": "/home/user/onAIR-MLIR/plugins/compiled_learner/runtime",
    "contract_file": "contract.json",
    "input_mode": "telemetry",
    "call_abi": "input_plus_external_weights",
@@ -87,9 +87,9 @@
    "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused."
   },
   "smartcam_wrong_driver": {
-   "artifact_dir": "../../results/p1_smartcam_feasibility/build",
+   "artifact_dir": "/home/user/onAIR-MLIR/results/p1_smartcam_feasibility/build",
    "input_mode": "file_replay",
-   "fixture_dir": "../../results/e31_smartcam_equivalence/fixture",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
    "sample_file_pattern": "inputs/%s.nchw.npy",
    "call_abi": "input_only",
    "driver": "local-task",
@@ -115,7 +115,7 @@
    "_path": "O0 (roadmap section 7.3): pure OnAIR baseline. NO contract, NO admission, NO artifact binding -- those absences are what the proposed path adds, not defects of OnAIR (roadmap 7.1).",
    "model_file": "../../results/p1_smartcam_feasibility/original/model.tflite",
    "input_mode": "file_replay",
-   "fixture_dir": "../../results/e31_smartcam_equivalence/fixture",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
    "sample_file_pattern": "inputs/%s.nhwc.npy",
    "_pattern_note": "NHWC because this path runs the ORIGINAL .tflite; the sibling reads .nchw.npy for the imported IREE artifact. A value, not a branch (E34).",
    "sample_index_header": "SAMPLE_INDEX",
@@ -131,9 +131,9 @@
    "_no_memory_note": "this cell records no memory figure at all. Roadmap 7.5 forbids comparing LiteRT process RSS with the partial contract value (different accounting boundaries), and not recording it is the only version of that rule that holds."
   },
   "smartcam_no_budget": {
-   "artifact_dir": "../../results/p1_smartcam_feasibility/build",
+   "artifact_dir": "/home/user/onAIR-MLIR/results/p1_smartcam_feasibility/build",
    "input_mode": "file_replay",
-   "fixture_dir": "../../results/e31_smartcam_equivalence/fixture",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
    "sample_file_pattern": "inputs/%s.nchw.npy",
    "call_abi": "input_only",
    "driver": "local-sync",
@@ -152,7 +152,8 @@
    "telemetry": "smartcam_replay",
    "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused.",
    "_path": "O1 (roadmap section 7.3): the IREE executor with the contract loaded but admission NOT evaluated -- separates 'changed the executor' from 'added the contract decision'. Zero new code: omitting budget_bytes yields NOT_EVALUATED.",
-   "_o1_note": "the only NOT_EVALUATED cell measured before this one is legacy_mlp (an old contract with no bound), so a SmartCam NOT_EVALUATED cell is new."
+   "_o1_note": "the only NOT_EVALUATED cell measured before this one is legacy_mlp (an old contract with no bound), so a SmartCam NOT_EVALUATED cell is new.",
+   "record_path": "/home/user/onAIR-MLIR/results/e43_pure_onair/o1_iree_no_budget/plugin_records.jsonl"
   }
  }
 }
