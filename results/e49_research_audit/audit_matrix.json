@@ -1,0 +1,228 @@
+{
+  "tool": "harness/e49_audit_matrix.py",
+  "experiment": "E49",
+  "guide": "docs/reviews/MEMORY_CONTRACT_CORE_VALIDATION_GUIDE.md (SS6~SS10)",
+  "rule": "측정하지 않은 값은 null + unavailable_reason 이며 0 이나 false 로 대체하지 않는다(지침 SS11; 이 저장소의 D29·D51·D68).",
+  "premises": {
+    "static_shapes": {
+      "status": "OBSERVED",
+      "how": "계약 생성기가 entry ABI 에서 유도하고, 동적 형상은 계약이 생성되지 않는다",
+      "evidence": "results/e14_aarch64_qemu/*/contracts/contract.dynamic.* (bound_method NONE, REFUSED_UNKNOWN_BOUND)"
+    },
+    "supported_resource_ops": {
+      "status": "OBSERVED",
+      "how": "E49 allocation ledger 가 네 실물 모델의 entry op 을 전수 분류하고 미분류 0 · stream.async.* 0 을 확인한다(D84)",
+      "evidence": "results/e49_research_audit/ledger/*.json"
+    },
+    "max_in_flight_calls_is_1": {
+      "status": "ARGUED_FROM_SOURCE",
+      "observed_value": null,
+      "unavailable_reason": "배포 경로가 IREE invoke 의 진입·종료에 call id 를 기록하지 않는다. 세어 본 것은 **작업 생성 호출 수**이고 그것은 논증이지 관측이 아니다(지침 PRE-1 은 max_active_calls 관측을 요구한다).",
+      "spawn_call_counts": {
+        "cfs_app": {
+          "source_present": true,
+          "spawn_calls": {
+            "pthread_create": 0,
+            "CFE_ES_CreateChildTask": 0,
+            "OS_TaskCreate": 0,
+            "threading.Thread": 0,
+            "multiprocessing": 0
+          },
+          "total": 0
+        },
+        "native_runner": {
+          "source_present": true,
+          "spawn_calls": {
+            "pthread_create": 0,
+            "CFE_ES_CreateChildTask": 0,
+            "OS_TaskCreate": 0,
+            "threading.Thread": 0,
+            "multiprocessing": 0
+          },
+          "total": 0
+        },
+        "onair_plugin": {
+          "source_present": true,
+          "spawn_calls": {
+            "pthread_create": 0,
+            "CFE_ES_CreateChildTask": 0,
+            "OS_TaskCreate": 0,
+            "threading.Thread": 0,
+            "multiprocessing": 0
+          },
+          "total": 0
+        }
+      },
+      "measured_elsewhere": "E41 이 별도 프로브로 N 스레드 동시 호출의 HAL 피크를 쟀다 — 그것은 전제를 **어겼을 때** 무슨 일이 생기는지의 측정이지 배포가 전제를 지킨다는 관측이 아니다."
+    },
+    "output_released_before_next_call": {
+      "status": "SPLIT",
+      "c_runners": {
+        "status": "ARGUED_FROM_SOURCE",
+        "how": "두 C 실행기가 호출마다 버퍼뷰를 release 한다(소스 검사)"
+      },
+      "onair_plugin": {
+        "status": "NOT_VERIFIED",
+        "observed_value": null,
+        "unavailable_reason": "D60: p_admit 원자료가 종료 시점 `nanobind: leaked 10 instances` 를 남긴다. 해제됐다고도, 누수라고도 쓸 수 없다.",
+        "raw": "results/e33_onair_official/p_admit/run.json"
+      }
+    },
+    "declared_driver_matches_deployment": {
+      "status": "OBSERVED",
+      "how": "OnAIR 플러그인이 admission·binding 보다 먼저 계약 선언과 배포 driver 를 대조하고 선언이 하나도 없으면 거부한다(E41 조건 5)",
+      "evidence": "plugins/compiled_learner/artifact_binding.py::check_declared_driver"
+    },
+    "conditional_map_arm": {
+      "status": "OBSERVED",
+      "observed": {
+        "module_ptr_mod64": 0,
+        "hal_peak_after_append": 0,
+        "arm": "map",
+        "admission_mode": "conditional_map"
+      },
+      "how": "앱이 런타임 생성 **전에** 정렬을 검사하고 append 직후 피크로 분기를 확정한다(E29b). 전제 불충족이면 추론 0 으로 거부.",
+      "evidence": "results/e38_optin_record/summary.json cells.cond_positive"
+    }
+  },
+  "accounting_scope": {
+    "U_static_bound": {
+      "produced_by": "harness/make_contract.py",
+      "unit": "byte",
+      "time": "compile-time",
+      "includes": "I + O_slab + T_slab (+ C in the unconditional value)",
+      "excludes": "IREE runtime context (VM, HAL device, module tables), the task stack, cFS/OSAL memory, wrapper I/O and file-load temporaries. See resources.scope -- this exclusion is the 'partial' in 'partial per-app model-execution memory contract'."
+    },
+    "B_budget": {
+      "produced_by": "배포 설정 (macro / override / argv / deployment_config / none)",
+      "unit": "byte",
+      "time": "admission-time",
+      "scope": "per_app_local_budget",
+      "reservation_semantics": "declared (예약 능력이 있는 호출 0건 — E44)"
+    },
+    "H_observed": {
+      "produced_by": "IREE HAL allocator statistics",
+      "unit": "byte",
+      "time": "runtime",
+      "excludes": "allocator 밖 메모리(프로세스 RSS·모듈 이미지·태스크 스택)"
+    },
+    "same_scope_id": {
+      "declared_in_contract": true,
+      "archived_contracts_total": 30,
+      "archived_contracts_carrying_analysis_domain": 1,
+      "note": "E40 이 신설한 `analysis_domain`/`accounting_rules` 는 그 이후에 만든 계약만 싣는다 — 보관 계약 30 개 중 1 개다. 배포에 쓰인 세 실물 모델의 계약에는 **없다**. 게이트를 약화시키지는 않는다(driver 검사는 세 자리 중 하나도 없으면 거부 = fail-closed)지만, *'계약이 두 분기와 정렬 전제를 선언한다'* 는 서술의 범위가 **그 이후 생성분**임을 여기에 적는다. 소급 재생성은 E47 이 실측으로 거부했다(축소 dump 에서 재생성하면 provenance 두 필드가 퇴화한다)."
+    },
+    "module_image_excluded": null
+  },
+  "admission_matrix": {
+    "cells": [
+      {
+        "id": "ADM-1",
+        "description": "known bound, B >= U",
+        "budget": 1000,
+        "opt_in": false,
+        "expected_verdict": "ADMIT",
+        "verdict": "ADMIT",
+        "expected_inference_starts": true,
+        "inference_starts": true,
+        "admitted_budget_bytes": 1000,
+        "input_error": null,
+        "ok": true
+      },
+      {
+        "id": "ADM-2",
+        "description": "known bound, B < P, no opt-in",
+        "budget": 399,
+        "opt_in": false,
+        "expected_verdict": "NOT_ADMITTED",
+        "verdict": "NOT_ADMITTED",
+        "expected_inference_starts": false,
+        "inference_starts": false,
+        "admitted_budget_bytes": null,
+        "input_error": null,
+        "ok": true
+      },
+      {
+        "id": "ADM-3",
+        "description": "known bound, P <= B < U, no opt-in",
+        "budget": 400,
+        "opt_in": false,
+        "expected_verdict": "NOT_ADMITTED",
+        "verdict": "NOT_ADMITTED",
+        "expected_inference_starts": false,
+        "inference_starts": false,
+        "admitted_budget_bytes": null,
+        "input_error": null,
+        "ok": true
+      },
+      {
+        "id": "ADM-4",
+        "description": "known bound, P <= B < U, opt-in",
+        "budget": 400,
+        "opt_in": true,
+        "expected_verdict": "ADMIT_CONDITIONAL_MAP",
+        "verdict": "ADMIT_CONDITIONAL_MAP",
+        "expected_inference_starts": true,
+        "inference_starts": true,
+        "admitted_budget_bytes": 400,
+        "input_error": null,
+        "ok": true
+      },
+      {
+        "id": "ADM-5",
+        "description": "opt-in but B < P (arm cannot help)",
+        "budget": 399,
+        "opt_in": true,
+        "expected_verdict": "NOT_ADMITTED",
+        "verdict": "NOT_ADMITTED",
+        "expected_inference_starts": false,
+        "inference_starts": false,
+        "admitted_budget_bytes": null,
+        "input_error": null,
+        "ok": true
+      },
+      {
+        "id": "ADM-6",
+        "description": "unknown bound",
+        "budget": 1000,
+        "opt_in": false,
+        "expected_verdict": "REFUSED_UNKNOWN_BOUND",
+        "verdict": "REFUSED_UNKNOWN_BOUND",
+        "expected_inference_starts": false,
+        "inference_starts": false,
+        "admitted_budget_bytes": null,
+        "input_error": null,
+        "ok": true
+      },
+      {
+        "id": "ADM-7",
+        "description": "malformed budget (not an int)",
+        "budget": "x",
+        "opt_in": false,
+        "expected_verdict": "INPUT_ERROR",
+        "verdict": "INPUT_ERROR",
+        "expected_inference_starts": false,
+        "inference_starts": false,
+        "admitted_budget_bytes": null,
+        "input_error": "budget_bytes is 'x', not an integer",
+        "ok": true
+      },
+      {
+        "id": "ADM-8",
+        "description": "self-inconsistent contract (U != P + C)",
+        "budget": 1000,
+        "opt_in": false,
+        "expected_verdict": "INPUT_ERROR",
+        "verdict": "INPUT_ERROR",
+        "expected_inference_starts": false,
+        "inference_starts": false,
+        "admitted_budget_bytes": null,
+        "input_error": "contract is self-inconsistent: bounded 1001 != per_call 400 + constants 600",
+        "ok": true
+      }
+    ],
+    "all_ok": true,
+    "policy": "harness/admission_policy.py (the real decision function, not a restatement)",
+    "note": "ADM-5 는 지침 표의 *'copy arm / 전제 실패'* 와 다르다 — 정책 함수는 전제를 보지 않는다. 전제 검증은 **런타임**이 하고(E29b: append 전 정렬 검사, append 후 피크 != 0 거부) 그것이 D53/D54 가 고친 자리다. 정책 층에서 B < P 이면 arm 과 무관하게 거부된다는 것이 여기서 고정하는 사실이다."
+  }
+}

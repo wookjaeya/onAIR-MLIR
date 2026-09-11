@@ -5806,6 +5806,160 @@ def bp_marker():
     return bp.FIXTURE_MARKER
 
 
+def e49_audit_matrix_cases(tmp):
+    """E49: the premise / accounting / admission matrices, and the honesty rule they follow.
+
+    The point of these checks is not that every premise is OBSERVED -- two are not, and saying
+    so is the deliverable. What is pinned:
+
+    (1) ADM-1..8 match the REAL decision function, so a policy change shows up here;
+    (2) a premise that was not observed carries `null` + `unavailable_reason`, never 0/false
+        (the guide SS11; this repository's D29 / D51 / D68);
+    (3) the count of archived contracts carrying E40's `analysis_domain` is DERIVED, so the
+        scope sentence ("the contract declares the two arms") cannot quietly become false;
+    (4) the spawn-call counts that justify `max_in_flight_calls = 1` are zero AND labelled
+        as an argument rather than an observation.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    path = os.path.join(repo, "results", "e49_research_audit", "audit_matrix.json")
+    if not os.path.exists(path):
+        results.append(Result("e49: audit matrix present", False, "missing %s" % path))
+        return results
+    m = load(path)
+
+    am = m["admission_matrix"]
+    _ok = am["all_ok"] and len(am["cells"]) == 8
+    results.append(Result("e49/ADM: all 8 policy cells match the expected verdict AND the "
+                          "expected 'did inference start' (evaluated against admission_policy.py "
+                          "itself, not a restatement)", _ok,
+                          "" if _ok else json.dumps([c for c in am["cells"] if not c["ok"]])[:260]))
+
+    ids = [c["id"] for c in am["cells"]]
+    _ok = ids == ["ADM-%d" % i for i in range(1, 9)]
+    results.append(Result("e49/ADM: the matrix covers ADM-1..8 with no cell quietly dropped",
+                          _ok, "got %r" % (ids,)))
+
+    pr = m["premises"]
+    mif = pr["max_in_flight_calls_is_1"]
+    _ok = (mif["status"] == "ARGUED_FROM_SOURCE" and mif["observed_value"] is None
+           and mif.get("unavailable_reason"))
+    results.append(Result("e49/PRE-1: max_in_flight_calls is recorded as ARGUED_FROM_SOURCE with "
+                          "observed_value null -- counting spawn calls in the source is an "
+                          "argument, and calling it an observation would be D51's shape", _ok,
+                          "" if _ok else json.dumps(mif)[:200]))
+
+    counts = mif["spawn_call_counts"]
+    _ok = all(v.get("source_present") and v.get("total") == 0 for v in counts.values())
+    results.append(Result("e49/PRE-1: and the three deployment sources really do create no tasks "
+                          "or threads (0/0/0, counted not claimed)", _ok,
+                          "" if _ok else json.dumps(counts)[:220]))
+
+    onair = pr["output_released_before_next_call"]["onair_plugin"]
+    _ok = (onair["status"] == "NOT_VERIFIED" and onair["observed_value"] is None
+           and "nanobind" in (onair.get("unavailable_reason") or ""))
+    results.append(Result("e49/PRE-2: the OnAIR output lifetime stays NOT_VERIFIED with the D60 "
+                          "reason attached -- neither 'released' nor 'leaked' may be written",
+                          _ok, "" if _ok else json.dumps(onair)[:200]))
+
+    sc = m["accounting_scope"]["same_scope_id"]
+    _ok = (isinstance(sc["archived_contracts_total"], int)
+           and isinstance(sc["archived_contracts_carrying_analysis_domain"], int)
+           and sc["archived_contracts_carrying_analysis_domain"] <= sc["archived_contracts_total"])
+    results.append(Result("e49/ACC: the number of archived contracts carrying E40's "
+                          "analysis_domain is COUNTED (%s of %s) -- the scope sentence cannot "
+                          "drift away from the artifacts"
+                          % (sc["archived_contracts_carrying_analysis_domain"],
+                             sc["archived_contracts_total"]), _ok, ""))
+
+    # the honesty rule itself: no premise may report a measured-looking 0/false where it means
+    # "not measured"
+    bad = []
+    for name, v in pr.items():
+        if isinstance(v, dict) and v.get("status") in ("NOT_VERIFIED", "ARGUED_FROM_SOURCE"):
+            if v.get("observed_value", "MISSING") is not None:
+                bad.append(name)
+    results.append(Result("e49: every premise that was not observed reports observed_value=null, "
+                          "never 0 or false (guide SS11; D29/D51/D68)", not bad,
+                          "" if not bad else ", ".join(bad)))
+    return results
+
+
+def e49_alloc_ledger_cases(tmp):
+    """E49: the allocation ledger -- every contract component traced to an IR operation.
+
+    The validation guide (SS5, SND-1/SND-2) asks for a derivation, not just the sums. Four
+    things are pinned here:
+
+    (1) for all four real models the ledger's I/O/T/C equal the contract's, and
+        I + O + T equals `static_per_call_bytes` exactly;
+    (2) no operation in the entry is left unclassified;
+    (3) **D84** -- the production parser's regex only ever looks at `stream.(resource|tensor).*`.
+        That limit is safe only while the post-layout entry contains no `stream.async.*`
+        (the allocating pre-scheduling ops). Measured: 1,020 occurrences across the archived
+        layout IR FILES, 0 inside the last entry print. Nothing was checking it; the ledger
+        now refuses when one appears, and the positive control below proves it can fire;
+    (4) constants are the MAX of the two arms, never their sum (E26's scf.if structure) --
+        summing them would double the largest component of a constant-heavy model.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e49_research_audit", "ledger")
+    MODELS = ("b2_resnet", "b3_deepae", "smartcam", "wgan")
+
+    for m in MODELS:
+        path = os.path.join(D, "%s.json" % m)
+        if not os.path.exists(path):
+            results.append(Result("e49: allocation ledger for %s present" % m, False,
+                                  "missing %s" % path))
+            continue
+        led = load(path)
+        _ok = (led["all_agree"] and led["per_call_identity"]["equal"]
+               and not led["unclassified_ops"] and not led["async_ops_in_entry"])
+        results.append(Result("e49/SND-2: %s -- ledger I/O/T/C == contract, I+O+T == per_call, "
+                              "0 unclassified ops" % m, _ok,
+                              "" if _ok else json.dumps({k: led[k] for k in
+                                  ("derived_totals", "contract_totals", "unclassified_ops",
+                                   "async_ops_in_entry")})[:260]))
+        _ok = all(r.get("bytes") is not None for r in led["rows"]) and bool(led["rows"])
+        results.append(Result("e49: %s -- every ledger row resolved a size (a row with a null "
+                              "size is an unresolved allocation wearing a number's clothes" % m,
+                              _ok, ""))
+
+    # (3) positive control: an async op inside the entry must make the ledger refuse
+    sys.path.insert(0, HERE)
+    import e49_alloc_ledger as led_mod                              # noqa: PLC0415
+    fake = ("util.func public @infer(%a: !hal.buffer_view) -> !hal.buffer_view {\n"
+            "  %c64 = arith.constant 64 : index\n"
+            "  %x = stream.async.splat %c0 : i32 -> !stream.resource<transient>{%c64}\n"
+            "}\n")
+    out = led_mod.build_ledger(fake, "infer")
+    results.append(Result("e49/D84: a `stream.async.*` op inside the entry is detected "
+                          "(positive control -- the production parser's regex never even looks "
+                          "at that family, so nothing else would notice)",
+                          out["async_in_entry"] == ["stream.async.splat"],
+                          "got %r" % (out["async_in_entry"],)))
+
+    clean = ("util.func public @infer(%a: !hal.buffer_view) -> !hal.buffer_view {\n"
+             "  %c64 = arith.constant 64 : index\n"
+             "  %t = stream.resource.alloca uninitialized : !stream.resource<transient>{%c64}\n"
+             "  %tp = stream.timepoint.join max(%a) => !stream.timepoint\n"
+             "}\n")
+    out2 = led_mod.build_ledger(clean, "infer")
+    _ok = (not out2["async_in_entry"] and not out2["unclassified"]
+           and [r["bytes"] for r in out2["rows"]] == [64])
+    results.append(Result("e49/D84: and a clean entry (alloca + timepoint.join) is NOT refused -- "
+                          "the check must not reject the honest shape (type B)", _ok,
+                          "" if _ok else json.dumps(out2)[:220]))
+
+    # (4) constants are max-of-arms, not sum
+    src = read(os.path.join(HERE, "e49_alloc_ledger.py"))
+    _ok = 'max(c_vals)' in src and "sum" not in src.split("c_vals =")[1].split("\n")[0]
+    results.append(Result("e49: the ledger takes the MAX of the two constant arms, never their "
+                          "sum (E26: try_map and constants report the same bytes twice)", _ok, ""))
+    return results
+
+
 def ci_record_discipline_cases(tmp):
     """D34 discipline: a version that reports regression counts must also report CI.
 
@@ -7180,6 +7334,8 @@ def main():
         all_results += e48_real_inputs_aarch64_cases(tmp)
         all_results += result_skip_hygiene_cases(tmp)
         all_results += ci_record_discipline_cases(tmp)
+        all_results += e49_alloc_ledger_cases(tmp)
+        all_results += e49_audit_matrix_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
