@@ -1,0 +1,282 @@
+{
+ "experiment": "E39a",
+ "plan": "docs/plans/E39_novelty_audit.md (비교 축을 표 작성 전에 고정, §7에서 증거 등급 어휘를 좁힘)",
+ "axes": {
+  "A1": "분석 입력",
+  "A2": "메모리 범위(회계 경계)",
+  "A3": "정적 상한 산출",
+  "A4": "실행 전 판정",
+  "A5": "실제 예약",
+  "A6": "비행 SW 연계",
+  "A7": "타깃 ISA·실행환경",
+  "A8": "같은 회계 영역 실행 관측과 대조",
+  "A9": "증거 등급"
+ },
+ "evidence_grades": {
+  "search_metadata": "검색 결과 목록의 제목·URL·venue·연도 (신뢰 가능)",
+  "search_summary": "검색 도구가 써 준 본문 요약 (2차 요약, 원문 미대조)",
+  "fulltext": "원문 확인 — 이 환경 0건"
+ },
+ "unknown_token": "불명",
+ "works": [
+  {
+   "id": "onair_aaai2025",
+   "title": "OnAIR: Applications of the NASA On-Board Artificial Intelligence Research Platform",
+   "venue": "AAAI 2025 (v39 i28, 28893-28899)",
+   "doi": "10.1609/aaai.v39i28.35156",
+   "urls": [
+    "https://ojs.aaai.org/index.php/AAAI/article/view/35156",
+    "https://dl.acm.org/doi/10.1609/aaai.v39i28.35156"
+   ],
+   "role": "이 연구가 올라타는 플랫폼 (경쟁 대상 아님)",
+   "A1": "해당 없음 (플랫폼)",
+   "A2": "불명",
+   "A3": "아니오",
+   "A4": "판정 없음",
+   "A5": "해당 없음",
+   "A6": "cFS·OnAIR (본체)",
+   "A7": "비행 SW / 위성·드론·로봇",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: 온보드 지능 시스템의 전 생애주기 AI 연구를 가능하게 하는 오픈소스 파이프라인·인지 아키텍처 도구. 네 가지 활용 사례. 메모리 상한·admission 언급 없음"
+  },
+  {
+   "id": "tinyiree_2022",
+   "title": "TinyIREE: An ML Execution Environment for Embedded Systems from Compilation to Deployment",
+   "venue": "IEEE Micro 42(5) 2022, 9-16",
+   "doi": "10.1109/MM.2022.3178068",
+   "urls": [
+    "https://ieeexplore.ieee.org/document/9782563/",
+    "https://arxiv.org/abs/2205.14479"
+   ],
+   "role": "이 연구가 쓰는 컴파일·배포 스택의 기반",
+   "A1": "컴파일러 IR (MLIR/IREE)",
+   "A2": "불명",
+   "A3": "부분 (임베디드 배포 옵션)",
+   "A4": "판정 없음",
+   "A5": "해당 없음",
+   "A6": "일반 임베디드 / bare-metal",
+   "A7": "MCU·CPU (LLVM ISA/ABI)",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: 제한된 메모리·연산 자원을 수용하는 IREE 배포 옵션 집합. MobileNet SSD 결과 포함. 정적 상한을 배치 전 판정에 쓰는 서술은 검색 요약에 없음"
+  },
+  {
+   "id": "mlir_2020",
+   "title": "MLIR: Scaling Compiler Infrastructure for Domain Specific Computation",
+   "venue": "CGO 2021 / arXiv 2002.11054",
+   "doi": "10.48550/arXiv.2002.11054",
+   "urls": [
+    "https://arxiv.org/abs/2002.11054"
+   ],
+   "role": "분석 지점이 되는 IR 인프라",
+   "A1": "컴파일러 IR",
+   "A2": "불명",
+   "A3": "아니오",
+   "A4": "판정 없음",
+   "A5": "해당 없음",
+   "A6": "없음",
+   "A7": "전방위",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "IR 인프라 자체"
+  },
+  {
+   "id": "tflm_mlsys2021",
+   "title": "TensorFlow Lite Micro: Embedded Machine Learning on TinyML Systems",
+   "venue": "MLSys 2021",
+   "doi": null,
+   "urls": [
+    "https://proceedings.mlsys.org/paper_files/paper/2021/file/6c44dc73014d66ba49b28d483a8f8b0d-Paper.pdf",
+    "https://github.com/tensorflow/tflite-micro/issues/890"
+   ],
+   "role": "정적 arena 산정의 대표 선행 — 이 저장소는 v0.29에서 필수 baseline에서 제외했다(실행환경 불일치)",
+   "A1": "배포 아티팩트 (FlatBuffer 모델)",
+   "A2": "비영속 버퍼 재사용 계획 + 영속 메타데이터 + scratch. **주의**: `arena_used_bytes()`는 scratch를 포함하지 않는다(공개 이슈 #890)",
+   "A3": "예 (arena 크기)",
+   "A4": "판정 없음 (문서는 debugging only로 표기)",
+   "A5": "enforced (arena를 실제로 잡음)",
+   "A6": "없음 (MCU 런타임)",
+   "A7": "MCU 정적 arena",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약 + GitHub 이슈 #890 제목. **정정 후보**: CLAUDE.md의 TFLM 이력이 arena_used_bytes를 bounded_bytes와 '같은 부류'라 적었는데, scratch 미포함이면 그 등가는 좁혀야 한다 — 원문 대조 필요(E39b)"
+  },
+  {
+   "id": "tvm_usmp",
+   "title": "Apache TVM RFC 0009: Unified Static Memory Planning (USMP)",
+   "venue": "Apache TVM RFC / tracking issue #8404",
+   "doi": null,
+   "urls": [
+    "https://github.com/apache/tvm-rfcs/blob/main/rfcs/0009_Unified_Static_Memory_Planning.md",
+    "https://discuss.tvm.apache.org/t/rfc-unified-static-memory-planning/10099"
+   ],
+   "role": "**workspace pool과 constant pool을 컴파일 시점에 분리**하는 선행 — 이 저장소의 per_call/constants 분해와 같은 축",
+   "A1": "컴파일러 IR (TIR)",
+   "A2": "workspace pool + constant pool (I/O 텐서를 workspace에 넣는 U4 사용례 포함)",
+   "A3": "예",
+   "A4": "판정 없음 (코드젠에 씀)",
+   "A5": "enforced (풀을 잡음)",
+   "A6": "없음",
+   "A7": "MCU·임베디드 AOT",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: graph/AoT/VM executor 대상, HillClimb 할당기, constant pool 지원, U4는 I/O 텐서를 workspace에 배치"
+  },
+  {
+   "id": "executorch_memplan",
+   "title": "ExecuTorch Memory Planning",
+   "venue": "PyTorch ExecuTorch 공식 문서 / arXiv 2605.08195",
+   "doi": null,
+   "urls": [
+    "https://docs.pytorch.org/executorch/stable/compiler-memory-planning.html",
+    "https://github.com/pytorch/executorch/blob/main/exir/memory_planning.py"
+   ],
+   "role": "텐서 수명 기반 arena 계획의 현행 대표",
+   "A1": "컴파일러 IR (EXIR)",
+   "A2": "mutable tensor를 고정 크기 arena에 배치. backend delegate가 초기화 후 사전컴파일 데이터를 내릴 수 있어 peak가 달라짐",
+   "A3": "예",
+   "A4": "판정 없음",
+   "A5": "enforced (사용자 할당 버퍼)",
+   "A6": "없음",
+   "A7": "모바일·엣지",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: greedy best-fit 기본, 커스텀 알고리즘 지원, 직렬화 전 마지막 전처리 단계"
+  },
+  {
+   "id": "taso_2020",
+   "title": "TASO: Time and Space Optimization for Memory-Constrained DNN Inference",
+   "venue": "SBAC-PAD 2020",
+   "doi": "10.1109/SBAC-PAD49847.2020.00036",
+   "urls": [
+    "https://arxiv.org/abs/2005.10709"
+   ],
+   "role": "**layer별 메모리 상한**을 명시적으로 쓰는 선행 (ARM Cortex-A15)",
+   "A1": "소스 모델 (CNN)",
+   "A2": "layer별 workspace. 전체 회계 경계는 불명",
+   "A3": "예 (layer별 footprint 상한)",
+   "A4": "판정 없음 — **최적화에만 씀**(ILP로 primitive 선택)",
+   "A5": "불명",
+   "A6": "없음",
+   "A7": "ARM Cortex-A15 CPU",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: ILP 기반 primitive 선택, layer별 메모리 footprint 상한을 반영한 workspace 할당, 메모리 2.2배 감소"
+  },
+  {
+   "id": "quilt_jsa2026",
+   "title": "Quilt / Peak-memory-aware partitioning and scheduling for multi-tenant DNN model inference",
+   "venue": "Journal of Systems Architecture 2026",
+   "doi": "10.1016/j.sysarc.2026.103696",
+   "urls": [
+    "https://www.sciencedirect.com/science/article/abs/pii/S1383762126000147"
+   ],
+   "role": "**가장 가까운 후보** — MLIR 계열 정적 분석 + OOM 방지",
+   "A1": "컴파일러 IR (ONNX-MLIR)",
+   "A2": "liveness 기반 메모리 풀. 정확한 경계는 불명",
+   "A3": "예 (peak memory 인지)",
+   "A4": "**OOM 방지에 씀 — 단, 거부가 아니라 분할·스케줄링으로 맞춘다**",
+   "A5": "memory pool generator가 풀을 만듦",
+   "A6": "없음",
+   "A7": "다중 테넌트 GPU / desktop-scale edge",
+   "A8": "불명",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: liveness analyzer + model partitioner + memory pool generator + runtime interface generator 4개 구성요소. 지연 25.4%/37.7% 감소"
+  },
+  {
+   "id": "futureproof_smp_2025",
+   "title": "Futureproof Static Memory Planning",
+   "venue": "arXiv 2504.04874",
+   "doi": null,
+   "urls": [
+    "https://arxiv.org/html/2504.04874"
+   ],
+   "role": "단편화 상한(근사비)을 다루는 최근 연구",
+   "A1": "배치 계획",
+   "A2": "불명",
+   "A3": "예 (단편화 상한)",
+   "A4": "판정 없음",
+   "A5": "불명",
+   "A6": "없음",
+   "A7": "불명",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: 알고리즘 품질을 단편화 상한으로 표현(예: 6-근사)"
+  },
+  {
+   "id": "visors_gnc_2025",
+   "title": "Event-Driven Simulation for Rapid Iterative Development of Distributed Space Flight Software (VISORS GNC 사례)",
+   "venue": "arXiv 2505.12502",
+   "doi": null,
+   "urls": [
+    "https://arxiv.org/pdf/2505.12502"
+   ],
+   "role": "**비행 SW의 앱별 메모리 예산 실무** — 이 연구의 예산 개념과 가장 가까운 운용 관행",
+   "A1": "해당 없음 (운용 관행)",
+   "A2": "동적 메모리 총량",
+   "A3": "아니오 (요구사항으로 부여)",
+   "A4": "**아니오 — 초과 시 고의 크래시**(런타임 사후 강제)",
+   "A5": "enforced (시뮬레이션에서 강제)",
+   "A6": "비행 SW",
+   "A7": "위성",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: VISORS GNC는 동적 메모리 최대 50 MB 요구사항, 고충실도 시뮬레이션에서 초과 시 고의 크래시. 비행 코드에서 malloc/free 금지가 일반적"
+  },
+  {
+   "id": "cfs_ntrs",
+   "title": "core Flight System (cFS) — NASA NTRS 자료",
+   "venue": "NASA NTRS",
+   "doi": null,
+   "urls": [
+    "https://ntrs.nasa.gov/api/citations/20240004389/downloads/cFSFSW2024v10.pdf",
+    "https://github.com/nasa/cFS"
+   ],
+   "role": "배치 대상 프레임워크",
+   "A1": "해당 없음",
+   "A2": "불명",
+   "A3": "아니오",
+   "A4": "판정 없음",
+   "A5": "불명",
+   "A6": "cFS 본체 — **저 TRL 앱(AI 추론 포함)의 sandboxing 지원을 언급**",
+   "A7": "비행 SW",
+   "A8": "아니오",
+   "A9": {
+    "metadata": "search_metadata",
+    "content": "search_summary"
+   },
+   "basis": "검색 요약: cFS가 AI Inferencing 같은 저 TRL 앱의 안전한 sandboxing을 지원한다고 언급. 구체적 메모리 예산 admission 기법은 검색 결과에 없음"
+  }
+ ]
+}

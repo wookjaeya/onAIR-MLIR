@@ -1,0 +1,25 @@
+{
+ "tool": "WebSearch (Claude Code harness)",
+ "executed_utc": "2026-09-11T01:23:01Z",
+ "environment_limits": {
+  "curl_to_literature_hosts": "CONNECT tunnel failed, response 403 (8/8 hosts)",
+  "WebFetch": "EGRESS_BLOCKED for api.crossref.org and arxiv.org (all external hosts tested)",
+  "WebSearch": "works",
+  "consequence": "no abstract or full text was read directly; all content-level values are the search tool's own summary prose (secondary)"
+ },
+ "queries": [
+  "TinyIREE MLIR embedded AI compilation deployment IEEE Micro 2022",
+  "static memory bound upper bound analysis deep learning compiler ahead-of-time arena size guarantee",
+  "NASA core Flight System cFS onboard AI inference memory budget admission control spacecraft",
+  "Quilt ONNX-MLIR static analysis out-of-memory prevention multi-GPU inference Journal of Systems Architecture",
+  "TASO memory-bound aware compilation optimization embedded DNN SBAC-PAD 2020",
+  "NASA OnAIR On-board Artificial Intelligence Research platform AAAI 2025 paper",
+  "pre-execution admission control memory requirement check before loading neural network embedded safety-critical deny deployment",
+  "TensorFlow Lite Micro arena_used_bytes memory planning offline arena size MLSys 2021",
+  "spacecraft flight software resource budgeting memory allocation verification onboard computer RAM margin",
+  "TVM Unified Static Memory Planning RFC USMP workspace pool constant pool AOT executor",
+  "MLIR compiler generated memory contract flight software admission decision before runtime initialization satellite",
+  "ExecuTorch memory planning algorithm planned memory arena peak memory edge deployment"
+ ],
+ "note": "이 목록은 실제로 실행한 검색식이다. 구조화 DB(IEEE Xplore·ACM DL·Scopus·WoS) 안에서의 검색은 이 환경에서 실행할 수 없으므로 건수 기록이 없다 — 로드맵 §3.3-1이 요구한 형태를 충족하지 못한다."
+}
