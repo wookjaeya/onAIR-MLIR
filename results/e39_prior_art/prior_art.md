@@ -31,7 +31,7 @@
 | **Futureproof Static Memory Planning** | 배치 계획 | 불명 | 예 (단편화 상한) | 판정 없음 | 불명 | 없음 | 불명 | 아니오 | `search_summary` |
 | **Event-Driven Simulation for Rapid Iterative Development of Distributed Space Flight Software (VISORS GNC 사례)** | 해당 없음 (운용 관행) | 동적 메모리 총량 | 아니오 (요구사항으로 부여) | **아니오 — 초과 시 고의 크래시**(런타임 사후 강제) | enforced (시뮬레이션에서 강제) | 비행 SW | 위성 | 아니오 | `search_summary` |
 | **core Flight System (cFS) — NASA NTRS 자료** | 해당 없음 | 불명 | 아니오 | 판정 없음 | 불명 | cFS 본체 — **저 TRL 앱(AI 추론 포함)의 sandboxing 지원을 언급** | 비행 SW | 아니오 | `search_summary` |
-| **onAIR-MLIR (이 연구)** | 컴파일러 IR (IREE stream layout) + 배포 아티팩트(vmfb·내장 ELF) 교차검사 | **앱별 부분 계약**: per_call(I+O+T) + 모듈 상주 상수. 제외: IREE 런타임 고정비·cFS/OSAL·태스크 스택·wrapper I/O (계약이 scope=program-allocated buffers only; excludes IREE runtime context (VM, HAL device, module tables) and the task stack 로 매 판정마다 명시) | 예 (bound_method=static_from_stream_layout) | **예 — 런타임 자원 획득 전 ADMIT/NOT_ADMITTED** | **declared** — 예산은 앱에 부여한 값이며 물리 RAM을 예약하지 않는다 (예약 호출 0건 / 소스 85파일, `harness/budget_provenance.py`) | **cFS 앱 + NASA 공식 OnAIR 로더** | AArch64 QEMU 게스트 cFS · x86-64 cFS · qemu-user | **예 — 같은 회계 영역의 HAL 관측 피크와 대조** | `repo` |
+| **onAIR-MLIR (이 연구)** | 컴파일러 IR (IREE stream layout) + 배포 아티팩트(vmfb·내장 ELF) 교차검사 | **앱별 부분 계약**: per_call(I+O+T) + 모듈 상주 상수. 제외: IREE 런타임 고정비·cFS/OSAL·태스크 스택·wrapper I/O (계약이 scope=program-allocated buffers only; excludes IREE runtime context (VM, HAL device, module tables) and the task stack 로 매 판정마다 명시) | 예 (bound_method=static_from_stream_layout) | **예 — 런타임 자원 획득 전 ADMIT/NOT_ADMITTED** | **declared** — 예산은 앱에 부여한 값이며 물리 RAM을 예약하지 않는다 (예약 호출 0건 / 소스 86파일, `harness/budget_provenance.py`) | **cFS 앱 + NASA 공식 OnAIR 로더** | AArch64 QEMU 게스트 cFS · x86-64 cFS · qemu-user | **예 — 같은 회계 영역의 HAL 관측 피크와 대조** | `repo` |
 
 ## 출처와 근거
 
@@ -116,7 +116,7 @@
 ## 집계
 
 - 수록 연구: **11건**(이 연구 포함 12)
-- `불명`으로 남긴 칸: **10개** — 회계 경계(A2)는 원문 근거 없이는 단정하지 않는다
+- `불명`으로 남긴 칸: **10개** (A2 5 · A5 3 · A7 1 · A8 1) — 그중 회계 경계(A2)는 **5개**이며, 이 축은 원문 근거 없이는 단정하지 않는다
 - `fulltext`(전체 원문) 등급 칸: **0개** · `fulltext_partial`(부분 원문) 칸: **1개**
   - 부분 원문은 Scholar Gateway가 반환한 청크 본문이며, 각 행의 `fulltext_source`에 받은 청크 번호와 전체 청크 수를 적었다. **전체 원문 대조가 아니다.**
   - 이 코퍼스는 이 표의 IEEE·ACM·Elsevier·arXiv 항목을 담고 있지 않다(실측): 같은 도구에 이 주제를 물어도 그 논문들의 본문은 나오지 않는다. 따라서 나머지 행의 등급은 그대로다.

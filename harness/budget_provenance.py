@@ -31,6 +31,22 @@ same distinction E28/D52 learned about gates -- a gate that runs is not a gate t
 contract's number. So a hit downgrades the verdict to `unknown` and names the site, rather
 than promoting it.
 
+One line-level waiver, and why it is not a hole (D77)
+----------------------------------------------------
+E44 shipped this scanner together with a guard test that DEMONSTRATES the downgrade rule by
+feeding `verdict()` a synthetic hit whose text is `mlock(p, n);`. That fixture line is source
+code under harness/, so on the next run the scanner found it and reported `unknown` -- the
+test written to prove the rule triggered the rule, and the committed artifact (declared, 0
+hits) silently disagreed with the live tool. Nothing guarded that disagreement, which is the
+very shape E44 said it was avoiding.
+
+The fix is a LINE-level waiver, never a file-level one: a line carrying the marker
+`budget-provenance: test-fixture` is skipped. Excluding the whole test file instead would
+hide a real reservation call added to it later, and this repository logs both directions as
+defects. Every waived line is copied verbatim into the output under `waived`, so a waiver
+costs visibility rather than buying silence, and a regression test re-runs this scan live and
+fails if it disagrees with the committed artifact.
+
 Sources only, never logs
 ------------------------
 The scan reads source files and skips logs and results. This is not fastidiousness: while
@@ -64,10 +80,14 @@ SOURCE_DIRS = ("native", "plugins", "harness")
 SOURCE_EXT = (".c", ".h", ".cpp", ".py", ".cmake")
 SKIP_DIRS = {"results", "__pycache__", ".git", "build", "dump"}
 
+# A line carrying this marker is a fixture that FEEDS this scanner, not a use of the call.
+# Line-level on purpose (D77): excluding a whole file would hide a later real call in it.
+FIXTURE_MARKER = "budget-provenance: test-fixture"
+
 
 def scan(root=ROOT):
-    """Return (hits, files_scanned). A hit is (call, file, line_no, line_text)."""
-    hits, n = [], 0
+    """Return (hits, files_scanned, waived). A hit is (call, file, line_no, line_text)."""
+    hits, waived, n = [], [], 0
     for top in SOURCE_DIRS:
         base = os.path.join(root, top)
         if not os.path.isdir(base):
@@ -80,21 +100,30 @@ def scan(root=ROOT):
                 p = os.path.join(dirpath, fn)
                 rel = os.path.relpath(p, root)
                 n += 1
+                if rel == os.path.join("harness", "budget_provenance.py"):
+                    # this module's own table and marker constant are not uses of the calls.
+                    # Done at file level so the marker's own definition is not counted as a
+                    # waiver -- a waiver must mean "a fixture elsewhere", not "this file".
+                    continue
                 try:
                     with open(p, encoding="utf-8", errors="replace") as f:
                         for i, line in enumerate(f, 1):
+                            if FIXTURE_MARKER in line:
+                                # recorded, not hidden: the waiver is visible in the artifact
+                                waived.append({"file": rel, "line": i,
+                                               "text": line.strip()[:200],
+                                               "why": "line marked as a fixture that feeds this "
+                                                      "scanner (D77)"})
+                                continue
                             for call in RESERVATION_CALLS:
                                 # word-boundary match so `mlock` does not fire on `mlocked_note`
                                 if re.search(r"\b%s\b" % re.escape(call), line):
-                                    # this module's own table is not a use of the call
-                                    if rel == os.path.join("harness", "budget_provenance.py"):
-                                        continue
                                     hits.append({"call": call, "file": rel, "line": i,
                                                  "text": line.strip()[:160],
                                                  "means": RESERVATION_CALLS[call]})
                 except OSError:
                     continue
-    return hits, n
+    return hits, n, waived
 
 
 def verdict(hits):
@@ -117,7 +146,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
-    hits, n = scan()
+    hits, n, waived = scan()
     v, why = verdict(hits)
     doc = {
         "tool": "harness/budget_provenance.py",
@@ -127,6 +156,12 @@ def main():
         "files_scanned": n,
         "reservation_calls_looked_for": RESERVATION_CALLS,
         "hits": hits,
+        "waived": waived,
+        "waived_count": len(waived),
+        "why_waivers_are_line_level": "a line carrying the marker %r feeds this scanner instead "
+                                      "of using the call. Excluding a whole file would hide a "
+                                      "real call added to it later, so the waiver is one line "
+                                      "wide and is copied verbatim here (D77)." % FIXTURE_MARKER,
         "scan_scope": {"dirs": list(SOURCE_DIRS), "extensions": list(SOURCE_EXT),
                        "skipped": sorted(SKIP_DIRS),
                        "why_sources_only": "logs are not code. While planning E44 an audit "
@@ -142,7 +177,8 @@ def main():
             json.dump(doc, f, indent=1, ensure_ascii=False)
             f.write("\n")
         print(a.out)
-    print(json.dumps({"verdict": v, "files_scanned": n, "hits": len(hits)}, ensure_ascii=False))
+    print(json.dumps({"verdict": v, "files_scanned": n, "hits": len(hits),
+                      "waived": len(waived)}, ensure_ascii=False))
     return 0
 
 

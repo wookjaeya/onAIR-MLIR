@@ -127,10 +127,18 @@ def main():
         out.append("- 근거: %s" % w.get("basis", ""))
         out.append("")
 
-    unknown = sum(1 for w in works for a in AX if str(w.get(a, "")).strip() == d["unknown_token"])
+    # E39a 2차 정정: 총계 하나만 적고 그 뒤에 "회계 경계(A2)는 ..."를 붙이면, 8축 전체의
+    # 합계를 A2 하나의 수로 읽게 된다(실제 10 = A2 5 · A5 3 · A7 1 · A8 1). 한 문장 안에서
+    # 수와 설명이 서로 다른 범위를 가리키는 것이 D65의 형태이므로 축별로 세어 적는다.
+    per_axis = {a: sum(1 for w in works if str(w.get(a, "")).strip() == d["unknown_token"])
+                for a in AX}
+    unknown = sum(per_axis.values())
+    breakdown = " · ".join("%s %d" % (a, per_axis[a]) for a in AX if per_axis[a])
     out.append("## 집계\n")
     out.append("- 수록 연구: **%d건**(이 연구 포함 %d)" % (len(works) - 1, len(works)))
-    out.append("- `불명`으로 남긴 칸: **%d개** — 회계 경계(A2)는 원문 근거 없이는 단정하지 않는다" % unknown)
+    out.append("- `불명`으로 남긴 칸: **%d개** (%s) — 그중 회계 경계(A2)는 **%d개**이며, "
+               "이 축은 원문 근거 없이는 단정하지 않는다"
+               % (unknown, breakdown, per_axis["A2"]))
     # E39a 정정: 등급을 세어서 적는다. 첫 판은 "0개"를 리터럴로 박아 두어, 실제로 원문을
     # 일부 받은 뒤에도 표가 계속 0이라고 말했을 것이다 (D68 계열 — 세지 않고 적은 값).
     grades = [ (w.get("A9") or {}).get("content") for w in works ]

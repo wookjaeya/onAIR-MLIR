@@ -3,7 +3,7 @@
  "axis": "A5 (E39a pre-registered): 실제 예약을 하는가 -- declared / enforced / 해당 없음",
  "verdict": "declared",
  "reason": "no reservation call appears in any source file, so the budget is a number compared against a contract, not a reservation of physical memory",
- "files_scanned": 85,
+ "files_scanned": 86,
  "reservation_calls_looked_for": {
   "mlock": "pins pages into RAM",
   "mlockall": "pins the whole address space",
@@ -15,6 +15,16 @@
   "OS_MemPoolCreate": "OSAL memory pool creation"
  },
  "hits": [],
+ "waived": [
+  {
+   "file": "harness/contract_negative_tests.py",
+   "line": 5874,
+   "text": "v_hit, _ = bp.verdict([{\"call\": \"mlock\", \"file\": \"x.c\", \"line\": 1,  # budget-provenance: test-fixture",
+   "why": "line marked as a fixture that feeds this scanner (D77)"
+  }
+ ],
+ "waived_count": 1,
+ "why_waivers_are_line_level": "a line carrying the marker 'budget-provenance: test-fixture' feeds this scanner instead of using the call. Excluding a whole file would hide a real call added to it later, so the waiver is one line wide and is copied verbatim here (D77).",
  "scan_scope": {
   "dirs": [
    "native",

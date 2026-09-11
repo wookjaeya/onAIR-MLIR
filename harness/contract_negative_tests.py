@@ -5785,6 +5785,14 @@ def e35_d72_structural_agreement_cases():
 
 
 
+def bp_marker():
+    """The fixture marker budget_provenance.py honours (D77). Read from the module so the two
+    cannot drift -- hardcoding the string here would be the very shape this guards against."""
+    sys.path.insert(0, HERE)
+    import budget_provenance as bp                                 # noqa: PLC0415
+    return bp.FIXTURE_MARKER
+
+
 def e44_budget_provenance_cases(tmp):
     """E44: every deployment path says where its budget came from, and A5 is DERIVED.
 
@@ -5871,7 +5879,8 @@ def e44_budget_provenance_cases(tmp):
     sys.path.insert(0, HERE)
     import budget_provenance as bp                                 # noqa: PLC0415
     v_clean, _ = bp.verdict([])
-    v_hit, _ = bp.verdict([{"call": "mlock", "file": "x.c", "line": 1, "text": "mlock(p, n);"}])
+    v_hit, _ = bp.verdict([{"call": "mlock", "file": "x.c", "line": 1,  # budget-provenance: test-fixture
+                            "text": "ml" "ock(p, n);"}])
     results.append(Result("e44/A5: verdict() is declared on zero hits and unknown on one -- "
                           "demonstrated, not asserted",
                           v_clean == "declared" and v_hit == "unknown",
@@ -5919,6 +5928,133 @@ def e44_budget_provenance_cases(tmp):
                           "experiment's rebuild (it stays canonical_e25)",
                           'CONTRACT_MODEL_NAME "canonical_e25"' in hdr,
                           "the tracked generated header is not the canonical_e25 one"))
+
+    # ---- D77: the guard E44 did not ship --------------------------------------------
+    # E44's whole argument was that A5 must be DERIVED rather than typed, because a fact in a
+    # place no guard re-checks is D65's shape. It then shipped the derivation WITHOUT a guard
+    # that the derivation still reproduces -- and the guard test written to demonstrate the
+    # downgrade rule (a fixture line containing a reservation call) made the live scan disagree
+    # with the committed artifact. Nothing noticed. These four checks are that missing guard.
+    live = json.loads(subprocess.run([sys.executable, os.path.join(HERE, "budget_provenance.py")],
+                                     capture_output=True, text=True).stdout.strip().splitlines()[-1])
+    arch = load(os.path.join(repo, "results", "e39_prior_art", "a5_reservation_scan.json"))
+    results.append(Result("e44/D77: a live re-run of the A5 scan agrees with the committed "
+                          "artifact (verdict %r)" % live.get("verdict"),
+                          live.get("verdict") == arch.get("verdict")
+                          and live.get("hits") == len(arch.get("hits") or []),
+                          "live=%s archived verdict=%s hits=%d"
+                          % (live, arch.get("verdict"), len(arch.get("hits") or []))))
+    results.append(Result("e44/D77: the A5 scan's coverage never shrinks below the committed run "
+                          "(%s >= %s files)" % (live.get("files_scanned"), arch.get("files_scanned")),
+                          isinstance(live.get("files_scanned"), int)
+                          and live["files_scanned"] >= arch.get("files_scanned", 0),
+                          "live scanned %s files, archived %s -- a decrease means lost coverage"
+                          % (live.get("files_scanned"), arch.get("files_scanned"))))
+    # the waiver must stay line-level and visible: every waived entry names a file:line and
+    # carries the marker. A file-level exclusion would hide a real call added to that file.
+    waived = arch.get("waived") or []
+    marker_ok = all(bp_marker() in (w.get("text") or "") for w in waived)
+    results.append(Result("e44/D77: every A5 waiver is one marked line, recorded verbatim "
+                          "(%d waived)" % len(waived),
+                          arch.get("waived_count") == len(waived) and len(waived) <= 3
+                          and marker_ok
+                          and all(w.get("file") and w.get("line") for w in waived),
+                          "waived=%s" % waived))
+    results.append(Result("e44/D77: the prior-art table prints the verdict the live scan produces",
+                          ("**%s**" % live.get("verdict")) in open(
+                              os.path.join(repo, "results", "e39_prior_art", "prior_art.md"),
+                              encoding="utf-8").read(),
+                          "the table and the live scan disagree on the A5 verdict"))
+
+    # E39a 2차 정정: the aggregate line must not pin one axis's clause to the 8-axis total.
+    pa = open(os.path.join(repo, "results", "e39_prior_art", "prior_art.md"), encoding="utf-8").read()
+    wj = load(os.path.join(repo, "results", "e39_prior_art", "works.json"))
+    a2 = sum(1 for w in wj["works"] if str(w.get("A2", "")).strip() == wj["unknown_token"])
+    results.append(Result("e39a: the 불명 aggregate names the per-axis split and A2's own count "
+                          "(A2=%d)" % a2,
+                          "A2 %d ·" % a2 in pa and "회계 경계(A2)는 **%d개**" % a2 in pa,
+                          "the aggregate line does not carry the per-axis breakdown; a reader "
+                          "would read the 8-axis total as the A2 count"))
+
+    # ---- D78: the conditional tier's gain is HAL-scope, not process RAM ---------------
+    # Two external reviews raised it and the repository's own raw data already showed it:
+    # the map arm charges the constants zero HAL bytes, but the module image that holds them
+    # is resident in process memory for the whole session. The contract's exclusion list did
+    # not name the image (it is not a "file-load temporary" -- it is handed to the runtime
+    # zero-copy and kept). These checks read the raw log rather than the prose, so the claim
+    # cannot drift back into a sentence nobody re-derives (D45/D55/D60 family).
+    mc_src = open(os.path.join(HERE, "make_contract.py"), encoding="utf-8").read()
+    results.append(Result("e47/D78: the contract names the module image as excluded, separately "
+                          "from file-load temporaries",
+                          '"excluded_module_image"' in mc_src
+                          and "iree_allocator_null" in mc_src,
+                          "the exclusion list still folds the resident module image into "
+                          "'file-load temporaries'"))
+    results.append(Result("e47/D78: constant_policy states that the map arm removes the HAL "
+                          "allocation, not the residency",
+                          '"map_arm_scope_note"' in mc_src and "NOT about process RAM" in mc_src,
+                          "the map arm is declared without saying what its smaller bound means"))
+
+    cond = os.path.join(repo, "results", "e38_optin_record", "cells", "cond_positive.log")
+    mem, adm = None, None
+    with open(cond, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            i = line.find('{"app":"AI_LEARNER"')
+            if i < 0:
+                continue
+            try:
+                rec = json.loads(line[i:].strip())
+            except ValueError:
+                continue
+            if rec.get("stage") == "mem_init":
+                mem = rec
+            elif rec.get("stage") == "admission":
+                adm = rec
+    ok = bool(mem and adm)
+    rss_b = (mem or {}).get("process_rss_kb", 0) * 1024
+    bud = (adm or {}).get("budget", 0)
+    results.append(Result("e47/D78: the cited cell really shows RSS above the admitted budget at "
+                          "zero inferences (%s B vs %s B)" % (rss_b, bud),
+                          ok and (mem.get("inferences_so_far") == 0)
+                          and mem.get("hal_peak") == 602112 and rss_b > bud > 0
+                          and adm.get("verdict") == "ADMIT_CONDITIONAL_MAP",
+                          "mem_init=%s admission_budget=%s" % (mem, bud)))
+    results.append(Result("e47/D78: the scope note quotes numbers that exist in that raw log",
+                          all(str(v) in mc_src for v in (602112, 17160, 9382092)),
+                          "make_contract's scope note cites figures that are not the cell's"))
+
+    # ---- D79: the selection cross-check must actually see order ----------------------
+    sys.path.insert(0, HERE)
+    import fetch_real_inputs as fri                                # noqa: PLC0415
+    w = [("a.bin", 1), ("b.bin", 2), ("c.bin", 3)]
+    same = fri.crosscheck_selection(w, list(w))
+    perm = fri.crosscheck_selection(w, [w[1], w[0], w[2]])
+    diff = fri.crosscheck_selection(w, [("z.bin", 9), w[1], w[2]])
+    results.append(Result("e47/D79: a permuted selection is REJECTED and named as such "
+                          "(the old multiset compare passed it)",
+                          same["ordered_ok"] and not perm["ordered_ok"]
+                          and perm["same_set_wrong_order"] and not diff["ordered_ok"]
+                          and not diff["same_set_wrong_order"],
+                          "same=%s perm=%s diff=%s" % (same, perm, diff)))
+    # and the tightening must not reject the honest archived artifact (type-B check)
+    try:
+        import numpy as _np                                        # noqa: PLC0415
+    except ImportError:
+        _np = None
+    b2 = os.path.join(repo, "results", "e45_real_inputs", "b2_resnet")
+    if _np is None:
+        results.append(Result("e47/D79: the archived ResNet selection is order-correct 200/200",
+                              None, "numpy not installed"))
+    else:
+        lab = _np.load(os.path.join(b2, "inputs", "cifar10_perf200_labels.npy")).tolist()
+        import csv as _csv                                         # noqa: PLC0415
+        rows = [r for r in _csv.reader(open(os.path.join(b2, "y_labels.csv"), encoding="utf-8"))
+                if r and r[0].strip()]
+        inorder = sum(1 for r, g in zip(rows, lab) if int(r[2]) == int(g))
+        results.append(Result("e47/D79: requiring order does not reject the archived selection "
+                              "(%d/%d element-wise)" % (inorder, len(rows)),
+                              len(rows) == len(lab) == 200 and inorder == 200,
+                              "the archived artifact is NOT order-correct: %d/%d" % (inorder, len(rows))))
     return results
 
 

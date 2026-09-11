@@ -964,6 +964,16 @@ def build_contract(a, extra_args):
                     "that admits on the map arm must VERIFY the precondition before creating the "
                     "runtime, not assume it (D53/D54): admitting on one quantity and checking "
                     "another is how both of those defects happened.",
+                "map_arm_scope_note":
+                    "D78: the map arm removes the HAL DEVICE allocation of the constants, not "
+                    "their residency. The constant bytes live inside the module image, which the "
+                    "deployment has already read into process memory and keeps for the session, "
+                    "so a budget admitted on map_arm_bound_bytes is a statement about this "
+                    "contract's accounting scope and NOT about process RAM. Measured in this "
+                    "repository: the SmartCam AArch64 cFS conditional cell recorded hal_peak "
+                    "602112 with process_rss_kb 17160 (= 1.87x the 9382092 B budget it was "
+                    "admitted on) at inferences_so_far 0 "
+                    "(results/e38_optin_record/cells/cond_positive.log, stage mem_init).",
             },
         },
         "required_premises": {
@@ -999,6 +1009,12 @@ def build_contract(a, extra_args):
             "IREE runtime context (VM, HAL device, module tables), the task stack, cFS/OSAL "
             "memory, wrapper I/O and file-load temporaries. See resources.scope -- this exclusion "
             "is the 'partial' in 'partial per-app model-execution memory contract'.",
+        "excluded_module_image":
+            "ALSO EXCLUDED, and named separately because it is NOT a 'file-load temporary' (D78): "
+            "the artifact image itself. Both C executors read the whole vmfb into process memory "
+            "and hand it to the runtime zero-copy (iree_allocator_null), so it stays resident for "
+            "the session -- artifact.bytes, which includes the constant bytes. The contract "
+            "accounts HAL device allocations, not this residency.",
     }
 
     resources = {

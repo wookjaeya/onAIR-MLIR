@@ -51,6 +51,29 @@ EXIT_OK, EXIT_FAIL, EXIT_USAGE, EXIT_SKIP = 0, 1, 2, 3
 
 
 # --------------------------------------------------------------------------- utils
+def crosscheck_selection(want, got):
+    """Compare a published (filename, label) list against the selection, IN ORDER.
+
+    D79: the previous version compared `sorted(want)` with `sorted(got)` while its own comment
+    said "this is the check that catches a permuted selection". A multiset comparison cannot
+    catch a permutation -- the code did not have the property the comment claimed, which is the
+    D47 shape (a docstring describing a step that was never implemented).
+
+    Both numbers are returned so a failure says WHICH failure it is: a wrong set and a right set
+    in the wrong order are different defects and want different fixes. Measured before tightening
+    this: the archived ResNet selection matches y_labels.csv element-wise 200/200, so requiring
+    order does not reject the honest artifact (a type-B check would have).
+    """
+    n = len(want)
+    ordered_hits = sum(1 for w, g in zip(want, got) if w == g)
+    multiset_hits = sum(1 for w, g in zip(sorted(want), sorted(got)) if w == g)
+    name_hits = sum(1 for (wn, _), (gn, _) in zip(sorted(want), sorted(got)) if wn == gn)
+    return {"n": n, "ordered_hits": ordered_hits, "multiset_hits": multiset_hits,
+            "name_hits": name_hits,
+            "ordered_ok": n > 0 and ordered_hits == n,
+            "same_set_wrong_order": multiset_hits == n and ordered_hits != n}
+
+
 def sha256_bytes(b):
     return hashlib.sha256(b).hexdigest()
 
@@ -212,11 +235,13 @@ def cmd_resnet(a):
     got = [(filenames[i][:-3] + "bin", int(labels[i])) for i in idxs.tolist()]
     if len(want) != len(got):
         return fail("y_labels.csv has %d rows, selection has %d" % (len(want), len(got)))
-    name_hits = sum(1 for (wn, _), (gn, _) in zip(sorted(want), sorted(got)) if wn == gn)
-    label_hits = sum(1 for w, g in zip(sorted(want), sorted(got)) if w == g)
-    if name_hits != 200 or label_hits != 200:
+    ck = crosscheck_selection(want, got)
+    if not ck["ordered_ok"]:
         return fail("cross-check against mlcommons/tiny y_labels.csv failed: "
-                    "filenames %d/200, (filename,label) %d/200" % (name_hits, label_hits))
+                    "filenames %d/%d, (filename,label) %d/%d, in-order %d/%d%s"
+                    % (ck["name_hits"], ck["n"], ck["multiset_hits"], ck["n"],
+                       ck["ordered_hits"], ck["n"],
+                       " -- SAME SET, DIFFERENT ORDER" if ck["same_set_wrong_order"] else ""))
 
     out = os.path.abspath(a.out)
     os.makedirs(os.path.join(out, "inputs"), exist_ok=True)
