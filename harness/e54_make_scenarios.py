@@ -15,10 +15,21 @@ import argparse, json, os, sys
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Which guest tree holds each model, and the input replayed by an admitted cell.
-# admit_seconds is sized from OBSERVED inference rates, not guessed: E48 saw 204 inferences in
-# 900 s (b2_resnet), 148 in 600 s (b3_deepae) and 282 in 2400 s (smartcam); E53 saw 4 in 10800 s
-# (wgan).  The pass criterion needs >= 1 inference, so each window is set to comfortably exceed
-# boot + one inference at that observed rate.  DENY_SECONDS matches the 180 s E48 used.
+# admit_seconds is sized from OBSERVED behaviour, not guessed: E48 saw 204 inferences in 900 s
+# (b2_resnet), 148 in 600 s (b3_deepae) and 282 in 2400 s (smartcam).  DENY_SECONDS matches the
+# 180 s E48 used.
+#
+# wgan was sized wrong the first time and the five admitted cells came back with 0 inferences.
+# The first version divided E53's "4 inferences in 10800 s" to get 2700 s each and set 3000 s --
+# but that MEAN includes inferences 2-4, which pay neither boot nor module load.  E53's own log
+# has the breakdown: app loaded 14:04:46 -> admission 14:33:56 (1750 s of init) -> first
+# inference completed 15:06:24 (mean_us 1,984,197,767 = 1984 s), i.e. 3698 s to the FIRST
+# completion.  5400 s is that number with ~45% margin.  The failed run is preserved under
+# results/e54_reference_budget/cells/undersized_window_first_attempt/ -- what failed was the
+# window, not the admission: every one of those cells recorded ADMIT, MATCH and a mem_init.
+#
+# The lesson is E45's, recurring: check that what you measured and what you concluded from it
+# are the same thing.  E53 measured a four-inference mean; I concluded a first-inference bound.
 DEPLOY = {
     "b2_resnet": {"root": "cfs_e48", "vmfb": "models/b2_resnet.vmfb",
                   "so": "variants/b2_resnet/ai_learner.so",
@@ -31,7 +42,7 @@ DEPLOY = {
                  "startup": "variants/smartcam/cfe_es_startup.scr", "admit_seconds": 420},
     "wgan": {"root": "e53_wgan", "vmfb": "models/wgan.vmfb",
              "so": "variants/wgan/ai_learner.so",
-             "startup": "variants/wgan/cfe_es_startup.scr", "admit_seconds": 3000,
+             "startup": "variants/wgan/cfe_es_startup.scr", "admit_seconds": 5400,
              "stage": {"e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"}},
 }
 DENY_SECONDS = 180

@@ -7,7 +7,7 @@
     "so": "variants/wgan/ai_learner.so",
     "startup": "variants/wgan/cfe_es_startup.scr",
     "vmfb": "models/wgan.vmfb",
-    "seconds": 3000,
+    "seconds": 5400,
     "env": {
       "AI_LEARNER_BUDGET_OVERRIDE": "1908071307"
     },
@@ -30,7 +30,7 @@
     "so": "variants/wgan/ai_learner.so",
     "startup": "variants/wgan/cfe_es_startup.scr",
     "vmfb": "models/wgan.vmfb",
-    "seconds": 3000,
+    "seconds": 5400,
     "env": {
       "AI_LEARNER_BUDGET_OVERRIDE": "2767064766"
     },
@@ -53,7 +53,7 @@
     "so": "variants/wgan/ai_learner.so",
     "startup": "variants/wgan/cfe_es_startup.scr",
     "vmfb": "models/wgan.vmfb",
-    "seconds": 3000,
+    "seconds": 5400,
     "env": {
       "AI_LEARNER_BUDGET_OVERRIDE": "297458571"
     },
@@ -76,7 +76,7 @@
     "so": "variants/wgan/ai_learner.so",
     "startup": "variants/wgan/cfe_es_startup.scr",
     "vmfb": "models/wgan.vmfb",
-    "seconds": 3000,
+    "seconds": 5400,
     "env": {
       "AI_LEARNER_BUDGET_OVERRIDE": "512206935"
     },
