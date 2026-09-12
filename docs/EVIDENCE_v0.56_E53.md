@@ -7,7 +7,7 @@
   원인 — 이 E51·E52로 전부 닫혔음을 확인하고 착수)
 - 증거 등급: **결정론적**(계약 수치·HAL allocator 통계·계약-아티팩트 해시·원소별 출력 비교). 지연값 미인용.
 - 산출물: `results/e53_wgan_aarch64/{build/aarch64/,ledger.json,native/,cfs/,comparison_cfs_aarch64.json,summary.json}`
-- 회귀: 이 컨테이너 **820/820 → (아래 §6)**
+- 회귀: 이 컨테이너 **820/820 → 831/831**(§9, D93 영구 회귀 시험 11건 포함)
 - **CI 실측**: 이 문서를 커밋한 다음 CI 실행에서 확인해 추가한다(D34 규율 — 추정하지 않는다).
 
 ## §0 판정
@@ -160,8 +160,16 @@ qemu-system-aarch64(cFS, 1회 추론당 EVS `mean_us` 실측 ~1,800~2,000초 ≈
 
 ## §9 회귀
 
-이 컨테이너 **820/820**(D93 수정 후, 로그 원자료 커밋 전 819/820+1 FAIL — D55 가드가 아직 커밋되지
-않은 `cfs_B.log`를 잡은 것, 커밋 후 재확인). `contract_negative_tests.py` 나머지 전건 유지, 보관
-14개 계약 diff 0.
+**D93을 영구 회귀 시험으로 고정했다** — 검증만 하고 넘어가지 않고 `harness/contract_negative_tests.py`에
+`e53_wgan_aarch64_cases()` 11건을 신설했다: (1) 합성 재현(잘린 `run` + 온전한 `mem`에서 폴백이 작동),
+(2) 둘 다 없을 때는 여전히 거부(유형 A 과잉 승인 방지), (3) 소스 수준 확인(폴백 코드·`--reparse`
+존재·`ai_learner.c` 미수정), (4) **실제 원자료**(`cfs_B.log`)로 truncation 재현 + `check_expect` PASS,
+(5) 최종 `summary.json`의 `cfs_B.pass`·Q1~Q6·`e53_complete` 확인, (6) 계약 동일성·native/cFS 바이트
+동일성. **revert-and-confirm-fail**: 폴백 코드(`or res.get("last_mem")`)만 제거하면 이 중 3건이 정확히
+그 이유로 FAIL(`['completed 0 < 1']`), 복원하면 11/11 PASS.
 
-**CI 실측**: 다음 커밋에 이어 채운다(D34 — 추정하지 않는다).
+이 컨테이너 **831/831**(820/820 + 신규 11건, D93 수정 후. 로그 원자료 커밋 전 한때 819/820+1 FAIL —
+D55 가드가 아직 커밋되지 않은 `cfs_B.log`를 잡은 것, 커밋 후 해소). `contract_negative_tests.py`
+나머지 전건 유지, 보관 14개 계약 diff 0.
+
+**CI 실측**: 이 회귀 시험을 포함한 커밋의 CI에서 확인해 추가한다(D34 — 추정하지 않는다).

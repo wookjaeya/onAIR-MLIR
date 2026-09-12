@@ -7905,6 +7905,110 @@ def e39b_prior_art_fulltext_cases(tmp):
     return results
 
 
+def e53_wgan_aarch64_cases(tmp):
+    """E53: WGAN AArch64 end-to-end verification, and D93's regression pin.
+
+    D93: `AI_LEARNER_Json`'s fixed console line buffer (`char line[768]`, native/cfs_app/
+    fsw/src/ai_learner.c) truncates the `"stage":"run"` JSON record when the model's
+    per-call output is large enough (WGAN: 150,528 f32 elements) -- the same mechanism
+    D68 already found for DeepAE (640 elements, truncates at 766 chars), but D68's fix
+    only reached the downstream summary reader (mk_e36b_summary.py::stages()), never the
+    runtime gate that actually decides a cell's "pass" (e14_cfs_scenarios.py::check_expect).
+    This is the first cell to put `min_completed` on a model large enough to hit it.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    sys.path.insert(0, HERE)
+    from e14_cfs_scenarios import check_expect, parse_log  # noqa: PLC0415
+
+    # --- (1) synthetic reproduction: a truncated `run` next to an intact `mem` ---
+    truncated = {"admission": ["ADMIT"], "binding": ["MATCH"],
+                 "last_run": None, "last_mem": {"completed": 4, "hal_peak": 131382784}}
+    old_formula_completed = (truncated.get("last_run") or {}).get("completed", 0)
+    new_result = check_expect(truncated, {"admission": "ADMIT", "min_completed": 1})
+    results.append(Result("e53/D93: a truncated `run` record (last_run=None) next to an intact "
+                          "`mem` record (same g.n_infer value) satisfies min_completed via "
+                          "fallback -- the OLD formula alone reads 0 completions from a real 4/4 run",
+                          old_formula_completed == 0 and new_result == [],
+                          "old_formula_completed=%d new_check_expect=%r" %
+                          (old_formula_completed, new_result)))
+
+    # --- (2) the fallback must not turn genuine absence into a pass (type A guard) ---
+    none_at_all = {"admission": ["ADMIT"], "binding": ["MATCH"], "last_run": None, "last_mem": None}
+    _ok = check_expect(none_at_all, {"admission": "ADMIT", "min_completed": 1}) != []
+    results.append(Result("e53/D93: and when BOTH run and mem are absent, min_completed still "
+                          "correctly refuses -- the fallback rescues a truncated-but-present mem "
+                          "record, it does not manufacture a pass out of nothing (type A)", _ok, ""))
+
+    # --- (3) source-level confirmation the fallback is really there, and the app untouched ---
+    scsrc = read(os.path.join(HERE, "e14_cfs_scenarios.py"))
+    _ok = 'res.get("last_run") or res.get("last_mem")' in scsrc
+    results.append(Result("e53/D93: check_expect's min_completed reads last_run with a last_mem "
+                          "fallback (source-level, not just behavioural)", _ok, ""))
+    _ok = "--reparse" in scsrc and "no prior summary.json entry to reparse" in scsrc
+    results.append(Result("e53: the offline --reparse mode exists (re-judge an already-collected "
+                          "guest log without re-running the guest)", _ok, ""))
+    ai_learner_src = read(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"))
+    _ok = "char line[768]" in ai_learner_src
+    results.append(Result("e53/D93: ai_learner.c's console buffer is untouched (plan forbade "
+                          "editing the app -- the root cause stays open for a larger model)", _ok, ""))
+
+    # --- (4) the real archived guest log genuinely truncates, and is judged correctly ---
+    log_path = os.path.join(repo, "results", "e53_wgan_aarch64", "cfs", "logs", "cfs_B.log")
+    if not os.path.isfile(log_path):
+        results.append(Result("e53/D93: archived cfs_B.log present", False, "missing %s" % log_path))
+    else:
+        txt = read(log_path)
+        res = parse_log(txt)
+        _ok = res.get("last_run") is None and (res.get("last_mem") or {}).get("completed") == 4
+        results.append(Result("e53/D93: the real archived cfs_B.log genuinely truncates the `run` "
+                              "stage (last_run is None) while `mem` correctly carries completed=4",
+                              _ok, "last_run=%r last_mem.completed=%r" %
+                              (res.get("last_run"), (res.get("last_mem") or {}).get("completed"))))
+        exp = {"admission": "ADMIT", "min_completed": 1}
+        fails = check_expect(res, exp)
+        results.append(Result("e53/D93: check_expect judges this real archived log as satisfying "
+                              "ADMIT+min_completed=1 (revert-and-confirm-fail: reverting the "
+                              "fallback reproduces ['completed 0 < 1'] on this exact file)",
+                              fails == [], str(fails)))
+
+    # --- (5) the recorded verdicts reflect the fix and the full Q1-Q6 connection ---
+    sp = os.path.join(repo, "results", "e53_wgan_aarch64", "cfs", "summary.json")
+    if os.path.isfile(sp):
+        d = load(sp)
+        cfs_b = next((sc for sc in d.get("scenarios", []) if sc.get("id") == "cfs_B"), None)
+        _ok = bool(cfs_b) and cfs_b.get("pass") is True and cfs_b.get("expect_failures") == []
+        results.append(Result("e53: the archived cfs_B scenario is recorded PASS after the fix "
+                              "(not silently left FAIL)",
+                              _ok, str(cfs_b.get("pass") if cfs_b else "missing cfs_B entry")))
+    esp = os.path.join(repo, "results", "e53_wgan_aarch64", "summary.json")
+    if not os.path.isfile(esp):
+        results.append(Result("e53: summary.json present", False, "missing %s" % esp))
+        return results
+    s = load(esp)
+    v = s.get("verdicts", {})
+    qs = ("Q1_contract_generation", "Q2_ledger_agreement", "Q3_native_semantics",
+          "Q4_budget_boundary", "Q5_hal_vs_bounded", "Q6_composition_recorded")
+    _ok = v.get("e53_complete") is True and all(v.get(q) == "PASS" for q in qs)
+    results.append(Result("e53: Q1-Q6 all PASS and e53_complete=true in the connected summary",
+                          _ok, str(v)))
+
+    # --- (6) contract identity across ISAs, and native/cFS output bit-identity ---
+    cc = s.get("contract_comparison", {})
+    results.append(Result("e53: the three contract figures are identical between x86-64 and AArch64",
+                          cc.get("identical") is True, str(cc.get("aarch64"))))
+    native_bin = os.path.join(repo, "results", "e53_wgan_aarch64", "native", "e25_outputs_1sample.bin")
+    cfs_bin = os.path.join(repo, "results", "e53_wgan_aarch64", "cfs", "logs", "cfs_B.e25_outputs.bin")
+    if os.path.isfile(native_bin) and os.path.isfile(cfs_bin):
+        a = open(native_bin, "rb").read()
+        b = open(cfs_bin, "rb").read()
+        results.append(Result("e53: native (qemu-user) and cFS (qemu-system-aarch64) outputs are "
+                              "byte-identical for the same vmfb and input",
+                              a == b and len(a) == 602112,
+                              "native_bytes=%d cfs_bytes=%d" % (len(a), len(b))))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -7976,6 +8080,7 @@ def main():
         all_results += e51_stage3_cases(tmp)
         all_results += e52_deepae_divergence_cases(tmp)
         all_results += e39b_prior_art_fulltext_cases(tmp)
+        all_results += e53_wgan_aarch64_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
