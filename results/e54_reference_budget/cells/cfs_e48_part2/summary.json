@@ -235,6 +235,65 @@
       "fetched": {},
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "NOT_ADMITTED"
+      ],
+      "binding": [],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 262160,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 16,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": null,
+      "e25_mode": null,
+      "cleanup": [
+        {
+          "app": "AI_LEARNER",
+          "stage": "cleanup",
+          "released": true,
+          "cleanup_calls": 1
+        }
+      ],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [
+        "1980-012-14:11:05.44866 CFE_ES_ExitApp: Application AI_LEARNER called CFE_ES_ExitApp",
+        "EVS Port1 1980-012-14:11:06.16491 66/1/CFE_ES 14: ErrExit Application AI_LEARNER Success."
+      ],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:11:05.43492 66/1/AI_LEARNER 8: AI_LEARNER stack: es=262160 base=262144 kernel=16 accounted=1",
+        "EVS Port1 1980-012-14:11:05.44108 66/1/AI_LEARNER 1: AI_LEARNER NOT_ADMITTED: contract bounded=1069632 > budget=1048576; app will not start"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "sweep_b3_deepae_pow2_below",
+      "model": "b3_deepae",
+      "scenario": "E54 Part 2 (NOT a mission budget): power-of-two grid point 1048576 < U=1069632",
+      "seconds": 180,
+      "commands_sent": [],
+      "log": "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_b3_deepae_pow2_below.log",
+      "expect": {
+        "admission": "NOT_ADMITTED",
+        "min_completed": 0
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "1048576"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }
