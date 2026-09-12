@@ -5995,9 +5995,16 @@ def d86_pre_scheduling_ops_cases(tmp):
             continue
         if r.get("pre_scheduling_ops"):
             with_ps.append(os.path.basename(f))
+    # E53 (v0.56) legitimately added a new archived layout IR (wgan.layout_ir.txt),
+    # so the count grows over time as new experiments commit new evidence -- pinning
+    # it to an exact number turns every future honest addition into a CI failure.
+    # The count is a floor (never fewer than the known baseline, so a glob-pattern
+    # regression that stops finding files still fails closed); the safety property
+    # that actually matters -- no file beyond the known dynamic pair carries an
+    # allocating async op in its entry -- stays an exact match.
     results.append(Result("d86: archived layout IRs whose entry carries async ops is exactly the honest "
                           "dynamic pair (E49 recorded 'zero', measured over files it did not include)",
-                          len(files) == 25 and sorted(with_ps) == ["dynamic.layout_ir.txt"] * 2,
+                          len(files) >= 25 and sorted(with_ps) == ["dynamic.layout_ir.txt"] * 2,
                           "files=%d with_async_in_entry=%r" % (len(files), sorted(with_ps))))
     return results
 
