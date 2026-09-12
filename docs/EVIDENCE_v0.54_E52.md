@@ -6,6 +6,7 @@
 - 증거 등급: **결정론적**(상수 바이트 대조 · 레이어별 재현 · 컴파일러 플래그 프로브). 지연값 없음.
 - 산출물: `results/e52_deepae_divergence/divergence.json`
 - 회귀: 이 컨테이너 **796/796 → 809/809** (FAIL 0 · SKIP 0)
+- **CI 실측**(커밋 `c5175b9`, run 226, 3레그 success): `full` **803/803 + 4 SKIP** · `without-iree` **633/633 + 36 SKIP** · `stdlib-only` **633/633 + 36 SKIP**. 이 컨테이너는 실입력이 있으면 **809/809 + 0 SKIP**, 없으면 **808/808 + 1 SKIP**이고, 후자와 `full`의 PASS 차이 **5건**은 E38이 확립한 설명 그대로다(PyYAML 1 · objdump 미설치 SKIP 2 · 그 툴체인이 없으면 분기가 아예 없어 존재하지 않는 2) — SKIP 차이 3건도 같은 둘(PyYAML 1 + objdump 2)이다. 세 레그 전부 **PASS +12 · SKIP +1 = 정확히 13**이라 E52 신규 13건이 전부 나타나고, 그 하나의 SKIP은 실입력을 요구하는 live 재실행 가드로 사유 목록에 `needs the real ad01 inputs (network; set E52_INPUTS) and iree-compile`로 나타난다(바이트는 E45 규칙대로 반입하지 않는다).
 
 ## §0 판정
 
