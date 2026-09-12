@@ -758,6 +758,142 @@
       "fetched": {},
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 264063,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 1919,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": {
+        "app": "AI_LEARNER",
+        "stage": "run",
+        "model": "smartcam",
+        "target": "aarch64-unknown-linux-gnu",
+        "attempted": 32,
+        "completed": 32,
+        "fail_input": 0,
+        "fail_invoke": 0,
+        "fail_output": 0,
+        "mean_us": 12177036.75,
+        "max_us": 49451020.48,
+        "last_us": 49451020.48,
+        "out0": 0.85892,
+        "out": [
+          0.858921,
+          0.111592,
+          0.029487
+        ]
+      },
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "smartcam",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 32,
+        "hal_peak": 9382092,
+        "peak_within_bounded": true,
+        "admitted_budget_bytes": 33554432,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "unconditional",
+        "hal_bytes_per_call_amortized": 8798796.0,
+        "process_rss_kb": 25148,
+        "process_rss_delta_init_kb": 1740
+      },
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "smartcam",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 602112,
+        "hal_allocated": 602112,
+        "bounded": 18222796,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 15940,
+        "rss_kb_before_runtime": 14200,
+        "rss_kb_after_session": 14488,
+        "rss_kb_after_init": 15940
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": false,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:11:04.09480 66/1/AI_LEARNER 8: AI_LEARNER stack: es=264063 base=262144 kernel=1919 accounted=1",
+        "EVS Port1 1980-012-14:11:06.46336 66/1/AI_LEARNER 3: AI_LEARNER initialized: model smartcam (8991281 B), rss_delta_init=1740 KB",
+        ".EVS Port1 1980-012-14:11:16.62850 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=7855011.0us max=7855011.0us hal_peak=9382092 within_bounded=1",
+        "..EVS Port1 1980-012-14:11:24.91517 66/1/AI_LEARNER 4: AI_LEARNER completed=2/2 mean=8066148.7us max=8277286.4us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:11:31.89665 66/1/AI_LEARNER 4: AI_LEARNER completed=3/3 mean=7701481.5us max=8277286.4us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:11:39.93057 66/1/AI_LEARNER 4: AI_LEARNER completed=4/4 mean=7796001.8us max=8277286.4us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:11:49.36860 66/1/AI_LEARNER 4: AI_LEARNER completed=5/5 mean=8175401.8us max=9693001.8us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:11:58.00442 66/1/AI_LEARNER 4: AI_LEARNER completed=6/6 mean=8253127.9us max=9693001.8us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:12:12.71424 66/1/AI_LEARNER 4: AI_LEARNER completed=7/7 mean=9172797.8us max=14690816.7us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:12:23.36816 66/1/AI_LEARNER 4: AI_LEARNER completed=8/8 mean=9451564.9us max=14690816.7us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:12:49.94224 66/1/AI_LEARNER 4: AI_LEARNER completed=9/9 mean=11400003.0us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:13:00.44056 66/1/AI_LEARNER 4: AI_LEARNER completed=10/10 mean=11341011.5us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:13:11.45227 66/1/AI_LEARNER 4: AI_LEARNER completed=11/11 mean=11357850.9us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:13:18.90319 66/1/AI_LEARNER 4: AI_LEARNER completed=12/12 mean=11034010.3us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:13:28.09613 66/1/AI_LEARNER 4: AI_LEARNER completed=13/13 mean=10893717.3us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:13:36.11778 66/1/AI_LEARNER 4: AI_LEARNER completed=14/14 mean=10687298.5us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:13:43.19320 66/1/AI_LEARNER 4: AI_LEARNER completed=15/15 mean=10467544.8us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:13:50.92422 66/1/AI_LEARNER 4: AI_LEARNER completed=16/16 mean=10296642.1us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:13:59.27816 66/1/AI_LEARNER 4: AI_LEARNER completed=17/17 mean=10185788.1us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:14:07.78895 66/1/AI_LEARNER 4: AI_LEARNER completed=18/18 mean=10120769.1us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:14:17.44612 66/1/AI_LEARNER 4: AI_LEARNER completed=19/19 mean=10123919.5us max=26987507.9us hal_peak=9382092 within_bounded=1",
+        ".....EVS Port1 1980-012-14:14:57.73039 66/1/AI_LEARNER 4: AI_LEARNER completed=20/20 mean=11630992.4us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:15:25.67428 66/1/AI_LEARNER 4: AI_LEARNER completed=21/21 mean=12421813.6us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:15:34.11038 66/1/AI_LEARNER 4: AI_LEARNER completed=22/22 mean=12251277.0us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:15:40.68449 66/1/AI_LEARNER 4: AI_LEARNER completed=23/23 mean=12012279.2us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:15:47.86215 66/1/AI_LEARNER 4: AI_LEARNER completed=24/24 mean=11811180.2us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "..EVS Port1 1980-012-14:15:54.86286 66/1/AI_LEARNER 4: AI_LEARNER completed=25/25 mean=11618347.3us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:16:02.23982 66/1/AI_LEARNER 4: AI_LEARNER completed=26/26 mean=11454830.7us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:16:09.30767 66/1/AI_LEARNER 4: AI_LEARNER completed=27/27 mean=11294170.2us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:16:16.84713 66/1/AI_LEARNER 4: AI_LEARNER completed=28/28 mean=11159926.5us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "..EVS Port1 1980-012-14:16:24.76879 66/1/AI_LEARNER 4: AI_LEARNER completed=29/29 mean=11046878.9us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:16:34.41394 66/1/AI_LEARNER 4: AI_LEARNER completed=30/30 mean=11000001.0us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:16:44.27616 66/1/AI_LEARNER 4: AI_LEARNER completed=31/31 mean=10974650.2us max=40265377.6us hal_peak=9382092 within_bounded=1",
+        "EVS Port1 1980-012-14:17:33.53479 66/1/AI_LEARNER 4: AI_LEARNER completed=32/32 mean=12177036.7us max=49451020.5us hal_peak=9382092 within_bounded=1",
+        ".EVS Port1 1980-012-14:18:03.40975 66/1/AI_LEARNER 4: AI_LEARNER completed=33/33 mean=12710620.5us max=49451020.5us hal_peak=9382092 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": null,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "sweep_smartcam_pow2_above",
+      "model": "smartcam",
+      "scenario": "E54 Part 2 (NOT a mission budget): power-of-two grid point 33554432 >= U=18222796",
+      "seconds": 420,
+      "commands_sent": [],
+      "log": "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_smartcam_pow2_above.log",
+      "expect": {
+        "admission": "ADMIT",
+        "min_completed": 1
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "33554432"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }
