@@ -7674,6 +7674,123 @@ def e51_stage3_cases(tmp):
     return results
 
 
+
+# ---------------------------------------------------------------------------
+# E52 -- DeepAE numeric divergence: first diverging layer and the named cause.
+# The archived record is read without any toolchain; the live re-run needs the
+# real inputs (network) and IREE, and SKIPs honestly when they are absent.
+# ---------------------------------------------------------------------------
+def e52_deepae_divergence_cases(tmp):
+    results = []
+    path = os.path.join(os.path.dirname(HERE), "results", "e52_deepae_divergence", "divergence.json")
+    if not os.path.isfile(path):
+        return [Result("e52: divergence.json present", False, "missing")]
+    d = load(path)
+
+    # The tolerance must still be the one inherited from E25 -- E52 explains a FAIL,
+    # it does not soften the rule that produced it (D74, plan SS5).
+    tol = d["tolerance"]
+    results.append(Result("e52: the tolerance is still E25's, unchanged",
+                          tol["abs"] == 1e-4 and tol["rel"] == 1e-5
+                          and tol["not_changed_to_pass_anything"] is True,
+                          "abs=%s rel=%s" % (tol["abs"], tol["rel"])))
+    import e52_deepae_layers as e52
+    results.append(Result("e52: the tool's own constants match the archived tolerance",
+                          e52.ABS_TOL == tol["abs"] and e52.REL_TOL == tol["rel"],
+                          "tool abs=%s rel=%s" % (e52.ABS_TOL, e52.REL_TOL)))
+
+    # Q1: the deployed artifact multiplies the ORIGINAL model's bytes.
+    q1 = d["Q1_constants_bit_identical"]
+    results.append(Result("e52 Q1: all 20 deployed constants are bit-identical to the original .tflite",
+                          q1["ok"] is True and len(q1["rows"]) == 20
+                          and all(r["matched_mlir_constant"] for r in q1["rows"]),
+                          "%d rows" % len(q1["rows"])))
+
+    # The layer decomposition is only believable because the diagnostic chain's last
+    # module reproduces the DEPLOYED vmfb output bitwise (plan SS4).
+    results.append(Result("e52: the diagnostic chain reproduces the deployed vmfb output bitwise",
+                          d["diagnostic_chain_reproduces_deployed_output"] is True))
+    prov = d["litert_intermediate_provenance"]
+    results.append(Result("e52: LiteRT intermediates come from a run whose output matches the default run",
+                          prov["preserving_run_matches_default_output_bitwise"] is True
+                          and len(prov["default_mode_unreadable"]) == 9,
+                          "default-mode unreadable=%d" % len(prov["default_mode_unreadable"])))
+
+    # Q2: where it first diverges, and the bulk failure at the last layer.
+    rows = d["layers"]
+    last = rows[-1]
+    results.append(Result("e52 Q2: first diverging layer is 6, and the last layer carries the bulk",
+                          d["first_layer_with_violation"] == 6 and len(rows) == 10
+                          and last["iree_vs_litert"]["violations"] == 94
+                          and last["has_relu"] is False,
+                          "first=%s L9 viol=%s relu=%s" % (d["first_layer_with_violation"],
+                                                           last["iree_vs_litert"]["violations"],
+                                                           last["has_relu"])))
+    # Q3/Q5: the named cause. x86-64 IREE IS the sequential float32 order, bit for bit.
+    results.append(Result("e52 Q5: x86-64 IREE output is bit-identical to a sequential float32 accumulation",
+                          last["iree_vs_sequential_f32"]["worst_abs"] == 0.0
+                          and last["iree_vs_sequential_f32"]["violations"] == 0,
+                          "worst_abs=%s" % last["iree_vs_sequential_f32"]["worst_abs"]))
+    probes = d["cause_probes"]
+    results.append(Result("e52 Q5: fused multiply-add is excluded (flags change nothing)",
+                          all(v.get("identical_to_deployed") is True
+                              for v in probes["iree_compiler_flags"].values() if "error" not in v)
+                          and len(probes["iree_compiler_flags"]) == 3,
+                          str({k: v.get("identical_to_deployed") for k, v in probes["iree_compiler_flags"].items()})))
+    # The delegate contributes but is not the whole cause -- both halves are asserted,
+    # because "it changed something" and "it explains everything" are different claims.
+    dele = probes["litert_delegate"]
+    results.append(Result("e52 Q5: LiteRT's delegate contributes yet does not account for the divergence alone",
+                          dele["default_delegate_disabled"] is True
+                          and dele["outputs_identical_with_and_without_delegate"] is False
+                          and dele["without_delegate_vs_float64"]["violations"] > 0
+                          and dele["without_delegate_vs_float64"]["violations"]
+                              < dele["with_delegate_vs_float64"]["violations"],
+                          "with=%d without=%d" % (dele["with_delegate_vs_float64"]["violations"],
+                                                  dele["without_delegate_vs_float64"]["violations"])))
+    arm = probes["aarch64_archived"]
+    results.append(Result("e52 Q4: AArch64 uses a third accumulation order (not the sequential one)",
+                          arm.get("bitwise_equals_sequential_f32") is False
+                          and arm["vs_sequential_f32"]["violations"] > 0,
+                          "vs_seq viol=%s vs_f64 viol=%s" % (arm["vs_sequential_f32"]["violations"],
+                                                             arm["vs_float64"]["violations"])))
+    # The mechanism: growth of accumulated error outruns growth of the effective threshold.
+    mech = d["mechanism"]
+    results.append(Result("e52: accumulated error grows faster than the effective threshold",
+                          mech["accumulated_error_growth_L0_to_L9"]
+                          > mech["effective_threshold_growth_L0_to_L9"] * 10,
+                          "error x%.3g vs threshold x%.3g" % (mech["accumulated_error_growth_L0_to_L9"],
+                                                              mech["effective_threshold_growth_L0_to_L9"])))
+    results.append(Result("e52: the FAIL is kept as the result, and termination condition 1 is claimed",
+                          d["termination_condition"].startswith("review §4.4-1")
+                          and "FAIL" in d["verdict_unchanged"],
+                          d["termination_condition"]))
+
+    # --- live re-run (D77, and D89: compare the SHAPE of the derivation, not a summary) ---
+    inputs = os.environ.get("E52_INPUTS", "")
+    if not (inputs and os.path.isdir(inputs) and iree_tools_available()):
+        results.append(Result("e52: derivation re-runs live", True,
+                              "needs the real ad01 inputs (network; set E52_INPUTS) and iree-compile",
+                              skip=True))
+        return results
+    out = os.path.join(tmp, "e52_live.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e52_deepae_layers.py"), "--inputs", inputs,
+                      "--out", os.path.relpath(out, os.path.dirname(HERE))], cwd=os.path.dirname(HERE))
+    live = load(out) if rc == 0 else {}
+
+    def shape(doc):
+        return {"first": doc.get("first_layer_with_violation"),
+                "q1": doc.get("Q1_constants_bit_identical", {}).get("ok"),
+                "chain": doc.get("diagnostic_chain_reproduces_deployed_output"),
+                "termination": doc.get("termination_condition"),
+                "per_layer": [(r["layer"], r["iree_vs_litert"]["violations"],
+                               r["iree_vs_sequential_f32"]["violations"]) for r in doc.get("layers", [])]}
+    results.append(Result("e52: derivation re-runs live and agrees layer by layer",
+                          rc == 0 and shape(live) == shape(d),
+                          "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -7743,6 +7860,7 @@ def main():
         all_results += e51_stage1_cases(tmp)
         all_results += e51_stage2_cases(tmp)
         all_results += e51_stage3_cases(tmp)
+        all_results += e52_deepae_divergence_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
