@@ -1,0 +1,63 @@
+{
+  "scenarios": [
+    {
+      "admission": [
+        "NOT_ADMITTED"
+      ],
+      "binding": [],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": null,
+      "e25_mode": null,
+      "cleanup": [
+        {
+          "app": "AI_LEARNER",
+          "stage": "cleanup",
+          "released": true,
+          "cleanup_calls": 1
+        }
+      ],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [
+        "1980-012-14:03:21.17856 CFE_ES_ExitApp: Application AI_LEARNER called CFE_ES_ExitApp",
+        "EVS Port1 1980-012-14:03:22.22514 66/1/CFE_ES 14: ErrExit Application AI_LEARNER Success."
+      ],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:03:21.16787 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:03:21.17195 66/1/AI_LEARNER 1: AI_LEARNER NOT_ADMITTED: contract bounded=135666432 > budget=135666431; app will not start"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "cfs_Bm1",
+      "model": "wgan",
+      "scenario": "E53 step 5: budget = bounded - 1 -> NOT_ADMITTED, 0 inferences",
+      "seconds": 90,
+      "commands_sent": [],
+      "log": "results/e53_wgan_aarch64/cfs/logs/cfs_Bm1.log",
+      "expect": {
+        "admission": "NOT_ADMITTED",
+        "min_completed": 0
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "135666431"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "tool": "harness/e49_alloc_ledger.py",
+  "experiment": "E49",
+  "purpose": "검증 지침 §5 SND-1/SND-2 — 계약의 I·O·T·C 를 IR operation 단위로 추적하고 합이 계약값과 같은지 대조한다. 생산 파서는 건드리지 않는다.",
+  "model": "wgan_aarch64",
+  "entry": "infer",
+  "contract": "results/e53_wgan_aarch64/build/aarch64/wgan.contract.json",
+  "layout_ir": "results/e53_wgan_aarch64/build/aarch64/wgan.layout_ir.txt",
+  "rows": [
+    {
+      "op": "stream.tensor.import",
+      "class": "I",
+      "size_symbol": "%c602112",
+      "bytes": 602112,
+      "resolved_by": "arith.constant",
+      "scope": "entry",
+      "text": "stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<1x3x224x224xf32> in !stream.resource<external>{%c602112}"
+    },
+    {
+      "op": "stream.resource.alloca",
+      "class": "O",
+      "lifetime": "external",
+      "size_symbol": "%c602112",
+      "bytes": 602112,
+      "resolved_by": "arith.constant",
+      "scope": "entry",
+      "text": "stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<external>{%c602112}"
+    },
+    {
+      "op": "stream.resource.alloca",
+      "class": "T",
+      "lifetime": "transient",
+      "size_symbol": "%c130178560_37",
+      "bytes": 130178560,
+      "resolved_by": "arith.constant",
+      "scope": "entry",
+      "text": "stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%c130178560_37}"
+    },
+    {
+      "op": "stream.resource.try_map",
+      "class": "C",
+      "size_symbol": "%c4283648",
+      "bytes": 4283648,
+      "resolved_by": "arith.constant",
+      "scope": "module (initializer)",
+      "text": "stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c4283648}"
+    }
+  ],
+  "unclassified_ops": [],
+  "async_ops_in_entry": [],
+  "non_allocating_ops_in_entry": [
+    "stream.cmd.concurrent",
+    "stream.cmd.dispatch",
+    "stream.cmd.execute",
+    "stream.cmd.fill",
+    "stream.timepoint.await",
+    "stream.timepoint.join"
+  ],
+  "parser_scan_scope_note": "생산 파서(static_mem_bound.py)의 정규식은 `stream.(resource|tensor).*` 두 계열만 본다 — 다른 계열은 화이트리스트 밖이 아니라 **스캔 대상이 아니다**. 그 한정이 안전한 조건은 post-layout entry 에 `stream.async.*`(할당하는 pre-scheduling op)가 남지 않는 것이고, 보관 layout IR 25개에서 파일 전체 1,020회 vs **마지막 entry print 안 0회**로 측정된다. 그것은 관측이지 보장이 아니므로 이 원장이 검사한다.",
+  "entry_print_states": 2,
+  "derived_totals": {
+    "I": 602112,
+    "O": 602112,
+    "T": 130178560,
+    "C": 4283648
+  },
+  "contract_totals": {
+    "I": 602112,
+    "O": 602112,
+    "T": 130178560,
+    "C": 4283648
+  },
+  "agreement": {
+    "I": true,
+    "O": true,
+    "T": true,
+    "C": true
+  },
+  "all_agree": true,
+  "per_call_identity": {
+    "derived_I_plus_O_plus_T": 131382784,
+    "contract_static_per_call_bytes": 131382784,
+    "equal": true
+  },
+  "independence_note": "정규식 파서와 mlir_alloc_walk 는 다른 구현이지만 **같은 layout IR** 을 읽는다. 둘의 일치는 구현 독립성의 증거이지 **오류 독립성**의 증거가 아니다 — D60 이 커널 스택 분석기에 대해 내린 것과 같은 정정이다. 이 원장도 같은 IR 을 읽으므로 같은 한계를 갖는다.",
+  "c_is_max_not_sum": "constants 는 map arm(try_map)과 copy arm(constants)이 같은 바이트를 두 번 보고하므로 합이 아니라 최댓값이다(E26 의 scf.if 구조)."
+}
