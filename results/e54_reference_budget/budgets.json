@@ -1,0 +1,581 @@
+{
+  "experiment": "E54",
+  "plan": "docs/plans/E54_reference_budget_admission.md",
+  "directive": "docs/reviews/BUDGET_BASED_ADMISSION_ANALYSIS.md",
+  "formula": "B_contract(p,m) = R_physical(p)*(1-M) - R_OS_cFS - R_other_apps - R_reserved - R_noncontract_AI(m)",
+  "overhead_rule": "every overhead term takes the upper end of what was measured",
+  "scope_note": "B_* are process/system RAM; U is HAL device allocation. Comparable only because local-sync allocates HAL buffers on the in-process heap, so HAL bytes are a subset of process RSS. Not a licence for 'HAL peak == RSS' (D78).",
+  "platforms": {
+    "PA": {
+      "name": "Xiphos Q8S",
+      "r_physical_bytes": 4294967296,
+      "isa": "AArch64 (quad Cortex-A53)",
+      "source_grade": "mirror_adjacent_revision_fetched",
+      "note": "same core family as this guest's -cpu cortex-a53"
+    },
+    "PB": {
+      "name": "OPS-SAT SEPP (RAM envelope only)",
+      "r_physical_bytes": 1073741824,
+      "isa": "ARM 32-bit (Cortex-A9 class) -- NOT this guest's ISA",
+      "source_grade": "primary_fetched",
+      "note": "RAM envelope only; platform reproduction is forbidden (BENCHMARK_PLAN_REFERENCE_BASED.md:156)"
+    }
+  },
+  "margins": {
+    "pdr50": {
+      "fraction": 0.5,
+      "phase": "PDR",
+      "grade": "transcribed_from_directive_primary_blocked"
+    },
+    "ship30": {
+      "fraction": 0.3,
+      "phase": "Ship/Flight",
+      "grade": "transcribed_from_directive_primary_blocked"
+    }
+  },
+  "baseline": {
+    "experiment": "E54",
+    "measurement": "cFS baseline with NO AI_LEARNER and NO model artifact",
+    "m2": {
+      "description": "full app suite minus ai_learner",
+      "apps_emitting_evs": [
+        13
+      ],
+      "startup_apps_declared": [
+        14
+      ],
+      "core_cpu1_vmhwm_kb": {
+        "n": 3,
+        "min": 5156,
+        "max": 6364,
+        "median": 5156,
+        "values": [
+          5156,
+          6364,
+          5156
+        ]
+      },
+      "raw": [
+        "results/e54_reference_budget/baseline/raw/e54_m2_rep1.json",
+        "results/e54_reference_budget/baseline/raw/e54_m2_rep2.json",
+        "results/e54_reference_budget/baseline/raw/e54_m2_rep3.json"
+      ]
+    },
+    "m3": {
+      "description": "libs + lab infrastructure only",
+      "apps_emitting_evs": [
+        2
+      ],
+      "startup_apps_declared": [
+        3
+      ],
+      "core_cpu1_vmhwm_kb": {
+        "n": 3,
+        "min": 4112,
+        "max": 5324,
+        "median": 4112,
+        "values": [
+          4112,
+          4112,
+          5324
+        ]
+      },
+      "raw": [
+        "results/e54_reference_budget/baseline/raw/e54_m3_rep1.json",
+        "results/e54_reference_budget/baseline/raw/e54_m3_rep2.json",
+        "results/e54_reference_budget/baseline/raw/e54_m3_rep3.json"
+      ]
+    },
+    "guest_system_used_before_cfs_kb": {
+      "n": 6,
+      "min": 215096,
+      "max": 217300,
+      "median": 216436.0,
+      "values": [
+        215096,
+        215992,
+        217300,
+        216284,
+        216588,
+        217148
+      ]
+    },
+    "harness_rss_included_in_system_used_kb": {
+      "n": 6,
+      "min": 38208,
+      "max": 47168,
+      "median": 38236.0,
+      "values": [
+        38228,
+        38240,
+        47168,
+        38208,
+        38232,
+        47164
+      ]
+    },
+    "harness_note": "These measurements are taken over ssh, so sshd/bash/systemd RSS is inside system_used_before. It is NOT subtracted: leaving it in enlarges the overhead and therefore shrinks the budget, which is the safe direction and is applied uniformly rather than chosen per result.",
+    "separability_rule": "configs separate iff min(M2 VmHWM) > max(M3 VmHWM)",
+    "separable": false,
+    "r_other_apps_note": "NOT separable: min(M2)=5156 kB is not above max(M3)=5324 kB (M2 [5156, 6364, 5156], M3 [4112, 4112, 5324]). cFS loads every app as a .so into ONE process, so run-to-run variation of that single VmRSS is comparable to the mission apps' contribution. R_other_apps is therefore 0 NOT because it was measured as zero, but because R_OS_cFS is taken from M2, which already contains the mission apps -- adding it again would double-count.",
+    "r_os_cfs_bytes": 229031936,
+    "r_os_cfs_derivation": "max(guest system used before cFS, harness included) + max(M2 VmHWM)",
+    "r_other_apps_bytes": 0,
+    "scope": "process/system RAM (NOT HAL device allocation -- see budgets.json scope_note)"
+  },
+  "iree_fixed_runtime_ctx": {
+    "observations": 21,
+    "models_seen": [
+      "b2_resnet",
+      "b3_deepae",
+      "canonical_e25",
+      "smartcam",
+      "wgan"
+    ],
+    "delta_kb_min": 284,
+    "delta_kb_max": 368,
+    "delta_kb_median": 288,
+    "chosen_kb": 368,
+    "chosen_bytes": 376832,
+    "rule": "max over archived AArch64 cells (overhead terms take the upper end)",
+    "spans": "iree_runtime_instance_create + device + session_create; excludes module image and module append (ai_learner.c:446 -> :461)",
+    "per_observation": [
+      {
+        "model": "canonical_e25",
+        "delta_kb": 344,
+        "source": "results/e26_boundary_utility/aarch64/cfs/canonical_B.log"
+      },
+      {
+        "model": "canonical_e25",
+        "delta_kb": 340,
+        "source": "results/e26_boundary_utility/aarch64/cfs/canonical_Bp1.log"
+      },
+      {
+        "model": "b2_resnet",
+        "delta_kb": 336,
+        "source": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e48_real_inputs_aarch64/cfs/logs/smartcam_admit_B_real.log"
+      },
+      {
+        "model": "b3_deepae",
+        "delta_kb": 300,
+        "source": "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 284,
+        "source": "results/e37_evidence_consolidation/s_cfs_post_d61/s_cfs_equiv.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e36_aarch64_cfs/prefix_bug/cond_positive.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e36_aarch64_cfs/prefix_bug/admit_B.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e36_aarch64_cfs/smartcam/cond_positive.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e36_aarch64_cfs/smartcam/regression_no_override.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e36_aarch64_cfs/smartcam/admit_B.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e36_aarch64_cfs/cache_leak_bug/regression_no_override.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e36_aarch64_cfs/cache_leak_bug/deny_B_minus_1.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e38_optin_record/cells/cond_positive.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e32_smartcam_aarch64/cfs/A_admit.log"
+      },
+      {
+        "model": "smartcam",
+        "delta_kb": 288,
+        "source": "results/e32_smartcam_aarch64/cfs/A_plus.log"
+      },
+      {
+        "model": "wgan",
+        "delta_kb": 288,
+        "source": "results/e53_wgan_aarch64/cfs/logs/cfs_B.log"
+      },
+      {
+        "model": "b2_resnet",
+        "delta_kb": 296,
+        "source": "results/e36b_aarch64_models/cfs/resnet_equiv.log"
+      },
+      {
+        "model": "b3_deepae",
+        "delta_kb": 344,
+        "source": "results/e36b_aarch64_models/cfs/deepae_equiv.log"
+      },
+      {
+        "model": "b2_resnet",
+        "delta_kb": 360,
+        "source": "results/e36b_aarch64_models/cfs/resnet_admit_B.log"
+      },
+      {
+        "model": "b3_deepae",
+        "delta_kb": 368,
+        "source": "results/e36b_aarch64_models/cfs/deepae_admit_B.log"
+      }
+    ]
+  },
+  "app_io_buffer_terms": [
+    {
+      "name": "out",
+      "ctype": "float",
+      "elems_of": "output",
+      "bytes_per_elem": 4,
+      "constant_addend_bytes": 0
+    },
+    {
+      "name": "zeros",
+      "ctype": "float",
+      "elems_of": "input",
+      "bytes_per_elem": 4,
+      "constant_addend_bytes": 0
+    },
+    {
+      "name": "yv",
+      "ctype": "float",
+      "elems_of": "output",
+      "bytes_per_elem": 4,
+      "constant_addend_bytes": 0
+    },
+    {
+      "name": "feat",
+      "ctype": "float",
+      "elems_of": "input",
+      "bytes_per_elem": 4,
+      "constant_addend_bytes": 0
+    },
+    {
+      "name": "out",
+      "ctype": "float",
+      "elems_of": "output",
+      "bytes_per_elem": 4,
+      "constant_addend_bytes": 0
+    },
+    {
+      "name": "outs",
+      "ctype": "char",
+      "elems_of": "output",
+      "bytes_per_elem": 16,
+      "constant_addend_bytes": 8
+    }
+  ],
+  "app_io_buffer_terms_note": "counted from native/cfs_app/fsw/src/ai_learner.c (E44: count, do not quote). The plan's prose named three terms; counting finds 6.",
+  "models": {
+    "b2_resnet": {
+      "contract_path": "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
+      "U_bounded_bytes": 618856,
+      "static_per_call_bytes": 309416,
+      "module_resident_constant_bytes": 309440,
+      "input_elems": 3072,
+      "output_elems": 10,
+      "R_noncontract_AI_bytes": 1008610,
+      "R_noncontract_AI_terms": {
+        "iree_fixed_runtime_ctx_bytes": 376832,
+        "module_image_artifact_bytes": 343538,
+        "task_stack_base_bytes": 262144,
+        "task_stack_kernel_bytes": 1232,
+        "app_static_io_buffer_bytes": 24864
+      }
+    },
+    "b3_deepae": {
+      "contract_path": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
+      "U_bounded_bytes": 1069632,
+      "static_per_call_bytes": 6208,
+      "module_resident_constant_bytes": 1063424,
+      "input_elems": 640,
+      "output_elems": 640,
+      "R_noncontract_AI_bytes": 1742770,
+      "R_noncontract_AI_terms": {
+        "iree_fixed_runtime_ctx_bytes": 376832,
+        "module_image_artifact_bytes": 1080730,
+        "task_stack_base_bytes": 262144,
+        "task_stack_kernel_bytes": 16,
+        "app_static_io_buffer_bytes": 23048
+      }
+    },
+    "smartcam": {
+      "contract_path": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+      "U_bounded_bytes": 18222796,
+      "static_per_call_bytes": 9382092,
+      "module_resident_constant_bytes": 8840704,
+      "input_elems": 150528,
+      "output_elems": 3,
+      "R_noncontract_AI_bytes": 10836492,
+      "R_noncontract_AI_terms": {
+        "iree_fixed_runtime_ctx_bytes": 376832,
+        "module_image_artifact_bytes": 8991281,
+        "task_stack_base_bytes": 262144,
+        "task_stack_kernel_bytes": 1919,
+        "app_static_io_buffer_bytes": 1204316
+      }
+    },
+    "wgan": {
+      "contract_path": "results/e53_wgan_aarch64/build/aarch64/wgan.contract.json",
+      "U_bounded_bytes": 135666432,
+      "static_per_call_bytes": 131382784,
+      "module_resident_constant_bytes": 4283648,
+      "input_elems": 150528,
+      "output_elems": 150528,
+      "R_noncontract_AI_bytes": 10380405,
+      "R_noncontract_AI_terms": {
+        "iree_fixed_runtime_ctx_bytes": 376832,
+        "module_image_artifact_bytes": 4321533,
+        "task_stack_base_bytes": 262144,
+        "task_stack_kernel_bytes": 880,
+        "app_static_io_buffer_bytes": 5419016
+      }
+    }
+  },
+  "profiles": {
+    "PA_pdr50": {
+      "platform": "PA",
+      "platform_name": "Xiphos Q8S",
+      "platform_isa": "AArch64 (quad Cortex-A53)",
+      "platform_source_grade": "mirror_adjacent_revision_fetched",
+      "margin_id": "pdr50",
+      "margin_phase": "PDR",
+      "margin_fraction": 0.5,
+      "margin_source_grade": "transcribed_from_directive_primary_blocked",
+      "R_physical_bytes": 4294967296,
+      "R_usable_bytes": 2147483648,
+      "R_OS_cFS_bytes": 229031936,
+      "R_other_apps_bytes": 0,
+      "R_other_apps_note": "NOT separable: min(M2)=5156 kB is not above max(M3)=5324 kB (M2 [5156, 6364, 5156], M3 [4112, 4112, 5324]). cFS loads every app as a .so into ONE process, so run-to-run variation of that single VmRSS is comparable to the mission apps' contribution. R_other_apps is therefore 0 NOT because it was measured as zero, but because R_OS_cFS is taken from M2, which already contains the mission apps -- adding it again would double-count.",
+      "R_reserved_bytes": 0,
+      "R_reserved_note": "0 by declaration: no mission-declared reservation, and E44 counted 0 reservation-capable calls in 85 source files",
+      "B_AI_bytes": 1918451712
+    },
+    "PA_ship30": {
+      "platform": "PA",
+      "platform_name": "Xiphos Q8S",
+      "platform_isa": "AArch64 (quad Cortex-A53)",
+      "platform_source_grade": "mirror_adjacent_revision_fetched",
+      "margin_id": "ship30",
+      "margin_phase": "Ship/Flight",
+      "margin_fraction": 0.3,
+      "margin_source_grade": "transcribed_from_directive_primary_blocked",
+      "R_physical_bytes": 4294967296,
+      "R_usable_bytes": 3006477107,
+      "R_OS_cFS_bytes": 229031936,
+      "R_other_apps_bytes": 0,
+      "R_other_apps_note": "NOT separable: min(M2)=5156 kB is not above max(M3)=5324 kB (M2 [5156, 6364, 5156], M3 [4112, 4112, 5324]). cFS loads every app as a .so into ONE process, so run-to-run variation of that single VmRSS is comparable to the mission apps' contribution. R_other_apps is therefore 0 NOT because it was measured as zero, but because R_OS_cFS is taken from M2, which already contains the mission apps -- adding it again would double-count.",
+      "R_reserved_bytes": 0,
+      "R_reserved_note": "0 by declaration: no mission-declared reservation, and E44 counted 0 reservation-capable calls in 85 source files",
+      "B_AI_bytes": 2777445171
+    },
+    "PB_pdr50": {
+      "platform": "PB",
+      "platform_name": "OPS-SAT SEPP (RAM envelope only)",
+      "platform_isa": "ARM 32-bit (Cortex-A9 class) -- NOT this guest's ISA",
+      "platform_source_grade": "primary_fetched",
+      "margin_id": "pdr50",
+      "margin_phase": "PDR",
+      "margin_fraction": 0.5,
+      "margin_source_grade": "transcribed_from_directive_primary_blocked",
+      "R_physical_bytes": 1073741824,
+      "R_usable_bytes": 536870912,
+      "R_OS_cFS_bytes": 229031936,
+      "R_other_apps_bytes": 0,
+      "R_other_apps_note": "NOT separable: min(M2)=5156 kB is not above max(M3)=5324 kB (M2 [5156, 6364, 5156], M3 [4112, 4112, 5324]). cFS loads every app as a .so into ONE process, so run-to-run variation of that single VmRSS is comparable to the mission apps' contribution. R_other_apps is therefore 0 NOT because it was measured as zero, but because R_OS_cFS is taken from M2, which already contains the mission apps -- adding it again would double-count.",
+      "R_reserved_bytes": 0,
+      "R_reserved_note": "0 by declaration: no mission-declared reservation, and E44 counted 0 reservation-capable calls in 85 source files",
+      "B_AI_bytes": 307838976
+    },
+    "PB_ship30": {
+      "platform": "PB",
+      "platform_name": "OPS-SAT SEPP (RAM envelope only)",
+      "platform_isa": "ARM 32-bit (Cortex-A9 class) -- NOT this guest's ISA",
+      "platform_source_grade": "primary_fetched",
+      "margin_id": "ship30",
+      "margin_phase": "Ship/Flight",
+      "margin_fraction": 0.3,
+      "margin_source_grade": "transcribed_from_directive_primary_blocked",
+      "R_physical_bytes": 1073741824,
+      "R_usable_bytes": 751619276,
+      "R_OS_cFS_bytes": 229031936,
+      "R_other_apps_bytes": 0,
+      "R_other_apps_note": "NOT separable: min(M2)=5156 kB is not above max(M3)=5324 kB (M2 [5156, 6364, 5156], M3 [4112, 4112, 5324]). cFS loads every app as a .so into ONE process, so run-to-run variation of that single VmRSS is comparable to the mission apps' contribution. R_other_apps is therefore 0 NOT because it was measured as zero, but because R_OS_cFS is taken from M2, which already contains the mission apps -- adding it again would double-count.",
+      "R_reserved_bytes": 0,
+      "R_reserved_note": "0 by declaration: no mission-declared reservation, and E44 counted 0 reservation-capable calls in 85 source files",
+      "B_AI_bytes": 522587340
+    }
+  },
+  "cells": [
+    {
+      "cell_id": "PA_pdr50__b2_resnet",
+      "budget_profile_id": "PA_pdr50",
+      "model": "b2_resnet",
+      "B_contract_bytes": 1917443102,
+      "U_bounded_bytes": 618856,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 1916824246
+    },
+    {
+      "cell_id": "PA_pdr50__b3_deepae",
+      "budget_profile_id": "PA_pdr50",
+      "model": "b3_deepae",
+      "B_contract_bytes": 1916708942,
+      "U_bounded_bytes": 1069632,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 1915639310
+    },
+    {
+      "cell_id": "PA_pdr50__smartcam",
+      "budget_profile_id": "PA_pdr50",
+      "model": "smartcam",
+      "B_contract_bytes": 1907615220,
+      "U_bounded_bytes": 18222796,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 1889392424
+    },
+    {
+      "cell_id": "PA_pdr50__wgan",
+      "budget_profile_id": "PA_pdr50",
+      "model": "wgan",
+      "B_contract_bytes": 1908071307,
+      "U_bounded_bytes": 135666432,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 1772404875
+    },
+    {
+      "cell_id": "PA_ship30__b2_resnet",
+      "budget_profile_id": "PA_ship30",
+      "model": "b2_resnet",
+      "B_contract_bytes": 2776436561,
+      "U_bounded_bytes": 618856,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 2775817705
+    },
+    {
+      "cell_id": "PA_ship30__b3_deepae",
+      "budget_profile_id": "PA_ship30",
+      "model": "b3_deepae",
+      "B_contract_bytes": 2775702401,
+      "U_bounded_bytes": 1069632,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 2774632769
+    },
+    {
+      "cell_id": "PA_ship30__smartcam",
+      "budget_profile_id": "PA_ship30",
+      "model": "smartcam",
+      "B_contract_bytes": 2766608679,
+      "U_bounded_bytes": 18222796,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 2748385883
+    },
+    {
+      "cell_id": "PA_ship30__wgan",
+      "budget_profile_id": "PA_ship30",
+      "model": "wgan",
+      "B_contract_bytes": 2767064766,
+      "U_bounded_bytes": 135666432,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 2631398334
+    },
+    {
+      "cell_id": "PB_pdr50__b2_resnet",
+      "budget_profile_id": "PB_pdr50",
+      "model": "b2_resnet",
+      "B_contract_bytes": 306830366,
+      "U_bounded_bytes": 618856,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 306211510
+    },
+    {
+      "cell_id": "PB_pdr50__b3_deepae",
+      "budget_profile_id": "PB_pdr50",
+      "model": "b3_deepae",
+      "B_contract_bytes": 306096206,
+      "U_bounded_bytes": 1069632,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 305026574
+    },
+    {
+      "cell_id": "PB_pdr50__smartcam",
+      "budget_profile_id": "PB_pdr50",
+      "model": "smartcam",
+      "B_contract_bytes": 297002484,
+      "U_bounded_bytes": 18222796,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 278779688
+    },
+    {
+      "cell_id": "PB_pdr50__wgan",
+      "budget_profile_id": "PB_pdr50",
+      "model": "wgan",
+      "B_contract_bytes": 297458571,
+      "U_bounded_bytes": 135666432,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 161792139
+    },
+    {
+      "cell_id": "PB_ship30__b2_resnet",
+      "budget_profile_id": "PB_ship30",
+      "model": "b2_resnet",
+      "B_contract_bytes": 521578730,
+      "U_bounded_bytes": 618856,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 520959874
+    },
+    {
+      "cell_id": "PB_ship30__b3_deepae",
+      "budget_profile_id": "PB_ship30",
+      "model": "b3_deepae",
+      "B_contract_bytes": 520844570,
+      "U_bounded_bytes": 1069632,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 519774938
+    },
+    {
+      "cell_id": "PB_ship30__smartcam",
+      "budget_profile_id": "PB_ship30",
+      "model": "smartcam",
+      "B_contract_bytes": 511750848,
+      "U_bounded_bytes": 18222796,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 493528052
+    },
+    {
+      "cell_id": "PB_ship30__wgan",
+      "budget_profile_id": "PB_ship30",
+      "model": "wgan",
+      "B_contract_bytes": 512206935,
+      "U_bounded_bytes": 135666432,
+      "predicted_verdict": "ADMIT",
+      "headroom_bytes": 376540503
+    }
+  ]
+}
