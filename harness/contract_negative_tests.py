@@ -7905,6 +7905,167 @@ def e39b_prior_art_fulltext_cases(tmp):
     return results
 
 
+def e54_reference_budget_cases(tmp):
+    """E54: reference-based budgets -- budgets derived from external sources and measurements,
+    NOT from any model's contract value.
+
+    Each guard pins a property the experiment can silently lose:
+      (1) the app's contract-sized static buffers are COUNTED from source, not quoted from prose
+          (the plan named three; counting finds six -- E44);
+      (2) `R_noncontract_AI` is built from the contract's own exclusion list, never from an RSS
+          delta, because an RSS delta overlaps bytes that are inside `U` (D78 at experiment level);
+      (3) `R_other_apps == 0` is only allowed with the "already inside R_OS_cFS" reason, never as
+          a measured zero (D29/D51/D68);
+      (4) the margin percentages are graded as absent-from-fetched-bytes, never as a primary
+          citation (E39b/D91);
+      (5) Part 1 (reference profiles) and Part 2 (power-of-two sweep) never share a file, so
+          nothing downstream can merge them into one deployment case (directive SS9);
+      (6) the pass judge compares an admitted cell's HAL peak with THE BUDGET IT WAS ADMITTED ON,
+          not with `bounded` (D53/D59).
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    sys.path.insert(0, HERE)
+
+    e54 = os.path.join(repo, "results", "e54_reference_budget")
+
+    # --- (1) the static-buffer census reads the source, and finds more than the prose named ---
+    try:
+        import e54_budgets as EB  # noqa: PLC0415
+        terms = EB.app_io_buffer_terms(EB.APP_SRC)
+        names = sorted(t["name"] for t in terms)
+        in_b = sum(t["bytes_per_elem"] for t in terms if t["elems_of"] == "input")
+        out_b = sum(t["bytes_per_elem"] for t in terms if t["elems_of"] == "output")
+        results.append(Result(
+            "e54/1: app static I/O buffers are COUNTED from ai_learner.c, and the census finds "
+            "more than the plan's prose named (3) -- a term present in the binary but absent "
+            "from the prose would otherwise vanish from the overhead",
+            len(terms) >= 6 and in_b >= 8 and out_b >= 28,
+            "terms=%d names=%s in_bytes_per_elem=%d out_bytes_per_elem=%d" %
+            (len(terms), names, in_b, out_b)))
+        # revert-and-confirm-fail shape: a source with none of these buffers must be refused,
+        # not silently reported as zero overhead.
+        empty = os.path.join(tmp, "no_buffers.c")
+        with open(empty, "w", encoding="utf-8") as fh:
+            fh.write("int main(void){ return 0; }\n")
+        refused = False
+        try:
+            EB.app_io_buffer_terms(os.path.relpath(empty, repo))
+        except SystemExit:
+            refused = True
+        results.append(Result(
+            "e54/2: a source with no contract-sized buffers is REFUSED rather than reported as "
+            "an overhead of zero (absence is not zero)", refused, "refused=%r" % refused))
+    except ImportError as exc:
+        results.append(Result("e54/1-2: app static I/O buffer census", True,
+                              "skipped: %s" % exc, skip=True))
+
+    # --- (3)(2) budgets.json / baseline.json invariants ---
+    bpath = os.path.join(e54, "budgets.json")
+    basepath = os.path.join(e54, "baseline", "baseline.json")
+    if os.path.exists(bpath) and os.path.exists(basepath):
+        b = json.load(open(bpath, encoding="utf-8"))
+        base = json.load(open(basepath, encoding="utf-8"))
+
+        terms_keys = set()
+        for m in b["models"].values():
+            terms_keys |= set(m["R_noncontract_AI_terms"])
+        forbidden = {k for k in terms_keys if "rss" in k.lower() or "delta" in k.lower()}
+        results.append(Result(
+            "e54/3: R_noncontract_AI is built from the contract's own exclusion list and carries "
+            "no RSS-delta term -- an RSS delta overlaps bytes inside U, which is D78 repeated at "
+            "the experiment level",
+            not forbidden and "module_image_artifact_bytes" in terms_keys
+            and "app_static_io_buffer_bytes" in terms_keys,
+            "terms=%s forbidden=%s" % (sorted(terms_keys), sorted(forbidden))))
+
+        zero_ok = (base["r_other_apps_bytes"] != 0) or (
+            base["separable"] is False and "double-count" in base["r_other_apps_note"])
+        results.append(Result(
+            "e54/4: R_other_apps == 0 is allowed only with the 'already inside R_OS_cFS, adding "
+            "it again would double-count' reason -- never as a measured zero (D29/D51/D68)",
+            zero_ok, "separable=%r r_other_apps=%d note=%.90s" %
+            (base["separable"], base["r_other_apps_bytes"], base["r_other_apps_note"])))
+
+        results.append(Result(
+            "e54/5: R_reserved is 0 and says so by declaration (E44 counted 0 reservation-capable "
+            "calls); the budget is a value GRANTED to the app, not a reservation of physical RAM",
+            all(p["R_reserved_bytes"] == 0 and "reservation" in p["R_reserved_note"]
+                for p in b["profiles"].values()),
+            "profiles=%d" % len(b["profiles"])))
+
+        grades = {m["grade"] for m in b["margins"].values()}
+        results.append(Result(
+            "e54/6: the lifecycle margin percentages are graded as absent from every byte this "
+            "session fetched, so they can never be presented as a primary-source citation "
+            "(E39b/D91: a citation is a citation only down to its source)",
+            grades == {"transcribed_from_directive_primary_blocked"},
+            "grades=%s" % sorted(grades)))
+    else:
+        results.append(Result("e54/3-6: budgets.json invariants", True,
+                              "skipped: budgets.json or baseline.json absent", skip=True))
+
+    # --- (5) Part 1 and Part 2 never share a file ---
+    scen = sorted(glob.glob(os.path.join(e54, "scenarios_*.json")))
+    if scen:
+        mixed = []
+        for p in scen:
+            parts = {c["part"] for c in json.load(open(p, encoding="utf-8"))}
+            if len(parts) != 1:
+                mixed.append((os.path.basename(p), sorted(parts)))
+        results.append(Result(
+            "e54/7: no scenario file mixes reference profiles with the sensitivity sweep -- the "
+            "directive forbids presenting them as one deployment case, so the separation is "
+            "structural rather than a promise in prose",
+            not mixed, "files=%d mixed=%s" % (len(scen), mixed)))
+    else:
+        results.append(Result("e54/7: part separation", True,
+                              "skipped: no scenario files", skip=True))
+
+    # --- (6) the judge compares against the admitted budget, not `bounded` ---
+    src = open(os.path.join(HERE, "mk_e54_summary.py"), encoding="utf-8").read()
+    judge = src[src.find("def judge("):src.find("def main(")]
+    # Read the CODE, not the prose about the code. The first version of this guard matched the
+    # bare substring and so was failed by its own docstring, which says "never with `bounded`"
+    # -- the inverse of D85, where a sentence describing a rule satisfied it. Strip the
+    # docstring and comments first, then ask what the executable lines actually compare.
+    body = judge
+    if '"""' in body:
+        a = body.find('"""')
+        b = body.find('"""', a + 3)
+        body = body[:a] + body[b + 3:]
+    body = "\n".join(ln.split("#")[0] for ln in body.splitlines())
+    compares_admitted = 'rec["hal_peak"] > rec["budget_requested_bytes"]' in body
+    results.append(Result(
+        "e54/8: the pass judge compares an admitted cell's HAL peak with the budget it was "
+        "ADMITTED on, and no executable line of it names `bounded` -- D53/D59: the number you "
+        "approved on and the number you verify against must be the same one",
+        compares_admitted and "bounded" not in body,
+        "compares_admitted_budget=%r bounded_in_code=%r" %
+        (compares_admitted, "bounded" in body)))
+
+    # --- the power-of-two bracket really brackets U for every model ---
+    try:
+        import e54_make_scenarios as EMS  # noqa: PLC0415
+        if os.path.exists(bpath):
+            b = json.load(open(bpath, encoding="utf-8"))
+            bad = []
+            for name, m in b["models"].items():
+                u = m["U_bounded_bytes"]
+                lo, hi = EMS.bracket(u)
+                if not (lo < u <= hi and lo * 2 == hi):
+                    bad.append((name, u, lo, hi))
+            results.append(Result(
+                "e54/9: the Part 2 grid points bracket U as 2^k < U <= 2^(k+1) for every model, "
+                "and the grid is fixed independently of any contract value -- which is exactly "
+                "why the directive's objection to `U-1` as evidence does not apply to it",
+                not bad, "models=%d bad=%s" % (len(b["models"]), bad)))
+    except ImportError as exc:
+        results.append(Result("e54/9: power-of-two bracket", True,
+                              "skipped: %s" % exc, skip=True))
+
+    return results
+
 def e53_wgan_aarch64_cases(tmp):
     """E53: WGAN AArch64 end-to-end verification, and D93's regression pin.
 
@@ -8081,6 +8242,7 @@ def main():
         all_results += e52_deepae_divergence_cases(tmp)
         all_results += e39b_prior_art_fulltext_cases(tmp)
         all_results += e53_wgan_aarch64_cases(tmp)
+        all_results += e54_reference_budget_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
