@@ -55,15 +55,17 @@ def contract_comparison():
 
 
 def ledger_check():
+    # harness/e49_alloc_ledger.py's actual field names, read from its written JSON
+    # (not the one-line stdout summary it also prints, which uses shorter aliases).
     if not os.path.exists(LEDGER):
         return {"error": "missing ledger", "file": os.path.relpath(LEDGER, ROOT)}
     d = _json(LEDGER)
     return {
         "all_agree": d.get("all_agree"),
-        "per_call_equal": d.get("per_call_equal"),
-        "derived": d.get("derived"),
-        "contract": d.get("contract"),
-        "unclassified": d.get("unclassified"),
+        "per_call_equal": (d.get("per_call_identity") or {}).get("equal"),
+        "derived": d.get("derived_totals"),
+        "contract": d.get("contract_totals"),
+        "unclassified": d.get("unclassified_ops"),
     }
 
 
@@ -72,8 +74,8 @@ def build():
     ledger = ledger_check()
     native_sem = semantics("results/e53_wgan_aarch64/native/comparison_native_aarch64.json")
     cfs_sem = semantics("results/e53_wgan_aarch64/comparison_cfs_aarch64.json")
-    cfs_admit = cfs_cell(os.path.join(CFS, "cfs_B.log"))
-    cfs_deny = cfs_cell(os.path.join(CFS, "cfs_Bm1.log"))
+    cfs_admit = cfs_cell(os.path.join(CFS, "logs", "cfs_B.log"))
+    cfs_deny = cfs_cell(os.path.join(CFS, "logs", "cfs_Bm1.log"))
 
     arm_res = _json(AARCH64_CONTRACT)["resources"]
     bounded = arm_res["bounded_bytes"]

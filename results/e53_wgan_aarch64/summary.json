@@ -1,0 +1,150 @@
+{
+  "experiment": "E53",
+  "title": "WGAN on AArch64 (native qemu-user + cFS guest) -- the SS7.2 stress case (per_call 14x the prior AArch64 maximum)",
+  "plan": "docs/plans/E53_wgan_aarch64.md (committed before measurement, ca8a6b9)",
+  "review": "docs/reviews/DECISIONS_v0_52_REVIEW_R2_WGAN.md SS7.2",
+  "generated_by": "harness/mk_e53_summary.py (cfs_cell/semantics imported from mk_e36b_summary.py, not re-implemented)",
+  "contract_comparison": {
+    "x86_64": {
+      "bounded_bytes": 135666432,
+      "static_per_call_bytes": 131382784,
+      "module_resident_constant_bytes": 4283648,
+      "static_external_input_bytes": 602112,
+      "static_external_output_bytes": 602112
+    },
+    "aarch64": {
+      "bounded_bytes": 135666432,
+      "static_per_call_bytes": 131382784,
+      "module_resident_constant_bytes": 4283648,
+      "static_external_input_bytes": 602112,
+      "static_external_output_bytes": 602112
+    },
+    "identical": true,
+    "bound_method": {
+      "x86_64": "static_from_stream_layout",
+      "aarch64": "static_from_stream_layout"
+    },
+    "kernel_stack_bytes": {
+      "x86_64": 432,
+      "aarch64": 880
+    },
+    "overrides_applied": {
+      "x86_64": [],
+      "aarch64": []
+    }
+  },
+  "ledger": {
+    "all_agree": true,
+    "per_call_equal": true,
+    "derived": {
+      "I": 602112,
+      "O": 602112,
+      "T": 130178560,
+      "C": 4283648
+    },
+    "contract": {
+      "I": 602112,
+      "O": 602112,
+      "T": 130178560,
+      "C": 4283648
+    },
+    "unclassified": []
+  },
+  "semantics_native_aarch64": {
+    "verdict": "PASS",
+    "samples": 1,
+    "elements": 150528,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "by_kind": {
+      "real_example": 1
+    },
+    "worst_abs": 8.940696716308594e-07,
+    "comparison": "results/e53_wgan_aarch64/native/comparison_native_aarch64.json"
+  },
+  "semantics_cfs_aarch64": {
+    "verdict": "PASS",
+    "samples": 1,
+    "elements": 150528,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "by_kind": {
+      "real_example": 1
+    },
+    "worst_abs": 8.940696716308594e-07,
+    "comparison": "results/e53_wgan_aarch64/comparison_cfs_aarch64.json"
+  },
+  "cfs_B": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_bytes": 135666432,
+    "budget_source": "override",
+    "inferences": 4,
+    "run_records": 4,
+    "run_records_unparseable": 4,
+    "hal_peak": 131382784,
+    "admitted_budget_bytes": 135666432,
+    "peak_within_admitted_budget": true,
+    "admission_mode": "unconditional",
+    "budget_invalid_event": false,
+    "exit": "137",
+    "log": "results/e53_wgan_aarch64/cfs/logs/cfs_B.log",
+    "map_branch": {
+      "module_ptr_mod64": 0,
+      "hal_peak_after_append": 0,
+      "arm": "map",
+      "admission_mode": "unconditional"
+    }
+  },
+  "cfs_Bm1": {
+    "verdict": "NOT_ADMITTED",
+    "budget": 135666431,
+    "budget_bytes": 135666431,
+    "budget_source": "override",
+    "inferences": 0,
+    "run_records": 0,
+    "run_records_unparseable": 0,
+    "hal_peak": null,
+    "admitted_budget_bytes": null,
+    "peak_within_admitted_budget": null,
+    "admission_mode": null,
+    "budget_invalid_event": false,
+    "exit": "124",
+    "log": "results/e53_wgan_aarch64/cfs/logs/cfs_Bm1.log",
+    "cfs_alive_after_refusal": {
+      "exit_app_logged": true,
+      "apps_loaded_after": [
+        "cs",
+        "ds",
+        "fm",
+        "hk",
+        "hs",
+        "md",
+        "mm",
+        "sc"
+      ],
+      "log_lines_after_exit": 69
+    }
+  },
+  "hal_vs_bounded": {
+    "hal_peak": 131382784,
+    "bounded_bytes": 135666432,
+    "peak_le_bounded": true
+  },
+  "not_run": [
+    "conditional (map) tier -- SS7.2's 7 steps only require the unconditional tier",
+    "VMFB bitwise identity across ISAs -- SS7.2 explicitly does not require it",
+    "accuracy -- no evaluation set (E46 G2 unchanged)",
+    "latency/throughput -- FUNCTIONAL_ONLY host under qemu",
+    "OnAIR for WGAN on AArch64"
+  ],
+  "verdicts": {
+    "Q1_contract_generation": "PASS",
+    "Q2_ledger_agreement": "PASS",
+    "Q3_native_semantics": "PASS",
+    "Q4_budget_boundary": "PASS",
+    "Q5_hal_vs_bounded": "PASS",
+    "Q6_composition_recorded": "PASS",
+    "e53_complete": true
+  }
+}

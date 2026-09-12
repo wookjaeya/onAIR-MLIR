@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.55**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.56**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
 
 **중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
 
@@ -1235,6 +1235,45 @@ PR #3 병합 · 태그 정책)다.
 개정판이 정한 완료 기준(§7.2): 계약 원장(I·O·T·C)·AArch64 native 의미 동치·cFS `B`/`B−1` 승인·거절·
 같은 회계 영역의 HAL 관측이 **하나의 추적 가능한 경로로 연결**돼야 한다. VMFB 비트 동일성은
 요구하지 않는다(ISA가 다르므로).
+
+**v0.56에서 완료된 것 (E53, `docs/EVIDENCE_v0.56_E53.md`)**: **WGAN AArch64 종단 검증 — Q1~Q6 전부
+PASS, `e53_complete: true`.** 위 개정 결정이 지시한 작업이고, 선행조건(E50 연결·순차 호출·회계
+매핑·DeepAE 원인)은 E51·E52로 이번 세션에서 이미 닫혀 있었다. 같은 `wgan.mlir`(x86-64와 모델
+sha256 동일)에서 **한 번의 `iree-compile`**로 AArch64 계약을 생성 — 세 수치·`bound_method`·상수
+확인 상태·오버라이드(0건)는 x86-64와 **정확히 동일**하고, 다른 것은 `target.triple`과 커널 스택
+(880 vs 432 B)뿐이다. `harness/e49_alloc_ledger.py`의 I·O·T·C 원장이 계약과 **4/4 일치**, entry 안
+async 0. **native(qemu-user) 의미 동치**: 실이미지 1장(qemu-user 아래 WGAN 1회 추론의 실측 비용이
+커 계획의 11샘플에서 좁혔다)으로 원본 TFLite oracle과 대조해 **150,528원소 전부 통과**(worst abs
+8.94e-07). **cFS 예산 경계**: `bounded−1`→NOT_ADMITTED·추론 0·앱 8개 계속 로드, `bounded`→ADMIT·
+**4/4 추론**·HAL peak **131,382,784**(=`static_per_call_bytes` — 이 배포도 map 분기를 탔다, E29의
+64바이트 정렬 전제가 우연히 성립, `bounded_bytes` 이내). **native와 cFS의 출력이 비트 동일**
+(`np.array_equal` True, 최대차 0.0) — 계획의 반증 조건 4(두 경로 출력이 다르다)는 발생하지 않았다.
+**D93**: cFS 승인 셀이 실제로는 통과인데 요약이 **FAIL로 잘못 기록**하고 있었다 —
+`AI_LEARNER_Json`의 고정 크기 콘솔 라인 버퍼(`char line[768]`)가 WGAN의 150,528원소 출력을 담은
+`"stage":"run"` JSON을 배열 중간에서 잘랐다. **D68과 정확히 같은 기전**(DeepAE의 640원소 출력도
+766자에서 이미 잘리고 있었다)인데, D68의 수정은 하류 요약 생성기(`mk_e36b_summary.py`)에만 들어가
+**이 셀의 `"pass"` 값을 실제로 정하는 `e14_cfs_scenarios.py::check_expect`에는 닿지 않았다** — DeepAE
+에서는 이 게이트에 `min_completed`를 건 적이 없어 드러나지 않았을 뿐이다. `last_run` 부재 시
+`last_mem`(같은 순간의 같은 값, 배열이 없어 truncation을 겪지 않음)으로 fallback해 수정, 실제
+원자료(`cfs_B.log`)로 revert-and-confirm-fail(되돌리면 `['completed 0 < 1']`, 고치면 `[]`).
+오프라인 재판정 모드(`e14_cfs_scenarios.py --reparse`, 신설)로 게스트를 다시 실행하지 않고 이미
+수집한 로그를 재판정했다. 앱 코드(`ai_learner.c`/`native_learner.c`)는 계획(§2)이 금지한 대로
+건드리지 않았다 — 근본 원인(`line[768]`)은 열려 있고 다음에 더 큰 출력을 넣는 모델이 다시 밟을 수
+있다. **부수**: native 1차 시도가 E25 등가성 인자(`argv[4..5]`)를 빠뜨려 `native_learner.c`의
+벤치마크 루프(`WARMUP_CALLS=200`, 모델 무관 고정 상수)를 201회 반복하며 **4시간 넘게 끝나지
+않았다** — 필요한 E25 등가성 블록은 그 루프보다 **먼저** 완료·flush되므로(admission+binding+1회
+실추론이 **~11분**), 프로세스를 죽이고 필요한 값만 취했다. 그 과정에서 **qemu-user가 이 워크로드에서
+qemu-system-aarch64(cFS, 1회 추론당 EVS 실측 ~30~33분)보다 실측으로 훨씬 빠르다**는 것도 드러났다.
+`WARMUP_CALLS` 상수 자체는 고치지 않았다(이 실험의 필요를 넘는 변경). **하지 않음**: 조건부 계층
+(map opt-in — E46이 이미 이득 1.03×로 정량화, 새로 켜지 않음) · 정확도(평가셋 없음) · 11샘플 전체
+(native·cFS 모두 실이미지 1장) · VMFB 비트 동일성(요구되지 않음, ISA가 다름) · `WARMUP_CALLS` 수정.
+이 컨테이너 **820/820**.
+**교훈**: ***하류 리포터의 수정이 그 값을 실제로 쓰는 게이트에까지 닿았는지 확인하라*** ·
+***느린 코드경로 전체가 끝나기를 기다리기 전에, 필요한 값이 그 안의 어느 지점에서 먼저 나오는지
+읽어라.***
+**다음**: 검토 개정판(§7.2)이 지시한 WGAN AArch64 종단 검증이 이로써 완료됐다. 2026-09-11 지시가
+정한 순서(E42/43 → E44 → 실입력 종단 → WGAN)가 전부 닫혔다 — 다음은 **연구 책임자 결정 대기**
+(논문 초고 착수 · PR #3 병합 · 태그 정책 · WGAN 조건부 계층 등 선택적 후속).
 
 **v0.50에서 완료된 것 (E48, `docs/EVIDENCE_v0.50_E48.md`)**: **공개 실입력의 AArch64 종단 실행** —
 두 외부 검토가 **독립적으로 최우선**으로 지목한 항목이다(`RESEARCH_STATUS_REVIEW_v048.md` §12 P0-1 ·

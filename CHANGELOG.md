@@ -2,6 +2,41 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.56] — 2026-09-12 — E53: WGAN AArch64 종단 검증 (D93)
+
+검토 `DECISIONS_v0_52_REVIEW_R2_WGAN.md` §7.2·§9가 WGAN AArch64 종단 검증을 "핵심 검증 후 수행"으로
+지정했고, 그 선행조건(E50 강제 경로 연결·순차 호출 근거·회계 매핑·DeepAE 원인)은 E51·E52로 이번
+세션에서 전부 닫혔다. 사전 고정 기준은 `docs/plans/E53_wgan_aarch64.md`(커밋 `ca8a6b9`, **측정 이전**).
+**Q1~Q6 전부 PASS, `e53_complete: true`.**
+
+같은 `wgan.mlir`(x86-64와 모델 sha256 동일)에서 한 번의 `iree-compile`로 AArch64 계약을 생성 — 세
+수치·`bound_method`·상수 확인 상태·오버라이드(0건)는 x86-64와 동일하고, 다른 것은 `target.triple`과
+커널 스택(880 vs 432 B)뿐이다. `harness/e49_alloc_ledger.py`의 I·O·T·C 원장이 계약과 4/4 일치.
+**native(qemu-user) 의미 동치**: 실이미지 1장으로 원본 TFLite oracle과 대조해 **150,528원소 전부
+통과**(worst abs 8.94e-07). **cFS 예산 경계**: `bounded−1`→NOT_ADMITTED·추론 0, `bounded`→ADMIT·
+4/4 추론·HAL peak 131,382,784(map 분기, `bounded_bytes` 이내). **native와 cFS의 출력이 비트
+동일**(최대차 0.0).
+
+**정정: D93** — cFS 승인 셀이 실제로는 통과인데 요약에 FAIL로 잘못 기록돼 있었다.
+`AI_LEARNER_Json`의 고정 크기 콘솔 버퍼(`char line[768]`)가 WGAN의 150,528원소 출력을 담은
+`"stage":"run"` JSON을 잘랐고(**D68과 같은 기전** — DeepAE에서 이미 관측됐지만 그 수정이 하류
+요약 생성기에만 들어가 이 실시간 판정 게이트에는 닿지 않았다), `check_expect`의 `min_completed`가
+`last_run`에서만 완료 수를 읽어 0으로 보고했다. `last_mem`(같은 순간의 같은 값, truncation을 겪지
+않는 레코드)으로 fallback해 수정하고, 실제 원자료로 revert-and-confirm-fail(되돌리면
+`['completed 0 < 1']`, 고치면 `[]`). 오프라인 재판정 모드(`e14_cfs_scenarios.py --reparse`)를
+신설해 게스트 재실행 없이 이미 수집한 로그로 재판정했다. 앱 코드(`ai_learner.c`/`native_learner.c`)는
+계획이 금지한 대로 건드리지 않았다 — 근본 원인(`line[768]`)은 열려 있다.
+
+**부수**: native 1차 시도가 E25 등가성 인자를 빠뜨려 `native_learner.c`의 벤치마크 루프
+(`WARMUP_CALLS=200`, 모델 무관 상수)를 201회 반복하며 4시간 넘게 끝나지 않았다. 필요한 E25
+등가성 블록은 그 루프보다 먼저 완료·flush되므로(admission+binding+1회 추론 **~11분**), 프로세스를
+죽이고 값을 취했다 — qemu-user가 이 워크로드에서 cFS의 qemu-system-aarch64(1회 추론 ~30~33분)보다
+실측으로 훨씬 빠르다. `WARMUP_CALLS` 상수 자체는 고치지 않았다(범위 밖).
+
+**하지 않음(명시)**: 조건부 계층(map opt-in, E46이 이미 이득 1.03×로 정량화) · 정확도(평가셋 없음) ·
+11샘플 전체(native·cFS 모두 실이미지 1장으로 좁힘) · VMFB 비트 동일성(요구되지 않음, ISA가 다름).
+이 컨테이너 **820/820**. 문서: `docs/EVIDENCE_v0.56_E53.md`.
+
 ## [v0.55] — 2026-09-12 — E39b: 선행연구 원문 대조와 등급 상향 (D91·D92)
 
 E47 §7이 E39b로 분리해 둔 항목이고 검토 `DECISIONS_v0_52_REVIEW.md` §5가 "병행"으로 둔 것이다.

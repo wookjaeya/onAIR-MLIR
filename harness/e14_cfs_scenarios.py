@@ -132,7 +132,18 @@ def check_expect(res, exp):
         if k == "admission" and last("admission") != v: fails.append(f"admission {last('admission')} != {v}")
         elif k == "binding" and last("binding") != v: fails.append(f"binding {last('binding')} != {v}")
         elif k == "min_completed":
-            c = (res.get("last_run") or {}).get("completed", 0)
+            # D93 (E53): AI_LEARNER_Json's console line buffer (native/cfs_app/fsw/src/
+            # ai_learner.c, `char line[768]`) is fixed-size; the "run" stage record embeds
+            # the full per-call output array, so a model whose output is large enough
+            # (WGAN: ~150K f32 elements) overflows it and the app's own vsnprintf silently
+            # truncates the line before the closing brace. parse_log's balanced-brace scan
+            # then never finds a match, so the line lands in unparsed_json and `last_run`
+            # stays None even though the run genuinely completed (confirmed against the
+            # guest's own EVS text and the un-truncated "mem" stage record, printed in the
+            # same report block with the identical g.n_infer value). Read "mem" as a
+            # fallback -- it carries the same completed count and is never subject to this
+            # truncation, since it has no per-call array in it.
+            c = (res.get("last_run") or res.get("last_mem") or {}).get("completed", 0)
             if c < v: fails.append(f"completed {c} < {v}")
         elif k == "no_failures":
             r = res.get("last_run") or {}
@@ -323,6 +334,13 @@ def main():
     ap.add_argument("--out", default="results/e14_aarch64_qemu/cfs")
     ap.add_argument("--only", default="")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--reparse", action="store_true",
+                     help="offline, no SSH: re-run parse_log/check_expect over the ALREADY-FETCHED "
+                          "local log for each --only scenario and rewrite its summary.json entry in "
+                          "place (D93 / E53). staged/env/fetched/seconds/commands_sent are carried "
+                          "over from the previous entry since they cannot be re-derived from the log "
+                          "alone. Use this to re-judge a real, already-collected guest run after fixing "
+                          "check_expect -- never to substitute for a run that never happened.")
     a = ap.parse_args()
     out = pathlib.Path(a.out); (out / "logs").mkdir(parents=True, exist_ok=True)
     scs = json.load(open(a.scenarios))
@@ -330,6 +348,35 @@ def main():
     results = []
     summ_path = out / "summary.json"
     prev = json.load(open(summ_path)) if summ_path.exists() else {"scenarios": []}
+    if a.reparse:
+        for sc in scs:
+            if only and sc["id"] not in only:
+                continue
+            sid = sc["id"]
+            prior = next((x for x in prev["scenarios"] if x["id"] == sid), None)
+            if prior is None:
+                raise SystemExit(f"{sid}: no prior summary.json entry to reparse -- run it for real first")
+            local_log = out / "logs" / f"{sid}.log"
+            if not local_log.exists():
+                raise SystemExit(f"{sid}: no local log at {local_log} to reparse")
+            text = local_log.read_text(errors="replace")
+            res = parse_log(text)
+            res.update({"id": sid, "model": sc.get("model"), "scenario": sc.get("desc"),
+                        "seconds": prior.get("seconds"), "commands_sent": prior.get("commands_sent", []),
+                        "log": str(local_log), "expect": sc.get("expect"),
+                        "staged": prior.get("staged", {}), "env": prior.get("env", {}),
+                        "fetched": prior.get("fetched", {})})
+            res["expect_failures"] = check_expect(res, sc.get("expect"))
+            res["pass"] = not res["expect_failures"]
+            results.append(res)
+            prev["scenarios"] = [x for x in prev["scenarios"] if x["id"] != sid] + [res]
+            json.dump(prev, open(summ_path, "w"), indent=2)
+            lr = res.get("last_run") or {}
+            print(f"[{sid}] reparsed -> {'PASS' if res['pass'] else 'FAIL'}: "
+                  f"completed={lr.get('completed')}/{lr.get('attempted')} {res['expect_failures']}", flush=True)
+        print(json.dumps({"ran": len(results), "passed": sum(1 for r in results if r["pass"]),
+                          "failed": [r["id"] for r in results if not r["pass"]]}))
+        return
     for sc in scs:
         if only and sc["id"] not in only:
             continue
