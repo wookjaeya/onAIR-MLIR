@@ -6,6 +6,7 @@
 - 증거 등급: **결정론적** (소스 실행 추적 · IR 주입 재현 · 보관 원자료 판독). 지연값 없음.
 - 산출물: `results/e51_claim_preconditions/{stage1_preconditions,stage2_sequential_calls,stage3_accounting_map}.json`
 - 회귀: 이 컨테이너 **776/776 → 796/796** (FAIL 0 · SKIP 0), 보관 14개 계약 diff 0
+- **CI 실측**(커밋 `5ddec80`, run 220, 3레그 success): `full` **791/791 + 3 SKIP** · `without-iree` **621/621 + 35 SKIP** · `stdlib-only` **621/621 + 35 SKIP**. 이 컨테이너(**796/796 + 0 SKIP**)와 `full`의 차이 **5건**은 E38이 확립한 설명 그대로다 — PyYAML 미설치 1 · `aarch64-linux-gnu-objdump` 미설치로 정직하게 SKIP되는 2 · 그 툴체인이 없으면 witness를 실제로 돌리는 분기가 아예 없어 **존재하지 않는** 2. `full`이 771→**791로 정확히 +20**이라 E51 신규 20건이 전부 나타나고, 축소 두 레그는 602→**621(+19)**이고 SKIP이 34→**35(+1)**이라 합이 정확히 20이다 — 늘어난 SKIP 하나는 단계 1의 live 재실행 가드로, 사유 목록에 `needs iree-compile and iree.compiler.ir`로 나타난다(그 레그에는 두 도구가 없다).
 
 ## §0 이 실험이 답한 것
 
