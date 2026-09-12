@@ -188,10 +188,22 @@ def admission_matrix():
         except ap.AdmissionInputError as exc:
             got, err = "INPUT_ERROR", str(exc)[:120]
             d = {}
+        # D87 (external review 2026-09-12 SS4.2): this is DERIVED from the verdict
+        # by the same policy module the row above calls -- it is not an observation
+        # that a runtime started an inference. The old name (`inference_starts`)
+        # read like one, which is the D51/D68 shape: a derived value wearing an
+        # observation's name. Renamed to say what it is. The observed article is
+        # E48's execution logs (inferences actually run / not run per cell); this
+        # table's job is the policy function's decision, and the two must not be
+        # read as one measurement.
         runs = ap.admitted(got) if err is None else False
         cells.append({"id": cid, "description": desc, "budget": budget, "opt_in": optin,
                       "expected_verdict": expect_verdict, "verdict": got,
-                      "expected_inference_starts": expect_runs, "inference_starts": runs,
+                      "expected_execution_authorized_by_policy": expect_runs,
+                      "execution_authorized_by_policy": runs,
+                      "derived_not_observed": ("execution_authorized_by_policy is computed from the verdict "
+                                               "via admission_policy.admitted(); observed inference counts "
+                                               "live in E48/E36 run logs, not here"),
                       "admitted_budget_bytes": d.get("admitted_budget_bytes"),
                       "input_error": err,
                       "ok": got == expect_verdict and runs == expect_runs})

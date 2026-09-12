@@ -569,6 +569,42 @@ def build_contract(a, extra_args):
     # silently-passing check in this function, and keeps the 14 stored
     # contracts' provenance.notes list byte-for-byte unchanged (regression
     # check, harness/contract_negative_tests.py).
+    # D86 (external review 2026-09-12 SS4.1): refuse HERE, on the actual reason.
+    # An allocating pre-scheduling op (stream.async.*) left in the post-layout
+    # entry means the allocation schedule this bound is derived from is not
+    # final. Both extractors used to skip those ops -- the regex parser because
+    # it scans two op families (D84), the structural walker because its own
+    # dispatch did `continue` on everything else -- so they AGREED, and a
+    # contract was issued with unresolved == [] whose bound omitted the
+    # allocation. Reproduced on an archived entry with a real 36 B
+    # stream.async.clone: rc=0, bounded unchanged at 786,476.
+    #
+    # It records the REASON and does not itself refuse. Refusing here was the
+    # first version of this fix and it was a type-(B) over-rejection, caught
+    # immediately by the guard E24 built for exactly this (N1) and by the same
+    # two contracts N1 hit: `dynamic` (x86_64 and aarch64), whose entries
+    # legitimately carry six stream.async.* ops because a dynamic shape means
+    # layout genuinely does not finish. Those contracts are the INPUT to the A8
+    # negative scenario, and what they say -- all_static=false, bound_method
+    # NONE, no bound -- is already the correct answer to "layout did not
+    # finish". Refusing to write them would have deleted the evidence that the
+    # tool refuses dynamic shapes.
+    #
+    # So the honest wiring is: the walker reports the ops as unresolved, which
+    # drives all_static=false and bound_method=NONE through the path that
+    # already exists, and a contract that states no bound is not a usable
+    # contract (gen_contract_header.py emits CONTRACT_BOUND_KNOWN=0 and the C
+    # gate refuses admission). For a model whose regex-side unresolved list is
+    # empty -- a static model with an async op left in -- the two extractors now
+    # disagree on unresolved presence, and THAT hard-fails below. Both
+    # directions measured; see EVIDENCE_v0.52.
+    pre_sched = sorted(set(structural.get("pre_scheduling_ops") or [])) if structural is not None else []
+    if pre_sched and structural_diffs:
+        structural_note += ("; the walker reports allocating pre-scheduling op(s) %s in the post-layout "
+                            "entry, which the regex parser does not scan at all (D84) -- the allocation "
+                            "schedule is not final, so sizes read from this entry do not bound execution"
+                            % pre_sched)
+
     if structural_available and (structural is None or structural_diffs):
         notes.append(structural_note)
         if not waive("--allow-structural-mismatch", a.allow_structural_mismatch):

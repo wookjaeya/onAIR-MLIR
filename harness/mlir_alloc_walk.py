@@ -135,15 +135,43 @@ def _extract_from_entry(entry_op):
     stream.resource.alloca / stream.tensor.import via the SSA def-use chain.
     Any stream.resource.*/stream.tensor.* op outside KNOWN_ENTRY_OPS is
     reported unresolved (fail-closed: an op this walker does not understand
-    is a reason to refuse a bound, not a reason to skip it silently)."""
+    is a reason to refuse a bound, not a reason to skip it silently).
+
+    D86: that sentence is exact, and the exactness was the hole. Ops outside
+    those TWO families were not "unknown" to this walker -- they were not
+    looked at at all, the same limit D84 recorded for the regex parser, which
+    E49 did not record for this one. So an allocating pre-scheduling op left
+    in the entry (stream.async.*) was skipped by BOTH extractors, they agreed
+    because they share the blind spot, and a contract was issued whose bound
+    omitted that allocation while reporting unresolved == [] -- "did not read
+    it" recorded as "there was nothing there" (the E27 (b) failure mode).
+    Reproduced by injecting a real 36 B stream.async.clone into an archived
+    entry: bounded stayed 786,476, unchanged, rc=0.
+
+    Those ops are now reported in `pre_scheduling_ops` AND in `unresolved`.
+    The separate key exists so make_contract.py can refuse with the actual
+    reason ("layout did not finish") instead of the downstream symptom (the
+    two extractors disagreeing). E49's ledger uses the same rule, and the
+    condition that makes it safe today -- zero async ops inside the last entry
+    print, measured over 25 archived IRs -- is an OBSERVATION, so the check
+    has to exist rather than be assumed."""
     result = {"inputs": [], "outputs": [], "transient_slices": [], "transient_slabs": [],
-             "constants": [], "unresolved": [], "dispatches": 0, "entry_found": True}
+             "constants": [], "unresolved": [], "pre_scheduling_ops": [],
+             "dispatches": 0, "entry_found": True}
     for o in _walk(entry_op):
         name = o.name
         if name == "stream.cmd.dispatch":
             result["dispatches"] += 1
             continue
         if not (name.startswith("stream.resource.") or name.startswith("stream.tensor.")):
+            # D86: stream.async.* in a post-layout entry means layout did not
+            # finish, so every size this walker derived below is derived from an
+            # unfinished schedule. Reported, not skipped. Other families
+            # (stream.cmd.*, stream.timepoint.*) do not allocate and stay out of
+            # the way -- narrowing by what E49's ledger measured, not by guess.
+            if name.startswith("stream.async."):
+                result["pre_scheduling_ops"].append(name)
+                result["unresolved"].append("pre_scheduling_alloc_op:%s" % name)
             continue
         if name not in KNOWN_ENTRY_OPS:
             result["unresolved"].append("unrecognized_op:%s" % name)
@@ -234,7 +262,8 @@ def parse_alloc_ir_structural(ir_text, entry="infer"):
 
     if not entry_chunks:
         return {"inputs": [], "outputs": [], "transient_slices": [], "transient_slabs": [],
-               "constants": [], "unresolved": [], "dispatches": 0, "entry_found": False}
+               "constants": [], "unresolved": [], "pre_scheduling_ops": [],
+               "dispatches": 0, "entry_found": False}
 
     best = None
     ctx_errors = []

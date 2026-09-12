@@ -5885,6 +5885,123 @@ def e49_audit_matrix_cases(tmp):
     return results
 
 
+def d86_pre_scheduling_ops_cases(tmp):
+    """D86: an allocating pre-scheduling op in the post-layout entry must not be
+    skipped by BOTH extractors, and must not be over-rejected either.
+
+    The hole: mlir_alloc_walk's dispatch did `continue` on every op outside
+    stream.resource.*/stream.tensor.*, the same two-family limit D84 recorded
+    for the regex parser and did not record for this one. So a stream.async.*
+    left in the entry was invisible to both readers, they AGREED because the
+    blind spot is shared, and a contract was written whose bound omitted the
+    allocation while reporting unresolved == []. Reproduced by injecting a real
+    36 B stream.async.clone into an archived entry: rc=0, bounded unchanged at
+    786,476, i.e. "did not read it" recorded as "nothing was there".
+
+    The first fix hard-failed on it and that was a type-(B) over-rejection,
+    caught by E24's N1 guard and by the same two contracts N1 hit: `dynamic`
+    carries SIX honest stream.async.* ops in its entry, because a dynamic shape
+    means layout genuinely does not finish, and those two contracts are the
+    INPUT to the A8 negative scenario. What they already say -- all_static
+    false, bound_method NONE -- is the correct answer. So the walker reports the
+    ops (driving that existing no-bound path) and the refusal for a STATIC model
+    comes from the two extractors now disagreeing on unresolved presence.
+
+    Both directions are pinned here, and so is the measurement E49 got wrong.
+    """
+    results = []
+    root = os.path.join(os.path.dirname(HERE), "results", "e14_aarch64_qemu")
+    if not os.path.isdir(root):
+        return [Result("d86: fixture root present", False, "missing %s" % root)]
+    if not structural_available():
+        return [Result("d86: pre-scheduling op cases", None,
+                       "structural extractor unusable here (iree.compiler.ir not importable)", skip=True)]
+    import mlir_alloc_walk as _maw                                  # noqa: PLC0415
+
+    # (1) the walker sees them at all -- the property that did not exist before
+    dyn_ir = read(os.path.join(root, "aarch64", "layout_ir", "dynamic.layout_ir.txt"))
+    dyn = _maw.parse_alloc_ir_structural(dyn_ir, "infer")
+    dyn_ps = dyn.get("pre_scheduling_ops") or []
+    results.append(Result("d86: walker reports allocating pre-scheduling ops in a post-layout entry "
+                          "(they used to be skipped silently, the D84 limit on this extractor too)",
+                          len(dyn_ps) == 6, "pre_scheduling_ops=%r" % (sorted(set(dyn_ps)),)))
+    results.append(Result("d86: it also routes them to unresolved, so the existing no-bound path "
+                          "(all_static=false -> bound_method NONE) is what states the refusal",
+                          any(u.startswith("pre_scheduling_alloc_op:") for u in dyn.get("unresolved") or []),
+                          "unresolved=%r" % ((dyn.get("unresolved") or [])[:3],)))
+
+    # (2) type (B): the honest dynamic contract must still be written, unchanged.
+    #     This is the A8 negative scenario's input -- refusing to write it would
+    #     delete the evidence that the tool refuses dynamic shapes.
+    stored = load(os.path.join(root, "aarch64", "contracts", "contract.dynamic.aarch64.json"))
+    results.append(Result("d86: the honest dynamic contract still states no bound rather than being "
+                          "refused (type-(B) guard -- this is the A8 scenario's input)",
+                          stored.get("resources", {}).get("bound_method") == "NONE"
+                          and stored.get("resources", {}).get("bounded_bytes") is None,
+                          "bound_method=%r bounded=%r" % (stored.get("resources", {}).get("bound_method"),
+                                                          stored.get("resources", {}).get("bounded_bytes"))))
+
+    # (3) a STATIC entry with an async op injected: the two readers must differ -- the
+    #     regex parser cannot see it, the walker now can, so unresolved presence
+    #     disagrees and make_contract hard-fails (measured separately below by
+    #     the disagreement wiring already under test).
+    base = read(os.path.join(root, "aarch64", "layout_ir", "mlp16k.layout_ir.txt"))
+    needle = ("  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : "
+              "!hal.buffer_view -> tensor<1x9xf32> in !stream.resource<external>{%c36}\n")
+    if needle not in base:
+        results.append(Result("d86: injection anchor present in archived mlp16k layout IR", False,
+                              "anchor not found -- fixture changed"))
+        return results
+    i = base.rfind(needle)
+    injected = (base[:i] + needle +
+                "  %async_probe = stream.async.clone on(#hal.device.affinity<@__device_0>) %0 : "
+                "!stream.resource<external>{%c36} -> !stream.resource<external>{%c36}\n" +
+                base[i + len(needle):])
+    mut = _maw.parse_alloc_ir_structural(injected, "infer")
+    base_parsed = _maw.parse_alloc_ir_structural(base, "infer")
+    results.append(Result("d86: a static entry with an injected allocating async op is reported, while "
+                          "the same entry without it is clean (the fail-open condition, reproduced)",
+                          bool(mut.get("pre_scheduling_ops")) and not base_parsed.get("pre_scheduling_ops"),
+                          "injected=%r clean=%r" % (mut.get("pre_scheduling_ops"),
+                                                    base_parsed.get("pre_scheduling_ops"))))
+    results.append(Result("d86: and it lands in unresolved for the static entry, which the regex parser "
+                          "leaves empty -- so the mandatory cross-check disagrees and refuses",
+                          any(u.startswith("pre_scheduling_alloc_op:") for u in mut.get("unresolved") or [])
+                          and not (base_parsed.get("unresolved") or []),
+                          "mut_unresolved=%r base_unresolved=%r" % ((mut.get("unresolved") or [])[:2],
+                                                                    base_parsed.get("unresolved"))))
+
+    # (4) E49 measured "zero async inside the last entry print" over the archived
+    #     IRs and wrote it as the condition that makes the parser's narrow scan
+    #     safe. Counted with the walker that can now see them, it is 23 of 25,
+    #     not 25 of 25 -- the two exceptions are the honest dynamic pair. Pin the
+    #     real number so the claim cannot drift back.
+    import glob as _glob                                            # noqa: PLC0415
+    repo = os.path.dirname(HERE)
+    # the same set E49 counted: layout IR lives both under */layout_ir/ (E14) and
+    # loose beside an experiment's build outputs (P1, E26...). Counting only the
+    # first directory shape sees 14 of them, which is how a "zero" can be true of
+    # what was scanned and false of the archive.
+    files = sorted(set(os.path.normpath(f) for f in
+                       (_glob.glob(os.path.join(repo, "results", "**", "layout_ir", "*.layout_ir.txt"),
+                                   recursive=True)
+                        + _glob.glob(os.path.join(repo, "results", "**", "*layout_ir.txt"),
+                                     recursive=True))))
+    with_ps = []
+    for f in files:
+        try:
+            r = _maw.parse_alloc_ir_structural(read(f), "infer")
+        except Exception:
+            continue
+        if r.get("pre_scheduling_ops"):
+            with_ps.append(os.path.basename(f))
+    results.append(Result("d86: archived layout IRs whose entry carries async ops is exactly the honest "
+                          "dynamic pair (E49 recorded 'zero', measured over files it did not include)",
+                          len(files) == 25 and sorted(with_ps) == ["dynamic.layout_ir.txt"] * 2,
+                          "files=%d with_async_in_entry=%r" % (len(files), sorted(with_ps))))
+    return results
+
+
 def e49_alloc_ledger_cases(tmp):
     """E49: the allocation ledger -- every contract component traced to an IR operation.
 
@@ -7418,6 +7535,7 @@ def main():
         all_results += e48_real_inputs_aarch64_cases(tmp)
         all_results += result_skip_hygiene_cases(tmp)
         all_results += ci_record_discipline_cases(tmp)
+        all_results += d86_pre_scheduling_ops_cases(tmp)
         all_results += e49_alloc_ledger_cases(tmp)
         all_results += e49_audit_matrix_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
