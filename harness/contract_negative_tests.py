@@ -7472,6 +7472,208 @@ def e38_optin_witness_cases(tmp):
                           "reports, it does not decide", _ok, "" if _ok else json.dumps(n)[:240]))
     return results
 
+
+# ---------------------------------------------------------------------------
+# E51 -- the three preconditions of the central claim (external review SS5.1-5.3).
+# Each of the three stages ships its derivation AND the guard that re-runs it
+# (D77: a derived value without a re-running guard is a value nobody checks).
+# ---------------------------------------------------------------------------
+E51_DIR = os.path.join(os.path.dirname(HERE), "results", "e51_claim_preconditions")
+
+
+def e51_stage1_cases(tmp):
+    results = []
+    path = os.path.join(E51_DIR, "stage1_preconditions.json")
+    if not os.path.isfile(path):
+        return [Result("e51 stage1: stage1_preconditions.json present", False, "missing")]
+    d = load(path)
+
+    results.append(Result("e51 stage1: Q1-Q4 all PASS in the archived record",
+                          d.get("verdict") == "PASS" and all(
+                              v == "PASS" for v in (d.get("verdicts") or {}).values()),
+                          str(d.get("verdicts"))))
+
+    # Q1: every premise check was EXECUTED, and its anchor still exists in the
+    # live source. Re-located here rather than trusting the stored line number --
+    # an edit that moves or deletes a check has to make this fail.
+    q1 = d["Q1_checks_called"]
+    bad = [c["id"] for c in q1["checks"] if c.get("called") is not True or c.get("locate_error")]
+    results.append(Result("e51 stage1 Q1: all five premise checks executed on the production path",
+                          not bad and len(q1["checks"]) == 5, "problem cells: %s" % bad))
+    import e51_precondition_trace as e51t
+    missing = []
+    for c in e51t.CHECKS:
+        ln, err = e51t.anchor_line(c["file"], c["anchor"])
+        if ln is None:
+            missing.append((c["id"], err))
+    results.append(Result("e51 stage1 Q1: every check anchor still resolves in the live source",
+                          not missing, "unresolved: %s" % missing))
+
+    # Q2: the positive control had to pass BEFORE any refusal counts as evidence,
+    # and each refusal has to be attributable to what was injected.
+    q2 = d["Q2_violation_produces_no_deployable_artifact"]
+    results.append(Result("e51 stage1 Q2: positive control produces a bound-stating contract",
+                          q2["positive_control"].get("ok") is True,
+                          "rc=%s written=%s bound=%s" % (q2["positive_control"].get("make_contract_rc"),
+                                                         q2["positive_control"].get("contract_file_written"),
+                                                         q2["positive_control"].get("bound_method"))))
+    results.append(Result("e51 stage1 Q2: no injected premise violation yields a deployable artifact",
+                          all(c.get("deployable_artifact_produced") is False for c in q2["cells"]),
+                          str([(c.get("id"), c.get("refused_as")) for c in q2["cells"]])))
+    results.append(Result("e51 stage1 Q2: every refusal is attributable to the injected op",
+                          q2.get("refusals_attributable_to_injection") is True,
+                          str([(c.get("id"), c.get("seen_by_extractor")) for c in q2["cells"]])))
+    # The D86 finding itself: with the branch, the async injection disagrees; without
+    # it, the two extractors agree and a contract WOULD be written. Pinned so the
+    # branch cannot be removed as "redundant".
+    async_cell = next((c for c in q2["cells"] if c.get("id") == "pre_scheduling_async_op"), None)
+    ex = (async_cell or {}).get("extractors") or {}
+    results.append(Result("e51 stage1 Q2: D86 is load-bearing (removing the branch makes the two extractors agree)",
+                          ex.get("diff_against_regex") == ["unresolved(presence)"]
+                          and ex.get("diff_if_D86_branch_removed") == [],
+                          "with=%s without=%s" % (ex.get("diff_against_regex"),
+                                                  ex.get("diff_if_D86_branch_removed"))))
+    # Q4: the audit tool's domain and the contract path's domain must stay separate.
+    q4 = d["Q4_audit_vs_deployment_scope"]
+    results.append(Result("e51 stage1 Q4: the ledger is an audit tool, not part of contract generation",
+                          q4["audit_tool"]["invoked_by_contract_generation"] is False
+                          and q4["audit_tool"]["models_covered_count"] > 0
+                          and q4["deployment_contract_path"]["archived_contracts_in_repo"]
+                              > q4["audit_tool"]["models_covered_count"],
+                          "ledger=%d models, archived contracts=%d"
+                          % (q4["audit_tool"]["models_covered_count"],
+                             q4["deployment_contract_path"]["archived_contracts_in_repo"])))
+
+    # live re-run (D77). Q3 regenerates 14 contracts and needs the real toolchain,
+    # so the live leg skips it; the archived record above still carries Q3's result.
+    if not (iree_tools_available() and structural_available()):
+        results.append(Result("e51 stage1: derivation re-runs live (Q1/Q2/Q4)", True,
+                              "needs iree-compile and iree.compiler.ir", skip=True))
+        return results
+    out = os.path.join(tmp, "e51_s1.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e51_precondition_trace.py"), "--skip-q3",
+                      "--out", os.path.relpath(out, os.path.dirname(HERE))],
+                     cwd=os.path.dirname(HERE))
+    if rc != 0:
+        results.append(Result("e51 stage1: derivation re-runs live (Q1/Q2/Q4)", False,
+                              "rc=%d %s" % (rc, err.strip()[:200])))
+        return results
+    live = load(out)
+    same = all(live["verdicts"][k] == d["verdicts"][k] for k in ("Q1", "Q2", "Q4"))
+    results.append(Result("e51 stage1: derivation re-runs live and agrees (Q1/Q2/Q4)", same,
+                          "live=%s archived=%s" % (live["verdicts"], d["verdicts"])))
+    return results
+
+
+def e51_stage2_cases(tmp):
+    results = []
+    path = os.path.join(E51_DIR, "stage2_sequential_calls.json")
+    if not os.path.isfile(path):
+        return [Result("e51 stage2: stage2_sequential_calls.json present", False, "missing")]
+    d = load(path)
+    results.append(Result("e51 stage2: every deployment has an invoke site and creates no task or thread",
+                          d.get("verdict") == "PASS" and len(d["deployments"]) == 3
+                          and all(c["invoke_site_count"] > 0
+                                  and c["counted_thread_or_task_creation_total"] == 0
+                                  for c in d["deployments"]),
+                          str([(c["id"], c["invoke_site_count"],
+                                c["counted_thread_or_task_creation_total"]) for c in d["deployments"]])))
+    # The state must NOT have been promoted. Reading the call site is not observing it.
+    results.append(Result("e51 stage2: max_in_flight_calls stays ARGUED_FROM_SOURCE with observed_value null",
+                          d.get("state") == "ARGUED_FROM_SOURCE" and d.get("observed_value") is None,
+                          "state=%s observed=%r" % (d.get("state"), d.get("observed_value"))))
+    # The two claims the review asked to keep apart must be in separate fields.
+    dist = d.get("distinction_required_by_review_5_2_4") or {}
+    results.append(Result("e51 stage2: the two claims are recorded separately (counted vs read)",
+                          set(dist) == {"claim_A_executor_creates_no_threads",
+                                        "claim_B_external_calls_are_sequential"}
+                          and all("what_it_does_not_say" in v for v in dist.values()),
+                          str(sorted(dist))))
+    # Containment, not proximity: the cFS SB invoke is NOT inside a loop in its own
+    # function (the loop is CFE_ES_RunLoop, in AppMain). The first version of the
+    # locator reported the preceding one-line feature-fill for() here.
+    cfs = next(c for c in d["deployments"] if c["id"] == "cfs_ai_learner")
+    sb = next((s for s in cfs["invoke_sites"] if s["enclosing_function"] == "AI_LEARNER_Infer"), None)
+    init = next((s for s in cfs["invoke_sites"] if s["enclosing_function"] == "AI_LEARNER_Init"), None)
+    results.append(Result("e51 stage2: enclosing loop is computed by containment, not proximity",
+                          sb is not None and sb.get("enclosing_loop") is None
+                          and init is not None and (init.get("enclosing_loop") or {}).get("form") == "braced",
+                          "SB=%s INIT=%s" % ((sb or {}).get("enclosing_loop"), (init or {}).get("enclosing_loop"))))
+    # live re-run (D77) -- pure source reading, no toolchain needed.
+    out = os.path.join(tmp, "e51_s2.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e51_sequential_calls.py"),
+                      "--out", os.path.relpath(out, os.path.dirname(HERE))], cwd=os.path.dirname(HERE))
+    live = load(out) if rc == 0 else {}
+    # Compare the ENCLOSING-LOOP shape too, not only the counts. Without it this guard
+    # pinned the archived JSON while leaving the locator free to regress: reverting
+    # containment back to proximity left all five checks green (measured), which is
+    # exactly the shape D77 warns about -- a derived value whose guard does not re-run
+    # the derivation that produced it.
+    def shape(doc):
+        return [(c["id"], c["invoke_site_count"],
+                 [(s["enclosing_function"], (s["enclosing_loop"] or {}).get("line"),
+                   (s["enclosing_loop"] or {}).get("form")) for s in c["invoke_sites"]])
+                for c in doc.get("deployments", [])]
+    same = (rc == 0 and live.get("verdict") == d.get("verdict") and live.get("state") == d.get("state")
+            and shape(live) == shape(d))
+    results.append(Result("e51 stage2: derivation re-runs live and agrees", same,
+                          "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+def e51_stage3_cases(tmp):
+    results = []
+    path = os.path.join(E51_DIR, "stage3_accounting_map.json")
+    if not os.path.isfile(path):
+        return [Result("e51 stage3: stage3_accounting_map.json present", False, "missing")]
+    d = load(path)
+    results.append(Result("e51 stage3: every core cell resolves U and B, and no cell violates H <= admitted",
+                          d.get("verdict") == "PASS" and d["row_count"] == d["rows_with_U_and_B_resolved"]
+                          and not d["rows_violating_H_le_admitted"] and not d["problems"],
+                          "rows=%s resolved=%s violations=%s problems=%s"
+                          % (d["row_count"], d["rows_with_U_and_B_resolved"],
+                             d["rows_violating_H_le_admitted"], len(d["problems"]))))
+    # The definitions are CITED from E49's matrix, never retyped here (D65).
+    results.append(Result("e51 stage3: the U/B/H definitions are cited from E49's audit matrix",
+                          d["definitions"]["cited_from"].startswith("results/e49_research_audit/audit_matrix.json")
+                          and d["definitions"]["missing"] is False,
+                          d["definitions"]["cited_from"]))
+    # Which U the admitted budget equals is the traceable part of the mapping.
+    cond = [r for r in d["rows"] if r["admission_mode"] == "conditional_map"]
+    uncond = [r for r in d["rows"] if r["admission_mode"] == "unconditional"
+              and r["admitted_budget_equals"] is not None]
+    results.append(Result("e51 stage3: conditional cells admit on per_call, unconditional cells on bounded",
+                          bool(cond) and bool(uncond)
+                          and all(r["admitted_budget_equals"] == "static_per_call_bytes" for r in cond)
+                          and all(r["admitted_budget_equals"] == "bounded_bytes" for r in uncond),
+                          "cond=%s uncond=%s" % ([r["admitted_budget_equals"] for r in cond],
+                                                 sorted({r["admitted_budget_equals"] for r in uncond}))))
+    # A budget that is absent BY CONSTRUCTION is a resolved cell, not a gap -- and the
+    # raw data has to say so itself rather than this tool assuming it.
+    stated = [r for r in d["rows"] if r["B"]["budget_bytes"] is None]
+    results.append(Result("e51 stage3: a budget-less cell is accepted only when the raw data states why",
+                          bool(stated) and all(r["B"]["absence_is_stated"] and r["B"]["absence_reason"]
+                                               for r in stated),
+                          str([(r["cell"], r["B"]["absence_is_stated"]) for r in stated])))
+    # The same three numbers are stored under two spellings; that is recorded, not fixed
+    # by rewriting archived summaries.
+    drift = d.get("field_name_drift") or {}
+    results.append(Result("e51 stage3: the two contract-field spellings are declared, not fuzzily matched",
+                          set(drift.get("spellings_seen") or []) >= {"bounded", "bounded_bytes"},
+                          str(drift.get("spellings_seen"))))
+    out = os.path.join(tmp, "e51_s3.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e51_accounting_map.py"),
+                      "--out", os.path.relpath(out, os.path.dirname(HERE))], cwd=os.path.dirname(HERE))
+    live = load(out) if rc == 0 else {}
+    same = (rc == 0 and live.get("verdict") == d.get("verdict")
+            and live.get("row_count") == d.get("row_count")
+            and [r["admitted_budget_equals"] for r in live.get("rows", [])]
+                == [r["admitted_budget_equals"] for r in d["rows"]])
+    results.append(Result("e51 stage3: derivation re-runs live and agrees", same,
+                          "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -7538,6 +7740,9 @@ def main():
         all_results += d86_pre_scheduling_ops_cases(tmp)
         all_results += e49_alloc_ledger_cases(tmp)
         all_results += e49_audit_matrix_cases(tmp)
+        all_results += e51_stage1_cases(tmp)
+        all_results += e51_stage2_cases(tmp)
+        all_results += e51_stage3_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

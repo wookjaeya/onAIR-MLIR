@@ -1,0 +1,236 @@
+{
+  "tool": "harness/e51_sequential_calls.py",
+  "experiment": "E51",
+  "stage": 2,
+  "plan": "docs/plans/E51_claim_preconditions.md SS2",
+  "review": "docs/reviews/DECISIONS_v0_52_REVIEW.md SS5.2",
+  "premise": "analysis_domain.required_premises.max_in_flight_calls = 1",
+  "deployments": [
+    {
+      "id": "cfs_ai_learner",
+      "file": "native/cfs_app/fsw/src/ai_learner.c",
+      "invoke_sites": [
+        {
+          "line": 576,
+          "text": "if (iree_status_is_ok(s2)) s2 = iree_runtime_call_invoke(&c2, 0);",
+          "enclosing_function": "AI_LEARNER_Init",
+          "enclosing_function_line": 284,
+          "enclosing_loop": {
+            "line": 556,
+            "text": "for (long v = 0; v < nvec; ++v) {",
+            "form": "braced"
+          }
+        },
+        {
+          "line": 662,
+          "text": "iree_status_t st = iree_runtime_call_invoke(&call, 0);",
+          "enclosing_function": "AI_LEARNER_Infer",
+          "enclosing_function_line": 634,
+          "enclosing_loop": null
+        }
+      ],
+      "invoke_site_count": 2,
+      "enclosing_functions": [
+        "AI_LEARNER_Infer",
+        "AI_LEARNER_Init"
+      ],
+      "dispatcher_sites": [
+        {
+          "line": 717,
+          "text": "while (CFE_ES_RunLoop(&run) == true) {",
+          "enclosing_function": "AI_LEARNER_AppMain",
+          "enclosing_function_line": 713,
+          "enclosing_loop": {
+            "line": 717,
+            "text": "while (CFE_ES_RunLoop(&run) == true) {",
+            "form": "braced"
+          }
+        },
+        {
+          "line": 719,
+          "text": "int32 st = CFE_SB_ReceiveBuffer(&buf, g.pipe, 1000);",
+          "enclosing_function": "AI_LEARNER_AppMain",
+          "enclosing_function_line": 713,
+          "enclosing_loop": {
+            "line": 717,
+            "text": "while (CFE_ES_RunLoop(&run) == true) {",
+            "form": "braced"
+          }
+        }
+      ],
+      "shared_across_calls": [
+        "g.session",
+        "g.x (single input buffer view)",
+        "static feat[]/out[]/outs[]/yv[] (D52·D75)"
+      ],
+      "counted_thread_or_task_creation": {},
+      "counted_thread_or_task_creation_total": 0
+    },
+    {
+      "id": "native_learner",
+      "file": "native/native_learner.c",
+      "invoke_sites": [
+        {
+          "line": 373,
+          "text": "if (iree_status_is_ok(st)) st = iree_runtime_call_invoke(&c2, 0);",
+          "enclosing_function": "main",
+          "enclosing_function_line": 149,
+          "enclosing_loop": {
+            "line": 362,
+            "text": "for (long v = 0; v < nvec; ++v) {",
+            "form": "braced"
+          }
+        },
+        {
+          "line": 417,
+          "text": "iree_status_t st_inv = iree_runtime_call_invoke(&call, 0);",
+          "enclosing_function": "main",
+          "enclosing_function_line": 149,
+          "enclosing_loop": {
+            "line": 407,
+            "text": "for (int i = 0; i < iters + WARMUP_CALLS; ++i) {",
+            "form": "braced"
+          }
+        }
+      ],
+      "invoke_site_count": 2,
+      "enclosing_functions": [
+        "main"
+      ],
+      "dispatcher_sites": [
+        {
+          "line": 149,
+          "text": "int main(int argc, char** argv) {",
+          "enclosing_function": "main",
+          "enclosing_function_line": 149,
+          "enclosing_loop": null
+        }
+      ],
+      "shared_across_calls": [
+        "session",
+        "x (single input buffer view)"
+      ],
+      "counted_thread_or_task_creation": {},
+      "counted_thread_or_task_creation_total": 0
+    },
+    {
+      "id": "onair_compiled_learner",
+      "file": "plugins/compiled_learner/compiled_learner_plugin.py",
+      "invoke_sites": [
+        {
+          "line": 426,
+          "text": "out = self._fn(self._x, *self._weights)",
+          "enclosing_function": "render_reasoning",
+          "enclosing_function_line": 409,
+          "enclosing_loop": null
+        }
+      ],
+      "invoke_site_count": 1,
+      "enclosing_functions": [
+        "render_reasoning"
+      ],
+      "dispatcher_sites": [
+        {
+          "line": 350,
+          "text": "def update(self, low_level_data=[], high_level_data={}):",
+          "enclosing_function": "update",
+          "enclosing_function_line": 350,
+          "enclosing_loop": null
+        },
+        {
+          "line": 409,
+          "text": "def render_reasoning(self):",
+          "enclosing_function": "render_reasoning",
+          "enclosing_function_line": 409,
+          "enclosing_loop": null
+        }
+      ],
+      "shared_across_calls": [
+        "self._fn (bound module function)",
+        "self._x",
+        "self._weights"
+      ],
+      "counted_thread_or_task_creation": {},
+      "counted_thread_or_task_creation_total": 0
+    }
+  ],
+  "onair_core": {
+    "available": true,
+    "checkout": "/root/onair-mlir-bench/ext/OnAIR",
+    "commit": "e8af118",
+    "sites": [
+      {
+        "line": 50,
+        "text": "self.agent.reason(next)",
+        "enclosing_function": "run_sim",
+        "enclosing_function_line": 40,
+        "enclosing_loop": {
+          "line": 48,
+          "text": "while self.simData.has_more():",
+          "form": "indent"
+        },
+        "file": "onair/src/run_scripts/sim.py"
+      },
+      {
+        "line": 51,
+        "text": "self.learning_systems.render_reasoning()",
+        "enclosing_function": "reason",
+        "enclosing_function_line": 41,
+        "enclosing_loop": null,
+        "file": "onair/src/reasoning/agent.py"
+      },
+      {
+        "line": 64,
+        "text": "learning_system_results = self.learning_systems.render_reasoning()",
+        "enclosing_function": "diagnose",
+        "enclosing_function_line": 62,
+        "enclosing_loop": null,
+        "file": "onair/src/reasoning/agent.py"
+      },
+      {
+        "line": 79,
+        "text": "state_info[construct.component_name] = construct.render_reasoning()",
+        "enclosing_function": "get_state_information",
+        "enclosing_function_line": 76,
+        "enclosing_loop": {
+          "line": 78,
+          "text": "for construct in self.knowledge_synthesis_constructs:",
+          "form": "indent"
+        },
+        "file": "onair/src/systems/vehicle_rep.py"
+      }
+    ],
+    "concurrency_calls": {},
+    "note": "외부 체크아웃이라 저장소 내용만으로 재현되지 않는다. 커밋 해시를 함께 적어 무엇을 읽었는지는 식별 가능하게 한다."
+  },
+  "distinction_required_by_review_5_2_4": {
+    "claim_A_executor_creates_no_threads": {
+      "how": "소스에서 태스크·스레드 생성 호출을 센다",
+      "result": {
+        "cfs_ai_learner": 0,
+        "native_learner": 0,
+        "onair_compiled_learner": 0
+      },
+      "what_it_does_not_say": "실행기가 스스로 스레드를 만들지 않는다는 것은 **외부에서** 그 실행기를 동시에 부르지 않는다는 뜻이 아니다. E49 가 센 것이 이쪽이다."
+    },
+    "claim_B_external_calls_are_sequential": {
+      "how": "호출부와 그것을 구동하는 루프를 실제로 읽는다",
+      "result": {
+        "cfs_ai_learner": "호출부 두 곳이 **서로 배타적인 단계**에 있다. AI_LEARNER_Init() 안의 e25 재생 루프와, AI_LEARNER_Infer() 안의 SB 구동 호출이다. Infer 는 AI_LEARNER_AppMain() 의 `while (CFE_ES_RunLoop(&run))` 에서만 불리고, 그 루프는 `CFE_SB_ReceiveBuffer` 로 한 번에 버퍼 하나를 받아 `AI_LEARNER_Infer(buf)` 를 **동기 호출**한 뒤 다음 반복으로 간다. Init 은 그 루프가 시작되기 전에 끝나므로 두 호출부가 겹칠 수 없다. cFE 앱은 자기 태스크 하나로 돌고, 이 앱은 자식 태스크도 시그널 핸들러도 등록하지 않는다(아래 계수 0). 따라서 g.session 과 g.x 를 공유하는 호출이 중첩되지 않는다.",
+        "native_learner": "호출부 두 곳 모두 main() 아래의 단일 제어 흐름이다 — e25 재생 for 루프와 벤치마크 for 루프이고, 각 반복이 invoke 를 동기 호출하고 결과를 읽은 뒤 다음 반복으로 간다. 프로세스에 다른 스레드가 없다(계수 0).",
+        "onair_compiled_learner": "플러그인의 invoke 는 render_reasoning() 안의 한 줄이고, 그 함수는 OnAIR 코어가 부른다. 플러그인 자신은 스레드·태스크를 만들지 않는다(계수 0). 또한 `_input_fresh` 가 False 면 invoke 를 하지 않고 직전 답을 `stale` 로 돌려주므로(E33), 같은 입력에 대해 호출이 거듭 발생하지 않는다. OnAIR 코어 쪽은 아래 onair_core 를 참조 — **좁은 주장 범위**(검토 SS5.2-2)에 따라 인터페이스 호출 구조까지만 읽었다."
+      },
+      "what_it_does_not_say": "이것은 소스를 읽은 결과이지 실행 중 관측이 아니다. 중첩이 일어났는지 아닌지를 말하는 런타임 기록은 여전히 없다."
+    }
+  },
+  "reentrancy_paths_examined": {
+    "child_tasks_or_threads": "0 (세 배포 전부, 위 계수)",
+    "signal_handlers": "0 (세 배포 전부, 위 계수 — signal(/sigaction 포함)",
+    "cfs_two_invoke_sites_overlap": "불가능 — 하나는 Init 안, 하나는 Init 이후의 RunLoop 안이다",
+    "onair_repeat_call_without_new_input": "invoke 하지 않고 stale 로 되돌린다 (E33 이 실측한 6번째 호출 문제의 수정)"
+  },
+  "state": "ARGUED_FROM_SOURCE",
+  "state_unchanged_and_why": "호출부까지 읽어도 관측이 되지는 않는다. OBSERVED 로 올리려면 invoke 진입·종료의 call id 기록이 필요하고, 이 실험은 그것을 만들지 않는다 (검토 SS5.2-5 가 소스 근거로 충분하면 신규 계측을 생략해도 된다고 했고, 계획 SS2 가 측정 전에 이 규칙을 고정했다).",
+  "observed_value": null,
+  "verdict": "PASS"
+}

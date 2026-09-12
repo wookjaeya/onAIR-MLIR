@@ -2,6 +2,58 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.53] — 2026-09-12 — E51: 중심 주장의 성립 조건 세 가지 (D89·D90)
+
+검토 `docs/reviews/DECISIONS_v0_52_REVIEW.md` §9가 정한 단계 1~3. 사전 고정 기준은
+`docs/plans/E51_claim_preconditions.md`(커밋 `4e5a906`, **측정 이전**). 검토서가 §검토 한계에서
+*"v0.52 저장소를 다시 실행·검증하지 않았다"*고 **스스로 적었으므로**, *"E50이 충족했다면 근거만
+연결하면 된다"*가 성립하는지를 **E50의 산문이 아니라 우리 실행**으로 답했다.
+**세 단계 전부 PASS이고 새 게이트는 0개다** — 계획 §1이 측정 전에 금지했다(E50이 바로 그 조건을
+hard fail로 만들었다가 유형 (B) 과잉 거부를 냈다).
+
+**단계 1 (Q1~Q4 PASS, `harness/e51_precondition_trace.py`)** — Q1은 읽은 것이 아니라 **실행**이다:
+production `make_contract.build_contract()`를 `sys.settrace` 아래 돌려 다섯 전제 검사가 사는 줄이
+실행됐는지 기록했고 **5/5 실행됨**. 줄 번호는 실행 시점에 **anchor 문자열로 찾아** 못 찾으면
+`false`가 아니라 `anchor_not_found`다(D51). Q2는 **양성 대조를 먼저 통과시킨 뒤** — 편집하지 않은
+같은 IR이 rc=0으로 계약을 낸다 — 보관 layout IR에 전제 위반을 주입(**재컴파일 없음**)해
+**배치 가능한 산출물 0**: 화이트리스트 밖 op·post-layout async 는 **계약 미발행**, 비상수 크기는
+계약이 나오되 `bound_method=NONE`이고 **헤더가 생성되지 않는다**(세 번째가 미발행이 아닌 것은
+설계대로다 — 막으면 E24가 N1에서 고친 과잉 거부를 되살린다). **D86이 load-bearing임을 실측했다** —
+그 분기의 기여만 빼면 두 추출기가 **동의해서 계약이 발행된다**. Q3은 `regression_check`를 **그대로
+호출**해 14/14 diff 0(두 번째 구현을 만들지 않는다 — E44). Q4는 이 단계의 진짜 신규 항목으로,
+**감사 도구(ledger, 4모델·계약 생성이 호출하지 않음)와 배포 계약 경로(계약 32개·모델 목록 없음)**의
+범위를 기계 판독으로 분리했다.
+
+**단계 2 (PASS, 상태 불변, `harness/e51_sequential_calls.py`)** — 검토 §5.2-4가 요구한 두 주장을
+**분리해** 싣는다: *"실행기가 스레드를 만들지 않는다"*는 **센다**(세 배포 0/0/0), *"외부 호출이
+순차적이다"*는 **읽는다**(cFS의 두 invoke 호출부는 `Init` 안과 `Init` 이후 RunLoop 안이라 겹칠 수
+없고, 둘이 `g.session`·`g.x`를 공유하는 것이 `max_in_flight_calls = 1`이 필요한 이유다).
+**상태는 `ARGUED_FROM_SOURCE` 그대로이고 `observed_value`는 `null`이다** — 호출부를 읽어도 관측이
+되지 않는다(계획 §2가 측정 전에 고정).
+
+**단계 3 (PASS, `harness/e51_accounting_map.py`)** — U·B·H를 **17행**으로 매핑. 보관 계약 재생성 0 ·
+값 재계산 0(전부 원자료 판독) · 정의는 E49 `audit_matrix.json::accounting_scope`에서 **인용**(D65) ·
+연결표와의 겹침을 먼저 세고 사본을 만들지 않았다. 승인 예산이 U의 어느 값인지가 행마다 추적된다 —
+`unconditional` 7행은 `bounded_bytes`, `conditional_map` 1행은 `static_per_call_bytes`.
+예산이 없는 두 셀은 원자료가 `budget_invalid_event`로 **스스로 사유를 적어** 해결된 행으로 센다.
+
+**정정: D89** — **D77을 따르려고 만든 가드가 D77을 범했다.** 단계 2의 회귀 시험이 보관 JSON만
+pin하고 live 재실행 비교에 개수·판정만 넣어, containment 로직을 proximity로 **되돌려도 5/5 전부
+통과**했다. live 비교에 enclosing_loop 모양을 넣었다(revert 시 1건 FAIL).
+**교훈: *revert가 실패를 만들지 않으면 고친 것은 코드가 아니라 기록이다.***
+
+**정정: D90** — 같은 세 수치가 요약 생성기마다 **다른 이름**이다(`bounded`/`per_call`/`constants` vs
+`bounded_bytes`/`static_per_call_bytes`/`module_resident_constant_bytes`). 수치·판정 영향 0이지만
+한 철자만 아는 판독기는 다른 쪽에서 **조용히 `null`**을 낸다 — 이 도구의 첫 판이 E36 다섯 셀에
+실제로 그랬다. 보관 요약을 고쳐 쓰지 않고 **별칭을 명시 선언**했다(퍼지 매칭은 그 자체가 결함 — D76).
+
+**판정 전에 잡은 자기 도구 결함 셋**(EVIDENCE §4): 주입을 `util.return` **뒤**에 넣어 MLIR을 깨뜨려
+세 거부가 **주입과 무관한 이유**로 났던 것(***거부는 귀속될 때만 근거다***) · 절대 경로 root로 14개가
+전부 "다르다"고 나온 것(차이는 `provenance.dump_dir` 하나) · 최상위 `contract` 키의 scope를 루트로
+읽지 못해 E36 다섯 셀이 연결되지 않은 것.
+
+회귀: 이 컨테이너 **776/776 → 796/796**(FAIL 0 · SKIP 0), 보관 14개 계약 diff 0.
+
 ## [v0.52] — 2026-09-12 — E50: 열두 번째 외부 검토 건별 검증 (D86·D87·D88)
 
 검토 `docs/reviews/ONAIR_MLIR_RESEARCH_REVIEW_v0_51_1.md`(기준 커밋 `c407bd0` = 당시 head)를 이 저장소
