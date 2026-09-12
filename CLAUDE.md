@@ -1270,6 +1270,10 @@ qemu-system-aarch64(cFS, 1회 추론당 EVS 실측 ~30~33분)보다 실측으로
 D93을 영구 회귀 시험 11건으로 고정(`contract_negative_tests.py::e53_wgan_aarch64_cases`) —
 실제 원자료로 truncation 재현 + `check_expect` PASS, revert-and-confirm-fail로 3건이 정확히
 그 이유로 FAIL함을 확인. 이 컨테이너 **820/820 → 831/831**.
+**CI 실측**(커밋 `788234c`, run 34690758943, 3레그 success): `full` **826/826 + 4 SKIP** ·
+`without-iree` **656/656 + 36 SKIP** · `stdlib-only` **656/656 + 36 SKIP** — 직전 커밋 대비
+세 레그 전부 PASS +11·SKIP +0으로 신규 11건이 전부 나타난다. 컨테이너와 `full`의 차이 5건은
+E38의 설명 그대로다.
 **교훈**: ***하류 리포터의 수정이 그 값을 실제로 쓰는 게이트에까지 닿았는지 확인하라*** ·
 ***느린 코드경로 전체가 끝나기를 기다리기 전에, 필요한 값이 그 안의 어느 지점에서 먼저 나오는지
 읽어라.***

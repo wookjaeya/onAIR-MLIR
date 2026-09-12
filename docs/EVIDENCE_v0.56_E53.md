@@ -172,4 +172,11 @@ qemu-system-aarch64(cFS, 1회 추론당 EVS `mean_us` 실측 ~1,800~2,000초 ≈
 D55 가드가 아직 커밋되지 않은 `cfs_B.log`를 잡은 것, 커밋 후 해소). `contract_negative_tests.py`
 나머지 전건 유지, 보관 14개 계약 diff 0.
 
-**CI 실측**: 이 회귀 시험을 포함한 커밋의 CI에서 확인해 추가한다(D34 — 추정하지 않는다).
+**CI 실측**(커밋 `788234c`, run 34690758943, 3레그 success): `full` **826/826 + 4 SKIP** ·
+`without-iree` **656/656 + 36 SKIP** · `stdlib-only` **656/656 + 36 SKIP**. 컨테이너 831/831과
+`full`의 차이 5건은 E38이 확립한 설명 그대로다(PyYAML 미설치 1 · `aarch64-linux-gnu-objdump`
+미설치로 정직하게 SKIP되는 2 · 그 툴체인이 없으면 witness를 실제로 돌리는 분기가 아예 없어
+존재하지 않는 2). 직전 커밋(`d3f80f9`, run 34690054862) 대비 세 레그 전부 **PASS +11 · SKIP
+증가 0**이라 `e53_wgan_aarch64_cases()` 신규 11건이 **전부 나타난다** — `check_expect`/`parse_log`
+(stdlib 전용)와 커밋된 JSON·bin 원자료만 읽으므로 툴체인 유무와 무관하게 세 레그 모두에서 실제로
+돈다.
