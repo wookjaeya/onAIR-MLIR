@@ -4,6 +4,12 @@ ext/
 /tmp/
 native/native_learner
 native/native_learner_*
+# E53: cross-compiled per-model native_learner binaries under results/ are rebuildable from
+# the committed contract_gen.h + native_learner.c + toolchain (scripts/61) -- no repository
+# precedent for committing them (unlike the vmfb/contract/dump artifacts, which ARE the
+# evidence). Matches the exclusion above, scoped to results/ so per-experiment dump/*.so
+# (the deployed embedded ELF, which IS evidence) stays tracked.
+results/**/native_build/native_learner_aarch64*
 *.o
 *.log
 !native/results/*.log
