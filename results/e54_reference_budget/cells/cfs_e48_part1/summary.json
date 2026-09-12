@@ -170,6 +170,411 @@
       "fetched": {},
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 262160,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 16,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "b3_deepae",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 64,
+        "hal_peak": 6208,
+        "peak_within_bounded": true,
+        "admitted_budget_bytes": 1916708942,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "unconditional",
+        "hal_bytes_per_call_amortized": 3688.0,
+        "process_rss_kb": 7008,
+        "process_rss_delta_init_kb": 616
+      },
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "b3_deepae",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 2560,
+        "hal_allocated": 2560,
+        "bounded": 1069632,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 6788,
+        "rss_kb_before_runtime": 6172,
+        "rss_kb_after_session": 6524,
+        "rss_kb_after_init": 6788
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": false,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:08:09.76049 66/1/AI_LEARNER 8: AI_LEARNER stack: es=262160 base=262144 kernel=16 accounted=1",
+        "EVS Port1 1980-012-14:08:10.50192 66/1/AI_LEARNER 3: AI_LEARNER initialized: model b3_deepae (1080730 B), rss_delta_init=616 KB",
+        "EVS Port1 1980-012-14:08:13.74406 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=19808.3us max=19808.3us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:08:17.68728 66/1/AI_LEARNER 4: AI_LEARNER completed=2/2 mean=15986.7us max=19808.3us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:08:21.67927 66/1/AI_LEARNER 4: AI_LEARNER completed=3/3 mean=14267.7us max=19808.3us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:08:25.71446 66/1/AI_LEARNER 4: AI_LEARNER completed=4/4 mean=14080.0us max=19808.3us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:08:29.69863 66/1/AI_LEARNER 4: AI_LEARNER completed=5/5 mean=15836.7us max=22863.4us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:08:33.73831 66/1/AI_LEARNER 4: AI_LEARNER completed=6/6 mean=18993.4us max=34777.1us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:08:37.71723 66/1/AI_LEARNER 4: AI_LEARNER completed=7/7 mean=17419.2us max=34777.1us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:08:41.75727 66/1/AI_LEARNER 4: AI_LEARNER completed=8/8 mean=16910.8us max=34777.1us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:08:45.74942 66/1/AI_LEARNER 4: AI_LEARNER completed=9/9 mean=17220.4us max=34777.1us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:08:51.87445 66/1/AI_LEARNER 4: AI_LEARNER completed=10/10 mean=19210.6us max=37122.8us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:08:56.11274 66/1/AI_LEARNER 4: AI_LEARNER completed=11/11 mean=22131.3us max=51338.0us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:09:00.46937 66/1/AI_LEARNER 4: AI_LEARNER completed=12/12 mean=21876.6us max=51338.0us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:09:06.51138 66/1/AI_LEARNER 4: AI_LEARNER completed=13/13 mean=20481.4us max=51338.0us hal_peak=6208 within_bounded=1",
+        "..EVS Port1 1980-012-14:09:20.96427 66/1/AI_LEARNER 4: AI_LEARNER completed=14/14 mean=42083.6us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:09:32.28894 66/1/AI_LEARNER 4: AI_LEARNER completed=15/15 mean=39722.4us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:09:39.26934 66/1/AI_LEARNER 4: AI_LEARNER completed=16/16 mean=37811.3us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:09:44.93510 66/1/AI_LEARNER 4: AI_LEARNER completed=17/17 mean=36920.2us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:09:50.83151 66/1/AI_LEARNER 4: AI_LEARNER completed=18/18 mean=36008.1us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:09:54.70161 66/1/AI_LEARNER 4: AI_LEARNER completed=19/19 mean=34835.2us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:09:58.69287 66/1/AI_LEARNER 4: AI_LEARNER completed=20/20 mean=33788.6us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:02.69721 66/1/AI_LEARNER 4: AI_LEARNER completed=21/21 mean=32768.8us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:10:06.68740 66/1/AI_LEARNER 4: AI_LEARNER completed=22/22 mean=31637.8us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:10:10.68849 66/1/AI_LEARNER 4: AI_LEARNER completed=23/23 mean=30611.9us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:14.68820 66/1/AI_LEARNER 4: AI_LEARNER completed=24/24 mean=29725.6us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:10:18.88725 66/1/AI_LEARNER 4: AI_LEARNER completed=25/25 mean=28933.9us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:10:22.71531 66/1/AI_LEARNER 4: AI_LEARNER completed=26/26 mean=29134.4us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:26.71279 66/1/AI_LEARNER 4: AI_LEARNER completed=27/27 mean=29011.9us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:30.69361 66/1/AI_LEARNER 4: AI_LEARNER completed=28/28 mean=28338.5us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:34.72534 66/1/AI_LEARNER 4: AI_LEARNER completed=29/29 mean=28620.5us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:38.69682 66/1/AI_LEARNER 4: AI_LEARNER completed=30/30 mean=28280.4us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:42.68801 66/1/AI_LEARNER 4: AI_LEARNER completed=31/31 mean=27641.2us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:46.67883 66/1/AI_LEARNER 4: AI_LEARNER completed=32/32 mean=27099.4us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:50.68930 66/1/AI_LEARNER 4: AI_LEARNER completed=33/33 mean=26571.3us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:10:54.69070 66/1/AI_LEARNER 4: AI_LEARNER completed=34/34 mean=26139.2us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:10:58.69038 66/1/AI_LEARNER 4: AI_LEARNER completed=35/35 mean=25844.4us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:11:02.71972 66/1/AI_LEARNER 4: AI_LEARNER completed=36/36 mean=25984.5us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:11:06.67790 66/1/AI_LEARNER 4: AI_LEARNER completed=37/37 mean=25612.9us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:11:10.73925 66/1/AI_LEARNER 4: AI_LEARNER completed=38/38 mean=25359.7us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:11:14.71818 66/1/AI_LEARNER 4: AI_LEARNER completed=39/39 mean=25211.1us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:11:20.13246 66/1/AI_LEARNER 4: AI_LEARNER completed=40/40 mean=25724.9us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:11:23.73126 66/1/AI_LEARNER 4: AI_LEARNER completed=41/41 mean=25592.9us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:11:27.75148 66/1/AI_LEARNER 4: AI_LEARNER completed=42/42 mean=25561.9us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:11:31.81393 66/1/AI_LEARNER 4: AI_LEARNER completed=43/43 mean=25282.2us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:11:36.04220 66/1/AI_LEARNER 4: AI_LEARNER completed=44/44 mean=25041.5us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:11:39.78332 66/1/AI_LEARNER 4: AI_LEARNER completed=45/45 mean=24985.3us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:11:44.21673 66/1/AI_LEARNER 4: AI_LEARNER completed=46/46 mean=26599.8us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:11:49.47946 66/1/AI_LEARNER 4: AI_LEARNER completed=47/47 mean=26244.6us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:11:53.74264 66/1/AI_LEARNER 4: AI_LEARNER completed=48/48 mean=26363.6us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:11:57.72198 66/1/AI_LEARNER 4: AI_LEARNER completed=49/49 mean=26093.4us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:01.73857 66/1/AI_LEARNER 4: AI_LEARNER completed=50/50 mean=26345.1us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:12:05.69087 66/1/AI_LEARNER 4: AI_LEARNER completed=51/51 mean=26273.0us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:12:09.68759 66/1/AI_LEARNER 4: AI_LEARNER completed=52/52 mean=25969.1us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:13.81745 66/1/AI_LEARNER 4: AI_LEARNER completed=53/53 mean=26671.5us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:17.68867 66/1/AI_LEARNER 4: AI_LEARNER completed=54/54 mean=26546.1us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:12:21.69514 66/1/AI_LEARNER 4: AI_LEARNER completed=55/55 mean=26259.2us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:25.72627 66/1/AI_LEARNER 4: AI_LEARNER completed=56/56 mean=26348.8us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:29.72518 66/1/AI_LEARNER 4: AI_LEARNER completed=57/57 mean=26080.3us max=322911.5us hal_peak=6208 within_bounded=1",
+        ".EVS Port1 1980-012-14:12:33.72146 66/1/AI_LEARNER 4: AI_LEARNER completed=58/58 mean=25858.6us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:37.71600 66/1/AI_LEARNER 4: AI_LEARNER completed=59/59 mean=25829.2us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:41.74798 66/1/AI_LEARNER 4: AI_LEARNER completed=60/60 mean=25810.1us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:46.03434 66/1/AI_LEARNER 4: AI_LEARNER completed=61/61 mean=25876.2us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:49.71560 66/1/AI_LEARNER 4: AI_LEARNER completed=62/62 mean=25793.8us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:53.72966 66/1/AI_LEARNER 4: AI_LEARNER completed=63/63 mean=25626.4us max=322911.5us hal_peak=6208 within_bounded=1",
+        "EVS Port1 1980-012-14:12:58.24804 66/1/AI_LEARNER 4: AI_LEARNER completed=64/64 mean=25342.2us max=322911.5us hal_peak=6208 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":1,\"completed\":1,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":19808.27,\"max_us\":19808."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":2,\"completed\":2,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":15986.66,\"max_us\":19808."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":3,\"completed\":3,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":14267.72,\"max_us\":19808."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":4,\"completed\":4,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":14080.04,\"max_us\":19808."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":5,\"completed\":5,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":15836.70,\"max_us\":22863."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":6,\"completed\":6,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":18993.43,\"max_us\":34777."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":7,\"completed\":7,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":17419.25,\"max_us\":34777."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":8,\"completed\":8,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":16910.76,\"max_us\":34777."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":9,\"completed\":9,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":17220.40,\"max_us\":34777."
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":10,\"completed\":10,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":19210.64,\"max_us\":3712"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":11,\"completed\":11,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":22131.31,\"max_us\":5133"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":12,\"completed\":12,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":21876.60,\"max_us\":5133"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":13,\"completed\":13,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":20481.41,\"max_us\":5133"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":14,\"completed\":14,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":42083.56,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":15,\"completed\":15,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":39722.41,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":16,\"completed\":16,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":37811.31,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":17,\"completed\":17,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":36920.23,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":18,\"completed\":18,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":36008.14,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":19,\"completed\":19,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":34835.21,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":20,\"completed\":20,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":33788.62,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":21,\"completed\":21,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":32768.85,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":22,\"completed\":22,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":31637.77,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":23,\"completed\":23,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":30611.89,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":24,\"completed\":24,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":29725.64,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":25,\"completed\":25,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":28933.91,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":26,\"completed\":26,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":29134.37,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":27,\"completed\":27,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":29011.88,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":28,\"completed\":28,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":28338.52,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":29,\"completed\":29,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":28620.49,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":30,\"completed\":30,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":28280.36,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":31,\"completed\":31,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":27641.15,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":32,\"completed\":32,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":27099.42,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":33,\"completed\":33,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26571.29,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":34,\"completed\":34,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26139.24,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":35,\"completed\":35,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25844.41,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":36,\"completed\":36,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25984.50,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":37,\"completed\":37,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25612.86,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":38,\"completed\":38,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25359.65,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":39,\"completed\":39,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25211.12,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":40,\"completed\":40,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25724.86,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":41,\"completed\":41,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25592.92,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":42,\"completed\":42,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25561.93,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":43,\"completed\":43,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25282.24,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":44,\"completed\":44,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25041.47,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":45,\"completed\":45,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":24985.26,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":46,\"completed\":46,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26599.77,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":47,\"completed\":47,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26244.62,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":48,\"completed\":48,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26363.59,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":49,\"completed\":49,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26093.42,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":50,\"completed\":50,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26345.09,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":51,\"completed\":51,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26272.99,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":52,\"completed\":52,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25969.14,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":53,\"completed\":53,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26671.54,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":54,\"completed\":54,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26546.07,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":55,\"completed\":55,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26259.24,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":56,\"completed\":56,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26348.78,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":57,\"completed\":57,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":26080.33,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":58,\"completed\":58,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25858.56,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":59,\"completed\":59,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25829.23,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":60,\"completed\":60,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25810.14,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":61,\"completed\":61,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25876.20,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":62,\"completed\":62,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25793.77,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":63,\"completed\":63,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25626.43,\"max_us\":3229"
+        },
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"b3_deepae\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":64,\"completed\":64,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":25342.16,\"max_us\":3229"
+        }
+      ],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "PA_pdr50__b3_deepae",
+      "model": "b3_deepae",
+      "scenario": "E54 Part 1: reference budget PA_pdr50 (B_contract=1916708942, U=1069632)",
+      "seconds": 300,
+      "commands_sent": [],
+      "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b3_deepae.log",
+      "expect": {
+        "admission": "ADMIT",
+        "min_completed": 1
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "1916708942"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }
