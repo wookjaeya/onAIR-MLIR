@@ -11,8 +11,12 @@ evidence grade.
 What this table can and cannot support (docs/plans/E39_novelty_audit.md SS4, SS7)
 --------------------------------------------------------------------------------
 Each content cell is supported only to the extent its own grade says. Most are
-`search_summary`: the search tool's summary prose, not an abstract and not a full text
-(WebFetch is EGRESS_BLOCKED for every external host here). One row is
+`search_summary`: the search tool's summary prose, not an abstract and not a full text.
+E39a wrote that WebFetch was EGRESS_BLOCKED "for every external host"; E47 measured that
+to be a generalisation from TWO host probes, and E39b then read three primary documents
+in full through raw.githubusercontent.com while re-probing the five that stay blocked.
+So the reason most rows are still `search_summary` is that those works are behind hosts
+this container cannot reach -- NOT that nothing is reachable. One row is
 `fulltext_partial`: Scholar Gateway returned verbatim chunks of the paper, and the row
 records WHICH chunks and how many exist -- partial full text is not a full-text check.
 E39a's first pass graded every row `search_summary` because it never tried that tool;
@@ -99,11 +103,18 @@ def main():
     out.append("생성기: `harness/mk_prior_art_table.py` · 입력: `works.json`, `searches.json` · "
                "사전 고정 축: `docs/plans/E39_novelty_audit.md`\n")
     out.append("> **증거 등급 경고.** 이 표의 내용 칸은 각 행의 `등급`이 말하는 만큼만 지지된다. "
-               "대부분은 `search_summary`(검색 도구가 써 준 요약; 초록도 원문도 직접 읽지 않았다 — "
-               "`WebFetch`가 전 외부 호스트에서 `EGRESS_BLOCKED`)이고, `fulltext_partial`은 "
-               "Scholar Gateway가 반환한 **일부 청크 본문**이다(받은 청크 번호와 전체 청크 수를 "
-               "각 행에 적었다). "
-               "따라서 이 표는 *\"이 검색 범위에서 조합이 확인되지 않았다\"*까지만 지지하고, "
+               "대부분은 `search_summary`(검색 도구가 써 준 요약; 초록도 원문도 직접 읽지 않았다)이고, "
+               "`fulltext_partial`은 Scholar Gateway가 반환한 **일부 청크 본문**이다(받은 청크 번호와 "
+               "전체 청크 수를 각 행에 적었다). "
+               "**세 행은 E39b에서 1차 문헌 전문을 대조했다**(`project_doc_fulltext`·`source_fulltext`) — "
+               "다만 그것은 **논문 원문이 아니고**, 각 행의 `A9.axes_checked_against_fulltext`가 "
+               "그 등급이 지지하는 **축의 범위**다. `fulltext`(논문 원문)는 여전히 **0건**이다.\n")
+    out.append("> **정정(E47·E39b).** E39a는 *\"`WebFetch`가 전 외부 호스트에서 `EGRESS_BLOCKED`\"*라고 "
+               "적었는데 그 근거는 **두 호스트 시험**뿐이었다. `raw.githubusercontent.com`은 열려 있고 "
+               "E39b가 그 경로로 세 문헌을 전문 취득했다. 여전히 막힌 다섯(arxiv·crossref·mlsys·ieee·aaai)은 "
+               "E39b가 **다시 재서** 전부 `000`임을 기록했다 — *\"이 호스트가 막혔다\"*와 "
+               "*\"이 자료를 조달할 수 없다\"*는 다른 문장이고, 그 사이에 **어느 경로를 재 봤는가**가 있다.\n")
+    out.append("> 이 표는 *\"이 검색 범위에서 조합이 확인되지 않았다\"*까지만 지지하고, "
                "*\"선행연구가 해결하지 못했다\"*는 **지지하지 않는다**.\n")
     out.append("## 축\n")
     for k, v in d["axes"].items():

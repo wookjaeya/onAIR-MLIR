@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.54**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.55**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
 
 **중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
 
@@ -1198,6 +1198,27 @@ E45·E48이 이 샘플에서 본 그 94). 레이어 분해를 믿는 근거를 *
 L9로 보였다**. 이 컨테이너 **796/796 → 809/809**(FAIL 0 · SKIP 0).
 **CI 실측**(커밋 `c5175b9`, run 226, 3레그 success): `full` **803/803 + 4 SKIP** · `without-iree` **633/633 + 36 SKIP** · `stdlib-only` **633/633 + 36 SKIP**. 이 컨테이너는 실입력이 있으면 **809/809 + 0 SKIP**, 없으면 **808/808 + 1 SKIP**이고, 후자와 `full`의 PASS 차이 **5건**은 E38이 확립한 설명 그대로다(PyYAML 1 · objdump 미설치 SKIP 2 · 그 툴체인이 없으면 분기가 아예 없어 존재하지 않는 2) — SKIP 차이 3건도 같은 둘(PyYAML 1 + objdump 2)이다. 세 레그 전부 **PASS +12 · SKIP +1 = 정확히 13**이라 E52 신규 13건이 전부 나타나고, 그 하나의 SKIP은 실입력을 요구하는 live 재실행 가드로 사유 목록에 `needs the real ad01 inputs (network; set E52_INPUTS) and iree-compile`로 나타난다(바이트는 E45 규칙대로 반입하지 않는다).
 **교훈**: ***읽지 못한 것을 없다고 읽으면 최초 지점이 뒤로 밀린다.***
+
+**v0.55에서 완료된 것 (E39b, `docs/EVIDENCE_v0.55_E39b.md`)**: **선행연구 원문 대조와 등급 상향** —
+E47 §7이 분리해 둔 항목이고 검토 §5의 "병행"이다. 사전 고정 기준은
+`docs/plans/E39b_prior_art_fulltext.md`(커밋 `56a817d`, **측정 이전**). **Q1~Q5 전부 PASS**이고
+**`peer_reviewed_fulltext`는 0건**이다.
+**취득은 브랜치가 아니라 커밋에 고정**했고(브랜치본과 네 건 모두 바이트 동일) 원문은 **반입하지 않는다**.
+**인용을 기계가 검증한다** — 13건 전부 원문에서 확인됐고, 그 대조가 **E39a 서술 5건의 정정을 요구**했다:
+TVM의 *"constant pool"*(원문 **0건**, 실제는 `--usmp-parameter-pools`) · ExecuTorch의 *"EXIR"*(0건)·
+*"enforced"*(문서가 arena 할당 주체를 말하지 않는다)·*"greedy 기본"*(기본값 미기재) · 그리고 D91.
+**D91**: `CLAUDE.md`가 *"For debugging only"*를 `memory_management.md`에 귀속했는데 그 문서엔
+`arena_used_bytes`도 `debugging`도 **0건**이고, 그 문구는 **바로 앞 문장이 인용한 그 헤더의 같은 주석
+블록**(`micro_interpreter.h:143`)에 있다 — **귀속이 한 줄 어긋났다**. 결론(*"상한임을 증명한다"*가 두
+문헌 어디에도 없다)은 이제 **원문에서 확인**된다(`upper bound` 0건). **원문을 받기 전에는 원리적으로
+드러날 수 없었다.** **D92**: E47이 정정한 *"전 외부 호스트 EGRESS_BLOCKED"*를 **생성기가 계속
+emit**하고 있었다 — D65의 네 번째 얼굴이고, **정정을 한 실험 자신이** 생성기에 반영하지 않았다.
+**등급은 행이 아니라 축 단위로 지지된다** — 각 행이 `axes_checked_against_fulltext`를 싣고, TFLM
+**논문**의 등급은 `search_summary`로 **따로 남는다**(나머지 8행 불변). **Q5**: 도달 불가 다섯을
+**다시 재서** 전부 `000` 기록. 양방향 revert 1·1건 FAIL. 이 컨테이너 **809/809 → 821/821**.
+**교훈**: ***인용은 출처까지가 인용이다 — 같은 주석 블록의 한 줄 차이도 원문을 받아야 보인다.***
+**다음**: 검토서 §5의 항목이 전부 닫혔다. 남은 것은 **연구 책임자 결정 대기**(논문 초고 착수 ·
+PR #3 병합 · 태그 정책)다.
 **다음**: 검토 §5 순위 2·4·5가 전부 닫혔다. 병행 항목 **E39b**(선행연구 원문 대조, 도달 가능한 3건)가
 남고, 논문 초고는 **연구 책임자 지시 대기**다.
 **다음**: 검토 §10 순서대로 **단계 4 — DeepAE 수치 불일치 원인 분석(E52)**, §4.4의 세 종료 조건을 따른다.
@@ -1654,11 +1675,13 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
 optimal arena size. It's only available after `AllocateTensors` has been called."* 즉
 **`Invoke()` 없이 `AllocateTensors()`만으로 유효한 값**이라는 점에서 우리 `bounded_bytes`
 (post-layout 슬랩 크기, 추론 미실행)와 **같은 부류**다("TFLM은 런타임 계측만 준다"는 첫 확인은
-부정확했다 — 정정). 다만
-[`docs/memory_management.md`](https://github.com/tensorflow/tflite-micro/blob/main/tensorflow/lite/micro/docs/memory_management.md)는
-이 값을 **"For debugging only"**로만 표기하고, 우리가 `bounded_bytes`에 대해 확보한 종류의
-건전성 근거(60/60 실측 일치, 경계값 시험)를 TFLM 문서는 제시하지 않는다 — "모든 유효 입력에 대한
-상한임을 증명한다"는 주장은 TFLM 공식 문서 어디에도 없다. **비교의 전제는 참이지만 그 수치의
+부정확했다 — 정정). **정정(v0.55/E39b — 귀속이 한 줄 어긋나 있었다)**: *"For debugging only."*는
+`docs/memory_management.md`가 아니라 **바로 위에서 인용한 그 헤더의 같은 주석 블록**
+(`micro_interpreter.h:143`, 커밋 `d031820`)에 있다. 그 문서에는 `arena_used_bytes`도 `debugging`도
+**0건**이고(원문 9,849 B 전문 대조), 따라서 *"그 문서가 이 값을 debugging only로 표기한다"*는
+**확인되지 않는다**. 바뀌지 않는 것은 결론이다 — 우리가 `bounded_bytes`에 대해 확보한 종류의
+건전성 근거(60/60 실측 일치, 경계값 시험)를 TFLM 문헌은 제시하지 않으며, "모든 유효 입력에 대한
+상한임을 증명한다"는 주장은 두 문헌 어디에도 없다(`upper bound` 0건, **원문에서 확인**). **비교의 전제는 참이지만 그 수치의
 건전성은 TFLM 쪽에서 직접 확인해야 하는 새로운 질문이다**(우리 `bounded_bytes`도 D2·D3을 거쳐
 검증됐음을 상기 — 같은 함정을 TFLM 비교에도 적용할 것).
 

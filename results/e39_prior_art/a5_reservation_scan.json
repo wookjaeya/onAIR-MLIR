@@ -3,7 +3,7 @@
  "axis": "A5 (E39a pre-registered): 실제 예약을 하는가 -- declared / enforced / 해당 없음",
  "verdict": "declared",
  "reason": "no reservation call appears in any source file, so the budget is a number compared against a contract, not a reservation of physical memory",
- "files_scanned": 86,
+ "files_scanned": 95,
  "reservation_calls_looked_for": {
   "mlock": "pins pages into RAM",
   "mlockall": "pins the whole address space",
@@ -18,7 +18,7 @@
  "waived": [
   {
    "file": "harness/contract_negative_tests.py",
-   "line": 5874,
+   "line": 6531,
    "text": "v_hit, _ = bp.verdict([{\"call\": \"mlock\", \"file\": \"x.c\", \"line\": 1,  # budget-provenance: test-fixture",
    "why": "line marked as a fixture that feeds this scanner (D77)"
   }

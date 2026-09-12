@@ -7791,6 +7791,113 @@ def e52_deepae_divergence_cases(tmp):
     return results
 
 
+
+# ---------------------------------------------------------------------------
+# E39b -- three primary documents read in full, and what that does NOT license.
+# ---------------------------------------------------------------------------
+def e39b_prior_art_fulltext_cases(tmp):
+    results = []
+    repo = os.path.dirname(HERE)
+    rec = os.path.join(repo, "results", "e39_prior_art", "fulltext", "fulltext_check.json")
+    if not os.path.isfile(rec):
+        return [Result("e39b: fulltext_check.json present", False, "missing")]
+    d = load(rec)
+
+    # Every citation must actually be in the fetched bytes, and every claim of absence
+    # must actually be absent. A fabricated or drifted quote fails here.
+    results.append(Result("e39b: every quote is found in the primary document and every absence holds",
+                          d["verdict"] == "PASS" and not d["evidence_failures"] and not d["unchecked"]
+                          and d["claims_total"] >= 13,
+                          "claims=%s failures=%s unchecked=%s" % (d["claims_total"],
+                                                                  len(d["evidence_failures"]),
+                                                                  len(d["unchecked"]))))
+    # The fail-open E47 warned about: a project doc is not a paper.
+    results.append(Result("e39b: no row is graded as a peer-reviewed full text",
+                          d["peer_reviewed_fulltext_count"] == 0
+                          and "fulltext" in d["grade_vocabulary"]
+                          and all(g in d["grade_vocabulary"] for g in
+                                  ("project_doc_fulltext", "source_fulltext")),
+                          "count=%s" % d["peer_reviewed_fulltext_count"]))
+    # Provenance is pinned to a commit, not a branch -- a branch tip moves.
+    results.append(Result("e39b: every source is pinned to a commit and carries its sha256",
+                          bool(d["sources_fetched"])
+                          and all(v.get("pinned_to_commit_not_branch") is True
+                                  and len(v.get("commit", "")) == 40 and v.get("sha256")
+                                  for v in d["sources_fetched"].values()),
+                          str(sorted(d["sources_fetched"]))))
+    results.append(Result("e39b: the documents are not vendored in-tree",
+                          d["bytes_vendored_in_tree"] is False and bool(d["why_not_vendored"])))
+
+    wj = load(os.path.join(repo, "results", "e39_prior_art", "works.json"))
+    graded = {"tvm_usmp", "executorch_memplan", "tflm_mlsys2021"}
+    rows = {w["id"]: w for w in wj["works"]}
+    # The grade is supported PER AXIS, not per row -- the row has to say which axes.
+    results.append(Result("e39b: each upgraded row records which axes the full text actually covers",
+                          all(isinstance(rows[g]["A9"].get("axes_checked_against_fulltext"), list)
+                              and rows[g]["A9"]["axes_checked_against_fulltext"]
+                              and rows[g]["A9"]["content"] != "search_summary" for g in graded),
+                          str({g: rows[g]["A9"].get("axes_checked_against_fulltext") for g in graded})))
+    # TFLM's PAPER is a different work from TFLM's docs; only the docs were read.
+    results.append(Result("e39b: TFLM's paper grade stays search_summary even though its docs were read",
+                          rows["tflm_mlsys2021"]["A9"].get("paper_grade") == "search_summary",
+                          str(rows["tflm_mlsys2021"]["A9"].get("paper_grade"))))
+    # Rows that were NOT read must not have moved.
+    others = {k: v for k, v in (d.get("e39a_other_rows_unchanged") or {}).items()}
+    results.append(Result("e39b: the eight unread rows keep their original grade",
+                          bool(others) and all(
+                              (rows[k]["A9"] == v) and rows[k]["A9"].get("content") in
+                              ("search_summary", "fulltext_partial") for k, v in others.items()),
+                          str({k: (v or {}).get("content") for k, v in others.items()})))
+
+    # The five still-blocked hosts were RE-PROBED, not assumed (E45/E47's lesson).
+    probes = d["unreachable_reprobe"]
+    results.append(Result("e39b: the still-unreachable hosts were re-probed rather than assumed",
+                          len(probes) == 5 and all(p.get("http_code") is not None for p in probes)
+                          and not any(p.get("reachable") for p in probes),
+                          str({p["host"]: p["http_code"] for p in probes})))
+
+    # E47 corrected the "every external host" line in prose; the GENERATOR kept emitting
+    # it. That is D65's shape, so the generator text is checked here.
+    gen = open(os.path.join(HERE, "mk_prior_art_table.py"), encoding="utf-8").read()
+    table = open(os.path.join(repo, "results", "e39_prior_art", "prior_art.md"), encoding="utf-8").read()
+    # The detail must agree with the verdict. The first version printed "generator still
+    # carries it" on a PASS, because the REPLACEMENT text quotes the very phrase it is
+    # retracting -- E44 fixed the same shape (a row whose detail and cell disagreed).
+    banned = ["전 외부 호스트에서 `EGRESS_BLOCKED`)", "EGRESS_BLOCKED for every external host"]
+    still = [b for b in banned if b in gen]
+    results.append(Result("e39b: the generator no longer emits the over-generalised 'every external host' line",
+                          not still,
+                          "still present: %s" % still if still else "both banned spellings absent"))
+    results.append(Result("e39b: the rendered table states the correction and still reports fulltext=0",
+                          "정정(E47·E39b)" in table and "`fulltext`(논문 원문)는 여전히 **0건**" in table))
+
+    # The mis-attribution this experiment found must reach CLAUDE.md, not only the JSON.
+    claude = open(os.path.join(repo, "CLAUDE.md"), encoding="utf-8").read()
+    results.append(Result("e39b: the TFLM mis-attribution correction reached CLAUDE.md (D65)",
+                          "micro_interpreter.h:143" in claude and "귀속이 한 줄 어긋나" in claude))
+
+    # live re-run (D77) comparing the SHAPE of the derivation, not just the verdict (D89).
+    out = os.path.join(tmp, "e39b_live.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e39b_prior_art_fulltext.py"),
+                      "--out", os.path.relpath(out, repo)], cwd=repo)
+    if rc == 3 or not os.path.isfile(out):
+        results.append(Result("e39b: derivation re-runs live", True,
+                              "network required (documents are not vendored)", skip=True))
+        return results
+    live = load(out)
+
+    def shape(doc):
+        return {"verdict": doc.get("verdict"),
+                "peer": doc.get("peer_reviewed_fulltext_count"),
+                "sha": {k: v["sha256"] for k, v in (doc.get("sources_fetched") or {}).items()},
+                "claims": [(c["work"], c["axis"], c["verdict"], c.get("quote_found"),
+                            c.get("absent_confirmed")) for c in doc.get("claims", [])]}
+    results.append(Result("e39b: derivation re-runs live and agrees claim by claim",
+                          rc == 0 and shape(live) == shape(d),
+                          "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -7861,6 +7968,7 @@ def main():
         all_results += e51_stage2_cases(tmp)
         all_results += e51_stage3_cases(tmp)
         all_results += e52_deepae_divergence_cases(tmp)
+        all_results += e39b_prior_art_fulltext_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
