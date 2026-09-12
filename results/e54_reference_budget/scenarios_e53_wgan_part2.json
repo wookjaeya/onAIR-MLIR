@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sweep_wgan_pow2_below",
+    "part": "part2_sensitivity_sweep",
+    "model": "wgan",
+    "desc": "E54 Part 2 (NOT a mission budget): power-of-two grid point 134217728 < U=135666432",
+    "so": "variants/wgan/ai_learner.so",
+    "startup": "variants/wgan/cfe_es_startup.scr",
+    "vmfb": "models/wgan.vmfb",
+    "seconds": 180,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "134217728"
+    },
+    "expect": {
+      "admission": "NOT_ADMITTED",
+      "min_completed": 0
+    }
+  },
+  {
+    "id": "sweep_wgan_pow2_above",
+    "part": "part2_sensitivity_sweep",
+    "model": "wgan",
+    "desc": "E54 Part 2 (NOT a mission budget): power-of-two grid point 268435456 >= U=135666432",
+    "so": "variants/wgan/ai_learner.so",
+    "startup": "variants/wgan/cfe_es_startup.scr",
+    "vmfb": "models/wgan.vmfb",
+    "seconds": 3000,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "268435456"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    },
+    "stage": {
+      "e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"
+    },
+    "fetch": [
+      "e25_outputs.bin"
+    ]
+  }
+]
