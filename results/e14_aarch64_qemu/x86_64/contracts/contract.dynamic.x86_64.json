@@ -100,7 +100,7 @@
       "transient": 0
     },
     "bound_assumptions": [
-      "static shapes",
+      "NON-static shapes: no bound is stated (see resources.unresolved_sizes)",
       "single in-flight call (no concurrency)",
       "local-sync driver",
       "entry function @infer only"
@@ -192,7 +192,7 @@
     "compiler_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
     "runtime_commit": "e4a3b04",
     "assumptions": [
-      "static shapes",
+      "NON-static shapes: no bound is stated (see resources.unresolved_sizes)",
       "single in-flight call (no concurrency)",
       "local-sync driver",
       "entry function @infer only"

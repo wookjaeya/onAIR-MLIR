@@ -1,0 +1,805 @@
+{
+ "tool": "harness/model_fixture.py",
+ "experiment": "E45 (SmartCam, 19 pristine onboard thumbnails, tier B, G1 only)",
+ "input_shape": [
+  1,
+  224,
+  224,
+  3
+ ],
+ "layout_defect": "none",
+ "layout_defect_note": "none -- the entry tensor is produced by transpose, verified to round-trip",
+ "preprocessing": {
+  "resize": {
+   "to": [
+    224,
+    224
+   ],
+   "resample": "BILINEAR",
+   "note": "applied ONCE here so both paths receive identical tensors; this is NOT a claim that it matches the flight software's own resizer"
+  },
+  "normalisation": {
+   "formula": "(pixel - mean) / std",
+   "mean": 0.0,
+   "std": 255.0,
+   "note": "the ORIGINAL model's own config values; the model's internal MUL/SUB completes the range, so do not normalise again outside"
+  },
+  "layout": {
+   "nhwc": "original TFLite input",
+   "nchw": "imported IREE entry input",
+   "operation": "numpy transpose(0,3,1,2)",
+   "verified": "round trip nchw.transpose(0,2,3,1) == nhwc for every sample; and transpose != reshape asserted for these shapes"
+  }
+ },
+ "source": {
+  "repo": "https://github.com/georgeslabreche/opssat-smartcam-map + opssat-onboard-image-denoiser",
+  "commit": "",
+  "note": "REAL OPS-SAT imagery, ground-edited files excluded by EXIF. Tier B (614x583 JPEG thumbnail) -- do NOT merge with E31's tier A raw PNGs. NO accuracy claimed (labels are circular)."
+ },
+ "counts": {
+  "real_example": 19
+ },
+ "total_samples": 19,
+ "samples": [
+  {
+   "sample_id": "img_msec_1536095035794_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1536095035794_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "8df7586e3b838c83a0b7b7bc2314838529012817862b0801b044b7c27d66f737"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1536095035794_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "4d70f04f948123b87c1f34e59f1241ef25dcc81ceb9df7afa90e646f40f919b5"
+   },
+   "value_range": [
+    0.03529411926865578,
+    0.7254902124404907
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1536095035794_2.jpeg",
+    "source_sha256": "448c644a48fc55161ded42817e77ced830275747ebbbf2f0524b952b223529a1"
+   }
+  },
+  {
+   "sample_id": "img_msec_1595796409478_1",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1595796409478_1.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "96ffbb82a6576e38c1cdedac39ec2daba1dfa31161d5688354b1c788db9c55da"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1595796409478_1.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "2c04e944bca042612f268c42f524fa5564c0b7ebfd65de7c29ebf37694525122"
+   },
+   "value_range": [
+    0.062745101749897,
+    0.615686297416687
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     410,
+     389
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1595796409478_1.jpeg",
+    "source_sha256": "511fe06694572ab1681083a4eaed42b0b4e8211339cd4513c4d7002c02996de5"
+   }
+  },
+  {
+   "sample_id": "img_msec_1595796767320_1",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1595796767320_1.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "8f943ca83711d51d52a8bae3e73a56f5a108fa689e538e2adcdaade99975845e"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1595796767320_1.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "40a7eafa69b24e6647ba038d0ac7fcf3e8b70380855fdd7a8b52fb57bd53b633"
+   },
+   "value_range": [
+    0.05882352963089943,
+    0.6901960968971252
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     410,
+     389
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1595796767320_1.jpeg",
+    "source_sha256": "5d798951b758ffed167f473ff20f8166e8ca092fdd31826c740dad18f02ceaf5"
+   }
+  },
+  {
+   "sample_id": "img_msec_1597433874681_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1597433874681_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "81b7d1e39580ac508f0ffab449251ebd9b29983a7974c66a0c341b15dbbd78d3"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1597433874681_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "9d4f218b0eaa02f72f7b79feaa3feb0e550b84726088aab6a9a4fa935fcb5ae7"
+   },
+   "value_range": [
+    0.07058823853731155,
+    0.4470588266849518
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     410,
+     389
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1597433874681_2.jpeg",
+    "source_sha256": "ca5de93328b045298efc82dcaff7b8867bbc59640480122be59141f3c234264a"
+   }
+  },
+  {
+   "sample_id": "img_msec_1597977418041_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1597977418041_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "0a670ef78a11c635ac77e94f4860805d1e16039ac56a1168b4519327fba48080"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1597977418041_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "b496bd8eced2ec1bc0d5fe2d5f3f6d55e7c8001dacbae3cbd7dd44a4875d84ed"
+   },
+   "value_range": [
+    0.05882352963089943,
+    0.7098039388656616
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1597977418041_2.jpeg",
+    "source_sha256": "a628588d8bdf4f4e2ba1e7ff90a8c0f8f1d4390c3709d32f95483ab2545b4635"
+   }
+  },
+  {
+   "sample_id": "img_msec_1598399412981_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1598399412981_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "d130104d1718d051bdd6ae9614b4ab9680a96d19c7b30f7bc356cafad7795637"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1598399412981_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "9b42ad7f9b64063fc5350e2a4069919bd13c3c8f7104a4ba4b02079df0396e4f"
+   },
+   "value_range": [
+    0.09019608050584793,
+    0.7568627595901489
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1598399412981_2.jpeg",
+    "source_sha256": "59c3e1939eb887cb15ef2b097919023fcd93cf269952df80615a5170be07d951"
+   }
+  },
+  {
+   "sample_id": "img_msec_1598399450660_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1598399450660_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "d222f09df919828e8eed145fb75d40d9c10bacd5bbf10524308ac01772a08eef"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1598399450660_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "a479e016abdbde749c4024cf3882e96082c3da9316d17cb27074a0bcd552f56c"
+   },
+   "value_range": [
+    0.0941176488995552,
+    0.8588235378265381
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1598399450660_2.jpeg",
+    "source_sha256": "73a24d781f785ca99cae84da30d6a20b667e9f2c5c2154fe132ecb370a3838af"
+   }
+  },
+  {
+   "sample_id": "img_msec_1604269082071_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1604269082071_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "154231d23c730b6280284319106fade3a214a6b87a694db32b2925b533d85b1f"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1604269082071_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "d5d4f34d49568ec9f4e8c50bafced474f84e97e559fbd0d022ed1788f10d7cb8"
+   },
+   "value_range": [
+    0.062745101749897,
+    0.4156862795352936
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1604269082071_2.jpeg",
+    "source_sha256": "0fbb70009e7c9e34a5b0207d8c4edfbadd6f491fe878b0aa03c8b2b5fbc1a1e6"
+   }
+  },
+  {
+   "sample_id": "img_msec_1606689546581_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1606689546581_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "aee2166e184759d6ea14a993e0e5ac1f8d4607d6db867ea996a600ccc25f35fc"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1606689546581_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "b633128d641182b5c069fd27ce63fe4c0b7b6bd1f1343c8f9c09c2bf2b7b5e03"
+   },
+   "value_range": [
+    0.12941177189350128,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1606689546581_2.jpeg",
+    "source_sha256": "0ffe50609502fd2fc3f56d8874541e8f03c1399bdd1414c5ea7f656d0c9a49ba"
+   }
+  },
+  {
+   "sample_id": "img_msec_1608603868361_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1608603868361_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "7f40c4943d23b89d83f35929918ec7ec8e921bd571c8f765f5fc88538f8f0f8f"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1608603868361_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "2c2ffbeedb2e021f45fdb488ce407a2e0f50fa908574e6253abaa1715d6a7b4b"
+   },
+   "value_range": [
+    0.11764705926179886,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1608603868361_2.jpeg",
+    "source_sha256": "f17c2a9bb267925448cc402161143c02b4fbcc5d14a9e36847895eb808db6ba5"
+   }
+  },
+  {
+   "sample_id": "img_msec_1608753938601_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1608753938601_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "33d8ed091f7bc6b4fd36f63356d1aa4a0ef975aa5f1f53ad8ad1d9ba5e602741"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1608753938601_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "83c7bd629fd1f9032533204ffc51f5616d2fc2f8af7d1e4550a3f5157a6183d2"
+   },
+   "value_range": [
+    0.03921568766236305,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1608753938601_2.jpeg",
+    "source_sha256": "186ccdedade6c1c17e3b2d048721194837665c3a742eebde3a0b1347511a0d4b"
+   }
+  },
+  {
+   "sample_id": "img_msec_1608753991481_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1608753991481_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "f6d54245b04af9ba3e2736a3c5ca5a8d72357ffde452017b8568811a3370a27a"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1608753991481_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "409d4030c5014f9b0a50ca2abbdc4c51bf4d87f6703c78b8ec48b69d2013ba39"
+   },
+   "value_range": [
+    0.03921568766236305,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1608753991481_2.jpeg",
+    "source_sha256": "5767f93e67a093633445c9aafbf6ec98a154f4c9bb159739fbdeb520259e1744"
+   }
+  },
+  {
+   "sample_id": "img_msec_1608754015482_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1608754015482_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "eeb0d71cb031f0d2341dd7bcc6fb7cacef27f374c7434897edacf8df86bb8c19"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1608754015482_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "96cba406ba752e74e71731dd6b2e2976c35adb4f4ce44adb5e946e37c10d632d"
+   },
+   "value_range": [
+    0.03921568766236305,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1608754015482_2.jpeg",
+    "source_sha256": "e6042b6a5346fa9cff7148d6c993c90a42f2acef83c8d415a9ba0b063945f5bb"
+   }
+  },
+  {
+   "sample_id": "img_msec_1608843127532_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1608843127532_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "5ea3f53b8e17cf17d5a8b16bf06e27b56e1d6c9356c4f78c975b207328fc3b36"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1608843127532_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "2a4e9f4984941fc5e74fa14ab4da0991b338a5ee0381fadfeb7fcc97ea8cf9ac"
+   },
+   "value_range": [
+    0.03529411926865578,
+    0.9960784316062927
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1608843127532_2.jpeg",
+    "source_sha256": "b1ed5ceb5e7eee1cd4e34079c3d5d1e40e0cb8091fef0909f307567bbcabe7cc"
+   }
+  },
+  {
+   "sample_id": "img_msec_1608843170331_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1608843170331_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "db3ad142a64b30cfa0bc20b349521db37143b997f382ebe77da6dbf9eb37b05b"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1608843170331_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "3a90185bca48152f23d39feff9951ce384bc6038b040c98b0fe72c50838c058d"
+   },
+   "value_range": [
+    0.0313725508749485,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1608843170331_2.jpeg",
+    "source_sha256": "947b2411b348da3403daa3fd0a26eee800b620abf8a3d67439b96006c2cd078d"
+   }
+  },
+  {
+   "sample_id": "img_msec_1608888968488_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1608888968488_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "6b8f3ead767cf32cf692bb18ad0bb55b48951a2fb9b9a9bbdfa02861727cbe20"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1608888968488_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "c9ecf36163ad81d9d5202e5d874ccc6d8e3a9ddd1ae694f494a70de72a5c2888"
+   },
+   "value_range": [
+    0.0313725508749485,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1608888968488_2.jpeg",
+    "source_sha256": "de0fa55c6eb7ae20df375f36ef28e1a99e5551361b1f1422a225d53c5fb10185"
+   }
+  },
+  {
+   "sample_id": "img_msec_1609060095205_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1609060095205_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "8124f43b9ecf1d4ffe21e66212631e4e0920f38ddc4ec129bb049a27ecc815c1"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1609060095205_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "57a323d8cbe4c4a8af5533d499d525ea98fba30a078c4a576e12a6b7f51f0133"
+   },
+   "value_range": [
+    0.1568627506494522,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1609060095205_2.jpeg",
+    "source_sha256": "bb884dd6969cde97189b493eaf6192fcc0297dda1a324efdbc37b37eae0294a8"
+   }
+  },
+  {
+   "sample_id": "img_msec_1609060135935_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1609060135935_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "9a6bb2c85d8900d3cadb000a40d1de6b7234999fe6b7f2346ec0e5b81c38f5d7"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1609060135935_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "ebfb5b1e1442a0ff10ca7893d6fc6033ccc5f9b5550bdd7c20956f56d9afc0a4"
+   },
+   "value_range": [
+    0.1921568661928177,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1609060135935_2.jpeg",
+    "source_sha256": "0782bd8fff35ab301f18edba7fddb18c99cc66f70d84e0a1d3506702a2bbb9b0"
+   }
+  },
+  {
+   "sample_id": "img_msec_1609316713883_2",
+   "kind": "real_example",
+   "nhwc": {
+    "file": "inputs/img_msec_1609316713883_2.nhwc.npy",
+    "shape": [
+     1,
+     224,
+     224,
+     3
+    ],
+    "dtype": "float32",
+    "sha256": "a13b654824e7badaa46f24f01afee7efe7b6e9dae6b83e0f48bf7e3723466a93"
+   },
+   "nchw": {
+    "file": "inputs/img_msec_1609316713883_2.nchw.npy",
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ],
+    "dtype": "float32",
+    "sha256": "80e9a75f28b1169eb0d0d3f115a1e95bc13e7fa9fb37d5a60a612714e23533a1"
+   },
+   "value_range": [
+    0.03921568766236305,
+    1.0
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "original_size": [
+     614,
+     583
+    ],
+    "original_mode": "RGB",
+    "source_file": "results/e45_real_inputs/smartcam/images/img_msec_1609316713883_2.jpeg",
+    "source_sha256": "342f49ba212b4c7bc6e1252c7a2793f6e103f61f8f30c6628de1114c9407235b"
+   }
+  }
+ ]
+}

@@ -1,0 +1,57 @@
+{
+ "tool": "harness/onair_integration_check.py",
+ "deployment": "smartcam",
+ "onair": {
+  "path": "/root/onair-mlir-bench/ext/OnAIR",
+  "head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+  "core_unmodified": true,
+  "untracked_unchanged": true,
+  "tracked_dirty_before": "",
+  "tracked_dirty_after": "",
+  "status_before": "?? csv_out_252_06_15.csv",
+  "status_after": "?? csv_out_252_06_15.csv",
+  "check_note": "OnAIR core must be untouched: no TRACKED file may be modified before or after the run. Untracked files left by OnAIR's own example runs are reported separately and are not a modification"
+ },
+ "invocation": {
+  "cmd": [
+   "/usr/local/bin/python3",
+   "driver.py",
+   "onair.ini"
+  ],
+  "cwd": "/root/onair-mlir-bench/ext/OnAIR",
+  "env_var": "ONAIR_MLIR_DEPLOYMENT_CONFIG",
+  "ini": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam/onair.ini",
+  "deployment_config": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam/deployment.json"
+ },
+ "returncode": 0,
+ "plugin_constructed": true,
+ "plugin_init": {
+  "event": "init",
+  "active": true,
+  "inactive_reason": null,
+  "input_mode": "file_replay",
+  "admission": {
+   "bounded_bytes": 18222796,
+   "per_call_bytes": 9382092,
+   "constants_bytes": 8840704,
+   "budget_bytes": 18222796,
+   "bound_method": "static_from_stream_layout",
+   "scope": "per_app_local_budget",
+   "verdict": "ADMIT",
+   "admitted_budget_bytes": 18222796,
+   "conditional_available": false,
+   "reason": "bounded 18222796 <= budget 18222796"
+  },
+  "binding": {
+   "verdict": "MATCH",
+   "artifact_bytes": 8915257,
+   "artifact_sha256": "aa95a6f5ab92cf0ef62737c1227403d0a176c1c1ae24bf210b3e59b4cf60ead8"
+  },
+  "entry": "infer",
+  "deployment_source": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam/deployment.json[smartcam]"
+ },
+ "inferences": 5,
+ "stdout_tail": "\u001b[95m\u001b[1m\n***************************************************\n************    SIMULATION STARTED     ************\n***************************************************\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 1 ---------------------\n\u001b[0m\nCURRENT DATA: [0.0, 0.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 2 ---------------------\n\u001b[0m\nCURRENT DATA: [1.0, 1.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 3 ---------------------\n\u001b[0m\nCURRENT DATA: [2.0, 2.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 4 ---------------------\n\u001b[0m\nCURRENT DATA: [3.0, 3.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 5 ---------------------\n\u001b[0m\nCURRENT DATA: [4.0, 4.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n",
+ "stderr_tail": "nanobind: leaked 10 instances!\n - leaked instance 0x7f9fa2284548 of type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked instance 0x7f9fa22845e8 of type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked instance 0x7f9fa22778d8 of type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked instance 0x7f9fa2284188 of type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked instance 0x7f9fa222f048 of type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked instance 0x7f9fa222f1e8 of type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked instance 0x7f9fa222f068 of type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked instance 0x7f9facff1d58 of type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked instance 0x7f9fa222f008 of type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked instance 0x7f9fa222f128 of type \"iree._runtime_libs._runtime.HalBufferView\"\nnanobind: leaked 5 keep_alive records!\nnanobind: leaked 2 types!\n - leaked type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked type \"iree._runtime_libs._runtime.HalBufferView\"\nnanobind: leaked 13 functions!\n - leaked function \"__iree_vm_type__\"\n - leaked function \"asarray\"\n - leaked function \"__repr__\"\n - leaked function \"\"\n - leaked function \"__init__\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"__iree_vm_cast__\"\n - leaked function \"map\"\n - leaked function \"get_buffer\"\n - leaked function \"__eq__\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\nSee https://nanobind.readthedocs.io/en/latest/refleaks.html",
+ "records_file": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam/plugin_records.jsonl"
+}

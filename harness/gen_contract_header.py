@@ -148,6 +148,22 @@ def main():
     v = c.get("validity") or {}
     m = c.get("model") or {}
     t = c.get("target") or {}
+
+    # E41: CONTRACT_DRIVER is not a label -- it is the string the two C runners pass to
+    # iree_runtime_instance_try_create_default_device(), i.e. the device actually created.
+    # It used to be `v.get("driver", "local-sync")`, so a contract carrying no validity
+    # block (the legacy OnAIR fixture is one) silently produced a header ASSERTING
+    # local-sync. The default is the fail-open: absence is not a signal (D29). Read the
+    # declared driver from either place the generator writes it, require them to agree
+    # when both exist, and refuse when neither does.
+    _drivers = [d for d in (v.get("driver"), t.get("driver")) if d is not None]
+    if not _drivers:
+        raise SystemExit("gen_contract_header: the contract declares no driver "
+                         "(neither validity.driver nor target.driver); refusing to assert one")
+    if len(set(_drivers)) != 1:
+        raise SystemExit("gen_contract_header: validity.driver %r != target.driver %r; refusing"
+                         % (v.get("driver"), t.get("driver")))
+    driver = _drivers[0]
     i = c.get("interface") or {}
 
     name = m.get("name") or (a.get("file", "model.vmfb").rsplit(".", 1)[0]) or "unknown"
@@ -459,7 +475,7 @@ def main():
         # correct counts and wrong dtypes with nothing in C to catch it.
         # N3: `dtypes and` -- an empty dtype set must never assert "all f32".
         "#define CONTRACT_DTYPES_ALL_F32 %d" % (1 if bound_known and dtypes and not (dtypes - {"f32"}) else 0),
-        "#define CONTRACT_DRIVER %s" % c_str(v.get("driver", "local-sync")),
+        "#define CONTRACT_DRIVER %s" % c_str(driver),
         "#endif",
     ]
     with open(out, "w") as f:

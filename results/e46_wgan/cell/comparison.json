@@ -1,0 +1,238 @@
+{
+ "tool": "harness/e31_compare.py",
+ "experiment": "E31 (P2: SmartCam semantic preservation)",
+ "criteria": {
+  "source": "docs/plans/E31_smartcam_semantic_equivalence.md SS4, committed before measurement",
+  "inherited_from": "E25 SS3.2, unchanged (ninth review SS9.3)",
+  "abs_tol": 0.0001,
+  "rel_tol": 1e-05,
+  "rule": "per element: abs_err <= abs_tol OR rel_err <= rel_tol",
+  "rel_definition": "|a-b| / max(|a|,|b|,1e-30)",
+  "argmax": "NOT APPLICABLE to this model: its output is not a class score vector, so the verdict rests on the per-element criterion over EVERY output. This is a declared model property (ninth review SS9.3), not a relaxed threshold -- the element rule is unchanged and no mismatch is forgiven",
+  "argmax_mode": "not-applicable",
+  "detail_mode": "failures",
+  "detail_note": "only FAILING element rows are stored; per-sample counts and maxima are kept, and every element is recomputable from the two runner JSONs this comparison names",
+  "bit_identity": "not required between these two implementations, and not generalised if seen"
+ },
+ "paths": {
+  "oracle": {
+   "file": "results/e46_wgan/cell/oracle_tflite.json",
+   "runner": "ai_edge_litert Interpreter (LiteRT), original flatbuffer unmodified",
+   "model_sha256": "c865589f4b5e28f17524266fedd7e3db245c5301ffd317c3756842f6a4ae1ebe"
+  },
+  "iree": {
+   "file": "results/e46_wgan/cell/iree_x86_64.json",
+   "runner": "pip iree.runtime (python bindings), driver=local-sync, entry=infer",
+   "artifact_sha256": "69eb2933ea878455230af240607c03694ec826a74e5c9d380def2fd8c3202682"
+  }
+ },
+ "totals": {
+  "samples": 11,
+  "elements": 1655808,
+  "elements_failed": 0,
+  "argmax_failed": 0,
+  "by_kind": {
+   "edge": 2,
+   "real_example": 9
+  }
+ },
+ "per_kind": {
+  "edge": {
+   "samples": 2,
+   "samples_ok": 2,
+   "elements": 301056,
+   "elements_failed": 0,
+   "worst_abs_err": 1.3709068298339844e-06,
+   "worst_rel_err": 0.000636842918373224,
+   "worst_err_note": "the abs and rel maxima may come from different elements",
+   "headroom": null,
+   "headroom_at": null,
+   "headroom_unavailable_reason": "not computable: this run stored only failing element rows (--detail failures), so the closest PASSING element is not in the file",
+   "argmax_checked": 0,
+   "argmax_failed": 0,
+   "argmax_note": "argmax is not applicable to this model; absence is not a pass"
+  },
+  "real_example": {
+   "samples": 9,
+   "samples_ok": 9,
+   "elements": 1354752,
+   "elements_failed": 0,
+   "worst_abs_err": 1.0132789611816406e-06,
+   "worst_rel_err": 0.0006936416184971098,
+   "worst_err_note": "the abs and rel maxima may come from different elements",
+   "headroom": null,
+   "headroom_at": null,
+   "headroom_unavailable_reason": "not computable: this run stored only failing element rows (--detail failures), so the closest PASSING element is not in the file",
+   "argmax_checked": 0,
+   "argmax_failed": 0,
+   "argmax_note": "argmax is not applicable to this model; absence is not a pass"
+  }
+ },
+ "worst_element": {
+  "abs": 1.3709068298339844e-06,
+  "rel": 1.38670850748081e-06,
+  "sample_id": "edge_ones",
+  "index": 6040
+ },
+ "verdict": "PASS",
+ "scope": {
+  "declared_subset": null,
+  "note": "every sample both runs contain"
+ },
+ "samples": [
+  {
+   "sample_id": "edge_ones",
+   "kind": "edge",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 3355,
+   "argmax_iree": 3355,
+   "argmax_ok": null,
+   "max_abs_err": 1.3709068298339844e-06,
+   "max_rel_err": 1.38670850748081e-06,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "edge_zeros",
+   "kind": "edge",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 2012,
+   "argmax_iree": 2012,
+   "argmax_ok": null,
+   "max_abs_err": 4.76837158203125e-07,
+   "max_rel_err": 0.000636842918373224,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1536095035794_2_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 145691,
+   "argmax_iree": 145691,
+   "argmax_ok": null,
+   "max_abs_err": 8.940696716308594e-07,
+   "max_rel_err": 0.0006936416184971098,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1595796409478_1_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 71938,
+   "argmax_iree": 71938,
+   "argmax_ok": null,
+   "max_abs_err": 7.897615432739258e-07,
+   "max_rel_err": 5.527876590277964e-06,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1595796767320_1_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 23719,
+   "argmax_iree": 23719,
+   "argmax_ok": null,
+   "max_abs_err": 8.940696716308594e-07,
+   "max_rel_err": 6.34032248214949e-06,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1597433874681_2_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 66601,
+   "argmax_iree": 66601,
+   "argmax_ok": null,
+   "max_abs_err": 9.685754776000977e-07,
+   "max_rel_err": 5.843267037123803e-06,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1597977418041_2_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 3715,
+   "argmax_iree": 3715,
+   "argmax_ok": null,
+   "max_abs_err": 8.046627044677734e-07,
+   "max_rel_err": 5.974520908769439e-06,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1598399412981_2_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 80983,
+   "argmax_iree": 80983,
+   "argmax_ok": null,
+   "max_abs_err": 9.834766387939453e-07,
+   "max_rel_err": 4.751772970350055e-06,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1598399450660_2_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 32311,
+   "argmax_iree": 32311,
+   "argmax_ok": null,
+   "max_abs_err": 1.0132789611816406e-06,
+   "max_rel_err": 4.305418494750349e-06,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1604269082071_2_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 63355,
+   "argmax_iree": 63355,
+   "argmax_ok": null,
+   "max_abs_err": 7.748603820800781e-07,
+   "max_rel_err": 0.00016396130513198886,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  },
+  {
+   "sample_id": "img_msec_1606689546581_2_thumbnail",
+   "kind": "real_example",
+   "elements_ok": 150528,
+   "elements": 150528,
+   "argmax_oracle": 133285,
+   "argmax_iree": 133285,
+   "argmax_ok": null,
+   "max_abs_err": 9.5367431640625e-07,
+   "max_rel_err": 3.5394980580715172e-06,
+   "ok": true,
+   "elements_detail": [],
+   "elements_detail_mode": "failures"
+  }
+ ]
+}

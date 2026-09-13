@@ -554,7 +554,18 @@ static int32 AI_LEARNER_Init(void) {
           FILE* fo = fopen(e25_out, "wb");
           if (fo) {
             for (long v = 0; v < nvec; ++v) {
-              float yv[CONTRACT_OUTPUT_ELEMS];
+              /* E46/D75: this was the ONE buffer D52 missed. Its three siblings (:635 feat,
+               * :652 out, :683 outs) were moved to static by D52 because they are sized by the
+               * CONTRACT and an OPS-SAT-sized model overflows the task stack; `yv` is sized the
+               * same way and stayed automatic, and the stack gate at :326 counts neither it nor
+               * them (it is base + CONTRACT_KERNEL_STACK_BYTES only). With the WGAN denoiser
+               * contract (CONTRACT_OUTPUT_ELEMS = 150528) this is 602,112 B against a 262,144 B
+               * base -- the D52 condition exactly, in the replay path instead of the SB path.
+               * static is sound here ONLY because the contract declares
+               * analysis_domain.required_premises.max_in_flight_calls = 1 (E40) and both C
+               * runners are single-task: this buffer is not re-entrant, and that premise is the
+               * reason it may be shared, not an accident of the current code. */
+              static float yv[CONTRACT_OUTPUT_ELEMS];
               iree_status_t s2 = iree_hal_buffer_map_write(iree_hal_buffer_view_buffer(g.x), 0,
                   xin + v * CONTRACT_INPUT_ELEMS, CONTRACT_INPUT_ELEMS * sizeof(float));
               if (!iree_status_is_ok(s2)) { iree_status_free(s2); break; }

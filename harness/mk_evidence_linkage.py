@@ -41,6 +41,12 @@ ITEMS = {
     "5": "전체 출력 비교 결과",
     "6": "HAL peak와 해당 정책의 승인 예산 비교",
     "7": "각 결과를 생성한 명령·원시 로그·판정 스크립트",
+    # E48 SS3.1: 항목 8은 1~7의 개명이 아니다. 1~7은 **합성 또는 혼합 입력**으로 밟은 셀을
+    # 가리키고(E31 fixture 는 실이미지 3 + 합성 32 + 경계 2), 8은 **공개 실데이터만**으로
+    # 같은 경로를 다시 밟은 셀을 가리킨다. 이 저장소가 E45에서 등급으로 분리한 축
+    # (모델의 실제성 / 가중치 / **입력의 실제성** / 검증한 성질) 중 세 번째가 바로 이것이라,
+    # 같은 사실이 두 자리에 사는 D65 가 아니라 서로 다른 사실이다.
+    "8": "공개 실입력으로 같은 경로를 다시 밟은 기록 (AArch64 native·cFS, E48)",
 }
 
 
@@ -154,6 +160,8 @@ E34 = "results/e34_two_models"
 E36 = "results/e36_aarch64_cfs"
 E36B = "results/e36b_aarch64_models"
 E26 = "results/e26_boundary_utility"
+E45 = "results/e45_real_inputs"
+E48 = "results/e48_real_inputs_aarch64"
 
 CELLS = {
     "smartcam": {
@@ -217,6 +225,22 @@ CELLS = {
             (E36 + "/summary.json", "cells.cond_positive.peak_within_admitted_budget"),
             (E36 + "/summary.json", "cells.cond_positive.admission_mode"),
         ],
+        "8": [
+            (E45 + "/cells/smartcam/fixture/manifest.json", "counts"),
+            (E48 + "/smartcam/staged_inputs.json", "samples"),
+            (E48 + "/smartcam/staged_inputs.json", "sha256_inputs_bin"),
+            (E48 + "/smartcam/staged_inputs.json", "manifest_hashes_verified"),
+            (E48 + "/smartcam/staged_inputs.json", "fixture_manifest_source"),
+            (E48 + "/summary.json", "models.smartcam.semantics_native_aarch64.verdict"),
+            (E48 + "/summary.json", "models.smartcam.semantics_native_aarch64.elements_failed"),
+            (E48 + "/summary.json", "models.smartcam.semantics_cfs_aarch64.verdict"),
+            (E48 + "/summary.json", "models.smartcam.x86_64_pip_runtime_E45.verdict"),
+            (E48 + "/summary.json", "models.smartcam.verdict_agrees_with_x86"),
+            (E48 + "/summary.json", "models.smartcam.cfs_admit_B.verdict"),
+            (E48 + "/summary.json", "models.smartcam.cfs_admit_B.inferences"),
+            (E48 + "/summary.json", "models.smartcam.cfs_deny_B_minus_1.verdict"),
+            (E48 + "/summary.json", "models.smartcam.cfs_deny_B_minus_1.inferences"),
+        ],
     },
     "b2_resnet": {
         "display": "MLPerf Tiny ResNet (CIFAR-10 image classification)",
@@ -269,6 +293,22 @@ CELLS = {
             (E36B + "/summary.json", "models.b2_resnet.cfs_admit.peak_within_admitted_budget"),
             (E36B + "/summary.json", "models.b2_resnet.cfs_admit.admission_mode"),
         ],
+        "8": [
+            (E45 + "/cells/b2_resnet/fixture/manifest.json", "counts"),
+            (E48 + "/b2_resnet/staged_inputs.json", "samples"),
+            (E48 + "/b2_resnet/staged_inputs.json", "sha256_inputs_bin"),
+            (E48 + "/b2_resnet/staged_inputs.json", "manifest_hashes_verified"),
+            (E48 + "/b2_resnet/staged_inputs.json", "fixture_manifest_source"),
+            (E48 + "/summary.json", "models.b2_resnet.semantics_native_aarch64.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.semantics_native_aarch64.elements_failed"),
+            (E48 + "/summary.json", "models.b2_resnet.semantics_cfs_aarch64.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.x86_64_pip_runtime_E45.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.verdict_agrees_with_x86"),
+            (E48 + "/summary.json", "models.b2_resnet.cfs_admit_B.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.cfs_admit_B.inferences"),
+            (E48 + "/summary.json", "models.b2_resnet.cfs_deny_B_minus_1.verdict"),
+            (E48 + "/summary.json", "models.b2_resnet.cfs_deny_B_minus_1.inferences"),
+        ],
     },
     "b3_deepae": {
         "display": "MLPerf Tiny Deep AutoEncoder (anomaly detection)",
@@ -320,6 +360,22 @@ CELLS = {
             (E36B + "/summary.json", "models.b3_deepae.cfs_admit.budget"),
             (E36B + "/summary.json", "models.b3_deepae.cfs_admit.peak_within_admitted_budget"),
             (E36B + "/summary.json", "models.b3_deepae.cfs_admit.admission_mode"),
+        ],
+        "8": [
+            (E45 + "/cells/b3_deepae/fixture/manifest.json", "counts"),
+            (E48 + "/b3_deepae/staged_inputs.json", "samples"),
+            (E48 + "/b3_deepae/staged_inputs.json", "sha256_inputs_bin"),
+            (E48 + "/b3_deepae/staged_inputs.json", "manifest_hashes_verified"),
+            (E48 + "/b3_deepae/staged_inputs.json", "fixture_manifest_source"),
+            (E48 + "/summary.json", "models.b3_deepae.semantics_native_aarch64.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.semantics_native_aarch64.elements_failed"),
+            (E48 + "/summary.json", "models.b3_deepae.semantics_cfs_aarch64.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.x86_64_pip_runtime_E45.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.verdict_agrees_with_x86"),
+            (E48 + "/summary.json", "models.b3_deepae.cfs_admit_B.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.cfs_admit_B.inferences"),
+            (E48 + "/summary.json", "models.b3_deepae.cfs_deny_B_minus_1.verdict"),
+            (E48 + "/summary.json", "models.b3_deepae.cfs_deny_B_minus_1.inferences"),
         ],
     },
 }
@@ -493,6 +549,62 @@ REPRODUCE = {
 # "공개된 실제 모델을 썼다"와 "실제 데이터셋으로 검증했다"는 다른 진술이다.
 # --------------------------------------------------------------------------------------
 
+def derive_input_reality(model):
+    """E49/D82: `input_reality` 등급을 **원자료에서 센다** — 사람이 쓴 문자열이 아니다.
+
+    E37 이 이 축을 만들 때 등급은 하드코딩 문자열이었고, 그래서 E45(실입력 반입)와
+    E48(실입력 AArch64 종단)이 지나간 뒤에도 ResNet·DeepAE 가 *"SYNTHETIC-ONLY — 합성 32 +
+    상수 경계 2, 실데이터 0"* 이라고 적혀 있었다. 실제로는 실 CIFAR-10 200장과 실 log-mel
+    34창이 반입돼 AArch64 native·cFS 에서 판정까지 났다.
+
+    방향은 보수적이었지만(실제보다 약하게 말했다) 그것은 운이다 — 하드코딩된 등급은 반대
+    방향으로도 똑같이 틀릴 수 있었다. D65 의 형태이고, 고치는 방법은 문자열을 갱신하는 것이
+    아니라 **세는 것**이다.
+
+    두 fixture 를 합쳐 읽는다: E31/E34 의 원래 fixture(합성·경계 포함)와 E45 의 실입력
+    fixture. 어느 하나가 없으면 지어내지 않고 사유를 남긴다."""
+    legacy = {"smartcam": E31 + "/fixture/manifest.json",
+              "b2_resnet": E34 + "/b2_resnet/fixture/manifest.json",
+              "b3_deepae": E34 + "/b3_deepae/fixture/manifest.json"}.get(model)
+    real = E45 + "/cells/%s/fixture/manifest.json" % model
+    parts, missing = [], []
+    counts = {}
+    for tag, rel in (("legacy", legacy), ("real", real)):
+        if not rel:
+            missing.append(tag); continue
+        obj, why = _load(rel)
+        if obj is None:
+            missing.append("%s:%s" % (tag, why)); continue
+        c = obj.get("counts") or {}
+        counts[tag] = c
+    real_n = sum(v for k, v in (counts.get("real") or {}).items() if k.startswith("real"))
+    leg = counts.get("legacy") or {}
+    leg_real = sum(v for k, v in leg.items() if k.startswith("real"))
+    leg_syn = sum(v for k, v in leg.items() if not k.startswith("real"))
+    if real_n:
+        parts.append("E45 실입력 %d" % real_n)
+    if leg_real:
+        parts.append("초기 fixture 실입력 %d" % leg_real)
+    if leg_syn:
+        parts.append("합성·경계 %d" % leg_syn)
+    kind = "REAL+SYNTHETIC" if (real_n or leg_real) and leg_syn else (
+        "REAL-ONLY" if (real_n or leg_real) else "SYNTHETIC-ONLY")
+    # The two real-input sets are NOT summed. For SmartCam they are different grades of
+    # artifact -- E31's three are lossless 2048x1944 PNG (tier A) and E45's nineteen are
+    # 0.3x-downscaled JPEG thumbnails (tier B) -- and CLAUDE.md's guardrails forbid writing
+    # "22 real images" precisely because that addition erases the distinction. The first
+    # version of this derivation emitted `real_samples: 22` and so broke a guardrail while
+    # fixing a stale grade: the two-way rule applies to this repair too.
+    return {"grade": "%s — %s" % (kind, " + ".join(parts) if parts else "셀 없음"),
+            "counts": counts,
+            "real_samples_by_set": {"e45_real_fixture": real_n, "initial_fixture": leg_real},
+            "why_not_summed": ("두 집합은 등급이 다를 수 있다(SmartCam: tier A 무손실 PNG 3장 vs "
+                               "tier B 0.3x 축소 JPEG 19장). 합치면 그 구분이 사라진다 — "
+                               "가드레일이 금지하는 바로 그 문장이 된다."),
+            "derived_by": "harness/mk_evidence_linkage.py::derive_input_reality (E49/D82)",
+            "unavailable": missing or None}
+
+
 GRADES = {
     "smartcam": {
         "model_reality": {
@@ -658,6 +770,14 @@ def build():
                 g["grade"] = gspec["grade"]
             if "note" in gspec:
                 g["note"] = gspec["note"]
+            if axis == "input_reality":
+                # E49/D82: this axis is COUNTED, never typed. The hardcoded string went stale
+                # the moment E45 brought real inputs in, and nothing noticed for two versions.
+                d = derive_input_reality(model)
+                g["grade"] = d["grade"]
+                g["derived"] = {k: v for k, v in d.items() if k != "grade"}
+                g["sources"] = g["sources"] + [
+                    resolve(E45 + "/cells/%s/fixture/manifest.json" % model, "counts")]
             grade[axis] = g
         models[model] = {"display": spec["display"], "items": items, "grade": grade}
 
@@ -778,7 +898,11 @@ def main(argv=None):
     with open(md_path, "w", encoding="utf-8") as fh:
         fh.write(md)
     t = data["totals"]
-    print("%s\n%s\n21셀 중 present %d / 그 외 %d" % (js_path, md_path, t["present"], t["not_present"]))
+    # E48: the cell count used to be the literal 21 here while the total came from the data,
+    # so adding item 8 printed "21셀 중 present 24" -- a line that contradicts itself. Print
+    # what was counted.
+    print("%s\n%s\n%d셀 중 present %d / 그 외 %d"
+          % (js_path, md_path, t["cells"], t["present"], t["not_present"]))
     for c in data["cells_not_present"]:
         print("   - %s 항목 %s: %s %s" % (c["model"], c["item"], c["status"], c["unresolved"]))
     return 0

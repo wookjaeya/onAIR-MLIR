@@ -34,6 +34,59 @@ def elem_ok(a, b, abs_tol, rel_tol):
     return (d <= abs_tol) or (rel <= rel_tol), d, rel
 
 
+
+def _per_kind(rows, argmax_required, abs_tol, rel_tol):
+    """Aggregate the SAME per-element results by input kind. Reporting only, never a gate.
+
+    `headroom` is dimensionless slack under the pre-fixed OR rule. An element passes if
+    abs_err <= abs_tol OR rel_err <= rel_tol, so its slack is
+
+        max(1 - abs_err/abs_tol, 1 - rel_err/rel_tol)
+
+    -- 1.0 is exact agreement, 0.0 is sitting exactly on the limit, negative is a failure.
+    A kind's headroom is the MINIMUM over its elements: the closest any element of that kind
+    came to failing. Two kinds can both be PASS while one passes at 0.98 and the other at
+    0.01, and that difference is exactly what "does input realism matter" is asking.
+
+    It can only be computed when the run stored every element row. When the run stored only
+    failures the value is `null` WITH a reason -- not 0.0, and not silently omitted (D68:
+    the file that wrote "absence is not zero" then recorded a parse failure as 0).
+    """
+    out = {}
+    for k in sorted({r.get("kind") for r in rows}):
+        sel = [r for r in rows if r.get("kind") == k]
+        am = [r for r in sel if r.get("argmax_ok") is not None]
+        full = all(r.get("elements_detail_mode") == "all" for r in sel) and sel
+        headroom, headroom_at, reason = None, None, None
+        if full:
+            for r in sel:
+                for q in r.get("elements_detail", []):
+                    slack = max(1.0 - q["abs_err"] / abs_tol, 1.0 - q["rel_err"] / rel_tol)
+                    if headroom is None or slack < headroom:
+                        headroom, headroom_at = slack, {"sample_id": r["sample_id"],
+                                                        "index": q["index"]}
+        else:
+            reason = ("not computable: this run stored only failing element rows "
+                      "(--detail failures), so the closest PASSING element is not in the file")
+        out[k] = {
+            "samples": len(sel),
+            "samples_ok": sum(1 for r in sel if r.get("ok")),
+            "elements": sum(r.get("elements", 0) for r in sel),
+            "elements_failed": sum(r.get("elements", 0) - r.get("elements_ok", 0) for r in sel),
+            "worst_abs_err": max((r.get("max_abs_err", 0.0) for r in sel), default=0.0),
+            "worst_rel_err": max((r.get("max_rel_err", 0.0) for r in sel), default=0.0),
+            "worst_err_note": "the abs and rel maxima may come from different elements",
+            "headroom": headroom,
+            "headroom_at": headroom_at,
+            "headroom_unavailable_reason": reason,
+            "argmax_checked": len(am) if argmax_required else 0,
+            "argmax_failed": sum(1 for r in am if r.get("argmax_ok") is False),
+            "argmax_note": (None if argmax_required else
+                            "argmax is not applicable to this model; absence is not a pass"),
+        }
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--oracle", required=True)
@@ -169,6 +222,13 @@ def main():
                    "elements_failed": elems_failed, "argmax_failed": argmax_failed,
                    "by_kind": {k: sum(1 for r in rows if r.get("kind") == k)
                                for k in sorted({r.get("kind") for r in rows})}},
+        # E45: the verdict itself stays kind-blind -- a fixture of any composition is judged
+        # by the same rule. What was missing is that the RESULT could not be read per kind, so
+        # "the synthetic samples passed and the real ones did not" was not a statement this
+        # tool could make. E31 found the layout-permutation control was caught only by its
+        # three real images, and that had to be re-derived by hand from the stored rows.
+        # This is reporting, never a gate: a run with zero samples of some kind is normal.
+        "per_kind": _per_kind(rows, argmax_required, a.abs_tol, a.rel_tol),
         "worst_element": worst,
         "verdict": verdict,
         "scope": ({"declared_subset": sorted(declared),

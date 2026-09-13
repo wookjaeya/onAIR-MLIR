@@ -1,0 +1,423 @@
+OS_BSP_Initialize():Maximum user msg queue depth = 512
+CFE_PSP: Default Reset SubType = 1
+CFE_PSP: Default CPU ID = 1
+CFE_PSP: Default Spacecraft ID = 66
+CFE_PSP: Default CPU Name: cpu1
+OS_Posix_GetSchedulerParams():208:Policy 1: available, min-max: 1-99
+OS_Posix_GetSchedulerParams():208:Policy 2: available, min-max: 1-99
+OS_Posix_TaskAPI_Impl_Init():401:Selected policy 2 for RT tasks, root task = 99
+OS_Posix_TaskAPI_Impl_Init():419:Could not setschedparam in main thread: Operation not permitted (1)
+CFE_PSP: initializing module 'soft_timebase' with ID 0110ff00
+CFE_PSP: Instantiated software timebase 'cFS-Master' running at 10000 usec
+CFE_PSP: initializing module 'timebase_posix_clock' with ID 0110ff01
+CFE_PSP: Using POSIX monotonic clock as CFE timebase
+CFE_PSP: initializing module 'eeprom_mmap_file' with ID 0110ff02
+CFE_PSP: Using MMAP simulated EEPROM implementation
+CFE_PSP: EEPROM Range (2) created: Start Address = E0713EC0E000, Size = 00080000 Status = 0
+CFE_PSP: initializing module 'port_notimpl' with ID 0110ff03
+CFE_PSP: I/O Port access not implemented
+CFE_PSP: initializing module 'iodriver' with ID 0110ff04
+CFE_PSP: initializing module 'linux_sysmon' with ID 0110ff05
+CFE_PSP: initializing module 'endian_api' with ID 0110ff06
+CFE_PSP: Host CPU Endian=LITTLE
+CFE_PSP: initializing module 'ram_notimpl' with ID 0110ff07
+CFE_PSP: Physical RAM access not implemented
+CFE_PSP: Normal exit from previous cFE instance
+CFE_PSP: Starting the cFE with a PROCESSOR reset.
+1980-001-08:50:10.02385 CFE_ES_Main: CFE_ES_Main in EARLY_INIT state
+1980-001-08:50:10.05357 CFE_ES_InitializeFileSystems: Volatile Disk has 100 Percent free space.
+Number of addresses returned by backtrace = 1
+CFE_PSP: CFE_PSP_AttachExceptions called
+1980-001-08:50:10.09171 CFE_ES_Main: CFE_ES_Main entering CORE_STARTUP state
+1980-001-08:50:10.09362 CFE_ES_CreateObjects: Starting Object Creation calls.
+1980-001-08:50:10.09387 CFE_ES_CreateObjects: Calling EarlyInit for CFE_CONFIG
+1980-001-08:50:10.09696 CFE_ES_CreateObjects: Calling EarlyInit for CFE_ES
+1980-001-08:50:10.10731 CFE_ES_CreateObjects: Calling EarlyInit for CFE_EVS
+1980-001-08:50:10.11339 CFE_EVS_EarlyInit: Event Log restored, n=0, c=20, f=1, m=1, o=349
+1980-001-08:50:10.11387 CFE_ES_CreateObjects: Calling EarlyInit for CFE_FS
+1980-001-08:50:10.11419 CFE_ES_CreateObjects: Calling EarlyInit for CFE_SB
+1980-001-08:50:10.14040 CFE_ES_CreateObjects: Calling EarlyInit for CFE_TBL
+1980-001-08:50:10.17582 CFE_ES_CreateObjects: Calling EarlyInit for CFE_TIME
+EVS Port1 1980-012-14:13:00.95689 66/1/CFE_ES 1: cFE ES Initialized: CFE_ES v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:13:00.96496 66/1/CFE_ES 2: cFS Versions: cfe v7.0.1+dev1, osal v7.0.1+dev1, psp v7.0.1+dev1. cFE chksm 31659
+EVS Port1 1980-012-14:13:00.96835 66/1/CFE_ES 91: Version Info: Mission SampleMission, version git:v7.0.1-90-g78c23b0-dirty
+EVS Port1 1980-012-14:13:00.96945 66/1/CFE_ES 91: Version Info: Module CORE_API, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97016 66/1/CFE_ES 91: Version Info: Module CONFIG, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97059 66/1/CFE_ES 91: Version Info: Module ES, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97085 66/1/CFE_ES 91: Version Info: Module EVS, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97109 66/1/CFE_ES 91: Version Info: Module FS, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97323 66/1/CFE_ES 91: Version Info: Module SB, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97608 66/1/CFE_ES 91: Version Info: Module TBL, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97634 66/1/CFE_ES 91: Version Info: Module TIME, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97648 66/1/CFE_ES 91: Version Info: Module OSAL, version git:8111e4a
+EVS Port1 1980-012-14:13:00.97662 66/1/CFE_ES 91: Version Info: Module PSP, version git:d1da809
+EVS Port1 1980-012-14:13:00.97673 66/1/CFE_ES 91: Version Info: Module MSG, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97682 66/1/CFE_ES 91: Version Info: Module SBR, version git:2612eb0
+EVS Port1 1980-012-14:13:00.97691 66/1/CFE_ES 91: Version Info: Module RESOURCEID, version git:2612eb0
+EVS Port1 1980-012-14:13:00.98001 66/1/CFE_ES 92: Build 202609111416 by root@vm, config aarch64
+EVS Port1 1980-012-14:13:01.10942 66/1/CFE_EVS 1: cFE EVS Initialized: CFE_EVS v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:13:01.20967 CFE_SB_AppInit: Registered 4 events for filtering
+EVS Port1 1980-012-14:13:01.21884 66/1/CFE_SB 1: cFE SB Initialized: CFE_SB v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:13:01.22134 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_SB
+EVS Port1 1980-012-14:13:01.35336 66/1/CFE_TBL 1: cFE TBL Initialized: CFE_TBL v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:13:01.35787 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_TBL
+EVS Port1 1980-012-14:13:01.58067 66/1/CFE_TIME 1: cFE TIME Initialized: CFE_TIME v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:13:01.58151 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_TIME
+1980-012-14:13:01.61147 CFE_ES_CreateObjects: Finished ES CreateObject table entries.
+1980-012-14:13:01.61212 CFE_ES_Main: CFE_ES_Main entering CORE_READY state
+OS_FileOpen_Impl():110:open(/dev/shm/osal:RAM/cfe_es_startup.scr): No such file or directory
+1980-012-14:13:01.62102 CFE_ES_OpenStartupScript: Cannot Open Volatile Startup file: /ram/cfe_es_startup.scr, Trying Nonvolatile.
+1980-012-14:13:01.62267 CFE_ES_OpenStartupScript: Opened ES App Startup file: /cf/cfe_es_startup.scr
+1980-012-14:13:01.80919 CFE_ES_ParseFileEntry: Loading shared library: /cf/cfe_assert.so
+1980-012-14:13:01.83458 [BEGIN] CFE FUNCTIONAL TEST
+1980-012-14:13:01.83862 [BEGIN] 01 CFE-STARTUP
+1980-012-14:13:01.88462 CFE_ES_ParseFileEntry: Loading shared library: /cf/sample_lib.so
+SAMPLE Lib Initialized.Sample Lib v7.0.0+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:13:01.94413 CFE_ES_ParseFileEntry: Loading file: /cf/sch_lab.so, APP: SCH_LAB
+1980-012-14:13:02.00264 CFE_ES_ParseFileEntry: Loading file: /cf/ci_lab.so, APP: CI_LAB
+SCH Lab Initialized.SCH Lab v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:13:02.11705 CFE_ES_ParseFileEntry: Loading file: /cf/to_lab.so, APP: TO_LAB
+1980-012-14:13:02.19711 CI_LAB listening on UDP port: 1234
+EVS Port1 1980-012-14:13:02.20252 66/1/CI_LAB 3: CI Lab Initialized.CI Lab App v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:13:02.20458 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CI_LAB
+1980-012-14:13:02.22765 CFE_ES_ParseFileEntry: Loading file: /cf/sample_app.so, APP: SAMPLE_APP
+EVS Port1 1980-012-14:13:02.25717 66/1/TO_LAB 1: TO Lab Initialized.TO Lab v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled, Awaiting enable command.
+1980-012-14:13:02.29905 CFE_ES_ParseFileEntry: Loading file: /cf/ai_learner.so, APP: AI_LEARNER
+EVS Port1 1980-012-14:13:02.33265 66/1/SAMPLE_APP 1: Sample App Initialized.Sample App v7.0.0+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:13:02.36368 CFE_ES_ParseFileEntry: Loading file: /cf/lc.so, APP: LC
+{"app":"AI_LEARNER","stage":"build_config","model":"smartcam","allow_conditional_map":0,"contract_bounded_bytes":18222796,"contract_per_call_bytes":9382092,"contract_const_bytes":8840704,"contract_bound_known":true,"contract_artifact_sha256":"ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"}
+{"app":"AI_LEARNER","stage":"stack","es_stack_size":264063,"stack_base_bytes":262144,"contract_kernel_stack_bytes":1919,"kernel_stack_accounted":true}
+EVS Port1 1980-012-14:13:02.40859 66/1/AI_LEARNER 8: AI_LEARNER stack: es=264063 base=262144 kernel=1919 accounted=1
+{"app":"AI_LEARNER","stage":"admission","verdict":"ADMIT","model":"smartcam","target":"aarch64-unknown-linux-gnu","bounded":18222796,"budget":297002484,"budget_source":"override","per_call":9382092,"constants":8840704,"kernel_stack_bytes":1919,"bound_known":true,"scope":"per_app_local_budget"}
+1980-012-14:13:02.43232 CFE_ES_ParseFileEntry: Loading file: /cf/cf.so, APP: CF
+EVS Port1 1980-012-14:13:02.44573 66/1/LC 56: WDT verify results: good = 0, bad = 0, unused = 176
+EVS Port1 1980-012-14:13:02.48063 66/1/LC 66: ADT verify results: good = 0, bad = 0, unused = 176
+EVS Port1 1980-012-14:13:02.48791 66/1/LC 23: LC use of Critical Data Store disabled, activity mask = 0x00991990
+EVS Port1 1980-012-14:13:02.48855 66/1/LC 2: LC Initialized. Version 7.0.1.255
+1980-012-14:13:02.56293 CFE_ES_ParseFileEntry: Loading file: /cf/ds.so, APP: DS
+EVS Port1 1980-012-14:13:02.66850 66/1/CF 20: CF Initialized. Version 7.0.1.255
+1980-012-14:13:02.71031 CFE_ES_ParseFileEntry: Loading file: /cf/fm.so, APP: FM
+EVS Port1 1980-012-14:13:02.73156 66/1/DS 10: Destination file table verify results: good entries = 6, bad = 0, unused = 10
+EVS Port1 1980-012-14:13:02.75059 66/1/DS 12: Filter table verify results: good entries = 14, bad = 0, unused = 242
+EVS Port1 1980-012-14:13:02.77561 66/1/DS 1: Application initialized, version 7.0.1.255, data at 0xe0713db60460
+1980-012-14:13:02.85331 CFE_ES_ParseFileEntry: Loading file: /cf/hk.so, APP: HK
+EVS Port1 1980-012-14:13:02.91146 66/1/FM 80: Free Space Table verify results: good entries = 3, bad = 0, unused = 5
+EVS Port1 1980-012-14:13:02.94557 66/1/FM 1: Initialization complete: version 7.0.1.255
+EVS Port1 1980-012-14:13:03.00584 66/1/FM 72: Child Task initialization complete
+1980-012-14:13:03.03025 CFE_ES_ParseFileEntry: Loading file: /cf/hs.so, APP: HS
+EVS Port1 1980-012-14:13:03.06903 66/1/HK 1: HK Initialized.  Version 7.0.1.255
+1980-012-14:13:03.18226 CFE_ES_ParseFileEntry: Loading file: /cf/mm.so, APP: MM
+EVS Port1 1980-012-14:13:03.20553 66/1/HS 54: ExeCount verify results: good = 5, bad = 0, unused = 27
+EVS Port1 1980-012-14:13:03.22799 66/1/HS 50: AppMon verify results: good = 0, bad = 0, unused = 32
+EVS Port1 1980-012-14:13:03.24746 66/1/HS 52: EventMon verify results: good = 0, bad = 0, unused = 16
+EVS Port1 1980-012-14:13:03.27183 66/1/HS 56: MsgActs verify results: good = 2, bad = 0, unused = 6
+1980-012-14:13:03.29316 HS_SysMonInit(): System Monitor using PSP device ID 0110ff05
+EVS Port1 1980-012-14:13:03.31309 66/1/MM 1: MM Initialized. Version 7.0.1.255
+1980-012-14:13:03.34326 CFE_ES_ParseFileEntry: Loading file: /cf/sc.so, APP: SC
+CFE_PSP(Linux_SysMon): Started CPU utilization monitoring on 1 CPU(s)
+EVS Port1 1980-012-14:13:03.34754 66/1/HS 1: HS Initialized.  Version 7.0.1.255
+1980-012-14:13:03.43480 CFE_ES_ParseFileEntry: Loading file: /cf/md.so, APP: MD
+EVS Port1 1980-012-14:13:03.54446 66/1/SC 21: RTS table files not loaded at initialization = 0 of 4
+EVS Port1 1980-012-14:13:03.56060 66/1/SC 9: SC Initialized. Version 7.0.1.255
+1980-012-14:13:03.58951 CFE_ES_ParseFileEntry: Loading file: /cf/cs.so, APP: CS
+EVS Port1 1980-012-14:13:03.59513 66/1/MD 52: MD Dwell Tbl verify results: good = 0, bad = 0, unused = 25
+EVS Port1 1980-012-14:13:03.60459 66/1/MD 3: Recovered Dwell Table #1 is valid and has been copied to the MD App
+EVS Port1 1980-012-14:13:03.62420 66/1/MD 52: MD Dwell Tbl verify results: good = 0, bad = 0, unused = 25
+EVS Port1 1980-012-14:13:03.62762 66/1/MD 3: Recovered Dwell Table #2 is valid and has been copied to the MD App
+EVS Port1 1980-012-14:13:03.63554 66/1/MD 52: MD Dwell Tbl verify results: good = 0, bad = 0, unused = 25
+EVS Port1 1980-012-14:13:03.64916 66/1/MD 3: Recovered Dwell Table #3 is valid and has been copied to the MD App
+EVS Port1 1980-012-14:13:03.68484 66/1/MD 52: MD Dwell Tbl verify results: good = 0, bad = 0, unused = 25
+EVS Port1 1980-012-14:13:03.68847 66/1/MD 3: Recovered Dwell Table #4 is valid and has been copied to the MD App
+EVS Port1 1980-012-14:13:03.69343 66/1/MD 7: Dwell Tables Recovered: 4, Dwell Tables Initialized: 0
+EVS Port1 1980-012-14:13:03.69822 66/1/MD 1: MD Initialized.  Version 7.0.1.255
+EVS Port1 1980-012-14:13:03.77856 66/1/CS 144: CS EEPROM Table verification results: good = 0, bad = 0, unused = 16
+EVS Port1 1980-012-14:13:03.78720 66/1/CS 107: CS EEPROM Table: No valid entries in the table
+EVS Port1 1980-012-14:13:03.81080 66/1/CS 143: CS Memory Table verification results: good = 0, bad = 0, unused = 16
+EVS Port1 1980-012-14:13:03.81900 66/1/CS 107: CS Memory Table: No valid entries in the table
+EVS Port1 1980-012-14:13:03.84468 66/1/CS 139: CS Tables Table verification results: good = 1, bad = 0, unused = 23
+EVS Port1 1980-012-14:13:03.88740 66/1/CS 142: CS Apps Table verification results: good = 0, bad = 0, unused = 24
+EVS Port1 1980-012-14:13:03.89279 66/1/CS 108: CS Apps Table: No valid entries in the table
+EVS Port1 1980-012-14:13:03.90270 66/1/CS 127: OS Text Segment disabled due to platform
+EVS Port1 1980-012-14:13:03.90843 66/1/CS 1: CS Initialized. Version 7.0.1.255
+EVS Port1 1980-012-14:13:04.01255 66/1/CFE_TIME 21: Stop FLYWHEEL
+1980-012-14:13:04.49219 CFE_ES_Main: Startup Sync failed - Applications may not have all initialized
+1980-012-14:13:04.49557 CFE_ES_Main: CFE_ES_Main entering APPS_INIT state
+{"app":"AI_LEARNER","stage":"binding","verdict":"MATCH","artifact_bytes":8991281,"artifact_sha256":"ecffe6e0bcbadf51","contract_sha256":"ecffe6e0bcbadf51"}
+{"app":"AI_LEARNER","stage":"map_branch","model":"smartcam","module_ptr_mod64":0,"hal_peak_after_append":0,"contract_const_bytes":8840704,"contract_per_call_bytes":9382092,"arm":"map","admission_mode":"unconditional"}
+{"app":"AI_LEARNER","stage":"mem_init","model":"smartcam","target":"aarch64-unknown-linux-gnu","hal_peak":602112,"hal_allocated":602112,"bounded":18222796,"peak_within_bounded":true,"inferences_so_far":0,"process_rss_kb":15948,"rss_kb_before_runtime":14208,"rss_kb_after_session":14496,"rss_kb_after_init":15948}
+{"app":"AI_LEARNER","stage":"e25_mode","active":false,"inputs_path":"/cf/e25_inputs.bin"}
+EVS Port1 1980-012-14:13:05.14988 66/1/AI_LEARNER 3: AI_LEARNER initialized: model smartcam (8991281 B), rss_delta_init=1740 KB
+1980-012-14:13:05.18416 CFE_ES_Main: CFE_ES_Main entering OPERATIONAL state
+EVS Port1 1980-012-14:13:05.24237 66/1/TO_LAB 19: L550 TO Lab subscribed to 32 messages from the table
+EVS Port1 1980-012-14:13:07.98051 66/1/CFE_TIME 20: Start FLYWHEEL
+...EVS Port1 1980-012-14:13:25.55758 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=17766208.0us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":1,"completed":1,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":17766207.98,"max_us":17766207.98,"last_us":17766207.98,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":1,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":9382092.0,"process_rss_kb":16576,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:13:26.00988 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:13:32.00325 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:13:33.01290 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:13:34.01045 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:13:34.11686 66/1/AI_LEARNER 4: AI_LEARNER completed=2/2 mean=13341495.9us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":2,"completed":2,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":13341495.94,"max_us":17766207.98,"last_us":8916783.90,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":2,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":9081036.0,"process_rss_kb":25152,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:13:34.99645 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:13:39.00822 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:13:39.78532 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:13:40.00395 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:13:43.63317 66/1/AI_LEARNER 4: AI_LEARNER completed=3/3 mean=12095915.1us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":3,"completed":3,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":12095915.12,"max_us":17766207.98,"last_us":9604753.47,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":3,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8980684.0,"process_rss_kb":25152,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:13:47.78602 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:13:50.30444 66/1/AI_LEARNER 4: AI_LEARNER completed=4/4 mean=10721877.7us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":4,"completed":4,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":10721877.70,"max_us":17766207.98,"last_us":6599765.44,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":4,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8930508.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:13:55.83558 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:13:56.05787 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:13:56.00848 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:13:57.31243 66/1/AI_LEARNER 4: AI_LEARNER completed=5/5 mean=9981742.4us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":5,"completed":5,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9981742.45,"max_us":17766207.98,"last_us":7021201.44,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":5,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8900402.4,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:13:59.01768 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:14:00.09068 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:14:01.00880 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:14:01.99392 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:14:04.01560 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:14:04.03607 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:14:04.53486 66/1/AI_LEARNER 4: AI_LEARNER completed=6/6 mean=9572947.0us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":6,"completed":6,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9572947.05,"max_us":17766207.98,"last_us":7528970.05,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":6,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8880332.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:14:04.99391 66/1/CFE_TIME 20: Start FLYWHEEL
+.{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":7,"completed":7,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9106763.51,"max_us":17766207.98,"last_us":6309662.29,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+EVS Port1 1980-012-14:14:10.85777 66/1/AI_LEARNER 4: AI_LEARNER completed=7/7 mean=9106763.5us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":7,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8865996.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:14:15.00347 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:14:15.85798 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:14:15.99688 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:14:18.53022 66/1/AI_LEARNER 4: AI_LEARNER completed=8/8 mean=8927890.2us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":8,"completed":8,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8927890.16,"max_us":17766207.98,"last_us":7675776.74,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":8,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8855244.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:14:23.77192 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:14:26.35021 66/1/AI_LEARNER 4: AI_LEARNER completed=9/9 mean=8805259.7us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":9,"completed":9,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8805259.67,"max_us":17766207.98,"last_us":7824215.74,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":9,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8846881.3,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:14:30.00917 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:14:30.99603 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:14:31.76315 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:14:33.31019 66/1/AI_LEARNER 4: AI_LEARNER completed=10/10 mean=8626919.4us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":10,"completed":10,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8626919.44,"max_us":17766207.98,"last_us":7021857.31,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":10,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8840191.2,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:14:39.78179 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:14:40.92077 66/1/AI_LEARNER 4: AI_LEARNER completed=11/11 mean=8537921.9us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":11,"completed":11,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8537921.94,"max_us":17766207.98,"last_us":7647947.01,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":11,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8834717.5,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:14:46.01799 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:14:47.00444 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:14:47.85363 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":12,"completed":12,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8578781.34,"max_us":17766207.98,"last_us":9028234.67,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+EVS Port1 1980-012-14:14:49.90898 66/1/AI_LEARNER 4: AI_LEARNER completed=12/12 mean=8578781.3us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":12,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8830156.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:14:54.01246 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:14:55.19612 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:14:55.98898 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:14:56.03866 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:14:57.04232 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:14:58.09765 66/1/AI_LEARNER 4: AI_LEARNER completed=13/13 mean=8569594.0us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":13,"completed":13,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8569594.04,"max_us":17766207.98,"last_us":8459346.53,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":13,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8826296.3,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:14:59.34519 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:15:02.00856 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:03.78143 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+.{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":14,"completed":14,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8565405.61,"max_us":17766207.98,"last_us":8510956.03,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+EVS Port1 1980-012-14:15:06.20501 66/1/AI_LEARNER 4: AI_LEARNER completed=14/14 mean=8565405.6us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":14,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8822988.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:15:07.00358 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:07.99615 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:15:10.01004 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:15:11.00875 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:15:11.77784 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:15:13.01974 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:13.99893 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:15:14.88078 66/1/AI_LEARNER 4: AI_LEARNER completed=15/15 mean=8577192.0us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":15,"completed":15,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8577192.00,"max_us":17766207.98,"last_us":8742201.46,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":15,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8820120.8,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:15:18.00352 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:19.02333 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:15:19.79591 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:15:20.01022 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:21.01794 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:15:23.30830 66/1/AI_LEARNER 4: AI_LEARNER completed=16/16 mean=8570568.2us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":16,"completed":16,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8570568.20,"max_us":17766207.98,"last_us":8471211.10,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":16,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8817612.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:15:23.34848 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:15:24.00546 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:29.22973 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:15:30.60972 66/1/HS 61: CPU Hogging Detected
+1980-012-14:15:30.62006 HS App: CPU Hogging Detected
+EVS Port1 1980-012-14:15:30.70739 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:15:35.10351 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+.EVS Port1 1980-012-14:15:38.55473 66/1/AI_LEARNER 4: AI_LEARNER completed=17/17 mean=8979841.3us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":17,"completed":17,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8979841.32,"max_us":17766207.98,"last_us":15528211.25,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":17,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8815398.4,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:15:44.07731 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+.EVS Port1 1980-012-14:15:47.01374 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:49.01026 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:49.86534 66/1/AI_LEARNER 4: AI_LEARNER completed=18/18 mean=9145342.9us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":18,"completed":18,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9145342.90,"max_us":17766207.98,"last_us":11958869.82,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":18,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8813430.7,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:15:49.99867 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:15:56.04573 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:15:57.06617 66/1/CFE_TIME 20: Start FLYWHEEL
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":19,"completed":19,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9117056.39,"max_us":17766207.98,"last_us":8607899.25,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+EVS Port1 1980-012-14:15:58.38723 66/1/AI_LEARNER 4: AI_LEARNER completed=19/19 mean=9117056.4us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":19,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8811670.1,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:15:59.15213 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:15:59.00758 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:16:06.51739 66/1/AI_LEARNER 4: AI_LEARNER completed=20/20 mean=9073566.1us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":20,"completed":20,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9073566.11,"max_us":17766207.98,"last_us":8247250.77,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":20,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8810085.6,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:16:12.99838 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:16:13.00425 66/1/CFE_TIME 21: Stop FLYWHEEL
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":21,"completed":21,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8985911.51,"max_us":17766207.98,"last_us":7232819.41,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+EVS Port1 1980-012-14:16:13.75769 66/1/AI_LEARNER 4: AI_LEARNER completed=21/21 mean=8985911.5us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":21,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8808652.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:16:22.53173 66/1/AI_LEARNER 4: AI_LEARNER completed=22/22 mean=8975665.6us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":22,"completed":22,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8975665.55,"max_us":17766207.98,"last_us":8760500.53,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":22,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8807348.7,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:16:24.00656 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:16:24.99465 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:16:29.11376 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:16:29.01037 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:16:30.17959 66/1/AI_LEARNER 4: AI_LEARNER completed=23/23 mean=8923477.6us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":23,"completed":23,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8923477.58,"max_us":17766207.98,"last_us":7775342.10,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":23,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8806158.8,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:16:37.07427 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:16:39.01260 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:16:39.84046 66/1/AI_LEARNER 4: AI_LEARNER completed=24/24 mean=8960350.7us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":24,"completed":24,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":8960350.75,"max_us":17766207.98,"last_us":9808433.66,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":24,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8805068.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:16:46.39970 66/1/CFE_TIME 20: Start FLYWHEEL
+..EVS Port1 1980-012-14:16:53.18193 66/1/AI_LEARNER 4: AI_LEARNER completed=25/25 mean=9136918.8us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":25,"completed":25,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9136918.79,"max_us":17766207.98,"last_us":13374551.79,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":25,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8804064.5,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:17:03.00721 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:17:05.01387 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:17:05.99531 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:17:07.53005 66/1/AI_LEARNER 4: AI_LEARNER completed=26/26 mean=9371293.3us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":26,"completed":26,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9371293.27,"max_us":17766207.98,"last_us":15230655.20,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":26,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8803138.2,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:17:09.26246 66/1/CFE_TIME 20: Start FLYWHEEL
+..EVS Port1 1980-012-14:17:19.12202 66/1/AI_LEARNER 4: AI_LEARNER completed=27/27 mean=9452957.9us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":27,"completed":27,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9452957.91,"max_us":17766207.98,"last_us":11576238.72,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":27,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8802280.4,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:17:21.00914 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:17:25.38783 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:17:28.01075 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:17:28.14416 66/1/AI_LEARNER 4: AI_LEARNER completed=28/28 mean=9471762.2us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":28,"completed":28,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9471762.16,"max_us":17766207.98,"last_us":9979476.72,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":28,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8801484.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:17:31.03460 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:17:32.03080 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:17:33.00715 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:17:34.01997 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:17:36.02745 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:17:36.00512 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:17:37.52111 66/1/AI_LEARNER 4: AI_LEARNER completed=29/29 mean=9470652.0us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":29,"completed":29,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9470652.04,"max_us":17766207.98,"last_us":9439568.83,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":29,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8800742.5,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:17:42.07693 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:17:42.00550 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:17:44.63116 66/1/AI_LEARNER 4: AI_LEARNER completed=30/30 mean=9394732.2us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":30,"completed":30,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9394732.18,"max_us":17766207.98,"last_us":7193056.11,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":30,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8800050.4,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+..EVS Port1 1980-012-14:17:51.46205 66/1/AI_LEARNER 4: AI_LEARNER completed=31/31 mean=9311451.7us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":31,"completed":31,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9311451.71,"max_us":17766207.98,"last_us":6813037.65,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":31,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8799403.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:17:56.20724 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:17:56.00431 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:17:58.76411 66/1/AI_LEARNER 4: AI_LEARNER completed=32/32 mean=9254702.0us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":32,"completed":32,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9254702.00,"max_us":17766207.98,"last_us":7495461.12,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":32,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8798796.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:17:59.02313 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:00.04510 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:18:01.00646 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:02.00480 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:18:05.02360 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:05.98449 66/1/CFE_TIME 20: Start FLYWHEEL
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":33,"completed":33,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9243582.25,"max_us":17766207.98,"last_us":8887750.24,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+EVS Port1 1980-012-14:18:07.55690 66/1/AI_LEARNER 4: AI_LEARNER completed=33/33 mean=9243582.3us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":33,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8798225.8,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:18:13.57707 66/1/CFE_TIME 20: Start FLYWHEEL
+..EVS Port1 1980-012-14:18:22.52479 66/1/AI_LEARNER 4: AI_LEARNER completed=34/34 mean=9411567.7us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":34,"completed":34,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9411567.66,"max_us":17766207.98,"last_us":14955086.03,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":34,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8797689.2,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:18:29.00996 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:18:32.70600 66/1/AI_LEARNER 4: AI_LEARNER completed=35/35 mean=9456179.8us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":35,"completed":35,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9456179.82,"max_us":17766207.98,"last_us":10972993.46,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":35,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8797183.2,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:18:33.13034 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:18:33.01458 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:36.00697 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:37.00724 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:18:40.12593 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:18:41.03321 66/1/AI_LEARNER 4: AI_LEARNER completed=36/36 mean=9429081.8us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":36,"completed":36,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9429081.83,"max_us":17766207.98,"last_us":8480652.11,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":36,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8796705.3,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:18:41.00776 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:44.06373 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:18:45.00810 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:49.12094 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:18:49.00225 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:18:50.91921 66/1/AI_LEARNER 4: AI_LEARNER completed=37/37 mean=9451415.7us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":37,"completed":37,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9451415.71,"max_us":17766207.98,"last_us":10255435.44,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":37,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8796253.3,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:18:53.27680 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:18:56.00711 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:58.00433 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:18:58.99563 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:19:00.04196 66/1/AI_LEARNER 4: AI_LEARNER completed=38/38 mean=9462993.3us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":38,"completed":38,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9462993.29,"max_us":17766207.98,"last_us":9891363.55,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":38,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8795825.1,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:19:01.00013 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:19:01.00584 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:19:04.02664 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:19:04.98957 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:19:08.03923 66/1/AI_LEARNER 4: AI_LEARNER completed=39/39 mean=9427092.3us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":39,"completed":39,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9427092.28,"max_us":17766207.98,"last_us":8062853.89,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":39,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8795418.8,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:19:13.01403 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:19:13.99807 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:19:16.99035 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:19:17.00459 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:19:17.98562 66/1/AI_LEARNER 4: AI_LEARNER completed=40/40 mean=9441557.8us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":40,"completed":40,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9441557.77,"max_us":17766207.98,"last_us":10005712.03,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":40,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8795032.8,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:19:23.22732 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:19:23.00617 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:19:24.86962 66/1/AI_LEARNER 4: AI_LEARNER completed=41/41 mean=9408080.7us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":41,"completed":41,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9408080.73,"max_us":17766207.98,"last_us":8068999.12,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":41,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8794665.7,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:19:27.00508 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:19:27.99948 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:19:31.03230 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:19:31.00996 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:19:33.15159 66/1/AI_LEARNER 4: AI_LEARNER completed=42/42 mean=9381604.0us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":42,"completed":42,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9381604.03,"max_us":17766207.98,"last_us":8296059.31,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":42,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8794316.0,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+.EVS Port1 1980-012-14:19:41.01170 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:19:41.99050 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:19:42.06324 66/1/AI_LEARNER 4: AI_LEARNER completed=43/43 mean=9372135.3us max=17766208.0us hal_peak=9382092 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":43,"completed":43,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":9372135.27,"max_us":17766207.98,"last_us":8974447.22,"out0":0.85892,"out":[0.858921,0.111592,0.029487]}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":43,"hal_peak":9382092,"peak_within_bounded":true,"admitted_budget_bytes":297002484,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":8793982.6,"process_rss_kb":25156,"process_rss_delta_init_kb":1740}
+EVS Port1 1980-012-14:19:46.14813 66/1/CFE_TIME 20: Start FLYWHEEL
+.1980-012-14:19:49.58520 CFE_ES_RunExceptionScan: ExceptionID 0x1110002 in TaskID 0: Caught SIGINT
+1980-012-14:19:49.59173 CFE_ES_RunExceptionScan: Maximum Processor Reset count reached (2)
+CFE_PSP: Exiting cFE with POWERON Reset status.
+CFE_PSP: Critical Data Store Shared memory segment removed
+Reset Area Shared memory segment removed
+User Reserved Area Shared memory segment removed
+
+CFE_PSP: Shutdown initiated - Exiting cFE
+CI delete callback -- Closing CI Network socket.
+TO delete callback -- Closing TO Network socket.
+EVS Port1 1980-012-14:19:51.57475 66/1/AI_LEARNER 4: AI_LEARNER completed=44/44 mean=9374207.1us max=17766208.0us hal_peak=9382092 within_bounded=1
+EXIT=124
