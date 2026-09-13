@@ -28,93 +28,6 @@
         "bounded": 135666432,
         "peak_within_bounded": true,
         "inferences_so_far": 0,
-        "process_rss_kb": 11300,
-        "rss_kb_before_runtime": 9656,
-        "rss_kb_after_session": 9944,
-        "rss_kb_after_init": 11300
-      },
-      "e25_mode": {
-        "app": "AI_LEARNER",
-        "stage": "e25_mode",
-        "active": true,
-        "inputs_path": "/cf/e25_inputs.bin"
-      },
-      "cleanup": [],
-      "init_count": 1,
-      "cfs_operational": true,
-      "app_exit_lines": [],
-      "es_restart_events": [],
-      "evs_ai_learner": [
-        "EVS Port1 1980-012-14:52:36.22581 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
-        "EVS Port1 1980-012-15:33:09.26858 66/1/AI_LEARNER 4: AI_LEARNER: E25 equivalence 1/1 inferences written",
-        "EVS Port1 1980-012-15:33:09.27897 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=1644 KB"
-      ],
-      "crash_indicators": [],
-      "core_exit_code": null,
-      "unparsed_json": [],
-      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
-      "id": "PA_pdr50__wgan",
-      "model": "wgan",
-      "scenario": "E54 Part 1: reference budget PA_pdr50 (B_contract=1908071307, U=135666432)",
-      "seconds": 3000,
-      "commands_sent": [],
-      "log": "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_pdr50__wgan.log",
-      "expect": {
-        "admission": "ADMIT",
-        "min_completed": 1
-      },
-      "staged": {
-        "e25_inputs.bin": {
-          "local": "results/e53_wgan_aarch64/e25_inputs_1sample.bin",
-          "bytes": 602112,
-          "sha256": "ff92b3170f152fd59dabe5ab20918e4817cd82dc3471db6270a82fce7a5336a0",
-          "verified_on_guest": true
-        }
-      },
-      "env": {
-        "AI_LEARNER_BUDGET_OVERRIDE": "1908071307"
-      },
-      "fetched": {
-        "e25_outputs.bin": {
-          "present": true,
-          "path": "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_pdr50__wgan.e25_outputs.bin",
-          "bytes": 602112,
-          "sha256": "1c32cf2e2a3b43e28b52b5b1418e129ad3f6f6f42c4bd78d98cf48ee75a9b63f"
-        }
-      },
-      "expect_failures": [
-        "completed 0 < 1"
-      ],
-      "pass": false
-    },
-    {
-      "admission": [
-        "ADMIT"
-      ],
-      "binding": [
-        "MATCH"
-      ],
-      "stack": {
-        "app": "AI_LEARNER",
-        "stage": "stack",
-        "es_stack_size": 263024,
-        "stack_base_bytes": 262144,
-        "contract_kernel_stack_bytes": 880,
-        "kernel_stack_accounted": true
-      },
-      "runtime_load_failed": null,
-      "last_run": null,
-      "last_mem": null,
-      "mem_init": {
-        "app": "AI_LEARNER",
-        "stage": "mem_init",
-        "model": "wgan",
-        "target": "aarch64-unknown-linux-gnu",
-        "hal_peak": 602112,
-        "hal_allocated": 602112,
-        "bounded": 135666432,
-        "peak_within_bounded": true,
-        "inferences_so_far": 0,
         "process_rss_kb": 11296,
         "rss_kb_before_runtime": 9652,
         "rss_kb_after_session": 9940,
@@ -347,6 +260,111 @@
         "completed 0 < 1"
       ],
       "pass": false
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 1,
+        "hal_peak": 131382784,
+        "peak_within_bounded": true,
+        "admitted_budget_bytes": 1908071307,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "unconditional",
+        "hal_bytes_per_call_amortized": 262163456.0,
+        "process_rss_kb": 15708,
+        "process_rss_delta_init_kb": 1644
+      },
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 602112,
+        "hal_allocated": 602112,
+        "bounded": 135666432,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 11300,
+        "rss_kb_before_runtime": 9656,
+        "rss_kb_after_session": 9944,
+        "rss_kb_after_init": 11300
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": true,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-15:33:11.56861 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-16:12:21.55935 66/1/AI_LEARNER 4: AI_LEARNER: E25 equivalence 1/1 inferences written",
+        "EVS Port1 1980-012-16:12:21.56634 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=1644 KB",
+        "......EVS Port1 1980-012-16:51:10.98040 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=2330974061.6us max=2330974061.6us hal_peak=131382784 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": null,
+      "unparsed_json": [
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"wgan\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":1,\"completed\":1,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":2330974061.60,\"max_us\":233097"
+        }
+      ],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "PA_pdr50__wgan",
+      "model": "wgan",
+      "scenario": "E54 Part 1: reference budget PA_pdr50 (B_contract=1908071307, U=135666432)",
+      "seconds": 5400,
+      "commands_sent": [],
+      "log": "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_pdr50__wgan.log",
+      "expect": {
+        "admission": "ADMIT",
+        "min_completed": 1
+      },
+      "staged": {
+        "e25_inputs.bin": {
+          "local": "results/e53_wgan_aarch64/e25_inputs_1sample.bin",
+          "bytes": 602112,
+          "sha256": "ff92b3170f152fd59dabe5ab20918e4817cd82dc3471db6270a82fce7a5336a0",
+          "verified_on_guest": true
+        }
+      },
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "1908071307"
+      },
+      "fetched": {
+        "e25_outputs.bin": {
+          "present": true,
+          "path": "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_pdr50__wgan.e25_outputs.bin",
+          "bytes": 602112,
+          "sha256": "1c32cf2e2a3b43e28b52b5b1418e129ad3f6f6f42c4bd78d98cf48ee75a9b63f"
+        }
+      },
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }

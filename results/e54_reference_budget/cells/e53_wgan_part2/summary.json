@@ -76,7 +76,21 @@
       },
       "runtime_load_failed": null,
       "last_run": null,
-      "last_mem": null,
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 1,
+        "hal_peak": 131382784,
+        "peak_within_bounded": true,
+        "admitted_budget_bytes": 268435456,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "unconditional",
+        "hal_bytes_per_call_amortized": 262163456.0,
+        "process_rss_kb": 16912,
+        "process_rss_delta_init_kb": 1644
+      },
       "mem_init": {
         "app": "AI_LEARNER",
         "stage": "mem_init",
@@ -104,18 +118,24 @@
       "app_exit_lines": [],
       "es_restart_events": [],
       "evs_ai_learner": [
-        "EVS Port1 1980-012-14:03:21.26779 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
-        "EVS Port1 1980-012-14:43:03.06188 66/1/AI_LEARNER 4: AI_LEARNER: E25 equivalence 1/1 inferences written",
-        "EVS Port1 1980-012-14:43:03.07292 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=1644 KB"
+        "EVS Port1 1980-012-14:03:21.87171 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:42:42.14910 66/1/AI_LEARNER 4: AI_LEARNER: E25 equivalence 1/1 inferences written",
+        "EVS Port1 1980-012-14:42:42.16253 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=1644 KB",
+        "............EVS Port1 1980-012-15:22:35.65478 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=2396625994.3us max=2396625994.3us hal_peak=131382784 within_bounded=1"
       ],
       "crash_indicators": [],
       "core_exit_code": null,
-      "unparsed_json": [],
+      "unparsed_json": [
+        {
+          "stage": "unparsed",
+          "raw": "{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"wgan\",\"target\":\"aarch64-unknown-linux-gnu\",\"attempted\":1,\"completed\":1,\"fail_input\":0,\"fail_invoke\":0,\"fail_output\":0,\"mean_us\":2396625994.34,\"max_us\":239662"
+        }
+      ],
       "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
       "id": "sweep_wgan_pow2_above",
       "model": "wgan",
       "scenario": "E54 Part 2 (NOT a mission budget): power-of-two grid point 268435456 >= U=135666432",
-      "seconds": 3000,
+      "seconds": 5400,
       "commands_sent": [],
       "log": "results/e54_reference_budget/cells/e53_wgan_part2/logs/sweep_wgan_pow2_above.log",
       "expect": {
@@ -141,10 +161,8 @@
           "sha256": "1c32cf2e2a3b43e28b52b5b1418e129ad3f6f6f42c4bd78d98cf48ee75a9b63f"
         }
       },
-      "expect_failures": [
-        "completed 0 < 1"
-      ],
-      "pass": false
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }
