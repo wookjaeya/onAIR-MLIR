@@ -8187,6 +8187,23 @@ def e55_budget_reproducibility_cases(tmp):
     except (OSError, ValueError) as exc:
         results.append(Result("e55/4: drift reported in budgets.json", False, "unreadable: %s" % exc))
 
+    # --- (5) the artefact says what kind of budget it is (directive SS2 criterion 3) ---
+    try:
+        b = json.loads(open(committed, encoding="utf-8").read())
+        nat = b.get("budget_nature") or {}
+        ok = (nat.get("kind") == "constructed_reference_scenario"
+              and nat.get("is_mission_allocation") is False
+              and isinstance(nat.get("statement"), str) and len(nat["statement"]) > 80)
+        results.append(Result(
+            "e55/5: budgets.json declares, in the machine-readable artefact, that these are "
+            "CONSTRUCTED REFERENCE SCENARIOS and not any mission's allocation -- before E55 the "
+            "scoping lived only in prose and only for the Part 2 grid, so a reader of the Part 1 "
+            "artefact could not tell the two apart (E44: count whether the field already exists; "
+            "it did not)",
+            ok, "kind=%r is_mission_allocation=%r" % (nat.get("kind"), nat.get("is_mission_allocation"))))
+    except (OSError, ValueError) as exc:
+        results.append(Result("e55/5: budget nature declared", False, "unreadable: %s" % exc))
+
     return results
 
 

@@ -34,9 +34,72 @@ blocked_primary_sources.probes`)가 기록한 URL은 **넷**이고, 지시 §2�
 전사된 네 값(SRR 50 / PDR 50 / CDR 40 / Ship 30)은 매니페스트의 `consequence` 문장에 있고,
 지시 §2의 *"50/50/40/30%"*는 그 넷을 가리킨다. **둘은 모순이 아니다** — 넷을 전사했고 둘을 썼다.
 
-### 1.3 취득 결과
+### 1.3 취득 결과 — 세 대상에 **66개 경로**를 재 봤고, 하나를 취득했다
 
-*(§1.3은 재프로브 결과로 채운다.)*
+원자료: `results/e55_mandatory_followups/p0_1_sources/nasa_probe_log.json`(시도마다 URL·방법·HTTP 코드·
+바이트 수·받은 바이트가 실제로 그 문서인지를 싣는다).
+
+| 대상 | 시도 경로 | 취득 | 등급 |
+|---|---:|---|---|
+| SWEHB **SWE 9.12 Resource Margins** | 27 | ✘ | `transcribed_from_directive_primary_blocked` |
+| **GSFC-STD-1000 Rev. I** Table 3.07-1 | 20 | ✘ | `transcribed_from_directive_primary_blocked` |
+| **NPR 7150.2D §5.4.5** [SWE-199] | 19 | **✔** | `mirror_adjacent_revision_fetched` + `revision_match: same_revision_D` |
+
+**차단의 기전을 이름 붙였다.** NASA 호스트 전부(`swehb` · `nodis3.gsfc` · `nodis.hq` · `ntrs` ·
+`standards` · `www.nasa.gov` · `sma` · `nen` · `appel`)가 `curl 000 (CONNECT tunnel failed, 403)`이고
+WebFetch는 `EGRESS_BLOCKED`다. 평문 HTTP로 프록시가 돌려준 **101 B** 본문이
+`Host not in allowlist: swehb.nasa.gov.`였다 — 즉 **NASA 쪽 실패가 아니라 이 컨테이너 프록시의
+호스트 allowlist 정책 거부**다. **바이트를 받은 것은 취득이 아니다**(그 바이트는 거부문이지 문서가 아니다).
+호스트가 거부되므로 같은 호스트의 다른 경로를 더 시도하는 것은 의미가 없고, **그 구분을 확인한 뒤 중단했다**.
+`web.archive.org`·`archive.org`·`timetravel.mementoweb.org`도 전부 차단됐다. 살아 있는 통로는
+GitHub 계열뿐이었고 — E47·E39b가 확인한 `raw.githubusercontent.com` 개방이 **세 번째로 재현됐다**.
+
+**GSFC-STD-1000은 지시가 추가한 새 출처였고, 이번에 처음 쟀다.** WebSearch가 찾아 준 NASA 미러 하나는
+**Rev G**였고 지시가 지목한 것은 Rev I다 — **다른 개정판을 같은 것이라 쓰지 않는다**(E45의 CIFAR 규율과 같은 축).
+
+### 1.3.1 취득한 것: NPR 7150.2D §5.4.5 — **5개 독립 미러가 바이트 단위로 합치한다**
+
+정본성의 근거는 미러의 권위가 아니라 **합치**다. 서로 다른 계보의 미러 5개(PDF 텍스트 추출 2 ·
+챕터 단위 분할 1 · 구조화 JSON 1 · 프로젝트 컴플라이언스 표 1)에서 §5.4.5의 정규화 텍스트가
+**783자 · sha256 `734cab987d9bd461`**로 완전히 같다. **그중 둘은 이 세션이 직접 받아 해시까지 다시 계산했다**
+(에이전트 보고를 액면 그대로 받지 않는다 — E24c/F4의 교훈). 조항 원문:
+
+> 5.4.5 The project manager shall monitor measures to ensure the software will meet or exceed
+> performance and functionality requirements, including satisfying constraints. **[SWE-199]**
+
+**등급 이름의 한계를 기록한다**: E54가 정의한 `mirror_adjacent_revision_fetched`의 **정의**는
+*"제3자 미러에서 받았고 인용을 그 바이트에서 확인했다"*이고 개정판에 대해 아무 말도 하지 않는다.
+그러나 **이름**은 `adjacent_revision`이라 여기서는 오해를 부른다 — 이것은 인접 개정판이 아니라 **개정 D 그
+자체**다. 네 번째 등급 이름을 만드는 대신(D65·E44: *같은 사실을 서로 대조하지 않는 두 자리에 두지 말 것*)
+`revision_match: "same_revision_D"` 필드로 구분한다.
+
+### 1.3.2 **결정적 발견 — 취득한 원문에 마진 백분율이 없다**
+
+지시 §2는 이 세 출처를 마진 `50/50/40/30%`의 근거로 지목했다. 취득에 성공한 하나를 **직접 세어 확인했다**:
+
+| 검사 | 결과 |
+|---|---|
+| `margin` 등장 횟수(전문) | **정확히 1회** — §5.4.5의 Note |
+| `50 percent` / `50 %` | **0건** |
+| `40 percent` / `40 %` | **0건** |
+| `30 percent` / `30 %` | 2건 — **둘 다 MOTS 코드 변경 임계값**(문맥 직접 확인), 자원 마진이 아니다 |
+
+그 유일한 `margin`은 이렇게 말한다 — 기술 자원 지표를 갱신해 *"**the margins**와 비교한다"*.
+**요구는 하되 값을 말하지 않는다.**
+
+**따라서 마진 백분율의 등급은 `transcribed_from_directive_primary_blocked`로 유지된다.**
+취득이 바꾼 것은 **값의 근거가 아니라 관행의 근거**다 — *"배포 전에 자원 지표를 마진과 비교한다"*는
+이 연구의 기본 동작 자체는 이제 1차 요구문서의 조항(§5.4.5 [SWE-199])으로 인용할 수 있고,
+**그 값이 왜 50/40/30인지는 여전히 인용할 수 없다.** 둘은 다른 주장이다.
+
+### 1.3.3 완료 기준 대조 (지시 §2)
+
+| # | 기준 | 상태 |
+|---|---|---|
+| 1 | 마진 수치와 계산식이 취득한 NASA 원문에서 확인된다 | **미충족 — 그러나 그 사실 자체가 측정 결과다.** 취득한 원문에 값이 없음을 세어 확인했고, 나머지 둘은 66개 경로 중 47개를 쓰고도 차단됐다. 계획 §6이 측정 전에 정한 문장을 그대로 쓴다 |
+| 2 | 기존 예산과 재계산값의 동일성 여부가 기계 판독 결과로 남는다 | **충족** — §1.4(D94). 재현되지 않았고, 원인·영향·수정이 전부 기계 판독 자리에 있다 |
+| 3 | 예산을 **공개 근거로 구성한 참조 예산 시나리오**로 명시한다 | **충족** — `budgets.json::budget_nature`(`constructed_reference_scenario` · `is_mission_allocation: false`). 착수 전 세어 보니 이 선언은 **없었고**, 기존 *"실제 임무 예산이 아니다"* 서술은 전부 **Part 2 격자**에 대한 것이었다(E44: 없는 줄 알고 더하기 전에 세어 보라 — 세어 보니 정말 없었다) |
+
 
 ### 1.4 **D94 — 예산이 저장소 내용으로 재현되지 않았다** (이 항목이 찾은 결함)
 

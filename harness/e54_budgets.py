@@ -311,6 +311,24 @@ def main():
         "platforms": PLATFORMS,
         "margins": MARGINS,
         "baseline": base,
+        "budget_nature": {
+            "kind": "constructed_reference_scenario",
+            "is_mission_allocation": False,
+            "statement": ("These budgets are REFERENCE SCENARIOS constructed from public "
+                          "platform evidence and this repository's own baseline measurements. "
+                          "No mission assigned them. They are not the allocation of any real "
+                          "flight programme, and a verdict computed against them is a statement "
+                          "about the constructed scenario, not about a mission's acceptance."),
+            "pre_fixed_result_sentence": ("\uc120\uc815\ud55c \ucc38\uc870 \ud50c\ub7ab\ud3fc\uacfc "
+                                         "\uc790\uc6d0 \ud560\ub2f9 \uc870\uac74\uc5d0\uc11c\ub294 "
+                                         "\ub124 \ubaa8\ub378\uc774 \ubaa8\ub450 \ubc30\uc815 "
+                                         "\uc608\uc0b0 \uc548\uc5d0 \uc788\uc5c8\ub2e4."),
+            "why_declared_here": ("E55/P0-1 completion criterion 3: the scoping existed only in "
+                                  "prose and only for the Part 2 grid; the Part 1 artefact itself "
+                                  "carried no such declaration, so a machine reading budgets.json "
+                                  "could not tell a constructed scenario from a mission allocation "
+                                  "(D65: the correction has to reach the machine-readable place)."),
+        },
         "iree_fixed_runtime_ctx": iree_ctx,
         "app_io_buffer_terms": terms,
         "app_io_buffer_terms_note":
