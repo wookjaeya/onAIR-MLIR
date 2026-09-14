@@ -8066,6 +8066,130 @@ def e54_reference_budget_cases(tmp):
 
     return results
 
+def e55_budget_reproducibility_cases(tmp):
+    """E55/D94: the reference budget must REPRODUCE from repository content.
+
+    `harness/e54_budgets.py::iree_fixed_runtime_ctx` used to derive `R_noncontract_AI`'s
+    runtime-context term by globbing `results/**/*.log` -- "whatever AArch64 mem_init
+    records exist right now".  That set GROWS: E54's own 25 cell logs were written after
+    budgets.json was committed, so re-running the generator today moved observations
+    21 -> 46 and chosen_kb 368 -> 376, and the committed budget no longer reproduced.
+
+    Measured consequence (not asserted): every one of the 16 budgets shrinks by exactly
+    8,192 B -- the CONSERVATIVE direction, ADMIT gets harder -- and 16/16 verdicts are
+    unchanged, tightest cell PB_pdr50__wgan at 2.193x.  E54's judgment therefore stands;
+    what did not stand is the reproducibility, and that is what these guards pin.
+
+    The fix pins the input set WITHOUT freezing it: each pinned record is re-extracted
+    from its own raw log every run, a mismatch or a missing log refuses, and the records
+    the current scan finds but the pin does not carry are REPORTED (never absorbed).
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    gen = os.path.join(HERE, "e54_budgets.py")
+    committed = os.path.join(repo, "results/e54_reference_budget/budgets.json")
+    pin_rel = "results/e54_reference_budget/sources/runtime_ctx_observations.json"
+    pin_abs = os.path.join(repo, pin_rel)
+
+    if not (os.path.exists(gen) and os.path.exists(committed)):
+        results.append(Result("e55/1-4: budget reproducibility", True,
+                              "skipped: E54 artefacts absent", skip=True))
+        return results
+
+    # --- (1) the derivation actually re-runs and reproduces the committed bytes ---
+    out = os.path.join(tmp, "e55_budgets_rerun.json")
+    pr = subprocess.run([sys.executable, gen, "--out", out],
+                        cwd=repo, capture_output=True, text=True)
+    if pr.returncode != 0:
+        results.append(Result(
+            "e55/1: e54_budgets.py re-runs and reproduces the committed budgets.json byte for byte",
+            False, "generator rc=%d: %s" % (pr.returncode, (pr.stderr or "")[-400:])))
+    else:
+        a = open(committed, "rb").read()
+        b = open(out, "rb").read()
+        same = a == b
+        detail = "identical" if same else "differs (%d vs %d bytes)" % (len(a), len(b))
+        if not same:
+            try:
+                ja, jb = json.loads(a), json.loads(b)
+                diffs = [k for k in set(ja) | set(jb) if ja.get(k) != jb.get(k)]
+                detail += " top-level keys differing: %s" % sorted(diffs)
+            except ValueError:
+                pass
+        results.append(Result(
+            "e55/1: e54_budgets.py re-runs and reproduces the committed budgets.json byte for "
+            "byte -- D94: shipping a derived value without re-running the derivation is how "
+            "the committed budget drifted out of reach in the first place (D77's lesson)",
+            same, detail))
+
+    # --- (2) the pin manifest is real: every pinned log exists AND is tracked by git ---
+    if not os.path.exists(pin_abs):
+        results.append(Result("e55/2: pinned observation manifest exists and every pinned log "
+                              "is present and git-tracked", False, "pin manifest missing: %s" % pin_rel))
+    else:
+        pin = json.loads(open(pin_abs, encoding="utf-8").read())
+        obs = pin.get("observations") or []
+        srcs = sorted({o["source"] for o in obs})
+        missing = [s for s in srcs if not os.path.exists(os.path.join(repo, s))]
+        untracked = []
+        if srcs and not missing:
+            ls = subprocess.run(["git", "ls-files", "--error-unmatch", "--"] + srcs,
+                                cwd=repo, capture_output=True, text=True)
+            if ls.returncode != 0:
+                tracked = set(ls.stdout.split())
+                untracked = [s for s in srcs if s not in tracked]
+        ok = bool(obs) and not missing and not untracked
+        results.append(Result(
+            "e55/2: pinned observation manifest exists and every pinned log is present and "
+            "git-tracked -- a pin that names logs the repository does not carry is not a pin "
+            "(D55: cited raw logs must actually be in the tree)",
+            ok, "observations=%d sources=%d missing=%s untracked=%s"
+                % (len(obs), len(srcs), missing, untracked)))
+
+    # --- (3) a pinned value that no longer reproduces must REFUSE, not be absorbed ---
+    if os.path.exists(pin_abs):
+        tampered = os.path.join(tmp, "e55_pin_tampered.json")
+        pin = json.loads(open(pin_abs, encoding="utf-8").read())
+        if pin.get("observations"):
+            pin["observations"] = [dict(o) for o in pin["observations"]]
+            pin["observations"][0]["delta_kb"] = pin["observations"][0]["delta_kb"] + 7777
+            open(tampered, "w", encoding="utf-8").write(json.dumps(pin, ensure_ascii=False))
+            rel = os.path.relpath(tampered, repo)
+            pr2 = subprocess.run([sys.executable, gen, "--pin", rel,
+                                  "--out", os.path.join(tmp, "e55_should_not_exist.json")],
+                                 cwd=repo, capture_output=True, text=True)
+            refused = pr2.returncode != 0 and "D94" in (pr2.stderr or "")
+            results.append(Result(
+                "e55/3: a pinned observation whose raw log no longer yields that value makes the "
+                "generator REFUSE to emit a budget -- the pin re-reads evidence, it is not frozen data",
+                refused, "rc=%d stderr=%r" % (pr2.returncode, (pr2.stderr or "")[-220:])))
+        else:
+            results.append(Result("e55/3: tampered pin refuses", False, "pin carries no observations"))
+
+    # --- (4) drift is reported, never silently absorbed ---
+    try:
+        b = json.loads(open(committed, encoding="utf-8").read())
+        ctx = b.get("iree_fixed_runtime_ctx") or {}
+        has_state = ctx.get("pin_state") == "pinned"
+        scan_now = ctx.get("scan_observations_now")
+        drift = ctx.get("sources_present_but_not_pinned")
+        # The point of the field is that it is ALLOWED to be non-empty and still visible.
+        ok = (has_state and isinstance(scan_now, int) and isinstance(drift, list)
+              and scan_now >= ctx.get("observations", 0))
+        results.append(Result(
+            "e55/4: budgets.json records pin_state, what the current scan would now find, and "
+            "which sources are present but not pinned -- drift stays VISIBLE instead of being "
+            "silently absorbed into a committed number (D65: the correction has to reach the "
+            "machine-readable place)",
+            ok, "pin_state=%r observations=%r scan_now=%r not_pinned=%s"
+                % (ctx.get("pin_state"), ctx.get("observations"), scan_now,
+                   len(drift) if isinstance(drift, list) else drift)))
+    except (OSError, ValueError) as exc:
+        results.append(Result("e55/4: drift reported in budgets.json", False, "unreadable: %s" % exc))
+
+    return results
+
+
 def e53_wgan_aarch64_cases(tmp):
     """E53: WGAN AArch64 end-to-end verification, and D93's regression pin.
 
@@ -8243,6 +8367,7 @@ def main():
         all_results += e39b_prior_art_fulltext_cases(tmp)
         all_results += e53_wgan_aarch64_cases(tmp)
         all_results += e54_reference_budget_cases(tmp)
+        all_results += e55_budget_reproducibility_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

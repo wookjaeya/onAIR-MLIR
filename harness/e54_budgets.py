@@ -99,16 +99,13 @@ def app_io_buffer_bytes(terms, in_elems, out_elems):
     return total
 
 
-def iree_fixed_runtime_ctx(results_root):
-    """Derive the IREE runtime context cost from ARCHIVED AArch64 mem_init records.
+RUNTIME_CTX_PIN = "results/e54_reference_budget/sources/runtime_ctx_observations.json"
 
-    ai_learner.c samples rss_kb_before_runtime at :446 (after the blob is read and hashed)
-    and rss_kb_after_session at :461 (immediately BEFORE append_bytecode_module).  So the
-    delta spans exactly instance+device+session creation: it excludes the module image and
-    excludes any constants copy, and therefore double-counts nothing that is inside U.
-    """
+
+def _scan_mem_init(results_root):
+    """Every AArch64 mem_init record reachable from results_root, keyed by (log, delta)."""
     obs = []
-    for path in glob.glob(os.path.join(results_root, "**", "*.log"), recursive=True):
+    for path in sorted(glob.glob(os.path.join(results_root, "**", "*.log"), recursive=True)):
         try:
             txt = open(path, encoding="utf-8", errors="replace").read()
         except OSError:
@@ -125,10 +122,74 @@ def iree_fixed_runtime_ctx(results_root):
                 continue
             obs.append({"model": d.get("model"), "delta_kb": a - b,
                         "source": os.path.relpath(path, REPO)})
+    return obs
+
+
+def iree_fixed_runtime_ctx(results_root, pin_path=None, repin=False):
+    """Derive the IREE runtime context cost from ARCHIVED AArch64 mem_init records.
+
+    ai_learner.c samples rss_kb_before_runtime at :446 (after the blob is read and hashed)
+    and rss_kb_after_session at :461 (immediately BEFORE append_bytecode_module).  So the
+    delta spans exactly instance+device+session creation: it excludes the module image and
+    excludes any constants copy, and therefore double-counts nothing that is inside U.
+
+    D94 (E55): the input set used to be "whatever results/**/*.log holds right now", which
+    GROWS with every experiment that adds an AArch64 cFS cell.  E54's own 25 cell logs were
+    written after budgets.json was committed, so re-running the generator today moved
+    observations 21 -> 46 and chosen_kb 368 -> 376: the committed budget did not reproduce
+    from repository content.  (Measured consequence: all 16 budgets shrink by exactly
+    8,192 B -- the CONSERVATIVE direction -- and 16/16 verdicts are unchanged, tightest cell
+    PB_pdr50__wgan 2.193x.  The judgment stands; the reproducibility did not.)
+
+    The set is therefore PINNED, but not frozen: each pinned record is re-extracted from its
+    named raw log on every run and a mismatch or a missing log refuses (fail-closed).  The
+    current scan is still performed so drift is REPORTED rather than silently absorbed.
+    """
+    scan = _scan_mem_init(results_root)
+    pin_abs = os.path.join(REPO, pin_path) if pin_path else None
+
+    if repin or not (pin_abs and os.path.exists(pin_abs)):
+        obs, pin_state = scan, ("repinned" if repin else "unpinned_no_manifest")
+    else:
+        pin = json.load(open(pin_abs, encoding="utf-8"))
+        want = pin.get("observations") or []
+        if not want:
+            raise SystemExit("E54/D94: pin manifest carries no observations -- refusing to "
+                             "fall back to an unpinned scan (an empty pin is not 'no pin')")
+        # Re-extract every pinned record from its own log.  A pinned value that no longer
+        # reproduces is a defect, not something to absorb.
+        by_src = {}
+        for o in scan:
+            by_src.setdefault(o["source"], []).append(o)
+        obs, missing, mismatched = [], [], []
+        for w in want:
+            src = w["source"]
+            if not os.path.exists(os.path.join(REPO, src)):
+                missing.append(src)
+                continue
+            cands = [o for o in by_src.get(src, [])
+                     if o["model"] == w["model"] and o["delta_kb"] == w["delta_kb"]]
+            if not cands:
+                mismatched.append({"source": src, "model": w["model"],
+                                   "pinned_delta_kb": w["delta_kb"],
+                                   "found": [o["delta_kb"] for o in by_src.get(src, [])]})
+                continue
+            obs.append(dict(cands[0]))
+        if missing or mismatched:
+            raise SystemExit(
+                "E54/D94: pinned runtime-context observations no longer reproduce from their "
+                "raw logs -- refusing to emit a budget.\n  missing logs: %s\n  mismatched: %s"
+                % (missing, json.dumps(mismatched, ensure_ascii=False)))
+        if len(obs) != len(want):
+            raise SystemExit("E54/D94: pinned %d observations, resolved %d" % (len(want), len(obs)))
+        pin_state = "pinned"
+
     if not obs:
         raise SystemExit("E54: no archived AArch64 mem_init records found -- refusing to "
                          "substitute 0 for an unmeasured term (D29/D51/D68)")
     deltas = [o["delta_kb"] for o in obs]
+    pinned_srcs = {o["source"] for o in obs}
+    drift = sorted({o["source"] for o in scan} - pinned_srcs)
     return {
         "observations": len(obs),
         "models_seen": sorted({o["model"] for o in obs}),
@@ -139,6 +200,13 @@ def iree_fixed_runtime_ctx(results_root):
         "rule": "max over archived AArch64 cells (overhead terms take the upper end)",
         "spans": "iree_runtime_instance_create + device + session_create; excludes module "
                  "image and module append (ai_learner.c:446 -> :461)",
+        "pin_state": pin_state,
+        "pin_manifest": pin_path,
+        "pin_note": ("D94: the input set is pinned and each record is re-extracted from its "
+                     "own raw log every run; drift is reported below, never absorbed."),
+        "scan_sources_now": len({o["source"] for o in scan}),
+        "scan_observations_now": len(scan),
+        "sources_present_but_not_pinned": drift,
         "per_observation": obs,
     }
 
@@ -152,11 +220,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--baseline", default="results/e54_reference_budget/baseline/baseline.json")
     ap.add_argument("--out", default="results/e54_reference_budget/budgets.json")
+    ap.add_argument("--pin", default=RUNTIME_CTX_PIN,
+                    help="pinned runtime-context observation manifest (D94)")
+    ap.add_argument("--repin", action="store_true",
+                    help="deliberately re-pin from the current scan; never automatic (D94)")
     a = ap.parse_args()
 
     base = load_baseline(os.path.join(REPO, a.baseline))
     terms = app_io_buffer_terms(APP_SRC)
-    iree_ctx = iree_fixed_runtime_ctx(os.path.join(REPO, "results"))
+    iree_ctx = iree_fixed_runtime_ctx(os.path.join(REPO, "results"), a.pin, a.repin)
 
     r_os_cfs = base["r_os_cfs_bytes"]
     r_other_apps = base["r_other_apps_bytes"]
