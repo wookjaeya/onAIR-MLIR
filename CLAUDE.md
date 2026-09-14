@@ -1839,6 +1839,8 @@ EXPERIMENT_LOG.md           ★ 실험 레지스트리 + 가설 판정 이력 + 
 CHANGELOG.md                 버전별 변경 (판정:/정정: 접두어)
 docs/
   ASSUMPTIONS_AND_SCOPE.md    ★ 연구 가정과 유효성 범위(확정) — 보안이 아니라 실험 유효성·재현성
+  OPTIONAL_FOLLOWUPS_v0.57.md ★ 선택적 후속 항목 16건의 결정 메뉴(계획서 아님) — 각 항목의 현재
+                               상태·원자료 근거·착수 시 허가되는 주장/허가되지 않는 주장. 지시 없이 착수하지 않는다
   reviews/                    ★ 원본 연구노트 + 외부 검토 전부 (인용됨, 원문 보존)
     research_note_v0.1.md       최초 연구노트 (엄격 검토 대상이 됐던 원본)
     direction_v0.3_judgment.md  실험 결과 기반 방향 판단
