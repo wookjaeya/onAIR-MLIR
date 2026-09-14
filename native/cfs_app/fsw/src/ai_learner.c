@@ -104,6 +104,7 @@ static struct {
   iree_runtime_instance_t* instance; iree_hal_device_t* device; iree_runtime_session_t* session;
   void* blob; long blob_len; iree_hal_buffer_view_t* x;
   int module_ptr_mod64; long hal_peak_after_append; int conditional_map;
+  void* blob_alloc; long blob_align_offset_requested; const char* blob_align_offset_state;
   uint32 n_attempt, n_infer, n_fail_input, n_fail_invoke, n_fail_output, n_cleanup;
   bool first_fail_reported;
   double lat_sum_us, lat_max_us, lat_last_us; float out[CONTRACT_OUTPUT_ELEMS];
@@ -275,7 +276,10 @@ static void AI_LEARNER_Cleanup(void) {
   if (g.session) { iree_runtime_session_release(g.session); g.session = NULL; }
   if (g.device) { iree_hal_device_release(g.device); g.device = NULL; }
   if (g.instance) { iree_runtime_instance_release(g.instance); g.instance = NULL; }
-  if (g.blob) { free(g.blob); g.blob = NULL; }   /* after session release: zero-copy reference (D4) */
+  /* E55b: free the BASE allocation. `g.blob` may be offset into it to control the alignment
+   * class, so freeing `g.blob` would be freeing an interior pointer. */
+  if (g.blob_alloc) { free(g.blob_alloc); g.blob_alloc = NULL; }   /* after session release: zero-copy reference (D4) */
+  g.blob = NULL;
   if (g.pipe_created) { CFE_SB_DeletePipe(g.pipe); g.pipe_created = false; }
   AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"cleanup\",\"released\":true,\"cleanup_calls\":%u}\n", (unsigned)g.n_cleanup);
 }
@@ -333,12 +337,59 @@ static void AI_LEARNER_AdmissionJson(const char* verdict) {
  * change, only which arm the deployment lands on.  A failed posix_memalign
  * falls back to malloc -- correct, merely less tight -- and the arm actually
  * taken is measured after append rather than assumed. */
+/* E55b (directive COPY_MAP_ONAIR_RECOMMENDATION_v0.57.md SS3.2): land the module image at an
+ * address that is a VALID module alignment but not 64-byte aligned, so the COPY arm of
+ * `stream.resource.try_map` runs instead of the map arm.  E29 established the mechanism on
+ * x86-64 native; the AArch64 cFS side had never observed it -- every model there took the map
+ * arm -- and that is the gap this knob exists to close.
+ *
+ * Fail-closed on every axis, because an offset that does not apply must not look like one that
+ * did (D69: the verdict must never be the only record of the setting):
+ *   - not a plain integer, negative, or absurdly large  -> refuse
+ *   - not a multiple of 8   -> refuse.  E29 measured module VERIFICATION FAILURE for offsets
+ *     that are not 8-byte multiples, and the directive says not to assume AArch64 behaves the
+ *     same without checking.  Refusing keeps "the module was rejected" from being mistaken for
+ *     "the copy arm ran".
+ *   - a multiple of 64      -> refuse.  It does not change the alignment class at all, so it
+ *     cannot produce copy; accepting it would let a no-op look like a control.
+ *   - built with AI_LEARNER_ALLOW_CONDITIONAL_MAP=1 -> refuse.  Plan SS2.1: the conditional tier
+ *     refuses before runtime creation when the precondition is unmet, and this knob must not be
+ *     used to walk around that.  Copy cells run on the UNCONDITIONAL path only.
+ * Returns the offset, or -1 to refuse (the caller turns that into an init refusal). */
+static long AI_LEARNER_BlobAlignOffset(const char** why) {
+  const char* e = getenv("AI_LEARNER_BLOB_ALIGN_OFFSET");
+  *why = "unset";
+  if (e == NULL) return 0;
+  while (*e == ' ' || *e == '\t') e++;
+  if (*e == '\0') { *why = "set but empty"; return -1; }
+  char* end = NULL; errno = 0;
+  long v = strtol(e, &end, 10);
+  if (errno != 0 || end == e) { *why = "not an integer"; return -1; }
+  while (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r') end++;
+  if (*end != '\0') { *why = "trailing garbage"; return -1; }
+  if (v < 0 || v > 4096) { *why = "out of range [0,4096]"; return -1; }
+  if (v % 8 != 0) { *why = "not a multiple of 8 (E29: module verification fails)"; return -1; }
+  if (v != 0 && v % 64 == 0) { *why = "multiple of 64 changes no alignment class"; return -1; }
+#if AI_LEARNER_ALLOW_CONDITIONAL_MAP
+  if (v != 0) { *why = "refused: conditional admission is enabled (plan SS2.1)"; return -1; }
+#endif
+  *why = "applied";
+  return v;
+}
+
 static void* AI_LEARNER_AllocModuleImage(size_t n, int* out_mod64) {
+  const char* why = "unset";
+  long off = AI_LEARNER_BlobAlignOffset(&why);
+  g.blob_align_offset_requested = off;
+  g.blob_align_offset_state = why;
+  if (off < 0) { *out_mod64 = -1; g.blob_alloc = NULL; return NULL; }
   void* p = NULL;
-  if (posix_memalign(&p, 64, n) != 0) p = NULL;
-  if (!p) p = malloc(n);                    /* correct, only less tight */
-  *out_mod64 = p ? (int)(((uintptr_t)p) % 64) : -1;
-  return p;
+  if (posix_memalign(&p, 64, n + (size_t)off) != 0) p = NULL;
+  if (!p) p = malloc(n + (size_t)off);      /* correct, only less tight */
+  g.blob_alloc = p;                          /* free THIS, not the offset pointer */
+  void* q = p ? (void*)((char*)p + off) : NULL;
+  *out_mod64 = q ? (int)(((uintptr_t)q) % 64) : -1;
+  return q;
 }
 
 /* Opt-in conditional admission (E29).  Default 0: every existing deployment
@@ -484,6 +535,19 @@ static int32 AI_LEARNER_Init(void) {
     AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
   g.blob = AI_LEARNER_AllocModuleImage((size_t)g.blob_len, &g.module_ptr_mod64);
+  if (g.blob_align_offset_requested < 0) {
+    fclose(f);
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"blob_align\",\"verdict\":\"ALIGN_OFFSET_INVALID\","
+                    "\"reason\":\"%s\"}\n", g.blob_align_offset_state ? g.blob_align_offset_state : "?");
+    CFE_EVS_SendEvent(EID_NO_FILE, CFE_EVS_EventType_ERROR,
+                      "AI_LEARNER: AI_LEARNER_BLOB_ALIGN_OFFSET refused (%s)",
+                      g.blob_align_offset_state ? g.blob_align_offset_state : "?");
+    AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
+  AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"blob_align\",\"requested_offset\":%ld,"
+                  "\"state\":\"%s\",\"module_ptr_mod64\":%d}\n",
+                  g.blob_align_offset_requested,
+                  g.blob_align_offset_state ? g.blob_align_offset_state : "?", g.module_ptr_mod64);
   if (!g.blob || fread(g.blob, 1, (size_t)g.blob_len, f) != (size_t)g.blob_len) {
     fclose(f);
     CFE_EVS_SendEvent(EID_NO_FILE, CFE_EVS_EventType_ERROR, "AI_LEARNER: cannot read %s (%ld B)", AI_LEARNER_MODEL_FILE, g.blob_len);

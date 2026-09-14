@@ -1,0 +1,174 @@
+[
+ {
+  "id": "e55b_b2_resnet_copy",
+  "part": "e55b_copy_path_four_models",
+  "model": "b2_resnet",
+  "desc": "E55b copy path: UNCONDITIONAL admission (ALLOW_CONDITIONAL_MAP=0) at budget M = B_u = 618856. The ONLY changed variable against the archived map-arm cell is the module image's load alignment: AI_LEARNER_BLOB_ALIGN_OFFSET=8 moves it off the 64-byte class so try_map's import is refused and the copy arm runs. Expect ADMIT, >=1 inference, hal_peak_after_append == C = 309440, H <= P+C, and H == P+C recorded SEPARATELY (plan SS4: soundness and tightness are different questions). The arm LABEL alone does not confirm copy (directive SS3.3) -- module_ptr_mod64, the post-append constant allocation and the run result are compared together.",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 900,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "stage": {
+   "e25_inputs.bin": "results/e55b_copy_path/fixtures/b2_resnet.e25_inputs.bin"
+  },
+  "fetch": [
+   "e25_outputs.bin"
+  ],
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": true,
+   "hal_peak_le_bounded": 618856,
+   "mem_init_present": true
+  },
+  "e55b": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "samples": 34,
+   "align_offset": 8,
+   "inputs_sha256": "18563273357d9a002e19c1b62558ea1d12bd50bbdd435de0e1faf6e37621d10a",
+   "fixture_source": "results/e34_two_models/b2_resnet/fixture (E34 synthetic 34; regenerated offline by mk_e25_inputs.py, per-sample manifest hashes verified)",
+   "map_arm_baseline_outputs": "results/e36b_aarch64_models/b2_resnet/e25_outputs.bin",
+   "baseline_cell_note": "the baseline is the archived AArch64 cFS MAP-arm run over the SAME fixture; the copy cell replays the same bytes so the outputs are directly comparable element by element"
+  },
+  "expect_note": "admission is plain ADMIT, not ADMIT_CONDITIONAL_MAP: these trees are built with ALLOW_CONDITIONAL_MAP=0 on purpose (plan SS2.1 -- the conditional tier refuses before runtime creation when alignment is unmet, and this knob must not be used to walk around that refusal). e25_mode_active is TRUE here, unlike the P0-4 cells: this cell exists to compare outputs against an archived map-arm run, which requires replaying that run's fixture (E26 hygiene: the mode is recorded either way, never assumed).",
+  "window_note": "900 s: the E55 P0-4 conditional cell for this model completed its inferences well inside 300-420 s including boot; the e25 batch adds 34 samples on top, and the window is sized above that, not at it."
+ },
+ {
+  "id": "e55b_b3_deepae_copy",
+  "part": "e55b_copy_path_four_models",
+  "model": "b3_deepae",
+  "desc": "E55b copy path: UNCONDITIONAL admission (ALLOW_CONDITIONAL_MAP=0) at budget M = B_u = 1069632. The ONLY changed variable against the archived map-arm cell is the module image's load alignment: AI_LEARNER_BLOB_ALIGN_OFFSET=8 moves it off the 64-byte class so try_map's import is refused and the copy arm runs. Expect ADMIT, >=1 inference, hal_peak_after_append == C = 1063424, H <= P+C, and H == P+C recorded SEPARATELY (plan SS4: soundness and tightness are different questions). The arm LABEL alone does not confirm copy (directive SS3.3) -- module_ptr_mod64, the post-append constant allocation and the run result are compared together.",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 900,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "stage": {
+   "e25_inputs.bin": "results/e55b_copy_path/fixtures/b3_deepae.e25_inputs.bin"
+  },
+  "fetch": [
+   "e25_outputs.bin"
+  ],
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": true,
+   "hal_peak_le_bounded": 1069632,
+   "mem_init_present": true
+  },
+  "e55b": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "samples": 34,
+   "align_offset": 8,
+   "inputs_sha256": "d0a7949e94af0dc61671d9cab37d02afb2c961aee4d6fb7d3d3e5a673e99f298",
+   "fixture_source": "results/e34_two_models/b3_deepae/fixture (E34 synthetic 34; same regeneration)",
+   "map_arm_baseline_outputs": "results/e36b_aarch64_models/b3_deepae/e25_outputs.bin",
+   "baseline_cell_note": "the baseline is the archived AArch64 cFS MAP-arm run over the SAME fixture; the copy cell replays the same bytes so the outputs are directly comparable element by element"
+  },
+  "expect_note": "admission is plain ADMIT, not ADMIT_CONDITIONAL_MAP: these trees are built with ALLOW_CONDITIONAL_MAP=0 on purpose (plan SS2.1 -- the conditional tier refuses before runtime creation when alignment is unmet, and this knob must not be used to walk around that refusal). e25_mode_active is TRUE here, unlike the P0-4 cells: this cell exists to compare outputs against an archived map-arm run, which requires replaying that run's fixture (E26 hygiene: the mode is recorded either way, never assumed).",
+  "window_note": "900 s: the E55 P0-4 conditional cell for this model completed its inferences well inside 300-420 s including boot; the e25 batch adds 34 samples on top, and the window is sized above that, not at it."
+ },
+ {
+  "id": "e55b_smartcam_copy",
+  "part": "e55b_copy_path_four_models",
+  "model": "smartcam",
+  "desc": "E55b copy path: UNCONDITIONAL admission (ALLOW_CONDITIONAL_MAP=0) at budget M = B_u = 18222796. The ONLY changed variable against the archived map-arm cell is the module image's load alignment: AI_LEARNER_BLOB_ALIGN_OFFSET=8 moves it off the 64-byte class so try_map's import is refused and the copy arm runs. Expect ADMIT, >=1 inference, hal_peak_after_append == C = 8840704, H <= P+C, and H == P+C recorded SEPARATELY (plan SS4: soundness and tightness are different questions). The arm LABEL alone does not confirm copy (directive SS3.3) -- module_ptr_mod64, the post-append constant allocation and the run result are compared together.",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 900,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "stage": {
+   "e25_inputs.bin": "results/e55b_copy_path/fixtures/smartcam.e25_inputs.bin"
+  },
+  "fetch": [
+   "e25_outputs.bin"
+  ],
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": true,
+   "hal_peak_le_bounded": 18222796,
+   "mem_init_present": true
+  },
+  "e55b": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "samples": 5,
+   "align_offset": 8,
+   "inputs_sha256": "e3de5c6aa83282cedb33a1a73c85d7399b66840870923d403528e49fd0889c7b",
+   "fixture_source": "results/e31_smartcam_equivalence/fixture, kinds real_example+edge (E31/E32/E37 5-sample set; replay order verified identical to the baseline cell)",
+   "map_arm_baseline_outputs": "results/e37_evidence_consolidation/s_cfs_post_d61/e25_outputs.bin",
+   "baseline_cell_note": "the baseline is the archived AArch64 cFS MAP-arm run over the SAME fixture; the copy cell replays the same bytes so the outputs are directly comparable element by element"
+  },
+  "expect_note": "admission is plain ADMIT, not ADMIT_CONDITIONAL_MAP: these trees are built with ALLOW_CONDITIONAL_MAP=0 on purpose (plan SS2.1 -- the conditional tier refuses before runtime creation when alignment is unmet, and this knob must not be used to walk around that refusal). e25_mode_active is TRUE here, unlike the P0-4 cells: this cell exists to compare outputs against an archived map-arm run, which requires replaying that run's fixture (E26 hygiene: the mode is recorded either way, never assumed).",
+  "window_note": "900 s: the E55 P0-4 conditional cell for this model completed its inferences well inside 300-420 s including boot; the e25 batch adds 5 samples on top, and the window is sized above that, not at it."
+ },
+ {
+  "id": "e55b_wgan_copy",
+  "part": "e55b_copy_path_four_models",
+  "model": "wgan",
+  "desc": "E55b copy path: UNCONDITIONAL admission (ALLOW_CONDITIONAL_MAP=0) at budget M = B_u = 135666432. The ONLY changed variable against the archived map-arm cell is the module image's load alignment: AI_LEARNER_BLOB_ALIGN_OFFSET=8 moves it off the 64-byte class so try_map's import is refused and the copy arm runs. Expect ADMIT, >=1 inference, hal_peak_after_append == C = 4283648, H <= P+C, and H == P+C recorded SEPARATELY (plan SS4: soundness and tightness are different questions). The arm LABEL alone does not confirm copy (directive SS3.3) -- module_ptr_mod64, the post-append constant allocation and the run result are compared together.",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 5400,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "stage": {
+   "e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"
+  },
+  "fetch": [
+   "e25_outputs.bin"
+  ],
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": true,
+   "hal_peak_le_bounded": 135666432,
+   "mem_init_present": true
+  },
+  "e55b": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "samples": 1,
+   "align_offset": 8,
+   "inputs_sha256": "ff92b3170f152fd59dabe5ab20918e4817cd82dc3471db6270a82fce7a5336a0",
+   "fixture_source": "results/e53_wgan_aarch64/e25_inputs_1sample.bin (archived in-tree, copied byte for byte)",
+   "map_arm_baseline_outputs": "results/e53_wgan_aarch64/cfs/logs/cfs_B.e25_outputs.bin",
+   "baseline_cell_note": "the baseline is the archived AArch64 cFS MAP-arm run over the SAME fixture; the copy cell replays the same bytes so the outputs are directly comparable element by element"
+  },
+  "expect_note": "admission is plain ADMIT, not ADMIT_CONDITIONAL_MAP: these trees are built with ALLOW_CONDITIONAL_MAP=0 on purpose (plan SS2.1 -- the conditional tier refuses before runtime creation when alignment is unmet, and this knob must not be used to walk around that refusal). e25_mode_active is TRUE here, unlike the P0-4 cells: this cell exists to compare outputs against an archived map-arm run, which requires replaying that run's fixture (E26 hygiene: the mode is recorded either way, never assumed).",
+  "window_note": "5400 s from the archived E53 cfs_B timeline, not from an average: that log shows boot+admission+1 e25 inference at 29 min 11 s and the first run-loop `mem` (completed=1) at 61 min 34 s. min_completed reads the run-loop counter, so the window must clear the SECOND of those, not the first (E54 SS9.1: an average over warm iterations under-sizes the window)."
+ }
+]
