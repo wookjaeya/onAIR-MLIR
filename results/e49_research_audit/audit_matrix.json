@@ -15,9 +15,339 @@
       "evidence": "results/e49_research_audit/ledger/*.json"
     },
     "max_in_flight_calls_is_1": {
+      "status": "OBSERVED",
+      "observed_value": 1,
+      "observed_values_seen": [
+        1
+      ],
+      "counter_balanced_in_every_cell": true,
+      "records": 74,
+      "distinct_cells": 1,
+      "counting_note": "`records` 는 `mem` 레코드 수다 — AI_LEARNER_REPORT_EVERY 마다 하나씩 나오므로 셀 수보다 많다. 셀 수는 `distinct_cells` 다. 둘을 섞지 않는다.",
+      "how": "E55/P0-3: 두 C 실행기가 invoke 수명(call_initialize* 성공 → call_deinitialize)을 감싸는 active-call counter 를 두고 최댓값을 `mem` 레코드에 싣는다. 여기 값은 원자료에서 **세어진** 것이지 손으로 적은 상태가 아니다(D82).",
+      "scope_note": "관측된 배포에 한한다. 레코드가 없는 경로(OnAIR 플러그인)는 여전히 ARGUED_FROM_SOURCE 이고, 그 구분을 지우지 않는다.",
+      "spawn_call_counts": {
+        "cfs_app": {
+          "source_present": true,
+          "spawn_calls": {
+            "pthread_create": 0,
+            "CFE_ES_CreateChildTask": 0,
+            "OS_TaskCreate": 0,
+            "threading.Thread": 0,
+            "multiprocessing": 0
+          },
+          "total": 0
+        },
+        "native_runner": {
+          "source_present": true,
+          "spawn_calls": {
+            "pthread_create": 0,
+            "CFE_ES_CreateChildTask": 0,
+            "OS_TaskCreate": 0,
+            "threading.Thread": 0,
+            "multiprocessing": 0
+          },
+          "total": 0
+        },
+        "onair_plugin": {
+          "source_present": true,
+          "spawn_calls": {
+            "pthread_create": 0,
+            "CFE_ES_CreateChildTask": 0,
+            "OS_TaskCreate": 0,
+            "threading.Thread": 0,
+            "multiprocessing": 0
+          },
+          "total": 0
+        }
+      },
+      "observations": [
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        },
+        {
+          "cell": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+          "model": "b2_resnet",
+          "target": "aarch64-unknown-linux-gnu",
+          "max_active_calls": 1,
+          "call_counter_balanced": true
+        }
+      ]
+    },
+    "_max_in_flight_calls_is_1_legacy": {
       "status": "ARGUED_FROM_SOURCE",
       "observed_value": null,
-      "unavailable_reason": "배포 경로가 IREE invoke 의 진입·종료에 call id 를 기록하지 않는다. 세어 본 것은 **작업 생성 호출 수**이고 그것은 논증이지 관측이 아니다(지침 PRE-1 은 max_active_calls 관측을 요구한다).",
+      "unavailable_reason": "E49 시점의 기록: 배포 경로가 IREE invoke 의 진입·종료에 call id 를 기록하지 않았다. 세어 본 것은 **작업 생성 호출 수**이고 그것은 논증이지 관측이 아니다(지침 PRE-1 은 max_active_calls 관측을 요구한다). E55/P0-3 이 그 계측을 넣었으므로 위 항목이 원자료에서 **세어진** 값이다 — 이 항목은 무엇이 바뀌었는지 보이도록 남긴다(철회가 아니라 정정, 규율 3).",
       "spawn_call_counts": {
         "cfs_app": {
           "source_present": true,
@@ -108,9 +438,9 @@
     },
     "same_scope_id": {
       "declared_in_contract": true,
-      "archived_contracts_total": 30,
-      "archived_contracts_carrying_analysis_domain": 1,
-      "note": "E40 이 신설한 `analysis_domain`/`accounting_rules` 는 그 이후에 만든 계약만 싣는다 — 보관 계약 30 개 중 1 개다. 배포에 쓰인 세 실물 모델의 계약에는 **없다**. 게이트를 약화시키지는 않는다(driver 검사는 세 자리 중 하나도 없으면 거부 = fail-closed)지만, *'계약이 두 분기와 정렬 전제를 선언한다'* 는 서술의 범위가 **그 이후 생성분**임을 여기에 적는다. 소급 재생성은 E47 이 실측으로 거부했다(축소 dump 에서 재생성하면 provenance 두 필드가 퇴화한다)."
+      "archived_contracts_total": 31,
+      "archived_contracts_carrying_analysis_domain": 2,
+      "note": "E40 이 신설한 `analysis_domain`/`accounting_rules` 는 그 이후에 만든 계약만 싣는다 — 보관 계약 31 개 중 2 개다. 배포에 쓰인 세 실물 모델의 계약에는 **없다**. 게이트를 약화시키지는 않는다(driver 검사는 세 자리 중 하나도 없으면 거부 = fail-closed)지만, *'계약이 두 분기와 정렬 전제를 선언한다'* 는 서술의 범위가 **그 이후 생성분**임을 여기에 적는다. 소급 재생성은 E47 이 실측으로 거부했다(축소 dump 에서 재생성하면 provenance 두 필드가 퇴화한다)."
     },
     "module_image_excluded": null
   },

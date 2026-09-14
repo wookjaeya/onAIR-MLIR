@@ -20,6 +20,7 @@ SOURCE is an argument, not an observation, and this file says which of the two i
 ADM cells are evaluated against the REAL decision function (`harness/admission_policy.py`),
 not a restatement of it, so a change in the policy shows up here as a changed cell.
 """
+import glob
 import json
 import os
 import re
@@ -46,6 +47,67 @@ def _read(rel):
         return None
     with open(p, encoding="utf-8", errors="replace") as fh:
         return fh.read()
+
+
+def _observed_max_active_calls(repo):
+    """E55/P0-3: COUNT the runtime observation instead of asserting a status.
+
+    E49 recorded this premise as ARGUED_FROM_SOURCE with `observed_value: null` because
+    nothing recorded a call id at invoke entry and exit -- counting task-creation calls in the
+    source is an argument, not an observation.  E55 added an active-call counter to both C
+    executors (ENTER after a successful `call_initialize*`, EXIT at every `call_deinitialize`,
+    all sites enumerated), so the observation now exists for the deployments that have run
+    since.  This function reads it out of the raw logs rather than letting anyone write the
+    status by hand -- D82's lesson: a grade is counted, not typed.
+
+    A deployment with no such record keeps the ARGUED_FROM_SOURCE status. Absence is reported
+    as absence, never as 1 (D29/D51/D68).
+    """
+    obs = []
+    for path in sorted(glob.glob(os.path.join(repo, "results", "**", "*.log"), recursive=True)):
+        try:
+            txt = open(path, encoding="utf-8", errors="replace").read()
+        except OSError:
+            continue
+        for m in re.finditer(r'\{"app":"AI_LEARNER","stage":"mem".*?\}', txt):
+            try:
+                d = json.loads(m.group(0))
+            except ValueError:
+                continue
+            v = d.get("max_active_calls")
+            if isinstance(v, int):
+                obs.append({"cell": os.path.relpath(path, repo), "model": d.get("model"),
+                            "target": d.get("target"), "max_active_calls": v,
+                            "call_counter_balanced": d.get("call_counter_balanced")})
+    return obs
+
+
+def _max_in_flight_entry(spawn, obs):
+    """OBSERVED only where a cell actually recorded it; ARGUED_FROM_SOURCE everywhere else."""
+    if not obs:
+        return {"status": "ARGUED_FROM_SOURCE", "observed_value": None,
+                "unavailable_reason": ("아직 어떤 셀도 max_active_calls 를 기록하지 않았다 — "
+                                       "계측은 있으나 그 계측이 도는 셀이 실행되지 않았다."),
+                "spawn_call_counts": spawn, "observations": []}
+    vals = sorted({o["max_active_calls"] for o in obs})
+    balanced = all(o.get("call_counter_balanced") in (True, "true") for o in obs)
+    return {
+        "status": "OBSERVED" if (vals == [1] and balanced) else "OBSERVED_VIOLATED",
+        "observed_value": max(vals),
+        "observed_values_seen": vals,
+        "counter_balanced_in_every_cell": balanced,
+        "records": len(obs),
+        "distinct_cells": len({o["cell"] for o in obs}),
+        "counting_note": ("`records` 는 `mem` 레코드 수다 — AI_LEARNER_REPORT_EVERY 마다 하나씩 "
+                          "나오므로 셀 수보다 많다. 셀 수는 `distinct_cells` 다. 둘을 섞지 않는다."),
+        "how": ("E55/P0-3: 두 C 실행기가 invoke 수명(call_initialize* 성공 → call_deinitialize)을 "
+                "감싸는 active-call counter 를 두고 최댓값을 `mem` 레코드에 싣는다. 여기 값은 "
+                "원자료에서 **세어진** 것이지 손으로 적은 상태가 아니다(D82)."),
+        "scope_note": ("관측된 배포에 한한다. 레코드가 없는 경로(OnAIR 플러그인)는 여전히 "
+                       "ARGUED_FROM_SOURCE 이고, 그 구분을 지우지 않는다."),
+        "spawn_call_counts": spawn,
+        "observations": obs[:40],
+    }
 
 
 def _json(rel):
@@ -87,12 +149,15 @@ def premise_matrix():
                    "미분류 0 · stream.async.* 0 을 확인한다(D84)",
             "evidence": "results/e49_research_audit/ledger/*.json",
         },
-        "max_in_flight_calls_is_1": {
+        "max_in_flight_calls_is_1": _max_in_flight_entry(spawn, _observed_max_active_calls(ROOT)),
+        "_max_in_flight_calls_is_1_legacy": {
             "status": "ARGUED_FROM_SOURCE",
             "observed_value": None,
-            "unavailable_reason": ("배포 경로가 IREE invoke 의 진입·종료에 call id 를 기록하지 "
-                                   "않는다. 세어 본 것은 **작업 생성 호출 수**이고 그것은 논증이지 "
-                                   "관측이 아니다(지침 PRE-1 은 max_active_calls 관측을 요구한다)."),
+            "unavailable_reason": ("E49 시점의 기록: 배포 경로가 IREE invoke 의 진입·종료에 call id 를 "
+                                   "기록하지 않았다. 세어 본 것은 **작업 생성 호출 수**이고 그것은 논증이지 "
+                                   "관측이 아니다(지침 PRE-1 은 max_active_calls 관측을 요구한다). "
+                                   "E55/P0-3 이 그 계측을 넣었으므로 위 항목이 원자료에서 **세어진** 값이다 "
+                                   "— 이 항목은 무엇이 바뀌었는지 보이도록 남긴다(철회가 아니라 정정, 규율 3)."),
             "spawn_call_counts": spawn,
             "measured_elsewhere": ("E41 이 별도 프로브로 N 스레드 동시 호출의 HAL 피크를 쟀다 — "
                                    "그것은 전제를 **어겼을 때** 무슨 일이 생기는지의 측정이지 "

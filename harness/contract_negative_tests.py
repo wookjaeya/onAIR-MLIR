@@ -5842,12 +5842,25 @@ def e49_audit_matrix_cases(tmp):
 
     pr = m["premises"]
     mif = pr["max_in_flight_calls_is_1"]
-    _ok = (mif["status"] == "ARGUED_FROM_SOURCE" and mif["observed_value"] is None
-           and mif.get("unavailable_reason"))
-    results.append(Result("e49/PRE-1: max_in_flight_calls is recorded as ARGUED_FROM_SOURCE with "
-                          "observed_value null -- counting spawn calls in the source is an "
-                          "argument, and calling it an observation would be D51's shape", _ok,
-                          "" if _ok else json.dumps(mif)[:200]))
+    # E55/P0-3 CHANGES what this pins, on purpose. E49 recorded ARGUED_FROM_SOURCE with
+    # observed_value null because nothing recorded a call id at invoke entry and exit --
+    # counting spawn calls in the source is an argument, and calling it an observation would
+    # be D51's shape. E55 added the counter to both C executors, so the observation now
+    # EXISTS. What this guard protects is unchanged in spirit: the status must be DERIVED from
+    # raw records, never typed (D82: a grade is counted, not written). The old entry is kept
+    # beside it as `_..._legacy` so what changed stays visible (correction, not withdrawal).
+    _ok = (mif["status"] == "OBSERVED" and mif["observed_value"] == 1
+           and mif.get("observed_values_seen") == [1]
+           and mif.get("counter_balanced_in_every_cell") is True
+           and isinstance(mif.get("records"), int) and mif["records"] > 0
+           and isinstance(mif.get("distinct_cells"), int)
+           and mif.get("scope_note")
+           and pr.get("_max_in_flight_calls_is_1_legacy", {}).get("status") == "ARGUED_FROM_SOURCE")
+    results.append(Result("e49/PRE-1: max_in_flight_calls is now OBSERVED -- the value is COUNTED out "
+                          "of the `mem` records the E55 call-lifetime counter writes, every cell's "
+                          "counter balanced, the scope limited to deployments that actually ran, and "
+                          "the pre-E55 ARGUED_FROM_SOURCE entry kept beside it so the change is visible",
+                          _ok, "" if _ok else json.dumps(mif)[:260]))
 
     counts = mif["spawn_call_counts"]
     _ok = all(v.get("source_present") and v.get("total") == 0 for v in counts.values())
