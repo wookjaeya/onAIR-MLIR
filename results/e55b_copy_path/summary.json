@@ -200,16 +200,196 @@
   },
   {
    "cell": {
-    "expected_log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
-    "present": false,
-    "absent_reason": "cell has not produced a log yet"
+    "log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
+    "present": true,
+    "blob_align": {
+     "app": "AI_LEARNER",
+     "stage": "blob_align",
+     "requested_offset": 8,
+     "state": "applied",
+     "module_ptr_mod64": 8
+    },
+    "build_config": {
+     "app": "AI_LEARNER",
+     "stage": "build_config",
+     "model": "b3_deepae",
+     "allow_conditional_map": 0,
+     "contract_bounded_bytes": 1069632,
+     "contract_per_call_bytes": 6208,
+     "contract_const_bytes": 1063424,
+     "contract_bound_known": true,
+     "contract_artifact_sha256": "9ff64bd168e07135c196423d44408e7780984c977912b67c8240c0db522c4d7c"
+    },
+    "map_branch": {
+     "app": "AI_LEARNER",
+     "stage": "map_branch",
+     "model": "b3_deepae",
+     "module_ptr_mod64": 8,
+     "hal_peak_after_append": 1063424,
+     "contract_const_bytes": 1063424,
+     "contract_per_call_bytes": 6208,
+     "arm": "copy",
+     "admission_mode": "unconditional"
+    },
+    "admission": {
+     "app": "AI_LEARNER",
+     "stage": "admission",
+     "verdict": "ADMIT",
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "bounded": 1069632,
+     "budget": 1069632,
+     "budget_source": "override",
+     "per_call": 6208,
+     "constants": 1063424,
+     "kernel_stack_bytes": 16,
+     "bound_known": true,
+     "scope": "per_app_local_budget"
+    },
+    "binding": {
+     "app": "AI_LEARNER",
+     "stage": "binding",
+     "verdict": "MATCH",
+     "artifact_bytes": 1080730,
+     "artifact_sha256": "9ff64bd168e07135",
+     "contract_sha256": "9ff64bd168e07135"
+    },
+    "mem_init": {
+     "app": "AI_LEARNER",
+     "stage": "mem_init",
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "hal_peak": 1065984,
+     "hal_allocated": 1065984,
+     "bounded": 1069632,
+     "peak_within_bounded": true,
+     "inferences_so_far": 0,
+     "process_rss_kb": 7980,
+     "rss_kb_before_runtime": 6320,
+     "rss_kb_after_session": 6616,
+     "rss_kb_after_init": 7980
+    },
+    "e25_equivalence": {
+     "app": "AI_LEARNER",
+     "stage": "e25_equivalence",
+     "inputs": 34,
+     "completed": 34,
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "artifact_sha256": "9ff64bd168e07135..."
+    },
+    "e25_mode": {
+     "app": "AI_LEARNER",
+     "stage": "e25_mode",
+     "active": true,
+     "inputs_path": "/cf/e25_inputs.bin"
+    },
+    "run": {
+     "app": "AI_LEARNER",
+     "stage": "run",
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "attempted": 224,
+     "completed": 224,
+     "fail_input": 0,
+     "fail_invoke": 0,
+     "fail_output": 0,
+     "mean_us": 15569.4,
+     "max_us": 38354.54,
+     "last_us": 15612.53,
+     "out0": -34.88327,
+     "out_elems": 640,
+     "out_sha256": "7377a66196d10b8f9095f1ec25df57b5b033488734ef3539915fd05471edb2fc",
+     "out_head": [
+      -34.88327,
+      -19.245007,
+      -10.683949,
+      -6.043216,
+      -3.147524,
+      1.497201
+     ],
+     "out_tail": [
+      -19.598969,
+      -18.188969,
+      -18.763275,
+      -20.377392,
+      -29.048273,
+      -42.49612
+     ],
+     "out_full_file": "/cf/last_out.json",
+     "out_full_file_bytes": 7046,
+     "out_full_file_reason": "ok",
+     "out_record_truncates": false
+    },
+    "mem": {
+     "app": "AI_LEARNER",
+     "stage": "mem",
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "completed": 224,
+     "hal_peak": 1069632,
+     "peak_within_bounded": true,
+     "admitted_budget_bytes": 1069632,
+     "peak_within_admitted_budget": true,
+     "admission_mode": "unconditional",
+     "hal_bytes_per_call_amortized": 8960.6,
+     "process_rss_kb": 8144,
+     "process_rss_delta_init_kb": 1660,
+     "max_active_calls": 1,
+     "active_calls_now": 0,
+     "call_counter_balanced": true
+    },
+    "runtime_load_failed": null,
+    "exit": "EXIT=124",
+    "apps_after": 0
    },
    "model": "b3_deepae",
    "P": 6208,
    "C": 1063424,
    "B_u": 1069632,
-   "verdict": null,
-   "unavailable_reason": "copy cell log absent"
+   "criteria_SS3_4": {
+    "load_ok": true,
+    "constants_copied_equals_C": true,
+    "ran_at_least_once": true,
+    "sound_H_le_P_plus_C": true,
+    "output_preserved": true
+   },
+   "tight_H_eq_P_plus_C": true,
+   "tightness_note": "recorded separately from soundness on the directive's instruction: H < P+C does not mean the bound is wrong",
+   "load_setting_SS3_3": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8,
+    "offset_reached_the_image": true,
+    "note": "the app allocates the image 64-byte aligned and returns base+offset, so mod64 must equal the requested offset; when posix_memalign fails it falls back to malloc and mod64 is whatever the allocator gave -- which is why this is measured, not assumed"
+   },
+   "copy_arm_confirmed_independently": true,
+   "arm_label_agrees": true,
+   "arm_label_note": "the app derives `arm` from hal_peak_after_append itself, so it is reported beside the independent facts, never in place of them (directive SS3.3)",
+   "observed": {
+    "hal_peak": 1069632,
+    "hal_peak_after_append": 1063424,
+    "mem_init_hal_peak": 1065984,
+    "admission": "ADMIT",
+    "admitted_budget": 1069632,
+    "admission_mode": "unconditional",
+    "peak_within_admitted_budget": true,
+    "e25_inputs": 34,
+    "e25_completed": 34,
+    "loop_completed": 224,
+    "max_active_calls": 1,
+    "call_counter_balanced": true,
+    "artifact_sha256_prefix": "9ff64bd168e07135..."
+   },
+   "output_comparison": {
+    "compared": true,
+    "elements": 21760,
+    "bitwise_identical": true,
+    "worst_abs_diff": 0.0,
+    "baseline": "results/e36b_aarch64_models/b3_deepae/e25_outputs.bin",
+    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+   },
+   "verdict": "PASS"
   },
   {
    "cell": {
@@ -389,7 +569,7 @@
    "configuration": "unconditional_copy_at_Bu",
    "model": "b3_deepae",
    "source": "measured_here",
-   "expected_log": null,
+   "log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
    "expected_configuration": {
     "arm": "copy",
     "admission_mode": "unconditional",
@@ -397,28 +577,23 @@
     "verdict": "ADMIT"
    },
    "observed_configuration": {
-    "arm": null,
-    "admission_mode": null,
-    "admitted_budget": null,
-    "verdict": null
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 1069632,
+    "verdict": "ADMIT"
    },
-   "configuration_matches": false,
-   "configuration_mismatch": [
-    "arm",
-    "admission_mode",
-    "admitted_budget",
-    "verdict"
-   ],
+   "configuration_matches": true,
+   "configuration_mismatch": null,
    "P": 6208,
    "C": 1063424,
    "B_u": 1069632,
-   "budget_M": null,
-   "H": null,
-   "H_le_budget": false,
-   "H_eq_P": null,
-   "H_eq_P_plus_C": null,
-   "inferences": null,
-   "max_active_calls": null
+   "budget_M": 1069632,
+   "H": 1069632,
+   "H_le_budget": true,
+   "H_eq_P": false,
+   "H_eq_P_plus_C": true,
+   "inferences": 224,
+   "max_active_calls": 1
   },
   {
    "configuration": "conditional_map_at_P",
