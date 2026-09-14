@@ -41,7 +41,12 @@ def last(st, name):
 def read_cell(log_path):
     """Every field a copy cell is judged on, straight out of the app's own records."""
     if not os.path.isfile(log_path):
-        return {"log": os.path.relpath(log_path, REPO), "present": False}
+        # D55: a `"log"` field is a CITATION -- the guard reads it as "here is the raw log".
+        # A cell that has not run yet has no raw log to cite, so the path goes under a
+        # different key: it is an EXPECTATION, not a record. (Found by the guard itself while
+        # this experiment's four cells were landing one at a time.)
+        return {"expected_log": os.path.relpath(log_path, REPO), "present": False,
+                "absent_reason": "cell has not produced a log yet"}
     txt = open(log_path, encoding="utf-8", errors="replace").read()
     st = stages(log_path)
     return {"log": os.path.relpath(log_path, REPO), "present": True,
@@ -173,7 +178,10 @@ def config_row(name, model, cell, want, P, C, B, source, log):
            "admitted_budget": mem.get("admitted_budget_bytes"), "verdict": ad.get("verdict")}
     H = mem.get("hal_peak")
     mismatch = [k for k, v in want.items() if v is not None and got.get(k) != v]
-    return {"configuration": name, "model": model, "source": source, "log": log,
+    row = {"configuration": name, "model": model, "source": source}
+    # Same D55 rule as read_cell: only a log that exists is cited under `"log"`.
+    row["log" if (log and os.path.isfile(os.path.join(REPO, log))) else "expected_log"] = log
+    return {**row,
             "expected_configuration": want, "observed_configuration": got,
             "configuration_matches": not mismatch,
             "configuration_mismatch": mismatch or None,
@@ -209,7 +217,7 @@ def main():
         table.append(config_row("unconditional_copy_at_Bu", m, cell,
                                 {"arm": "copy", "admission_mode": "unconditional", "admitted_budget": B,
                                  "verdict": "ADMIT"}, P, C, B, "measured_here",
-                                os.path.relpath(log, REPO)))
+                                os.path.relpath(log, REPO) if cell["present"] else None))
         condp = os.path.join(REPO, E55_CELLS, "e55_%s_conditional.log" % m)
         table.append(config_row("conditional_map_at_P", m, read_cell(condp),
                                 {"arm": "map", "admission_mode": "conditional_map", "admitted_budget": P,
@@ -218,7 +226,8 @@ def main():
         ctlp = os.path.join(REPO, E55_CELLS, "e55_%s_control.log" % m)
         ctl = read_cell(ctlp)
         table.append({"configuration": "conditional_disabled_control_at_P", "model": m,
-                      "source": "archived_e55", "log": os.path.relpath(ctlp, REPO),
+                      "source": "archived_e55",
+                      ("log" if os.path.isfile(ctlp) else "expected_log"): os.path.relpath(ctlp, REPO),
                       "expected_configuration": {"verdict": "NOT_ADMITTED"},
                       "observed_configuration": {"verdict": (ctl.get("admission") or {}).get("verdict")},
                       "configuration_matches": (ctl.get("admission") or {}).get("verdict") == "NOT_ADMITTED",

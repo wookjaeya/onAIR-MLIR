@@ -200,8 +200,9 @@
   },
   {
    "cell": {
-    "log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
-    "present": false
+    "expected_log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
+    "present": false,
+    "absent_reason": "cell has not produced a log yet"
    },
    "model": "b3_deepae",
    "P": 6208,
@@ -212,8 +213,9 @@
   },
   {
    "cell": {
-    "log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
-    "present": false
+    "expected_log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
+    "present": false,
+    "absent_reason": "cell has not produced a log yet"
    },
    "model": "smartcam",
    "P": 9382092,
@@ -224,8 +226,9 @@
   },
   {
    "cell": {
-    "log": "results/e55b_copy_path/cells/logs/e55b_wgan_copy.log",
-    "present": false
+    "expected_log": "results/e55b_copy_path/cells/logs/e55b_wgan_copy.log",
+    "present": false,
+    "absent_reason": "cell has not produced a log yet"
    },
    "model": "wgan",
    "P": 131382784,
@@ -386,7 +389,7 @@
    "configuration": "unconditional_copy_at_Bu",
    "model": "b3_deepae",
    "source": "measured_here",
-   "log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
+   "expected_log": null,
    "expected_configuration": {
     "arm": "copy",
     "admission_mode": "unconditional",
@@ -507,7 +510,7 @@
    "configuration": "unconditional_copy_at_Bu",
    "model": "smartcam",
    "source": "measured_here",
-   "log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
+   "expected_log": null,
    "expected_configuration": {
     "arm": "copy",
     "admission_mode": "unconditional",
@@ -628,7 +631,7 @@
    "configuration": "unconditional_copy_at_Bu",
    "model": "wgan",
    "source": "measured_here",
-   "log": "results/e55b_copy_path/cells/logs/e55b_wgan_copy.log",
+   "expected_log": null,
    "expected_configuration": {
     "arm": "copy",
     "admission_mode": "unconditional",
