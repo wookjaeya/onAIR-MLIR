@@ -1,0 +1,94 @@
+[
+  {
+    "id": "PA_pdr50__wgan",
+    "part": "part1_reference_profile",
+    "model": "wgan",
+    "desc": "E54 Part 1: reference budget PA_pdr50 (B_contract=1908071307, U=135666432)",
+    "so": "variants/wgan/ai_learner.so",
+    "startup": "variants/wgan/cfe_es_startup.scr",
+    "vmfb": "models/wgan.vmfb",
+    "seconds": 5400,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "1908071307"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    },
+    "stage": {
+      "e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"
+    },
+    "fetch": [
+      "e25_outputs.bin"
+    ]
+  },
+  {
+    "id": "PA_ship30__wgan",
+    "part": "part1_reference_profile",
+    "model": "wgan",
+    "desc": "E54 Part 1: reference budget PA_ship30 (B_contract=2767064766, U=135666432)",
+    "so": "variants/wgan/ai_learner.so",
+    "startup": "variants/wgan/cfe_es_startup.scr",
+    "vmfb": "models/wgan.vmfb",
+    "seconds": 5400,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "2767064766"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    },
+    "stage": {
+      "e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"
+    },
+    "fetch": [
+      "e25_outputs.bin"
+    ]
+  },
+  {
+    "id": "PB_pdr50__wgan",
+    "part": "part1_reference_profile",
+    "model": "wgan",
+    "desc": "E54 Part 1: reference budget PB_pdr50 (B_contract=297458571, U=135666432)",
+    "so": "variants/wgan/ai_learner.so",
+    "startup": "variants/wgan/cfe_es_startup.scr",
+    "vmfb": "models/wgan.vmfb",
+    "seconds": 5400,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "297458571"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    },
+    "stage": {
+      "e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"
+    },
+    "fetch": [
+      "e25_outputs.bin"
+    ]
+  },
+  {
+    "id": "PB_ship30__wgan",
+    "part": "part1_reference_profile",
+    "model": "wgan",
+    "desc": "E54 Part 1: reference budget PB_ship30 (B_contract=512206935, U=135666432)",
+    "so": "variants/wgan/ai_learner.so",
+    "startup": "variants/wgan/cfe_es_startup.scr",
+    "vmfb": "models/wgan.vmfb",
+    "seconds": 5400,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "512206935"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    },
+    "stage": {
+      "e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"
+    },
+    "fetch": [
+      "e25_outputs.bin"
+    ]
+  }
+]

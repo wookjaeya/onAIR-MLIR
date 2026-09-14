@@ -1,0 +1,4 @@
+{"stage":"admission","verdict":"ADMIT","model":"wgan","target":"aarch64-unknown-linux-gnu","bounded_bytes":135666432,"budget_bytes":135666432,"budget_source":"argv","per_call":131382784,"constants":4283648,"kernel_stack_bytes":880,"bound_known":true,"conditional_map_requested":false,"conditional_map_applied":false}
+{"stage":"binding","verdict":"MATCH","artifact_bytes":4321533,"artifact_sha256":"e382429cbfbf5803...","contract_sha256":"e382429cbfbf5803..."}
+{"stage":"map_branch","model":"wgan","module_ptr_mod64":0,"hal_peak_after_append":0,"contract_const_bytes":4283648,"contract_per_call_bytes":131382784,"arm":"map","admission_mode":"unconditional"}
+{"stage":"e25_equivalence","inputs":1,"completed":1,"artifact_sha256":"e382429cbfbf5803...","input_elems":150528,"output_elems":150528}

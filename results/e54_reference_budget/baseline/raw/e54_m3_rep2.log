@@ -1,0 +1,103 @@
+OS_BSP_Initialize():Maximum user msg queue depth = 512
+CFE_PSP: Default Reset SubType = 1
+CFE_PSP: Default CPU ID = 1
+CFE_PSP: Default Spacecraft ID = 66
+CFE_PSP: Default CPU Name: cpu1
+OS_Posix_GetSchedulerParams():208:Policy 1: available, min-max: 1-99
+OS_Posix_GetSchedulerParams():208:Policy 2: available, min-max: 1-99
+OS_Posix_TaskAPI_Impl_Init():401:Selected policy 2 for RT tasks, root task = 99
+OS_Posix_TaskAPI_Impl_Init():419:Could not setschedparam in main thread: Operation not permitted (1)
+CFE_PSP: initializing module 'soft_timebase' with ID 0110ff00
+CFE_PSP: Instantiated software timebase 'cFS-Master' running at 10000 usec
+CFE_PSP: initializing module 'timebase_posix_clock' with ID 0110ff01
+CFE_PSP: Using POSIX monotonic clock as CFE timebase
+CFE_PSP: initializing module 'eeprom_mmap_file' with ID 0110ff02
+CFE_PSP: Using MMAP simulated EEPROM implementation
+CFE_PSP: initializing module 'port_notimpl' with ID 0110ff03
+CFE_PSP: I/O Port access not implemented
+CFE_PSP: initializing module 'iodriver' with ID 0110ff04
+CFE_PSP: initializing module 'linux_sysmon' with ID 0110ff05
+CFE_PSP: EEPROM Range (2) created: Start Address = E4F4D895E000, Size = 00080000 Status = 0
+CFE_PSP: initializing module 'endian_api' with ID 0110ff06
+CFE_PSP: Host CPU Endian=LITTLE
+CFE_PSP: initializing module 'ram_notimpl' with ID 0110ff07
+CFE_PSP: Physical RAM access not implemented
+CFE_PSP: Normal exit from previous cFE instance
+CFE_PSP: Starting the cFE with a PROCESSOR reset.
+1980-001-07:14:28.42893 CFE_ES_Main: CFE_ES_Main in EARLY_INIT state
+1980-001-07:14:28.46195 CFE_ES_InitializeFileSystems: Volatile Disk has 100 Percent free space.
+Number of addresses returned by backtrace = 1
+CFE_PSP: CFE_PSP_AttachExceptions called
+1980-001-07:14:28.49240 CFE_ES_Main: CFE_ES_Main entering CORE_STARTUP state
+1980-001-07:14:28.49287 CFE_ES_CreateObjects: Starting Object Creation calls.
+1980-001-07:14:28.49340 CFE_ES_CreateObjects: Calling EarlyInit for CFE_CONFIG
+1980-001-07:14:28.49507 CFE_ES_CreateObjects: Calling EarlyInit for CFE_ES
+1980-001-07:14:28.50185 CFE_ES_CreateObjects: Calling EarlyInit for CFE_EVS
+1980-001-07:14:28.50522 CFE_EVS_EarlyInit: Event Log restored, n=0, c=20, f=1, m=1, o=84
+1980-001-07:14:28.50682 CFE_ES_CreateObjects: Calling EarlyInit for CFE_FS
+1980-001-07:14:28.50861 CFE_ES_CreateObjects: Calling EarlyInit for CFE_SB
+1980-001-07:14:28.52965 CFE_ES_CreateObjects: Calling EarlyInit for CFE_TBL
+1980-001-07:14:28.55566 CFE_ES_CreateObjects: Calling EarlyInit for CFE_TIME
+EVS Port1 1980-012-14:06:23.31607 66/1/CFE_ES 1: cFE ES Initialized: CFE_ES v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:06:23.36187 66/1/CFE_ES 2: cFS Versions: cfe v7.0.1+dev1, osal v7.0.1+dev1, psp v7.0.1+dev1. cFE chksm 31659
+EVS Port1 1980-012-14:06:23.37615 66/1/CFE_ES 91: Version Info: Mission SampleMission, version git:v7.0.1-90-g78c23b0-dirty
+EVS Port1 1980-012-14:06:23.38359 66/1/CFE_ES 91: Version Info: Module CORE_API, version git:2612eb0
+EVS Port1 1980-012-14:06:23.38497 66/1/CFE_ES 91: Version Info: Module CONFIG, version git:2612eb0
+EVS Port1 1980-012-14:06:23.38682 66/1/CFE_ES 91: Version Info: Module ES, version git:2612eb0
+EVS Port1 1980-012-14:06:23.38856 66/1/CFE_ES 91: Version Info: Module EVS, version git:2612eb0
+EVS Port1 1980-012-14:06:23.38916 66/1/CFE_ES 91: Version Info: Module FS, version git:2612eb0
+EVS Port1 1980-012-14:06:23.38948 66/1/CFE_ES 91: Version Info: Module SB, version git:2612eb0
+EVS Port1 1980-012-14:06:23.38975 66/1/CFE_ES 91: Version Info: Module TBL, version git:2612eb0
+EVS Port1 1980-012-14:06:23.38996 66/1/CFE_ES 91: Version Info: Module TIME, version git:2612eb0
+EVS Port1 1980-012-14:06:23.39224 66/1/CFE_ES 91: Version Info: Module OSAL, version git:8111e4a
+EVS Port1 1980-012-14:06:23.39714 66/1/CFE_ES 91: Version Info: Module PSP, version git:d1da809
+EVS Port1 1980-012-14:06:23.39767 66/1/CFE_ES 91: Version Info: Module MSG, version git:2612eb0
+EVS Port1 1980-012-14:06:23.39921 66/1/CFE_ES 91: Version Info: Module SBR, version git:2612eb0
+EVS Port1 1980-012-14:06:23.40663 66/1/CFE_ES 91: Version Info: Module RESOURCEID, version git:2612eb0
+EVS Port1 1980-012-14:06:23.40715 66/1/CFE_ES 92: Build 202609101313 by root@vm, config aarch64
+EVS Port1 1980-012-14:06:23.58256 66/1/CFE_EVS 1: cFE EVS Initialized: CFE_EVS v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:06:23.69100 CFE_SB_AppInit: Registered 4 events for filtering
+EVS Port1 1980-012-14:06:23.70567 66/1/CFE_SB 1: cFE SB Initialized: CFE_SB v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:06:23.71356 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_SB
+EVS Port1 1980-012-14:06:23.79699 66/1/CFE_TBL 1: cFE TBL Initialized: CFE_TBL v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:06:23.79801 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_TBL
+EVS Port1 1980-012-14:06:23.93612 66/1/CFE_TIME 1: cFE TIME Initialized: CFE_TIME v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:06:23.94689 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_TIME
+1980-012-14:06:24.00725 CFE_ES_CreateObjects: Finished ES CreateObject table entries.
+1980-012-14:06:24.00822 CFE_ES_Main: CFE_ES_Main entering CORE_READY state
+OS_FileOpen_Impl():110:open(/dev/shm/osal:RAM/cfe_es_startup.scr): No such file or directory
+1980-012-14:06:24.03187 CFE_ES_OpenStartupScript: Cannot Open Volatile Startup file: /ram/cfe_es_startup.scr, Trying Nonvolatile.
+1980-012-14:06:24.03763 CFE_ES_OpenStartupScript: Opened ES App Startup file: /cf/cfe_es_startup.scr
+1980-012-14:06:24.15138 CFE_ES_ParseFileEntry: Loading shared library: /cf/cfe_assert.so
+1980-012-14:06:24.21899 [BEGIN] CFE FUNCTIONAL TEST
+1980-012-14:06:24.22113 [BEGIN] 01 CFE-STARTUP
+1980-012-14:06:24.30998 CFE_ES_ParseFileEntry: Loading shared library: /cf/sample_lib.so
+SAMPLE Lib Initialized.Sample Lib v7.0.0+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:06:24.41008 CFE_ES_ParseFileEntry: Loading file: /cf/sch_lab.so, APP: SCH_LAB
+SCH Lab Initialized.SCH Lab v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:06:24.61538 CFE_ES_ParseFileEntry: Loading file: /cf/ci_lab.so, APP: CI_LAB
+1980-012-14:06:24.75582 CFE_ES_ParseFileEntry: Loading file: /cf/to_lab.so, APP: TO_LAB
+1980-012-14:06:24.86916 CI_LAB listening on UDP port: 1234
+EVS Port1 1980-012-14:06:24.87374 66/1/CI_LAB 3: CI Lab Initialized.CI Lab App v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:06:24.87898 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CI_LAB
+EVS Port1 1980-012-14:06:24.89431 66/1/TO_LAB 1: TO Lab Initialized.TO Lab v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled, Awaiting enable command.
+1980-012-14:06:24.91838 CFE_ES_Main: CFE_ES_Main entering APPS_INIT state
+1980-012-14:06:24.92088 CFE_ES_Main: CFE_ES_Main entering OPERATIONAL state
+EVS Port1 1980-012-14:06:24.95994 66/1/TO_LAB 19: L550 TO Lab subscribed to 32 messages from the table
+EVS Port1 1980-012-14:06:25.01754 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:06:28.44566 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:07:42.00553 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:07:46.02229 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:07:47.02441 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:07:48.00892 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:07:48.99781 66/1/CFE_TIME 20: Start FLYWHEEL
+1980-012-14:07:54.91019 CFE_ES_RunExceptionScan: ExceptionID 0x1110002 in TaskID 0: Caught SIGINT
+1980-012-14:07:54.91267 CFE_ES_RunExceptionScan: Maximum Processor Reset count reached (2)
+CFE_PSP: Exiting cFE with POWERON Reset status.
+CFE_PSP: Critical Data Store Shared memory segment removed
+Reset Area Shared memory segment removed
+User Reserved Area Shared memory segment removed
+
+CFE_PSP: Shutdown initiated - Exiting cFE
+CI delete callback -- Closing CI Network socket.
+TO delete callback -- Closing TO Network socket.

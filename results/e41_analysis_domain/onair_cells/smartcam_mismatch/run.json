@@ -1,0 +1,53 @@
+{
+ "tool": "harness/onair_integration_check.py",
+ "deployment": "smartcam_mismatch",
+ "onair": {
+  "path": "/root/onair-mlir-bench/ext/OnAIR",
+  "head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+  "core_unmodified": true,
+  "untracked_unchanged": true,
+  "tracked_dirty_before": "",
+  "tracked_dirty_after": "",
+  "status_before": "?? csv_out_252_06_15.csv",
+  "status_after": "?? csv_out_252_06_15.csv",
+  "check_note": "OnAIR core must be untouched: no TRACKED file may be modified before or after the run. Untracked files left by OnAIR's own example runs are reported separately and are not a modification"
+ },
+ "invocation": {
+  "cmd": [
+   "/usr/local/bin/python3",
+   "driver.py",
+   "onair.ini"
+  ],
+  "cwd": "/root/onair-mlir-bench/ext/OnAIR",
+  "env_var": "ONAIR_MLIR_DEPLOYMENT_CONFIG",
+  "ini": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam_mismatch/onair.ini",
+  "deployment_config": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam_mismatch/deployment.json"
+ },
+ "returncode": 0,
+ "plugin_constructed": true,
+ "plugin_init": {
+  "event": "init",
+  "active": false,
+  "inactive_reason": "FileNotFoundError: [Errno 2] No such file or directory: '/home/user/onAIR-MLIR/results/e33_onair_official/_mismatch_artifacts/smartcam.vmfb'",
+  "input_mode": "file_replay",
+  "admission": {
+   "bounded_bytes": 18222796,
+   "per_call_bytes": 9382092,
+   "constants_bytes": 8840704,
+   "budget_bytes": 18222796,
+   "bound_method": "static_from_stream_layout",
+   "scope": "per_app_local_budget",
+   "verdict": "ADMIT",
+   "admitted_budget_bytes": 18222796,
+   "conditional_available": false,
+   "reason": "bounded 18222796 <= budget 18222796"
+  },
+  "binding": null,
+  "entry": "infer",
+  "deployment_source": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam_mismatch/deployment.json[smartcam_mismatch]"
+ },
+ "inferences": 0,
+ "stdout_tail": "[smartcam_mismatch] INACTIVE -- FileNotFoundError: [Errno 2] No such file or directory: '/home/user/onAIR-MLIR/results/e33_onair_official/_mismatch_artifacts/smartcam.vmfb'\n\u001b[95m\u001b[1m\n***************************************************\n************    SIMULATION STARTED     ************\n***************************************************\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 1 ---------------------\n\u001b[0m\nCURRENT DATA: [0.0, 0.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 2 ---------------------\n\u001b[0m\nCURRENT DATA: [1.0, 1.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 3 ---------------------\n\u001b[0m\nCURRENT DATA: [2.0, 2.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 4 ---------------------\n\u001b[0m\nCURRENT DATA: [3.0, 3.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 5 ---------------------\n\u001b[0m\nCURRENT DATA: [4.0, 4.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n",
+ "stderr_tail": "",
+ "records_file": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam_mismatch/plugin_records.jsonl"
+}

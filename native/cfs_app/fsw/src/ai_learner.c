@@ -84,6 +84,13 @@
 #define AI_LEARNER_MODEL_FILE "/cf/model.vmfb"
 #define AI_LEARNER_E25_INPUTS  "/cf/e25_inputs.bin"   /* E25: optional equivalence input set */
 #define AI_LEARNER_E25_OUTPUTS "/cf/e25_outputs.bin"
+#define AI_LEARNER_FULL_OUT    "/cf/last_out.json"   /* E55: full output vector, never truncated.
+   The name is SHORT on purpose: OSAL caps the filename component at OS_MAX_FILE_NAME (20), and the
+   first spelling ('ai_learner_last_out.json', 24 chars) made OS_TranslatePath return
+   OS_FS_ERR_NAME_TOO_LONG (-104).  That was found by MEASUREMENT, not by reading the header: the
+   write is best-effort, so the first run simply reported out_full_file:null with no reason -- which
+   is why the function now records WHY it failed (D51: "could not look" and "looked and found none"
+   are different records). */
 #define AI_LEARNER_HDR_BYTES 16   /* CCSDS primary + telemetry secondary header skipped before features */
 
 enum {
@@ -97,6 +104,7 @@ static struct {
   iree_runtime_instance_t* instance; iree_hal_device_t* device; iree_runtime_session_t* session;
   void* blob; long blob_len; iree_hal_buffer_view_t* x;
   int module_ptr_mod64; long hal_peak_after_append; int conditional_map;
+  void* blob_alloc; long blob_align_offset_requested; const char* blob_align_offset_state;
   uint32 n_attempt, n_infer, n_fail_input, n_fail_invoke, n_fail_output, n_cleanup;
   bool first_fail_reported;
   double lat_sum_us, lat_max_us, lat_last_us; float out[CONTRACT_OUTPUT_ELEMS];
@@ -188,9 +196,75 @@ static void AI_LEARNER_StatusJson(iree_status_t st, char* out, size_t cap) {
   if (buf) iree_allocator_free(a, buf);
 }
 
+/* E55/P0-3 (directive SS4): OBSERVE the `max_in_flight_calls = 1` premise instead of arguing
+ * it from source.  E49 could only count task/thread-creation calls (0/0/0 across the three
+ * deployments) and recorded the premise as ARGUED_FROM_SOURCE with `observed_value: null`,
+ * because nothing recorded a call id at invoke entry and exit.
+ *
+ * A model execution owns its per-call buffers from a successful `call_initialize*` until
+ * `call_deinitialize`, so the counter brackets exactly that.  There are three deinitialize
+ * sites in this file and every path that initialized a call reaches exactly one of them --
+ * checked by enumeration, which is why EXIT sits at the deinitialize calls and not at the
+ * function returns.  `balanced` is the guard against the mistake this instrumentation could
+ * itself introduce: a path that increments and never decrements shows up as a non-zero
+ * `active_calls_now` at report time rather than as a quietly wrong maximum (D29/D51/D68 --
+ * the absence of a decrement must not read as "there was none to do"). */
+static int g_active_calls = 0;
+static int g_max_active_calls = 0;
+static int g_call_counter_underflow = 0;
+#define AI_LEARNER_CALL_ENTER() do { \
+    if (++g_active_calls > g_max_active_calls) g_max_active_calls = g_active_calls; \
+  } while (0)
+#define AI_LEARNER_CALL_EXIT() do { \
+    if (--g_active_calls < 0) g_call_counter_underflow = 1; \
+  } while (0)
+
 static void AI_LEARNER_FormatOut(char* b, size_t cap) {
   size_t o = 0;
   for (int k = 0; k < CONTRACT_OUTPUT_ELEMS && o < cap; ++k) o += (size_t)snprintf(b + o, cap - o, "%s%.6f", k ? "," : "", g.out[k]);
+}
+
+/* E55/P0-4 pre-repair (directive SS5): the console `run` record used to carry the WHOLE
+ * output array, and AI_LEARNER_Json's fixed `line[768]` cut it mid-array for any model
+ * whose output is large enough -- D68 saw it at DeepAE's 640 elements (truncating at 766
+ * chars) and D93 saw it again at WGAN's 150,528, where it made a PASSING cell record as
+ * FAIL because the gate that decides "pass" reads that record.  D93 patched the reader;
+ * the emitter stayed broken and the next larger model would step on it again.
+ *
+ * The record now carries element count + sha256 of the raw f32 bytes + head/tail summary,
+ * and the FULL array goes to its own file.  Two things are deliberate:
+ *   - `outs` is still built by AI_LEARNER_FormatOut and is still what gets written, so the
+ *     app's static footprint is UNCHANGED.  That matters beyond style: E54 counts this
+ *     app's contract-sized static buffers into R_noncontract_AI, so shrinking one would
+ *     silently move a committed budget.
+ *   - the write is best-effort.  A failed sink is reported as a null path with a reason;
+ *     it never fails an inference and never touches admission or the HAL statistics. */
+static const char* g_full_out_reason = "not attempted";
+static const char* AI_LEARNER_WriteFullOut(const char* text, long* out_bytes) {
+  static char real[OS_MAX_LOCAL_PATH_LEN];
+  static char why[96];
+  *out_bytes = -1;
+  int32 tr = OS_TranslatePath(AI_LEARNER_FULL_OUT, real);
+  if (tr != OS_SUCCESS) {
+    snprintf(why, sizeof why, "OS_TranslatePath rc=%ld", (long)tr);
+    g_full_out_reason = why; return NULL;
+  }
+  FILE* f = fopen(real, "wb");
+  if (!f) {
+    snprintf(why, sizeof why, "fopen errno=%d", errno);
+    g_full_out_reason = why; return NULL;
+  }
+  int n = fprintf(f, "{\"model\":\"%s\",\"target\":\"%s\",\"completed\":%u,\"elems\":%d,\"out\":[%s]}\n",
+                  CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, (unsigned)g.n_infer,
+                  (int)CONTRACT_OUTPUT_ELEMS, text);
+  int cr = fclose(f);
+  if (cr != 0 || n < 0) {
+    snprintf(why, sizeof why, "fprintf n=%d fclose=%d errno=%d", n, cr, errno);
+    g_full_out_reason = why; return NULL;
+  }
+  *out_bytes = (long)n;
+  g_full_out_reason = "ok";
+  return AI_LEARNER_FULL_OUT;
 }
 
 /* Release everything that exists: input buffer -> session -> device -> instance
@@ -202,7 +276,10 @@ static void AI_LEARNER_Cleanup(void) {
   if (g.session) { iree_runtime_session_release(g.session); g.session = NULL; }
   if (g.device) { iree_hal_device_release(g.device); g.device = NULL; }
   if (g.instance) { iree_runtime_instance_release(g.instance); g.instance = NULL; }
-  if (g.blob) { free(g.blob); g.blob = NULL; }   /* after session release: zero-copy reference (D4) */
+  /* E55b: free the BASE allocation. `g.blob` may be offset into it to control the alignment
+   * class, so freeing `g.blob` would be freeing an interior pointer. */
+  if (g.blob_alloc) { free(g.blob_alloc); g.blob_alloc = NULL; }   /* after session release: zero-copy reference (D4) */
+  g.blob = NULL;
   if (g.pipe_created) { CFE_SB_DeletePipe(g.pipe); g.pipe_created = false; }
   AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"cleanup\",\"released\":true,\"cleanup_calls\":%u}\n", (unsigned)g.n_cleanup);
 }
@@ -260,12 +337,59 @@ static void AI_LEARNER_AdmissionJson(const char* verdict) {
  * change, only which arm the deployment lands on.  A failed posix_memalign
  * falls back to malloc -- correct, merely less tight -- and the arm actually
  * taken is measured after append rather than assumed. */
+/* E55b (directive COPY_MAP_ONAIR_RECOMMENDATION_v0.57.md SS3.2): land the module image at an
+ * address that is a VALID module alignment but not 64-byte aligned, so the COPY arm of
+ * `stream.resource.try_map` runs instead of the map arm.  E29 established the mechanism on
+ * x86-64 native; the AArch64 cFS side had never observed it -- every model there took the map
+ * arm -- and that is the gap this knob exists to close.
+ *
+ * Fail-closed on every axis, because an offset that does not apply must not look like one that
+ * did (D69: the verdict must never be the only record of the setting):
+ *   - not a plain integer, negative, or absurdly large  -> refuse
+ *   - not a multiple of 8   -> refuse.  E29 measured module VERIFICATION FAILURE for offsets
+ *     that are not 8-byte multiples, and the directive says not to assume AArch64 behaves the
+ *     same without checking.  Refusing keeps "the module was rejected" from being mistaken for
+ *     "the copy arm ran".
+ *   - a multiple of 64      -> refuse.  It does not change the alignment class at all, so it
+ *     cannot produce copy; accepting it would let a no-op look like a control.
+ *   - built with AI_LEARNER_ALLOW_CONDITIONAL_MAP=1 -> refuse.  Plan SS2.1: the conditional tier
+ *     refuses before runtime creation when the precondition is unmet, and this knob must not be
+ *     used to walk around that.  Copy cells run on the UNCONDITIONAL path only.
+ * Returns the offset, or -1 to refuse (the caller turns that into an init refusal). */
+static long AI_LEARNER_BlobAlignOffset(const char** why) {
+  const char* e = getenv("AI_LEARNER_BLOB_ALIGN_OFFSET");
+  *why = "unset";
+  if (e == NULL) return 0;
+  while (*e == ' ' || *e == '\t') e++;
+  if (*e == '\0') { *why = "set but empty"; return -1; }
+  char* end = NULL; errno = 0;
+  long v = strtol(e, &end, 10);
+  if (errno != 0 || end == e) { *why = "not an integer"; return -1; }
+  while (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r') end++;
+  if (*end != '\0') { *why = "trailing garbage"; return -1; }
+  if (v < 0 || v > 4096) { *why = "out of range [0,4096]"; return -1; }
+  if (v % 8 != 0) { *why = "not a multiple of 8 (E29: module verification fails)"; return -1; }
+  if (v != 0 && v % 64 == 0) { *why = "multiple of 64 changes no alignment class"; return -1; }
+#if AI_LEARNER_ALLOW_CONDITIONAL_MAP
+  if (v != 0) { *why = "refused: conditional admission is enabled (plan SS2.1)"; return -1; }
+#endif
+  *why = "applied";
+  return v;
+}
+
 static void* AI_LEARNER_AllocModuleImage(size_t n, int* out_mod64) {
+  const char* why = "unset";
+  long off = AI_LEARNER_BlobAlignOffset(&why);
+  g.blob_align_offset_requested = off;
+  g.blob_align_offset_state = why;
+  if (off < 0) { *out_mod64 = -1; g.blob_alloc = NULL; return NULL; }
   void* p = NULL;
-  if (posix_memalign(&p, 64, n) != 0) p = NULL;
-  if (!p) p = malloc(n);                    /* correct, only less tight */
-  *out_mod64 = p ? (int)(((uintptr_t)p) % 64) : -1;
-  return p;
+  if (posix_memalign(&p, 64, n + (size_t)off) != 0) p = NULL;
+  if (!p) p = malloc(n + (size_t)off);      /* correct, only less tight */
+  g.blob_alloc = p;                          /* free THIS, not the offset pointer */
+  void* q = p ? (void*)((char*)p + off) : NULL;
+  *out_mod64 = q ? (int)(((uintptr_t)q) % 64) : -1;
+  return q;
 }
 
 /* Opt-in conditional admission (E29).  Default 0: every existing deployment
@@ -411,6 +535,19 @@ static int32 AI_LEARNER_Init(void) {
     AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
   }
   g.blob = AI_LEARNER_AllocModuleImage((size_t)g.blob_len, &g.module_ptr_mod64);
+  if (g.blob_align_offset_requested < 0) {
+    fclose(f);
+    AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"blob_align\",\"verdict\":\"ALIGN_OFFSET_INVALID\","
+                    "\"reason\":\"%s\"}\n", g.blob_align_offset_state ? g.blob_align_offset_state : "?");
+    CFE_EVS_SendEvent(EID_NO_FILE, CFE_EVS_EventType_ERROR,
+                      "AI_LEARNER: AI_LEARNER_BLOB_ALIGN_OFFSET refused (%s)",
+                      g.blob_align_offset_state ? g.blob_align_offset_state : "?");
+    AI_LEARNER_Cleanup(); return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+  }
+  AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"blob_align\",\"requested_offset\":%ld,"
+                  "\"state\":\"%s\",\"module_ptr_mod64\":%d}\n",
+                  g.blob_align_offset_requested,
+                  g.blob_align_offset_state ? g.blob_align_offset_state : "?", g.module_ptr_mod64);
   if (!g.blob || fread(g.blob, 1, (size_t)g.blob_len, f) != (size_t)g.blob_len) {
     fclose(f);
     CFE_EVS_SendEvent(EID_NO_FILE, CFE_EVS_EventType_ERROR, "AI_LEARNER: cannot read %s (%ld B)", AI_LEARNER_MODEL_FILE, g.blob_len);
@@ -554,13 +691,25 @@ static int32 AI_LEARNER_Init(void) {
           FILE* fo = fopen(e25_out, "wb");
           if (fo) {
             for (long v = 0; v < nvec; ++v) {
-              float yv[CONTRACT_OUTPUT_ELEMS];
+              /* E46/D75: this was the ONE buffer D52 missed. Its three siblings (:635 feat,
+               * :652 out, :683 outs) were moved to static by D52 because they are sized by the
+               * CONTRACT and an OPS-SAT-sized model overflows the task stack; `yv` is sized the
+               * same way and stayed automatic, and the stack gate at :326 counts neither it nor
+               * them (it is base + CONTRACT_KERNEL_STACK_BYTES only). With the WGAN denoiser
+               * contract (CONTRACT_OUTPUT_ELEMS = 150528) this is 602,112 B against a 262,144 B
+               * base -- the D52 condition exactly, in the replay path instead of the SB path.
+               * static is sound here ONLY because the contract declares
+               * analysis_domain.required_premises.max_in_flight_calls = 1 (E40) and both C
+               * runners are single-task: this buffer is not re-entrant, and that premise is the
+               * reason it may be shared, not an accident of the current code. */
+              static float yv[CONTRACT_OUTPUT_ELEMS];
               iree_status_t s2 = iree_hal_buffer_map_write(iree_hal_buffer_view_buffer(g.x), 0,
                   xin + v * CONTRACT_INPUT_ELEMS, CONTRACT_INPUT_ELEMS * sizeof(float));
               if (!iree_status_is_ok(s2)) { iree_status_free(s2); break; }
               iree_runtime_call_t c2; iree_hal_buffer_view_t* r2 = NULL;
               s2 = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &c2);
               if (!iree_status_is_ok(s2)) { iree_status_free(s2); break; }
+              AI_LEARNER_CALL_ENTER();
               s2 = iree_runtime_call_inputs_push_back_buffer_view(&c2, g.x);
               if (iree_status_is_ok(s2)) s2 = iree_runtime_call_invoke(&c2, 0);
               if (iree_status_is_ok(s2)) s2 = iree_runtime_call_outputs_pop_front_buffer_view(&c2, &r2);
@@ -568,6 +717,7 @@ static int32 AI_LEARNER_Init(void) {
               if (iree_status_is_ok(s2)) { fwrite(yv, sizeof yv, 1, fo); done++; }
               else iree_status_free(s2);
               if (r2) iree_hal_buffer_view_release(r2);
+              AI_LEARNER_CALL_EXIT();
               iree_runtime_call_deinitialize(&c2);
             }
             fclose(fo);
@@ -645,8 +795,9 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   iree_runtime_call_t call;
   s = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &call);
   if (!iree_status_is_ok(s)) { g.n_fail_input++; AI_LEARNER_NoteFail("call_initialize", s); return; }
+  AI_LEARNER_CALL_ENTER();
   s = iree_runtime_call_inputs_push_back_buffer_view(&call, g.x);
-  if (!iree_status_is_ok(s)) { g.n_fail_input++; AI_LEARNER_NoteFail("inputs_push_back", s); iree_runtime_call_deinitialize(&call); return; }
+  if (!iree_status_is_ok(s)) { g.n_fail_input++; AI_LEARNER_NoteFail("inputs_push_back", s); AI_LEARNER_CALL_EXIT(); iree_runtime_call_deinitialize(&call); return; }
   double t0 = now_us();
   iree_status_t st = iree_runtime_call_invoke(&call, 0);
   iree_hal_buffer_view_t* ret = NULL; static float out[CONTRACT_OUTPUT_ELEMS]; int ok = 0;  /* D52: was automatic */
@@ -658,6 +809,7 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   }
   double dt = now_us() - t0;
   if (ret) iree_hal_buffer_view_release(ret);
+  AI_LEARNER_CALL_EXIT();
   iree_runtime_call_deinitialize(&call);
   if (!ok) return;
   g.n_infer++; g.lat_sum_us += dt; g.lat_last_us = dt; if (dt > g.lat_max_us) g.lat_max_us = dt;
@@ -683,19 +835,34 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
     static char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8]; AI_LEARNER_FormatOut(outs, sizeof outs);  /* D52: was automatic, 16 B per output element */
     CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_INFORMATION, "AI_LEARNER completed=%u/%u mean=%.1fus max=%.1fus hal_peak=%ld within_bounded=%d",
                       (unsigned)g.n_infer, (unsigned)g.n_attempt, g.lat_sum_us / g.n_infer, g.lat_max_us, (long)stats.device_bytes_peak, within);
+    long full_bytes = -1; const char* full_path = AI_LEARNER_WriteFullOut(outs, &full_bytes);
+    char ohex[65]; sha256_hex((const unsigned char*)g.out, sizeof(float) * (size_t)CONTRACT_OUTPUT_ELEMS, ohex);
+    char head[128], tail[128]; size_t ho = 0, to = 0;
+    const int NS = CONTRACT_OUTPUT_ELEMS < 6 ? CONTRACT_OUTPUT_ELEMS : 6;
+    for (int k = 0; k < NS && ho + 24 < sizeof head; ++k)
+      ho += (size_t)snprintf(head + ho, sizeof head - ho, "%s%.6f", k ? "," : "", g.out[k]);
+    for (int k = CONTRACT_OUTPUT_ELEMS - NS; k < CONTRACT_OUTPUT_ELEMS && to + 24 < sizeof tail; ++k)
+      to += (size_t)snprintf(tail + to, sizeof tail - to, "%s%.6f", k == CONTRACT_OUTPUT_ELEMS - NS ? "" : ",", g.out[k]);
     AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"%s\",\"target\":\"%s\",\"attempted\":%u,\"completed\":%u,\"fail_input\":%u,\"fail_invoke\":%u,\"fail_output\":%u,"
-                    "\"mean_us\":%.2f,\"max_us\":%.2f,\"last_us\":%.2f,\"out0\":%.5f,\"out\":[%s]}\n",
+                    "\"mean_us\":%.2f,\"max_us\":%.2f,\"last_us\":%.2f,\"out0\":%.5f,"
+                    "\"out_elems\":%d,\"out_sha256\":\"%s\",\"out_head\":[%s],\"out_tail\":[%s],"
+                    "\"out_full_file\":%s%s%s,\"out_full_file_bytes\":%ld,\"out_full_file_reason\":\"%s\",\"out_record_truncates\":false}\n",
                     CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE,
                     (unsigned)g.n_attempt, (unsigned)g.n_infer, (unsigned)g.n_fail_input, (unsigned)g.n_fail_invoke, (unsigned)g.n_fail_output,
-                    g.lat_sum_us / g.n_infer, g.lat_max_us, g.lat_last_us, g.out[0], outs);
+                    g.lat_sum_us / g.n_infer, g.lat_max_us, g.lat_last_us, g.out[0],
+                    (int)CONTRACT_OUTPUT_ELEMS, ohex, head, tail,
+                    full_path ? "\"" : "", full_path ? full_path : "null", full_path ? "\"" : "", full_bytes, g_full_out_reason);
     AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"mem\",\"model\":\"%s\",\"target\":\"%s\",\"completed\":%u,\"hal_peak\":%ld,\"peak_within_bounded\":%s,"
                     "\"admitted_budget_bytes\":%ld,\"peak_within_admitted_budget\":%s,\"admission_mode\":\"%s\","
-                    "\"hal_bytes_per_call_amortized\":%.1f,\"process_rss_kb\":%ld,\"process_rss_delta_init_kb\":%ld}\n",
+                    "\"hal_bytes_per_call_amortized\":%.1f,\"process_rss_kb\":%ld,\"process_rss_delta_init_kb\":%ld,"
+                    "\"max_active_calls\":%d,\"active_calls_now\":%d,\"call_counter_balanced\":%s}\n",
                     CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE,
                     (unsigned)g.n_infer, (long)stats.device_bytes_peak, within ? "true" : "false",
                     admitted_budget, within_budget ? "true" : "false",
                     g.conditional_map ? "conditional_map" : "unconditional",
-                    (double)stats.device_bytes_allocated / g.n_infer, rss_kb(), g.rss_kb_init1 - g.rss_kb_init0);
+                    (double)stats.device_bytes_allocated / g.n_infer, rss_kb(), g.rss_kb_init1 - g.rss_kb_init0,
+                    g_max_active_calls, g_active_calls,
+                    (g_active_calls == 0 && !g_call_counter_underflow) ? "true" : "false");
   }
 }
 

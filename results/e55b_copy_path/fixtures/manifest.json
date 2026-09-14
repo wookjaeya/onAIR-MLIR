@@ -1,0 +1,71 @@
+{
+ "note": "The three regenerable input sets are NOT stored: mk_e25_inputs.py rebuilds them byte for byte from in-tree fixtures and verifies every sample against the E45/E31 manifest hashes (E31/E26d/E45 rule -- deterministic regeneration is archived as the recipe plus the hash, not as the bytes). wgan's set IS in-tree already, at the path below, and is staged from there rather than copied.",
+ "sets": [
+  {
+   "model": "b2_resnet",
+   "in_tree": null,
+   "sha256": "18563273357d9a002e19c1b62558ea1d12bd50bbdd435de0e1faf6e37621d10a",
+   "samples": 34,
+   "regenerate": [
+    "harness/mk_e25_inputs.py",
+    "--fixture",
+    "results/e34_two_models/b2_resnet/fixture",
+    "--layout",
+    "nchw",
+    "--contract",
+    "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
+    "--out-bin",
+    "results/e55b_copy_path/fixtures/b2_resnet.e25_inputs.bin",
+    "--out-order",
+    "results/e55b_copy_path/fixtures/b2_resnet.replay_order.json"
+   ]
+  },
+  {
+   "model": "b3_deepae",
+   "in_tree": null,
+   "sha256": "d0a7949e94af0dc61671d9cab37d02afb2c961aee4d6fb7d3d3e5a673e99f298",
+   "samples": 34,
+   "regenerate": [
+    "harness/mk_e25_inputs.py",
+    "--fixture",
+    "results/e34_two_models/b3_deepae/fixture",
+    "--layout",
+    "nchw",
+    "--contract",
+    "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
+    "--out-bin",
+    "results/e55b_copy_path/fixtures/b3_deepae.e25_inputs.bin",
+    "--out-order",
+    "results/e55b_copy_path/fixtures/b3_deepae.replay_order.json"
+   ]
+  },
+  {
+   "model": "smartcam",
+   "in_tree": null,
+   "sha256": "e3de5c6aa83282cedb33a1a73c85d7399b66840870923d403528e49fd0889c7b",
+   "samples": 5,
+   "regenerate": [
+    "harness/mk_e25_inputs.py",
+    "--fixture",
+    "results/e31_smartcam_equivalence/fixture",
+    "--layout",
+    "nchw",
+    "--contract",
+    "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+    "--kinds",
+    "real_example,edge",
+    "--out-bin",
+    "results/e55b_copy_path/fixtures/smartcam.e25_inputs.bin",
+    "--out-order",
+    "results/e55b_copy_path/fixtures/smartcam.replay_order.json"
+   ]
+  },
+  {
+   "model": "wgan",
+   "in_tree": "results/e53_wgan_aarch64/e25_inputs_1sample.bin",
+   "sha256": "ff92b3170f152fd59dabe5ab20918e4817cd82dc3471db6270a82fce7a5336a0",
+   "samples": 1,
+   "regenerate": null
+  }
+ ]
+}

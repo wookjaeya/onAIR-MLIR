@@ -12,6 +12,12 @@ back out of what the app itself recorded in the guest log, or out of the contrac
 comparison JSONs.  The prose (title, plan, reuse note, not_claimed) is declared here; the
 numbers are not.
 
+E48 SS4-4 generalised it the way E34 generalised `model_fixture.py`: the reusable readers
+(`stages`, `record_count`, `cfs_cell`, `semantics`) now take PATHS as arguments instead of
+reaching for module constants, so another experiment reuses the code by passing values --
+not by adding a branch and not by hand-assembling a second summary (D62 / D64).  E36b's own
+model list and file names stay here as this experiment's values.
+
 It also normalises the budget key.  E36 writes `budget_bytes`/`admitted_budget_bytes` and
 the hand-written E36b wrote `budget`; both names are kept so nothing that already reads
 this file breaks, and `budget_key_note` records that they are the same quantity.
@@ -62,9 +68,12 @@ def record_count(st, stage):
     """그 stage 의 레코드가 몇 건 있었는가 — 페이로드가 잘려도 **있었다는 사실은 센다**."""
     return len(st.get(stage, [])) + st.get("__unparsed__", {}).get(stage, 0)
 
-def cfs_cell(model, kind):
-    path = os.path.join(CFS, LOGS[kind] % SHORT[model])
-    if not os.path.exists(path):
+def cfs_cell(path):
+    """게스트 로그 한 건에서 그 셀의 판정·예산·추론 수를 읽는다.
+
+    E48 SS4-4: 인자는 **경로**다. 이전 판은 (model, kind)를 받아 모듈 상수 CFS/LOGS/SHORT를
+    다시 찾았으므로 다른 실험이 쓰려면 그 상수를 바꿔야 했다."""
+    if not path or not os.path.exists(path):
         return {"error": "missing log", "log": None}
     txt = open(path, encoding="utf-8", errors="replace").read()
     st = stages(path)
@@ -106,9 +115,11 @@ def _json(path):
         return json.load(fh)
 
 
-def semantics(path_rel):
-    """비교 판정에서 값을 읽는다. 파일이 없으면 지어내지 않고 사유를 남긴다."""
-    path = os.path.join(ROOT, path_rel)
+def semantics(path_rel, root=None):
+    """비교 판정에서 값을 읽는다. 파일이 없으면 지어내지 않고 사유를 남긴다.
+
+    E48 SS4-4: `root`를 값으로 받는다(기본은 이 저장소). 경로는 항상 저장소 상대로 기록한다."""
+    path = os.path.join(root or ROOT, path_rel)
     if not os.path.exists(path):
         return {"error": "missing comparison", "file": path_rel}
     c = _json(path)
@@ -145,8 +156,8 @@ def model_block(model):
             "results/e36b_aarch64_models/%s/comparison_aarch64.json" % model),
         "semantics_cfs_aarch64": semantics(
             "results/e36b_aarch64_models/%s/comparison_cfs_aarch64.json" % model),
-        "cfs_admit": cfs_cell(model, "cfs_admit"),
-        "cfs_deny_B_minus_1": cfs_cell(model, "cfs_deny_B_minus_1"),
+        "cfs_admit": cfs_cell(os.path.join(CFS, LOGS["cfs_admit"] % SHORT[model])),
+        "cfs_deny_B_minus_1": cfs_cell(os.path.join(CFS, LOGS["cfs_deny_B_minus_1"] % SHORT[model])),
         "equivalence_log": "results/e36b_aarch64_models/cfs/%s_equiv.log" % SHORT[model],
     }
 

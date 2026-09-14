@@ -1,0 +1,320 @@
+{
+  "tool": "harness/e51_precondition_trace.py",
+  "experiment": "E51",
+  "stage": 1,
+  "plan": "docs/plans/E51_claim_preconditions.md SS1",
+  "review": "docs/reviews/DECISIONS_v0_52_REVIEW.md SS5.1",
+  "purpose": "검토서 SS5.1 의 네 질문에 원자료로 답한다. 검토서는 v0.52 저장소를 다시 실행·검증하지 않았다고 스스로 적었으므로, E50 의 산문이 아니라 실행이 근거다.",
+  "adds_no_gate": "이 단계는 새 게이트를 만들지 않는다 — E50 이 바로 이 조건을 hard fail 로 만들었다가 유형 (B) 과잉 거부를 냈다 (EVIDENCE_v0.52_E50.md SS3).",
+  "Q1_checks_called": {
+    "method": "실제 production 진입점 make_contract.build_contract() 를 sys.settrace 아래에서 in-process 실행하고, 각 검사가 사는 줄이 실행됐는지 기록한다. 줄 번호는 실행 시점에 anchor 문자열로 찾는다 -- 못 찾으면 false 가 아니라 anchor_not_found (D51).",
+    "fixture": {
+      "invocation": "results/e14_aarch64_qemu/x86_64/vmfb/mlp16k.invocation.json",
+      "target": "x86_64",
+      "model": "mlp16k"
+    },
+    "build_succeeded": true,
+    "build_error": null,
+    "bound_method": "static_from_stream_layout",
+    "checks": [
+      {
+        "id": "supported_ops__regex_parser",
+        "question": "Q1 지원 연산",
+        "file": "harness/static_mem_bound.py",
+        "anchor": "unknown_ops = sorted({mm.group(1) + \".\" + mm.group(2) for mm in _OP_RE.finditer(body)}",
+        "line": 179,
+        "locate_error": null,
+        "called": true,
+        "what_it_checks": "entry body 안의 stream.(resource|tensor).* 중 화이트리스트 밖 op 을 unresolved 로 올린다 (D13)"
+      },
+      {
+        "id": "supported_ops__structural_walker",
+        "question": "Q1 지원 연산",
+        "file": "harness/mlir_alloc_walk.py",
+        "anchor": "if name not in KNOWN_ENTRY_OPS:",
+        "line": 176,
+        "locate_error": null,
+        "called": true,
+        "what_it_checks": "같은 검사의 두 번째 독립 구현 (E19 의 두 구현 설계)"
+      },
+      {
+        "id": "async_ops__structural_walker",
+        "question": "Q1 비동기 연산",
+        "file": "harness/mlir_alloc_walk.py",
+        "anchor": "if name.startswith(\"stream.async.\"):",
+        "line": 172,
+        "locate_error": null,
+        "called": true,
+        "what_it_checks": "post-layout entry 의 stream.async.* 를 pre_scheduling_ops + unresolved 로 보고한다 (D86)"
+      },
+      {
+        "id": "unclassified_alloc__bound_decision",
+        "question": "Q1 미분류 할당",
+        "file": "harness/make_contract.py",
+        "anchor": "all_static = p[\"entry_found\"] and not unresolved",
+        "line": 469,
+        "locate_error": null,
+        "called": true,
+        "what_it_checks": "unresolved 가 하나라도 있으면 all_static=False -> bound_method=NONE"
+      },
+      {
+        "id": "unclassified_alloc__cross_check",
+        "question": "Q1 미분류 할당",
+        "file": "harness/mlir_alloc_walk.py",
+        "anchor": "if bool(structural.get(\"unresolved\")) != bool(regex_based.get(\"unresolved\")):",
+        "line": 322,
+        "locate_error": null,
+        "called": true,
+        "what_it_checks": "두 추출기의 unresolved 유무가 다르면 diff -> make_contract 가 hard fail"
+      }
+    ],
+    "verdict": "PASS"
+  },
+  "Q2_violation_produces_no_deployable_artifact": {
+    "method": "보관 layout IR 을 외과적으로 편집해(재컴파일 없음 — 작업 규율 7) 전제를 하나씩 깨고 production 서브프로세스 경로를 실제로 돌린다. 주입은 entry 의 terminator 앞에 넣는다 — 첫 판은 util.return 뒤에 넣어 MLIR 자체가 깨졌고, walker 가 조용히 이전(pre-layout) print 로 후퇴해 세 셀 모두 '주입과 무관한 이유로' 거부됐다. 거부는 귀속될 때만 근거다.",
+    "positive_control": {
+      "make_contract_rc": 0,
+      "contract_file_written": true,
+      "bound_method": "static_from_stream_layout",
+      "unresolved_sizes": [],
+      "gen_contract_header_rc": 2,
+      "header_file_written": false,
+      "stderr_head": "",
+      "extractors": {
+        "regex_parser": {
+          "unresolved": [],
+          "outputs": [
+            8
+          ],
+          "transient_slabs": [
+            65536
+          ]
+        },
+        "structural_walker": {
+          "unresolved": [],
+          "pre_scheduling_ops": [],
+          "outputs": [
+            8
+          ],
+          "transient_slabs": [
+            65536
+          ],
+          "parse_error": null
+        },
+        "diff_against_regex": [],
+        "diff_if_D86_branch_removed": []
+      },
+      "ok": true
+    },
+    "cells": [
+      {
+        "id": "unrecognized_resource_op",
+        "premise": "지원 연산 (화이트리스트 밖 stream.resource.* 는 크기를 알 수 없다, D13)",
+        "inject": "\n  %e51_unk = stream.resource.frobnicate %c8 : index -> !stream.resource<transient>{%c8}",
+        "layout_ir": "../../../tmp/e51_stage1_2xjuuk7w/injected.unrecognized_resource_op.layout_ir.txt",
+        "injected_line": "%e51_unk = stream.resource.frobnicate %c8 : index -> !stream.resource<transient>{%c8}",
+        "seen_by_extractor": [
+          "regex_parser"
+        ],
+        "extractors": {
+          "regex_parser": {
+            "unresolved": [
+              "unrecognized_op:stream.resource.frobnicate"
+            ],
+            "outputs": [
+              8
+            ],
+            "transient_slabs": [
+              65536
+            ]
+          },
+          "structural_walker": {
+            "unresolved": [
+              "pre_scheduling_alloc_op:stream.async.clone",
+              "pre_scheduling_alloc_op:stream.async.clone",
+              "pre_scheduling_alloc_op:stream.async.clone",
+              "pre_scheduling_alloc_op:stream.async.dispatch",
+              "pre_scheduling_alloc_op:stream.async.dispatch",
+              "pre_scheduling_alloc_op:stream.async.clone"
+            ],
+            "pre_scheduling_ops": [
+              "stream.async.clone",
+              "stream.async.dispatch"
+            ],
+            "outputs": [],
+            "transient_slabs": [],
+            "parse_error": null
+          },
+          "diff_against_regex": [
+            "outputs",
+            "transient_slabs"
+          ],
+          "diff_if_D86_branch_removed": [
+            "outputs",
+            "transient_slabs",
+            "unresolved(presence)"
+          ]
+        },
+        "refused_as": "no_contract_file",
+        "deployable_artifact_produced": false,
+        "make_contract_rc": 1,
+        "contract_file_written": false,
+        "bound_method": null,
+        "unresolved_sizes": null,
+        "gen_contract_header_rc": null,
+        "header_file_written": null,
+        "stderr_head": "one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):\n  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['outputs', 'transient_slabs']; the walker reports allocating pre-scheduling op(s) ['stream.async.clone', 'stream.async.dispatch'] in the post-layout entry, which the regex parser does not scan at all (D84) -- the allocation schedule is not final, so sizes read from this entry do not bound execution (pass --allow-structural-mismat"
+      },
+      {
+        "id": "pre_scheduling_async_op",
+        "premise": "비동기 연산 (post-layout entry 의 stream.async.* = 스케줄 미완료, D86)",
+        "inject": "\n  %e51_async = stream.async.alloca : !stream.resource<transient>{%c8}",
+        "layout_ir": "../../../tmp/e51_stage1_2xjuuk7w/injected.pre_scheduling_async_op.layout_ir.txt",
+        "injected_line": "%e51_async = stream.async.alloca : !stream.resource<transient>{%c8}",
+        "seen_by_extractor": [
+          "structural_walker"
+        ],
+        "extractors": {
+          "regex_parser": {
+            "unresolved": [],
+            "outputs": [
+              8
+            ],
+            "transient_slabs": [
+              65536
+            ]
+          },
+          "structural_walker": {
+            "unresolved": [
+              "pre_scheduling_alloc_op:stream.async.alloca"
+            ],
+            "pre_scheduling_ops": [
+              "stream.async.alloca"
+            ],
+            "outputs": [
+              8
+            ],
+            "transient_slabs": [
+              65536
+            ],
+            "parse_error": null
+          },
+          "diff_against_regex": [
+            "unresolved(presence)"
+          ],
+          "diff_if_D86_branch_removed": []
+        },
+        "refused_as": "no_contract_file",
+        "deployable_artifact_produced": false,
+        "make_contract_rc": 1,
+        "contract_file_written": false,
+        "bound_method": null,
+        "unresolved_sizes": null,
+        "gen_contract_header_rc": null,
+        "header_file_written": null,
+        "stderr_head": "one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):\n  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['unresolved(presence)']; the walker reports allocating pre-scheduling op(s) ['stream.async.alloca'] in the post-layout entry, which the regex parser does not scan at all (D84) -- the allocation schedule is not final, so sizes read from this entry do not bound execution (pass --allow-structural-mismatch to override)"
+      },
+      {
+        "id": "unresolvable_alloca_size",
+        "premise": "미분류 할당 (지원 op 이지만 크기 피연산자가 상수로 풀리지 않는다)",
+        "inject": "\n  %e51_sz = arith.addi %c8, %c8 : index\n  %e51_res, %e51_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%e51_sz} => !stream.timepoint",
+        "layout_ir": "../../../tmp/e51_stage1_2xjuuk7w/injected.unresolvable_alloca_size.layout_ir.txt",
+        "injected_line": "%e51_sz = arith.addi %c8, %c8 : index\n  %e51_res, %e51_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%e51_sz} => !stream.timepoint",
+        "seen_by_extractor": [
+          "regex_parser",
+          "structural_walker"
+        ],
+        "extractors": {
+          "regex_parser": {
+            "unresolved": [
+              "%e51_sz"
+            ],
+            "outputs": [
+              8
+            ],
+            "transient_slabs": [
+              65536
+            ]
+          },
+          "structural_walker": {
+            "unresolved": [
+              "alloca_transient:non_constant_def:arith.addi"
+            ],
+            "pre_scheduling_ops": [],
+            "outputs": [
+              8
+            ],
+            "transient_slabs": [
+              65536
+            ],
+            "parse_error": null
+          },
+          "diff_against_regex": [],
+          "diff_if_D86_branch_removed": []
+        },
+        "refused_as": "contract_states_no_bound_and_no_header",
+        "deployable_artifact_produced": false,
+        "make_contract_rc": 0,
+        "contract_file_written": true,
+        "bound_method": "NONE",
+        "unresolved_sizes": [
+          "%e51_sz"
+        ],
+        "gen_contract_header_rc": 2,
+        "header_file_written": false,
+        "stderr_head": ""
+      }
+    ],
+    "refusals_attributable_to_injection": true,
+    "verdict": "PASS"
+  },
+  "Q3_archived_models_unchanged": {
+    "method": "harness/contract_negative_tests.py::regression_check 를 그대로 호출한다 — 14/14 diff 0 은 이미 거기 있고, 두 번째 구현을 만들면 같은 사실이 서로를 대조하지 않는 두 자리에 산다 (E44).",
+    "contracts_unchanged": 14,
+    "contracts_checked": 14,
+    "failed": [],
+    "skipped": [],
+    "verdict": "PASS"
+  },
+  "Q4_audit_vs_deployment_scope": {
+    "question": "Q4 감사 전용 도구의 통과와 배포 계약 생성의 통과가 혼동되지 않는가",
+    "audit_tool": {
+      "name": "harness/e49_alloc_ledger.py",
+      "role": "감사 — 같은 IR 을 독립적으로 훑어 계약의 I·O·T·C 를 대조한다",
+      "models_covered": [
+        "b2_resnet",
+        "b3_deepae",
+        "smartcam",
+        "wgan"
+      ],
+      "models_covered_count": 4,
+      "invoked_by_contract_generation": false,
+      "invoked_by_evidence": "harness/make_contract.py 소스에 'e49_alloc_ledger' 문자열 0 건",
+      "pass_means": "이 네 모델에서 ledger 합계가 계약값과 같다"
+    },
+    "deployment_contract_path": {
+      "name": "harness/make_contract.py",
+      "role": "배포 — 계약 파일을 발행하거나 거부한다",
+      "applies_to": "모든 make_contract.py 호출 (모델 목록을 갖지 않는다)",
+      "archived_contracts_in_repo": 30,
+      "checks_wired_in": [
+        "supported_ops__regex_parser",
+        "supported_ops__structural_walker",
+        "async_ops__structural_walker",
+        "unclassified_alloc__bound_decision",
+        "unclassified_alloc__cross_check"
+      ],
+      "pass_means": "이 호출의 layout IR 에서 전제 검사가 통과했다 — 다른 모델에 대해서는 아무 말도 하지 않는다"
+    },
+    "why_they_are_not_the_same_pass": "ledger 는 4 개 모델만 보고 계약 생성 경로에서 호출되지 않는다(미호출). 계약 생성 경로는 모델 목록이 없고 호출마다 그 입력에 대해서만 판정한다. 따라서 ledger 의 통과는 배포 계약의 통과가 아니고, 그 반대도 아니다. 저장소의 계약 30 개 중 ledger 가 본 것은 4 개다.",
+    "verdict": "PASS"
+  },
+  "verdicts": {
+    "Q1": "PASS",
+    "Q2": "PASS",
+    "Q3": "PASS",
+    "Q4": "PASS"
+  },
+  "mutated_layout_irs": "결정적 재생성이라 저장하지 않는다 — 보관 IR 한 개에 한 줄을 entry terminator 앞에 넣는 규칙이 전부다(E26d 의 손상 vmfb 와 같은 처리). --out-dir 로 보존할 수 있다.",
+  "verdict": "PASS"
+}

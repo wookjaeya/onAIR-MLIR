@@ -1,0 +1,516 @@
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.initializer {
+  %c73728 = arith.constant 73728 : index
+  %c3456 = arith.constant 3456 : index
+  %c512 = arith.constant 512 : index
+  %c589824 = arith.constant 589824 : index
+  %c294912 = arith.constant 294912 : index
+  %c384 = arith.constant 384 : index
+  %cst = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c384} = dense_resource<__elided__> : tensor<32x3xf32>
+  %cst_0 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c294912} = dense_resource<__elided__> : tensor<64x128x3x3xf32>
+  %cst_1 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c589824} = dense_resource<__elided__> : tensor<128x128x3x3xf32>
+  %cst_2 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c512} = dense_resource<__elided__> : tensor<128xf32>
+  %cst_3 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c589824} = dense_resource<__elided__> : tensor<128x128x3x3xf32>
+  %cst_4 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c512} = dense_resource<__elided__> : tensor<128xf32>
+  %cst_5 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c589824} = dense_resource<__elided__> : tensor<128x128x3x3xf32>
+  %cst_6 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c512} = dense_resource<__elided__> : tensor<128xf32>
+  %cst_7 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c589824} = dense_resource<__elided__> : tensor<128x128x3x3xf32>
+  %cst_8 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c512} = dense_resource<__elided__> : tensor<128xf32>
+  %cst_9 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c589824} = dense_resource<__elided__> : tensor<128x128x3x3xf32>
+  %cst_10 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c512} = dense_resource<__elided__> : tensor<128xf32>
+  %cst_11 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c589824} = dense_resource<__elided__> : tensor<128x128x3x3xf32>
+  %cst_12 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c512} = dense_resource<__elided__> : tensor<128xf32>
+  %cst_13 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c294912} = dense_resource<__elided__> : tensor<128x64x3x3xf32>
+  %cst_14 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c512} = dense_resource<__elided__> : tensor<128xf32>
+  %cst_15 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c3456} = dense_resource<__elided__> : tensor<3x32x3x3xf32>
+  %cst_16 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c73728} = dense_resource<__elided__> : tensor<32x64x3x3xf32>
+  %cst_17 = stream.async.constant on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c73728} = dense_resource<__elided__> : tensor<64x32x3x3xf32>
+  util.global.store %cst_1, @__constant_tensor_128x128x3x3xf32 : !stream.resource<constant>
+  util.global.store %cst_3, @__constant_tensor_128x128x3x3xf32_0 : !stream.resource<constant>
+  util.global.store %c589824, @__constant_tensor_128x128x3x3xf32_0__size : index
+  util.global.store %cst_5, @__constant_tensor_128x128x3x3xf32_2 : !stream.resource<constant>
+  util.global.store %c589824, @__constant_tensor_128x128x3x3xf32_2__size : index
+  util.global.store %cst_7, @__constant_tensor_128x128x3x3xf32_4 : !stream.resource<constant>
+  util.global.store %c589824, @__constant_tensor_128x128x3x3xf32_4__size : index
+  util.global.store %cst_9, @__constant_tensor_128x128x3x3xf32_6 : !stream.resource<constant>
+  util.global.store %c589824, @__constant_tensor_128x128x3x3xf32_6__size : index
+  util.global.store %cst_11, @__constant_tensor_128x128x3x3xf32_8 : !stream.resource<constant>
+  util.global.store %c589824, @__constant_tensor_128x128x3x3xf32_8__size : index
+  util.global.store %c589824, @__constant_tensor_128x128x3x3xf32__size : index
+  util.global.store %cst_13, @__constant_tensor_128x64x3x3xf32 : !stream.resource<constant>
+  util.global.store %c294912, @__constant_tensor_128x64x3x3xf32__size : index
+  util.global.store %cst_2, @__constant_tensor_128xf32 : !stream.resource<constant>
+  util.global.store %cst_4, @__constant_tensor_128xf32_1 : !stream.resource<constant>
+  util.global.store %cst_14, @__constant_tensor_128xf32_10 : !stream.resource<constant>
+  util.global.store %c512, @__constant_tensor_128xf32_10__size : index
+  util.global.store %c512, @__constant_tensor_128xf32_1__size : index
+  util.global.store %cst_6, @__constant_tensor_128xf32_3 : !stream.resource<constant>
+  util.global.store %c512, @__constant_tensor_128xf32_3__size : index
+  util.global.store %cst_8, @__constant_tensor_128xf32_5 : !stream.resource<constant>
+  util.global.store %c512, @__constant_tensor_128xf32_5__size : index
+  util.global.store %cst_10, @__constant_tensor_128xf32_7 : !stream.resource<constant>
+  util.global.store %c512, @__constant_tensor_128xf32_7__size : index
+  util.global.store %cst_12, @__constant_tensor_128xf32_9 : !stream.resource<constant>
+  util.global.store %c512, @__constant_tensor_128xf32_9__size : index
+  util.global.store %c512, @__constant_tensor_128xf32__size : index
+  util.global.store %cst, @__constant_tensor_32x3xf32 : !stream.resource<constant>
+  util.global.store %c384, @__constant_tensor_32x3xf32__size : index
+  util.global.store %cst_16, @__constant_tensor_32x64x3x3xf32 : !stream.resource<constant>
+  util.global.store %c73728, @__constant_tensor_32x64x3x3xf32__size : index
+  util.global.store %cst_15, @__constant_tensor_3x32x3x3xf32 : !stream.resource<constant>
+  util.global.store %c3456, @__constant_tensor_3x32x3x3xf32__size : index
+  util.global.store %cst_0, @__constant_tensor_64x128x3x3xf32 : !stream.resource<constant>
+  util.global.store %c294912, @__constant_tensor_64x128x3x3xf32__size : index
+  util.global.store %cst_17, @__constant_tensor_64x32x3x3xf32 : !stream.resource<constant>
+  util.global.store %c73728, @__constant_tensor_64x32x3x3xf32__size : index
+  util.return
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @infer(%arg0: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @infer(%input0: tensor<1x3x224x224xf32>) -> (%output0: tensor<1x3x224x224xf32>)"}} {
+  %c3211264 = arith.constant 3211264 : index
+  %c6653952 = arith.constant 6653952 : index
+  %c26150912 = arith.constant 26150912 : index
+  %c25690112 = arith.constant 25690112 : index
+  %c13075456 = arith.constant 13075456 : index
+  %c6537728 = arith.constant 6537728 : index
+  %c0 = arith.constant 0 : index
+  %c6422528 = arith.constant 6422528 : index
+  %c602112 = arith.constant 602112 : index
+  %c0_i8 = arith.constant 0 : i8
+  %c224 = arith.constant 224 : index
+  %c3 = arith.constant 3 : index
+  %c1 = arith.constant 1 : index
+  %__constant_tensor_32x3xf32 = util.global.load immutable @__constant_tensor_32x3xf32 : !stream.resource<constant>
+  %__constant_tensor_32x3xf32__size = util.global.load immutable @__constant_tensor_32x3xf32__size : index
+  %__constant_tensor_64x128x3x3xf32 = util.global.load immutable @__constant_tensor_64x128x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_64x128x3x3xf32__size = util.global.load immutable @__constant_tensor_64x128x3x3xf32__size : index
+  %__constant_tensor_128x128x3x3xf32 = util.global.load immutable @__constant_tensor_128x128x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32__size = util.global.load immutable @__constant_tensor_128x128x3x3xf32__size : index
+  %__constant_tensor_128xf32 = util.global.load immutable @__constant_tensor_128xf32 : !stream.resource<constant>
+  %__constant_tensor_128xf32__size = util.global.load immutable @__constant_tensor_128xf32__size : index
+  %__constant_tensor_128x128x3x3xf32_0 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_0 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_0__size = util.global.load immutable @__constant_tensor_128x128x3x3xf32_0__size : index
+  %__constant_tensor_128xf32_1 = util.global.load immutable @__constant_tensor_128xf32_1 : !stream.resource<constant>
+  %__constant_tensor_128xf32_1__size = util.global.load immutable @__constant_tensor_128xf32_1__size : index
+  %__constant_tensor_128x128x3x3xf32_2 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_2 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_2__size = util.global.load immutable @__constant_tensor_128x128x3x3xf32_2__size : index
+  %__constant_tensor_128xf32_3 = util.global.load immutable @__constant_tensor_128xf32_3 : !stream.resource<constant>
+  %__constant_tensor_128xf32_3__size = util.global.load immutable @__constant_tensor_128xf32_3__size : index
+  %__constant_tensor_128x128x3x3xf32_4 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_4 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_4__size = util.global.load immutable @__constant_tensor_128x128x3x3xf32_4__size : index
+  %__constant_tensor_128xf32_5 = util.global.load immutable @__constant_tensor_128xf32_5 : !stream.resource<constant>
+  %__constant_tensor_128xf32_5__size = util.global.load immutable @__constant_tensor_128xf32_5__size : index
+  %__constant_tensor_128x128x3x3xf32_6 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_6 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_6__size = util.global.load immutable @__constant_tensor_128x128x3x3xf32_6__size : index
+  %__constant_tensor_128xf32_7 = util.global.load immutable @__constant_tensor_128xf32_7 : !stream.resource<constant>
+  %__constant_tensor_128xf32_7__size = util.global.load immutable @__constant_tensor_128xf32_7__size : index
+  %__constant_tensor_128x128x3x3xf32_8 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_8 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_8__size = util.global.load immutable @__constant_tensor_128x128x3x3xf32_8__size : index
+  %__constant_tensor_128xf32_9 = util.global.load immutable @__constant_tensor_128xf32_9 : !stream.resource<constant>
+  %__constant_tensor_128xf32_9__size = util.global.load immutable @__constant_tensor_128xf32_9__size : index
+  %__constant_tensor_128x64x3x3xf32 = util.global.load immutable @__constant_tensor_128x64x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_128x64x3x3xf32__size = util.global.load immutable @__constant_tensor_128x64x3x3xf32__size : index
+  %__constant_tensor_128xf32_10 = util.global.load immutable @__constant_tensor_128xf32_10 : !stream.resource<constant>
+  %__constant_tensor_128xf32_10__size = util.global.load immutable @__constant_tensor_128xf32_10__size : index
+  %__constant_tensor_3x32x3x3xf32 = util.global.load immutable @__constant_tensor_3x32x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_3x32x3x3xf32__size = util.global.load immutable @__constant_tensor_3x32x3x3xf32__size : index
+  %__constant_tensor_32x64x3x3xf32 = util.global.load immutable @__constant_tensor_32x64x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_32x64x3x3xf32__size = util.global.load immutable @__constant_tensor_32x64x3x3xf32__size : index
+  %__constant_tensor_64x32x3x3xf32 = util.global.load immutable @__constant_tensor_64x32x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_64x32x3x3xf32__size = util.global.load immutable @__constant_tensor_64x32x3x3xf32__size : index
+  %0 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_32x3xf32 : !stream.resource<constant>{%__constant_tensor_32x3xf32__size} -> !stream.resource<*>{%__constant_tensor_32x3xf32__size}
+  %1 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_64x128x3x3xf32 : !stream.resource<constant>{%__constant_tensor_64x128x3x3xf32__size} -> !stream.resource<*>{%__constant_tensor_64x128x3x3xf32__size}
+  %2 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128x128x3x3xf32 : !stream.resource<constant>{%__constant_tensor_128x128x3x3xf32__size} -> !stream.resource<*>{%__constant_tensor_128x128x3x3xf32__size}
+  %3 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128xf32 : !stream.resource<constant>{%__constant_tensor_128xf32__size} -> !stream.resource<*>{%__constant_tensor_128xf32__size}
+  %4 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128x128x3x3xf32_0 : !stream.resource<constant>{%__constant_tensor_128x128x3x3xf32_0__size} -> !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_0__size}
+  %5 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128xf32_1 : !stream.resource<constant>{%__constant_tensor_128xf32_1__size} -> !stream.resource<*>{%__constant_tensor_128xf32_1__size}
+  %6 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128x128x3x3xf32_2 : !stream.resource<constant>{%__constant_tensor_128x128x3x3xf32_2__size} -> !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_2__size}
+  %7 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128xf32_3 : !stream.resource<constant>{%__constant_tensor_128xf32_3__size} -> !stream.resource<*>{%__constant_tensor_128xf32_3__size}
+  %8 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128x128x3x3xf32_4 : !stream.resource<constant>{%__constant_tensor_128x128x3x3xf32_4__size} -> !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_4__size}
+  %9 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128xf32_5 : !stream.resource<constant>{%__constant_tensor_128xf32_5__size} -> !stream.resource<*>{%__constant_tensor_128xf32_5__size}
+  %10 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128x128x3x3xf32_6 : !stream.resource<constant>{%__constant_tensor_128x128x3x3xf32_6__size} -> !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_6__size}
+  %11 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128xf32_7 : !stream.resource<constant>{%__constant_tensor_128xf32_7__size} -> !stream.resource<*>{%__constant_tensor_128xf32_7__size}
+  %12 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128x128x3x3xf32_8 : !stream.resource<constant>{%__constant_tensor_128x128x3x3xf32_8__size} -> !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_8__size}
+  %13 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128xf32_9 : !stream.resource<constant>{%__constant_tensor_128xf32_9__size} -> !stream.resource<*>{%__constant_tensor_128xf32_9__size}
+  %14 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128x64x3x3xf32 : !stream.resource<constant>{%__constant_tensor_128x64x3x3xf32__size} -> !stream.resource<*>{%__constant_tensor_128x64x3x3xf32__size}
+  %15 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_128xf32_10 : !stream.resource<constant>{%__constant_tensor_128xf32_10__size} -> !stream.resource<*>{%__constant_tensor_128xf32_10__size}
+  %16 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_3x32x3x3xf32 : !stream.resource<constant>{%__constant_tensor_3x32x3x3xf32__size} -> !stream.resource<*>{%__constant_tensor_3x32x3x3xf32__size}
+  %17 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_32x64x3x3xf32 : !stream.resource<constant>{%__constant_tensor_32x64x3x3xf32__size} -> !stream.resource<*>{%__constant_tensor_32x64x3x3xf32__size}
+  %18 = stream.async.clone on(#hal.device.affinity<@__device_0>) %__constant_tensor_64x32x3x3xf32 : !stream.resource<constant>{%__constant_tensor_64x32x3x3xf32__size} -> !stream.resource<*>{%__constant_tensor_64x32x3x3xf32__size}
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg0 : !hal.buffer_view> message("input0") shape([%c1, %c3, %c224, %c224]) type(%element_type_f32) encoding(%dense_row_major)
+  %19 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<1x3x224x224xf32> in !stream.resource<external>{%c602112}
+  %20 = stream.async.clone on(#hal.device.affinity<@__device_0>) %19 : !stream.resource<external>{%c602112} -> !stream.resource<*>{%c602112}
+  %21 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_0::@infer_dispatch_0_matmul_like_32x50176x3_f32(%20[%c0 to %c602112 for %c602112], %0[%c0 to %__constant_tensor_32x3xf32__size for %__constant_tensor_32x3xf32__size]) : (!stream.resource<*>{%c602112}, !stream.resource<*>{%__constant_tensor_32x3xf32__size}) -> !stream.resource<*>{%c6422528}
+  %22 = stream.async.splat on(#hal.device.affinity<@__device_0>) %c0_i8 : i8 -> !stream.resource<*>{%c6537728}
+  %23 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_1::@infer_dispatch_1_slow_memcpy(%21[%c0 to %c6422528 for %c6422528], %22[%c0 to %c6537728 for %c6537728]) : (!stream.resource<*>{%c6422528}, !stream.resource<*>{%c6537728}) -> %22{%c6537728}
+  %24 = stream.async.splat on(#hal.device.affinity<@__device_0>) %c0_i8 : i8 -> !stream.resource<*>{%c13075456}
+  %25 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_2::@infer_dispatch_2_conv_64x224x224x32x3x3_f32(%23[%c0 to %c6537728 for %c6537728], %18[%c0 to %__constant_tensor_64x32x3x3xf32__size for %__constant_tensor_64x32x3x3xf32__size], %24[%c0 to %c13075456 for %c13075456]) : (!stream.resource<*>{%c6537728}, !stream.resource<*>{%__constant_tensor_64x32x3x3xf32__size}, !stream.resource<*>{%c13075456}) -> %24{%c13075456}
+  %26 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_3::@infer_dispatch_3_conv_128x224x224x64x3x3_f32(%25[%c0 to %c13075456 for %c13075456], %14[%c0 to %__constant_tensor_128x64x3x3xf32__size for %__constant_tensor_128x64x3x3xf32__size], %15[%c0 to %__constant_tensor_128xf32_10__size for %__constant_tensor_128xf32_10__size]) : (!stream.resource<*>{%c13075456}, !stream.resource<*>{%__constant_tensor_128x64x3x3xf32__size}, !stream.resource<*>{%__constant_tensor_128xf32_10__size}) -> !stream.resource<*>{%c25690112}
+  %27 = stream.async.splat on(#hal.device.affinity<@__device_0>) %c0_i8 : i8 -> !stream.resource<*>{%c26150912}
+  %28 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_4::@infer_dispatch_4_slow_memcpy(%26[%c0 to %c25690112 for %c25690112], %27[%c0 to %c26150912 for %c26150912]) : (!stream.resource<*>{%c25690112}, !stream.resource<*>{%c26150912}) -> %27{%c26150912}
+  %29 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_5::@infer_dispatch_5_conv_128x224x224x128x3x3_f32(%28[%c0 to %c26150912 for %c26150912], %12[%c0 to %__constant_tensor_128x128x3x3xf32_8__size for %__constant_tensor_128x128x3x3xf32_8__size], %13[%c0 to %__constant_tensor_128xf32_9__size for %__constant_tensor_128xf32_9__size], %27[%c0 to %c26150912 for %c26150912]) : (!stream.resource<*>{%c26150912}, !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_8__size}, !stream.resource<*>{%__constant_tensor_128xf32_9__size}, !stream.resource<*>{%c26150912}) -> %27{%c26150912}
+  %30 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_6::@infer_dispatch_6_conv_128x224x224x128x3x3_f32(%29[%c0 to %c26150912 for %c26150912], %10[%c0 to %__constant_tensor_128x128x3x3xf32_6__size for %__constant_tensor_128x128x3x3xf32_6__size], %26[%c0 to %c25690112 for %c25690112], %11[%c0 to %__constant_tensor_128xf32_7__size for %__constant_tensor_128xf32_7__size]) : (!stream.resource<*>{%c26150912}, !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_6__size}, !stream.resource<*>{%c25690112}, !stream.resource<*>{%__constant_tensor_128xf32_7__size}) -> !stream.resource<*>{%c25690112}
+  %31 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_4::@infer_dispatch_4_slow_memcpy(%30[%c0 to %c25690112 for %c25690112], %27[%c0 to %c26150912 for %c26150912]) : (!stream.resource<*>{%c25690112}, !stream.resource<*>{%c26150912}) -> %27{%c26150912}
+  %32 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_5::@infer_dispatch_5_conv_128x224x224x128x3x3_f32(%31[%c0 to %c26150912 for %c26150912], %8[%c0 to %__constant_tensor_128x128x3x3xf32_4__size for %__constant_tensor_128x128x3x3xf32_4__size], %9[%c0 to %__constant_tensor_128xf32_5__size for %__constant_tensor_128xf32_5__size], %27[%c0 to %c26150912 for %c26150912]) : (!stream.resource<*>{%c26150912}, !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_4__size}, !stream.resource<*>{%__constant_tensor_128xf32_5__size}, !stream.resource<*>{%c26150912}) -> %27{%c26150912}
+  %33 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_6::@infer_dispatch_6_conv_128x224x224x128x3x3_f32(%32[%c0 to %c26150912 for %c26150912], %6[%c0 to %__constant_tensor_128x128x3x3xf32_2__size for %__constant_tensor_128x128x3x3xf32_2__size], %30[%c0 to %c25690112 for %c25690112], %7[%c0 to %__constant_tensor_128xf32_3__size for %__constant_tensor_128xf32_3__size]) : (!stream.resource<*>{%c26150912}, !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_2__size}, !stream.resource<*>{%c25690112}, !stream.resource<*>{%__constant_tensor_128xf32_3__size}) -> !stream.resource<*>{%c25690112}
+  %34 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_4::@infer_dispatch_4_slow_memcpy(%33[%c0 to %c25690112 for %c25690112], %27[%c0 to %c26150912 for %c26150912]) : (!stream.resource<*>{%c25690112}, !stream.resource<*>{%c26150912}) -> %27{%c26150912}
+  %35 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_5::@infer_dispatch_5_conv_128x224x224x128x3x3_f32(%34[%c0 to %c26150912 for %c26150912], %4[%c0 to %__constant_tensor_128x128x3x3xf32_0__size for %__constant_tensor_128x128x3x3xf32_0__size], %5[%c0 to %__constant_tensor_128xf32_1__size for %__constant_tensor_128xf32_1__size], %27[%c0 to %c26150912 for %c26150912]) : (!stream.resource<*>{%c26150912}, !stream.resource<*>{%__constant_tensor_128x128x3x3xf32_0__size}, !stream.resource<*>{%__constant_tensor_128xf32_1__size}, !stream.resource<*>{%c26150912}) -> %27{%c26150912}
+  %36 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_6::@infer_dispatch_6_conv_128x224x224x128x3x3_f32(%35[%c0 to %c26150912 for %c26150912], %2[%c0 to %__constant_tensor_128x128x3x3xf32__size for %__constant_tensor_128x128x3x3xf32__size], %33[%c0 to %c25690112 for %c25690112], %3[%c0 to %__constant_tensor_128xf32__size for %__constant_tensor_128xf32__size]) : (!stream.resource<*>{%c26150912}, !stream.resource<*>{%__constant_tensor_128x128x3x3xf32__size}, !stream.resource<*>{%c25690112}, !stream.resource<*>{%__constant_tensor_128xf32__size}) -> !stream.resource<*>{%c25690112}
+  %37 = stream.async.splat on(#hal.device.affinity<@__device_0>) %c0_i8 : i8 -> !stream.resource<*>{%c6653952}
+  %38 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_13::@infer_dispatch_13_elementwise_broadcast_128x112x112_f32(%36[%c0 to %c25690112 for %c25690112], %37[%c0 to %c6653952 for %c6653952]) : (!stream.resource<*>{%c25690112}, !stream.resource<*>{%c6653952}) -> %37{%c6653952}
+  %39 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_14::@infer_dispatch_14_conv_64x112x112x128x3x3_f32(%38[%c0 to %c6653952 for %c6653952], %1[%c0 to %__constant_tensor_64x128x3x3xf32__size for %__constant_tensor_64x128x3x3xf32__size]) : (!stream.resource<*>{%c6653952}, !stream.resource<*>{%__constant_tensor_64x128x3x3xf32__size}) -> !stream.resource<*>{%c3211264}
+  %40 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_15::@infer_dispatch_15_elementwise_broadcast_64x224x224_f32(%39[%c0 to %c3211264 for %c3211264], %24[%c0 to %c13075456 for %c13075456]) : (!stream.resource<*>{%c3211264}, !stream.resource<*>{%c13075456}) -> %24{%c13075456}
+  %41 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_16::@infer_dispatch_16_conv_32x224x224x64x3x3_f32(%40[%c0 to %c13075456 for %c13075456], %17[%c0 to %__constant_tensor_32x64x3x3xf32__size for %__constant_tensor_32x64x3x3xf32__size], %21[%c0 to %c6422528 for %c6422528], %22[%c0 to %c6537728 for %c6537728]) : (!stream.resource<*>{%c13075456}, !stream.resource<*>{%__constant_tensor_32x64x3x3xf32__size}, !stream.resource<*>{%c6422528}, !stream.resource<*>{%c6537728}) -> %22{%c6537728}
+  %42 = stream.async.dispatch on(#hal.device.affinity<@__device_0>) @infer_dispatch_17::@infer_dispatch_17_conv_3x224x224x32x3x3_f32(%41[%c0 to %c6537728 for %c6537728], %16[%c0 to %__constant_tensor_3x32x3x3xf32__size for %__constant_tensor_3x32x3x3xf32__size], %20[%c0 to %c602112 for %c602112]) : (!stream.resource<*>{%c6537728}, !stream.resource<*>{%__constant_tensor_3x32x3x3xf32__size}, !stream.resource<*>{%c602112}) -> !stream.resource<*>{%c602112}
+  %43 = stream.async.clone on(#hal.device.affinity<@__device_0>) %42 : !stream.resource<*>{%c602112} -> !stream.resource<external>{%c602112}
+  %44 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %43 : tensor<1x3x224x224xf32> in !stream.resource<external>{%c602112} -> !hal.buffer_view
+  util.return %44 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.func public @infer(%arg0: !hal.buffer_view) -> !hal.buffer_view attributes {iree.abi.stub, iree.reflection = {iree.abi.declaration = "sync func @infer(%input0: tensor<1x3x224x224xf32>) -> (%output0: tensor<1x3x224x224xf32>)"}} {
+  %c73728 = arith.constant 73728 : index
+  %c3456 = arith.constant 3456 : index
+  %c512 = arith.constant 512 : index
+  %c589824 = arith.constant 589824 : index
+  %c294912 = arith.constant 294912 : index
+  %c384 = arith.constant 384 : index
+  %c1 = arith.constant 1 : index
+  %c3 = arith.constant 3 : index
+  %c224 = arith.constant 224 : index
+  %c0_i8 = arith.constant 0 : i8
+  %c602112 = arith.constant 602112 : index
+  %c6422528 = arith.constant 6422528 : index
+  %c0 = arith.constant 0 : index
+  %c6537728 = arith.constant 6537728 : index
+  %c13075456 = arith.constant 13075456 : index
+  %c25690112 = arith.constant 25690112 : index
+  %c26150912 = arith.constant 26150912 : index
+  %c6653952 = arith.constant 6653952 : index
+  %c3211264 = arith.constant 3211264 : index
+  %__constant_tensor_32x3xf32__timepoint = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_0 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_1 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_2 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_3 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_4 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_5 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_6 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_7 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_8 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_9 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_10 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_11 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_12 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_13 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_14 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_15 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_16 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32__timepoint_17 = util.global.load immutable @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  %__constant_tensor_32x3xf32 = util.global.load immutable @__constant_tensor_32x3xf32 : !stream.resource<constant>
+  %__constant_tensor_64x128x3x3xf32 = util.global.load immutable @__constant_tensor_64x128x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32 = util.global.load immutable @__constant_tensor_128x128x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_128xf32 = util.global.load immutable @__constant_tensor_128xf32 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_0 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_0 : !stream.resource<constant>
+  %__constant_tensor_128xf32_1 = util.global.load immutable @__constant_tensor_128xf32_1 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_2 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_2 : !stream.resource<constant>
+  %__constant_tensor_128xf32_3 = util.global.load immutable @__constant_tensor_128xf32_3 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_4 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_4 : !stream.resource<constant>
+  %__constant_tensor_128xf32_5 = util.global.load immutable @__constant_tensor_128xf32_5 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_6 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_6 : !stream.resource<constant>
+  %__constant_tensor_128xf32_7 = util.global.load immutable @__constant_tensor_128xf32_7 : !stream.resource<constant>
+  %__constant_tensor_128x128x3x3xf32_8 = util.global.load immutable @__constant_tensor_128x128x3x3xf32_8 : !stream.resource<constant>
+  %__constant_tensor_128xf32_9 = util.global.load immutable @__constant_tensor_128xf32_9 : !stream.resource<constant>
+  %__constant_tensor_128x64x3x3xf32 = util.global.load immutable @__constant_tensor_128x64x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_128xf32_10 = util.global.load immutable @__constant_tensor_128xf32_10 : !stream.resource<constant>
+  %__constant_tensor_3x32x3x3xf32 = util.global.load immutable @__constant_tensor_3x32x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_32x64x3x3xf32 = util.global.load immutable @__constant_tensor_32x64x3x3xf32 : !stream.resource<constant>
+  %__constant_tensor_64x32x3x3xf32 = util.global.load immutable @__constant_tensor_64x32x3x3xf32 : !stream.resource<constant>
+  %element_type_f32 = hal.element_type<f32> : i32
+  %dense_row_major = hal.encoding_type<dense_row_major> : i32
+  hal.buffer_view.assert<%arg0 : !hal.buffer_view> message("input0") shape([%c1, %c3, %c224, %c224]) type(%element_type_f32) encoding(%dense_row_major)
+  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : !hal.buffer_view -> tensor<1x3x224x224xf32> in !stream.resource<external>{%c602112}
+  %1 = stream.timepoint.join max(%__constant_tensor_32x3xf32__timepoint_3, %__constant_tensor_32x3xf32__timepoint, %__constant_tensor_32x3xf32__timepoint_11, %__constant_tensor_32x3xf32__timepoint_10, %__constant_tensor_32x3xf32__timepoint_13, %__constant_tensor_32x3xf32__timepoint_5, %__constant_tensor_32x3xf32__timepoint_14, %__constant_tensor_32x3xf32__timepoint_6, %__constant_tensor_32x3xf32__timepoint_15, %__constant_tensor_32x3xf32__timepoint_7, %__constant_tensor_32x3xf32__timepoint_16, %__constant_tensor_32x3xf32__timepoint_8, %__constant_tensor_32x3xf32__timepoint_17, %__constant_tensor_32x3xf32__timepoint_9, %__constant_tensor_32x3xf32__timepoint_12, %__constant_tensor_32x3xf32__timepoint_4, %__constant_tensor_32x3xf32__timepoint_0, %__constant_tensor_32x3xf32__timepoint_2, %__constant_tensor_32x3xf32__timepoint_1) => !stream.timepoint
+  %c0_18 = arith.constant 0 : index
+  %result, %result_timepoint = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<external>{%c602112} => !stream.timepoint
+  %c0_19 = arith.constant 0 : index
+  %c6422528_20 = arith.constant 6422528 : index
+  %c6422528_21 = arith.constant 6422528 : index
+  %c12960256 = arith.constant 12960256 : index
+  %c12960256_22 = arith.constant 12960256 : index
+  %c26035712 = arith.constant 26035712 : index
+  %c26035712_23 = arith.constant 26035712 : index
+  %c51725824 = arith.constant 51725824 : index
+  %c51725824_24 = arith.constant 51725824 : index
+  %c77876736 = arith.constant 77876736 : index
+  %c77876736_25 = arith.constant 77876736 : index
+  %c51725824_26 = arith.constant 51725824 : index
+  %c104027648 = arith.constant 104027648 : index
+  %c104027648_27 = arith.constant 104027648 : index
+  %c77415936 = arith.constant 77415936 : index
+  %c77415936_28 = arith.constant 77415936 : index
+  %c6422528_29 = arith.constant 6422528 : index
+  %c103566848 = arith.constant 103566848 : index
+  %c103566848_30 = arith.constant 103566848 : index
+  %c32112640 = arith.constant 32112640 : index
+  %c32112640_31 = arith.constant 32112640 : index
+  %c58263552 = arith.constant 58263552 : index
+  %c58263552_32 = arith.constant 58263552 : index
+  %c83953664 = arith.constant 83953664 : index
+  %c83953664_33 = arith.constant 83953664 : index
+  %c6422528_34 = arith.constant 6422528 : index
+  %c9633792 = arith.constant 9633792 : index
+  %c9633792_35 = arith.constant 9633792 : index
+  %c22709248 = arith.constant 22709248 : index
+  %c22709248_36 = arith.constant 22709248 : index
+  %c130178560 = arith.constant 130178560 : index
+  %c130178560_37 = arith.constant 130178560 : index
+  %result_38, %result_timepoint_39 = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%c130178560_37} => !stream.timepoint
+  %2 = stream.timepoint.join max(%1, %result_timepoint, %result_timepoint_39) => !stream.timepoint
+  %3 = stream.cmd.execute on(#hal.device.affinity<@__device_0>) await(%2) => with(%0 as %arg1: !stream.resource<external>{%c602112}, %__constant_tensor_32x3xf32 as %arg2: !stream.resource<constant>{%c384}, %__constant_tensor_64x32x3x3xf32 as %arg3: !stream.resource<constant>{%c73728}, %__constant_tensor_128x64x3x3xf32 as %arg4: !stream.resource<constant>{%c294912}, %__constant_tensor_128xf32_10 as %arg5: !stream.resource<constant>{%c512}, %__constant_tensor_128x128x3x3xf32_8 as %arg6: !stream.resource<constant>{%c589824}, %__constant_tensor_128xf32_9 as %arg7: !stream.resource<constant>{%c512}, %__constant_tensor_128x128x3x3xf32_6 as %arg8: !stream.resource<constant>{%c589824}, %__constant_tensor_128xf32_7 as %arg9: !stream.resource<constant>{%c512}, %__constant_tensor_128x128x3x3xf32_4 as %arg10: !stream.resource<constant>{%c589824}, %__constant_tensor_128xf32_5 as %arg11: !stream.resource<constant>{%c512}, %__constant_tensor_128x128x3x3xf32_2 as %arg12: !stream.resource<constant>{%c589824}, %__constant_tensor_128xf32_3 as %arg13: !stream.resource<constant>{%c512}, %__constant_tensor_128x128x3x3xf32_0 as %arg14: !stream.resource<constant>{%c589824}, %__constant_tensor_128xf32_1 as %arg15: !stream.resource<constant>{%c512}, %__constant_tensor_128x128x3x3xf32 as %arg16: !stream.resource<constant>{%c589824}, %__constant_tensor_128xf32 as %arg17: !stream.resource<constant>{%c512}, %__constant_tensor_64x128x3x3xf32 as %arg18: !stream.resource<constant>{%c294912}, %__constant_tensor_32x64x3x3xf32 as %arg19: !stream.resource<constant>{%c73728}, %__constant_tensor_3x32x3x3xf32 as %arg20: !stream.resource<constant>{%c3456}, %result as %arg21: !stream.resource<external>{%c602112}, %result_38 as %arg22: !stream.resource<transient>{%c130178560_37}) {
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_0::@infer_dispatch_0_matmul_like_32x50176x3_f32 {
+        ro %arg1[%c0 for %c602112] : !stream.resource<external>{%c602112},
+        ro %arg2[%c0 for %c384] : !stream.resource<constant>{%c384},
+        wo %arg22[%c0_19 for %c6422528] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c6422528_21 for %c6537728] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_1::@infer_dispatch_1_slow_memcpy {
+        ro %arg22[%c0_19 for %c6422528] : !stream.resource<transient>{%c130178560_37},
+        rw %arg22[%c6422528_21 for %c6537728] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c12960256_22 for %c13075456] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.dispatch @infer_dispatch_2::@infer_dispatch_2_conv_64x224x224x32x3x3_f32 {
+      ro %arg22[%c6422528_21 for %c6537728] : !stream.resource<transient>{%c130178560_37},
+      ro %arg3[%c0 for %c73728] : !stream.resource<constant>{%c73728},
+      rw %arg22[%c12960256_22 for %c13075456] : !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_3::@infer_dispatch_3_conv_128x224x224x64x3x3_f32 {
+        ro %arg22[%c12960256_22 for %c13075456] : !stream.resource<transient>{%c130178560_37},
+        ro %arg4[%c0 for %c294912] : !stream.resource<constant>{%c294912},
+        ro %arg5[%c0 for %c512] : !stream.resource<constant>{%c512},
+        wo %arg22[%c26035712_23 for %c25690112] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c51725824_24 for %c26150912] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_4::@infer_dispatch_4_slow_memcpy {
+        ro %arg22[%c26035712_23 for %c25690112] : !stream.resource<transient>{%c130178560_37},
+        rw %arg22[%c51725824_24 for %c26150912] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c77876736_25 for %c26150912] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.dispatch @infer_dispatch_5::@infer_dispatch_5_conv_128x224x224x128x3x3_f32 {
+      ro %arg22[%c51725824_24 for %c26150912] : !stream.resource<transient>{%c130178560_37},
+      ro %arg6[%c0 for %c589824] : !stream.resource<constant>{%c589824},
+      ro %arg7[%c0 for %c512] : !stream.resource<constant>{%c512},
+      rw %arg22[%c77876736_25 for %c26150912] : !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_6::@infer_dispatch_6_conv_128x224x224x128x3x3_f32 {
+        ro %arg22[%c77876736_25 for %c26150912] : !stream.resource<transient>{%c130178560_37},
+        ro %arg8[%c0 for %c589824] : !stream.resource<constant>{%c589824},
+        ro %arg22[%c26035712_23 for %c25690112] : !stream.resource<transient>{%c130178560_37},
+        ro %arg9[%c0 for %c512] : !stream.resource<constant>{%c512},
+        wo %arg22[%c51725824_26 for %c25690112] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c104027648_27 for %c26150912] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_4::@infer_dispatch_4_slow_memcpy {
+        ro %arg22[%c51725824_26 for %c25690112] : !stream.resource<transient>{%c130178560_37},
+        rw %arg22[%c104027648_27 for %c26150912] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c77415936_28 for %c26150912] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.dispatch @infer_dispatch_5::@infer_dispatch_5_conv_128x224x224x128x3x3_f32 {
+      ro %arg22[%c104027648_27 for %c26150912] : !stream.resource<transient>{%c130178560_37},
+      ro %arg10[%c0 for %c589824] : !stream.resource<constant>{%c589824},
+      ro %arg11[%c0 for %c512] : !stream.resource<constant>{%c512},
+      rw %arg22[%c77415936_28 for %c26150912] : !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_6::@infer_dispatch_6_conv_128x224x224x128x3x3_f32 {
+        ro %arg22[%c77415936_28 for %c26150912] : !stream.resource<transient>{%c130178560_37},
+        ro %arg12[%c0 for %c589824] : !stream.resource<constant>{%c589824},
+        ro %arg22[%c51725824_26 for %c25690112] : !stream.resource<transient>{%c130178560_37},
+        ro %arg13[%c0 for %c512] : !stream.resource<constant>{%c512},
+        wo %arg22[%c6422528_29 for %c25690112] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c103566848_30 for %c26150912] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_4::@infer_dispatch_4_slow_memcpy {
+        ro %arg22[%c6422528_29 for %c25690112] : !stream.resource<transient>{%c130178560_37},
+        rw %arg22[%c103566848_30 for %c26150912] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c32112640_31 for %c26150912] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.dispatch @infer_dispatch_5::@infer_dispatch_5_conv_128x224x224x128x3x3_f32 {
+      ro %arg22[%c103566848_30 for %c26150912] : !stream.resource<transient>{%c130178560_37},
+      ro %arg14[%c0 for %c589824] : !stream.resource<constant>{%c589824},
+      ro %arg15[%c0 for %c512] : !stream.resource<constant>{%c512},
+      rw %arg22[%c32112640_31 for %c26150912] : !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_6::@infer_dispatch_6_conv_128x224x224x128x3x3_f32 {
+        ro %arg22[%c32112640_31 for %c26150912] : !stream.resource<transient>{%c130178560_37},
+        ro %arg16[%c0 for %c589824] : !stream.resource<constant>{%c589824},
+        ro %arg22[%c6422528_29 for %c25690112] : !stream.resource<transient>{%c130178560_37},
+        ro %arg17[%c0 for %c512] : !stream.resource<constant>{%c512},
+        wo %arg22[%c58263552_32 for %c25690112] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c83953664_33 for %c6653952] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.dispatch @infer_dispatch_13::@infer_dispatch_13_elementwise_broadcast_128x112x112_f32 {
+      ro %arg22[%c58263552_32 for %c25690112] : !stream.resource<transient>{%c130178560_37},
+      rw %arg22[%c83953664_33 for %c6653952] : !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_14::@infer_dispatch_14_conv_64x112x112x128x3x3_f32 {
+        ro %arg22[%c83953664_33 for %c6653952] : !stream.resource<transient>{%c130178560_37},
+        ro %arg18[%c0 for %c294912] : !stream.resource<constant>{%c294912},
+        wo %arg22[%c6422528_34 for %c3211264] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c9633792_35 for %c13075456] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.concurrent {
+      stream.cmd.dispatch @infer_dispatch_15::@infer_dispatch_15_elementwise_broadcast_64x224x224_f32 {
+        ro %arg22[%c6422528_34 for %c3211264] : !stream.resource<transient>{%c130178560_37},
+        rw %arg22[%c9633792_35 for %c13075456] : !stream.resource<transient>{%c130178560_37}
+      }
+      stream.cmd.fill %c0_i8, %arg22[%c22709248_36 for %c6537728] : i8 -> !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.dispatch @infer_dispatch_16::@infer_dispatch_16_conv_32x224x224x64x3x3_f32 {
+      ro %arg22[%c9633792_35 for %c13075456] : !stream.resource<transient>{%c130178560_37},
+      ro %arg19[%c0 for %c73728] : !stream.resource<constant>{%c73728},
+      ro %arg22[%c0_19 for %c6422528] : !stream.resource<transient>{%c130178560_37},
+      rw %arg22[%c22709248_36 for %c6537728] : !stream.resource<transient>{%c130178560_37}
+    }
+    stream.cmd.dispatch @infer_dispatch_17::@infer_dispatch_17_conv_3x224x224x32x3x3_f32 {
+      ro %arg22[%c22709248_36 for %c6537728] : !stream.resource<transient>{%c130178560_37},
+      ro %arg20[%c0 for %c3456] : !stream.resource<constant>{%c3456},
+      ro %arg1[%c0 for %c602112] : !stream.resource<external>{%c602112},
+      wo %arg21[%c0_18 for %c602112] : !stream.resource<external>{%c602112}
+    }
+  } => !stream.timepoint
+  %4 = stream.resource.dealloca on(#hal.device.affinity<@__device_0>) await(%3) => %result_38 : !stream.resource<transient>{%c130178560_37} => !stream.timepoint
+  %5 = stream.timepoint.join max(%4, %3) => !stream.timepoint
+  %6 = stream.timepoint.await %5 => %result : !stream.resource<external>{%c602112}
+  %7 = stream.tensor.export on(#hal.device.affinity<@__device_0>) %6 : tensor<1x3x224x224xf32> in !stream.resource<external>{%c602112} -> !hal.buffer_view
+  util.return %7 : !hal.buffer_view
+}
+
+// -----// IR Dump After LayoutSlicesPass (iree-stream-layout-slices) //----- //
+util.initializer {
+  %0 = stream.timepoint.immediate => !stream.timepoint
+  %c73728 = arith.constant 73728 : index
+  %c3456 = arith.constant 3456 : index
+  %c512 = arith.constant 512 : index
+  %c589824 = arith.constant 589824 : index
+  %c294912 = arith.constant 294912 : index
+  %c384 = arith.constant 384 : index
+  %1 = stream.timepoint.immediate => !stream.timepoint
+  %buffer_cst = util.buffer.constant {alignment = 64 : index} : !util.buffer = #util.composite<4283648xi8, [
+    dense_resource<__elided__> : tensor<32x3xf32>,
+    dense_resource<__elided__> : tensor<64x128x3x3xf32>,
+    dense_resource<__elided__> : tensor<128x128x3x3xf32>,
+    dense_resource<__elided__> : tensor<128xf32>,
+    dense_resource<__elided__> : tensor<128x128x3x3xf32>,
+    dense_resource<__elided__> : tensor<128xf32>,
+    dense_resource<__elided__> : tensor<128x128x3x3xf32>,
+    dense_resource<__elided__> : tensor<128xf32>,
+    dense_resource<__elided__> : tensor<128x128x3x3xf32>,
+    dense_resource<__elided__> : tensor<128xf32>,
+    dense_resource<__elided__> : tensor<128x128x3x3xf32>,
+    dense_resource<__elided__> : tensor<128xf32>,
+    dense_resource<__elided__> : tensor<128x128x3x3xf32>,
+    dense_resource<__elided__> : tensor<128xf32>,
+    dense_resource<__elided__> : tensor<128x64x3x3xf32>,
+    dense_resource<__elided__> : tensor<128xf32>,
+    dense_resource<__elided__> : tensor<3x32x3x3xf32>,
+    dense_resource<__elided__> : tensor<32x64x3x3xf32>,
+    dense_resource<__elided__> : tensor<64x32x3x3xf32>,
+]>
+  %c4283648 = arith.constant 4283648 : index
+  %c0 = arith.constant 0 : index
+  %did_map, %result = stream.resource.try_map on(#hal.device.affinity<@__device_0>) %buffer_cst[%c0] : !util.buffer -> i1, !stream.resource<constant>{%c4283648}
+  %c0_i64 = arith.constant 0 : i64
+  %2:2 = scf.if %did_map -> (!stream.timepoint, !stream.resource<constant>) {
+    scf.yield %1, %result : !stream.timepoint, !stream.resource<constant>
+  } else {
+    %25 = stream.resource.alloc uninitialized on(#hal.device.affinity<@__device_0>) : !stream.resource<constant>{%c4283648}
+    %file = stream.file.constant on(#hal.device.affinity<@__device_0>) %buffer_cst[%c0 for %c4283648] : !util.buffer{%c4283648} -> !stream.file
+    %26 = stream.file.read on(#hal.device.affinity<@__device_0>) await(%1) => %file[%c0_i64], %25[%c0], %c4283648 : !stream.file -> !stream.resource<constant>{%c4283648} => !stream.timepoint
+    scf.yield %26, %25 : !stream.timepoint, !stream.resource<constant>
+  }
+  %3 = stream.resource.subview %2#1[%c0] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c384}
+  %4 = stream.resource.subview %2#1[%c384] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c294912}
+  %c295296 = arith.constant 295296 : index
+  %5 = stream.resource.subview %2#1[%c295296] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c589824}
+  %c885120 = arith.constant 885120 : index
+  %6 = stream.resource.subview %2#1[%c885120] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c512}
+  %c885632 = arith.constant 885632 : index
+  %7 = stream.resource.subview %2#1[%c885632] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c589824}
+  %c1475456 = arith.constant 1475456 : index
+  %8 = stream.resource.subview %2#1[%c1475456] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c512}
+  %c1475968 = arith.constant 1475968 : index
+  %9 = stream.resource.subview %2#1[%c1475968] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c589824}
+  %c2065792 = arith.constant 2065792 : index
+  %10 = stream.resource.subview %2#1[%c2065792] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c512}
+  %c2066304 = arith.constant 2066304 : index
+  %11 = stream.resource.subview %2#1[%c2066304] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c589824}
+  %c2656128 = arith.constant 2656128 : index
+  %12 = stream.resource.subview %2#1[%c2656128] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c512}
+  %c2656640 = arith.constant 2656640 : index
+  %13 = stream.resource.subview %2#1[%c2656640] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c589824}
+  %c3246464 = arith.constant 3246464 : index
+  %14 = stream.resource.subview %2#1[%c3246464] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c512}
+  %c3246976 = arith.constant 3246976 : index
+  %15 = stream.resource.subview %2#1[%c3246976] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c589824}
+  %c3836800 = arith.constant 3836800 : index
+  %16 = stream.resource.subview %2#1[%c3836800] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c512}
+  %c3837312 = arith.constant 3837312 : index
+  %17 = stream.resource.subview %2#1[%c3837312] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c294912}
+  %c4132224 = arith.constant 4132224 : index
+  %18 = stream.resource.subview %2#1[%c4132224] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c512}
+  %c4132736 = arith.constant 4132736 : index
+  %19 = stream.resource.subview %2#1[%c4132736] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c3456}
+  %c4136192 = arith.constant 4136192 : index
+  %20 = stream.resource.subview %2#1[%c4136192] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c73728}
+  %c4209920 = arith.constant 4209920 : index
+  %21 = stream.resource.subview %2#1[%c4209920] : !stream.resource<constant>{%c4283648} -> !stream.resource<constant>{%c73728}
+  %22 = stream.cmd.execute once on(#hal.device.affinity<@__device_0>) with() {
+  } => !stream.timepoint
+  %23 = stream.timepoint.join max(%2#0, %22) => !stream.timepoint
+  %24:19 = stream.timepoint.await sync %23 => %5, %7, %9, %11, %13, %15, %17, %18, %20, %21, %19, %16, %14, %12, %10, %8, %6, %3, %4 : !stream.resource<constant>{%c589824}, !stream.resource<constant>{%c589824}, !stream.resource<constant>{%c589824}, !stream.resource<constant>{%c589824}, !stream.resource<constant>{%c589824}, !stream.resource<constant>{%c589824}, !stream.resource<constant>{%c294912}, !stream.resource<constant>{%c512}, !stream.resource<constant>{%c73728}, !stream.resource<constant>{%c73728}, !stream.resource<constant>{%c3456}, !stream.resource<constant>{%c512}, !stream.resource<constant>{%c512}, !stream.resource<constant>{%c512}, !stream.resource<constant>{%c512}, !stream.resource<constant>{%c512}, !stream.resource<constant>{%c512}, !stream.resource<constant>{%c384}, !stream.resource<constant>{%c294912}
+  util.global.store %24#0, @__constant_tensor_128x128x3x3xf32 : !stream.resource<constant>
+  util.global.store %24#1, @__constant_tensor_128x128x3x3xf32_0 : !stream.resource<constant>
+  util.global.store %24#2, @__constant_tensor_128x128x3x3xf32_2 : !stream.resource<constant>
+  util.global.store %24#3, @__constant_tensor_128x128x3x3xf32_4 : !stream.resource<constant>
+  util.global.store %24#4, @__constant_tensor_128x128x3x3xf32_6 : !stream.resource<constant>
+  util.global.store %24#5, @__constant_tensor_128x128x3x3xf32_8 : !stream.resource<constant>
+  util.global.store %24#6, @__constant_tensor_128x64x3x3xf32 : !stream.resource<constant>
+  util.global.store %24#16, @__constant_tensor_128xf32 : !stream.resource<constant>
+  util.global.store %24#15, @__constant_tensor_128xf32_1 : !stream.resource<constant>
+  util.global.store %24#7, @__constant_tensor_128xf32_10 : !stream.resource<constant>
+  util.global.store %24#14, @__constant_tensor_128xf32_3 : !stream.resource<constant>
+  util.global.store %24#13, @__constant_tensor_128xf32_5 : !stream.resource<constant>
+  util.global.store %24#12, @__constant_tensor_128xf32_7 : !stream.resource<constant>
+  util.global.store %24#11, @__constant_tensor_128xf32_9 : !stream.resource<constant>
+  util.global.store %24#17, @__constant_tensor_32x3xf32 : !stream.resource<constant>
+  util.global.store %0, @__constant_tensor_32x3xf32__timepoint : !stream.timepoint
+  util.global.store %24#8, @__constant_tensor_32x64x3x3xf32 : !stream.resource<constant>
+  util.global.store %24#10, @__constant_tensor_3x32x3x3xf32 : !stream.resource<constant>
+  util.global.store %24#18, @__constant_tensor_64x128x3x3xf32 : !stream.resource<constant>
+  util.global.store %24#9, @__constant_tensor_64x32x3x3xf32 : !stream.resource<constant>
+  util.return
+}
+

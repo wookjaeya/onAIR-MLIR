@@ -1,0 +1,371 @@
+#!/usr/bin/env python3
+"""E54: reference-based deployment memory budgets, computed BEFORE any admission cell runs.
+
+    R_usable(p)          = R_physical(p) * (1 - M_phase)
+    B_AI(p)              = R_usable(p) - R_OS_cFS - R_other_apps - R_reserved
+    B_contract(p, model) = B_AI(p) - R_noncontract_AI(model)
+    ADMIT(model | p)    <=>  U(model) <= B_contract(p, model)
+
+Nothing here reads a model's U to pick a budget.  `R_noncontract_AI` depends on the model
+only through terms the contract itself declares as EXCLUDED from U (accounting_rules.excluded):
+the IREE runtime context, the module image, the task stack, and the app's own static I/O
+buffers.  That dependency is the formula of the directive (SS4.3), not a tuning knob.
+
+Overhead rule, fixed in advance and applied uniformly: every overhead term takes the UPPER
+end of what was measured.  That direction shrinks budgets (makes ADMIT harder), so it cannot
+have been chosen to manufacture an ADMIT -- and it is outcome-independent either way.
+
+Scope reconciliation (plan SS2.5): B_* are process/system-RAM quantities and U is a HAL
+device-allocation quantity.  They are comparable here only because this deployment's driver
+is local-sync with an in-process heap allocator, so HAL bytes are a SUBSET of process RSS.
+This does NOT license "HAL peak == RSS" (D78 measured a 1.87x gap in the other direction).
+"""
+import argparse, glob, json, os, re, statistics, sys
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# --- Reference platforms.  Values transcribed from sources fetched in this session; the
+#     source manifest (results/e54_reference_budget/sources/) carries URL + sha256 + quote.
+PLATFORMS = {
+    "PA": {
+        "name": "Xiphos Q8S",
+        "r_physical_bytes": 4 * 1024 * 1024 * 1024,
+        "isa": "AArch64 (quad Cortex-A53)",
+        "source_grade": "mirror_adjacent_revision_fetched",
+        "note": "same core family as this guest's -cpu cortex-a53",
+    },
+    "PB": {
+        "name": "OPS-SAT SEPP (RAM envelope only)",
+        "r_physical_bytes": 1 * 1024 * 1024 * 1024,
+        "isa": "ARM 32-bit (Cortex-A9 class) -- NOT this guest's ISA",
+        "source_grade": "primary_fetched",
+        "note": "RAM envelope only; platform reproduction is forbidden (BENCHMARK_PLAN_REFERENCE_BASED.md:156)",
+    },
+}
+
+# --- Lifecycle margins.  The primary NASA sources (SWE-109, 9.12 Resource Margins,
+#     NPR 7150.2D ch.5, SWE-111) were unreachable on every path tried in this session
+#     (curl 000 / WebFetch EGRESS_BLOCKED -- see sources/probe_log.json).  These percentages
+#     therefore appear in NO fetched bytes and are graded accordingly.  Never cite them as
+#     a primary-source quotation (plan SS8).
+MARGINS = {
+    "pdr50": {"fraction": 0.50, "phase": "PDR", "grade": "transcribed_from_directive_primary_blocked"},
+    "ship30": {"fraction": 0.30, "phase": "Ship/Flight", "grade": "transcribed_from_directive_primary_blocked"},
+}
+
+AI_LEARNER_STACK_BASE_BYTES = 262144  # cFS startup stack base the build writes (WIRING.md rule)
+
+MODELS = {
+    "b2_resnet": "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
+    "b3_deepae": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
+    "smartcam": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+    "wgan": "results/e53_wgan_aarch64/build/aarch64/wgan.contract.json",
+}
+
+APP_SRC = "native/cfs_app/fsw/src/ai_learner.c"
+# float out[CONTRACT_OUTPUT_ELEMS];  /  static char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8];
+_BUF_RE = re.compile(
+    r"\b(float|double|char|int|uint8)\s+(\w+)\s*\[\s*CONTRACT_(INPUT|OUTPUT)_ELEMS"
+    r"(?:\s*\*\s*(\d+))?(?:\s*\+\s*(\d+))?\s*\]")
+_CTYPE_BYTES = {"float": 4, "double": 8, "char": 1, "int": 4, "uint8": 1}
+
+
+def app_io_buffer_terms(src_path):
+    """Count the app's contract-sized static buffers BY READING THE SOURCE.
+
+    The plan's prose named three of them (4*in + 4*out + 16*out).  Counting finds six.
+    Counting, not quoting, is the rule (E44): a term that exists in the binary but not in
+    the prose would otherwise be silently omitted from the overhead.
+    """
+    txt = open(os.path.join(REPO, src_path), encoding="utf-8").read()
+    terms = []
+    for ctype, name, which, mult, addend in _BUF_RE.findall(txt):
+        terms.append({
+            "name": name, "ctype": ctype, "elems_of": which.lower(),
+            "bytes_per_elem": _CTYPE_BYTES[ctype] * (int(mult) if mult else 1),
+            "constant_addend_bytes": int(addend) if addend else 0,
+        })
+    if not terms:
+        raise SystemExit(f"E54: no contract-sized app buffers found in {src_path} -- refusing to "
+                         f"report an overhead of zero (absence is not zero)")
+    return terms
+
+
+def app_io_buffer_bytes(terms, in_elems, out_elems):
+    total = 0
+    for t in terms:
+        n = in_elems if t["elems_of"] == "input" else out_elems
+        total += t["bytes_per_elem"] * n + t["constant_addend_bytes"]
+    return total
+
+
+RUNTIME_CTX_PIN = "results/e54_reference_budget/sources/runtime_ctx_observations.json"
+DRIFT_REPORT = "results/e54_reference_budget/sources/runtime_ctx_drift_report.json"
+
+
+def _scan_mem_init(results_root):
+    """Every AArch64 mem_init record reachable from results_root, keyed by (log, delta)."""
+    obs = []
+    for path in sorted(glob.glob(os.path.join(results_root, "**", "*.log"), recursive=True)):
+        try:
+            txt = open(path, encoding="utf-8", errors="replace").read()
+        except OSError:
+            continue
+        for m in re.finditer(r'\{"app":"AI_LEARNER","stage":"mem_init".*?\}', txt):
+            try:
+                d = json.loads(m.group(0))
+            except ValueError:
+                continue
+            if "aarch64" not in str(d.get("target", "")):
+                continue
+            b, a = d.get("rss_kb_before_runtime"), d.get("rss_kb_after_session")
+            if not isinstance(b, int) or not isinstance(a, int):
+                continue
+            obs.append({"model": d.get("model"), "delta_kb": a - b,
+                        "source": os.path.relpath(path, REPO)})
+    return obs
+
+
+def iree_fixed_runtime_ctx(results_root, pin_path=None, repin=False):
+    """Derive the IREE runtime context cost from ARCHIVED AArch64 mem_init records.
+
+    ai_learner.c samples rss_kb_before_runtime at :446 (after the blob is read and hashed)
+    and rss_kb_after_session at :461 (immediately BEFORE append_bytecode_module).  So the
+    delta spans exactly instance+device+session creation: it excludes the module image and
+    excludes any constants copy, and therefore double-counts nothing that is inside U.
+
+    D94 (E55): the input set used to be "whatever results/**/*.log holds right now", which
+    GROWS with every experiment that adds an AArch64 cFS cell.  E54's own 25 cell logs were
+    written after budgets.json was committed, so re-running the generator today moved
+    observations 21 -> 46 and chosen_kb 368 -> 376: the committed budget did not reproduce
+    from repository content.  (Measured consequence: all 16 budgets shrink by exactly
+    8,192 B -- the CONSERVATIVE direction -- and 16/16 verdicts are unchanged, tightest cell
+    PB_pdr50__wgan 2.193x.  The judgment stands; the reproducibility did not.)
+
+    The set is therefore PINNED, but not frozen: each pinned record is re-extracted from its
+    named raw log on every run and a mismatch or a missing log refuses (fail-closed).  The
+    current scan is still performed so drift is REPORTED rather than silently absorbed.
+    """
+    scan = _scan_mem_init(results_root)
+    pin_abs = os.path.join(REPO, pin_path) if pin_path else None
+
+    if repin or not (pin_abs and os.path.exists(pin_abs)):
+        obs, pin_state = scan, ("repinned" if repin else "unpinned_no_manifest")
+    else:
+        pin = json.load(open(pin_abs, encoding="utf-8"))
+        want = pin.get("observations") or []
+        if not want:
+            raise SystemExit("E54/D94: pin manifest carries no observations -- refusing to "
+                             "fall back to an unpinned scan (an empty pin is not 'no pin')")
+        # Re-extract every pinned record from its own log.  A pinned value that no longer
+        # reproduces is a defect, not something to absorb.
+        by_src = {}
+        for o in scan:
+            by_src.setdefault(o["source"], []).append(o)
+        obs, missing, mismatched = [], [], []
+        for w in want:
+            src = w["source"]
+            if not os.path.exists(os.path.join(REPO, src)):
+                missing.append(src)
+                continue
+            cands = [o for o in by_src.get(src, [])
+                     if o["model"] == w["model"] and o["delta_kb"] == w["delta_kb"]]
+            if not cands:
+                mismatched.append({"source": src, "model": w["model"],
+                                   "pinned_delta_kb": w["delta_kb"],
+                                   "found": [o["delta_kb"] for o in by_src.get(src, [])]})
+                continue
+            obs.append(dict(cands[0]))
+        if missing or mismatched:
+            raise SystemExit(
+                "E54/D94: pinned runtime-context observations no longer reproduce from their "
+                "raw logs -- refusing to emit a budget.\n  missing logs: %s\n  mismatched: %s"
+                % (missing, json.dumps(mismatched, ensure_ascii=False)))
+        if len(obs) != len(want):
+            raise SystemExit("E54/D94: pinned %d observations, resolved %d" % (len(want), len(obs)))
+        pin_state = "pinned"
+
+    if not obs:
+        raise SystemExit("E54: no archived AArch64 mem_init records found -- refusing to "
+                         "substitute 0 for an unmeasured term (D29/D51/D68)")
+    deltas = [o["delta_kb"] for o in obs]
+    pinned_srcs = {o["source"] for o in obs}
+    drift = sorted({o["source"] for o in scan} - pinned_srcs)
+    return {
+        "observations": len(obs),
+        "models_seen": sorted({o["model"] for o in obs}),
+        "delta_kb_min": min(deltas), "delta_kb_max": max(deltas),
+        "delta_kb_median": statistics.median(deltas),
+        "chosen_kb": max(deltas),
+        "chosen_bytes": max(deltas) * 1024,
+        "rule": "max over archived AArch64 cells (overhead terms take the upper end)",
+        "spans": "iree_runtime_instance_create + device + session_create; excludes module "
+                 "image and module append (ai_learner.c:446 -> :461)",
+        "pin_state": pin_state,
+        "pin_manifest": pin_path,
+        "pin_note": ("D94: the input set is pinned and each record is re-extracted from its own raw "
+                     "log every run. Drift -- what the current scan WOULD find -- is reported in "
+                     "`drift_report` (a sibling file), NOT here: a count of 'what exists right now' "
+                     "grows with every experiment that lands a cFS AArch64 cell, and putting a "
+                     "moving number inside the committed budget is what broke reproducibility in "
+                     "the first place. E55 caught this on its own guard: the first fix wrote the "
+                     "scan counts into budgets.json and the byte-identity check then failed as soon "
+                     "as this experiment's own cells landed -- D94 re-enacted by its own repair."),
+        "drift_report": DRIFT_REPORT,
+        "per_observation": obs,
+    }, {
+        "generated_by": "harness/e54_budgets.py",
+        "what_this_is": ("A snapshot of what the unpinned scan WOULD find today, kept OUT of "
+                         "budgets.json on purpose (see pin_note). It is expected to change; "
+                         "budgets.json is not."),
+        "pin_state": pin_state,
+        "pinned_observations": len(obs),
+        "scan_sources_now": len({o["source"] for o in scan}),
+        "scan_observations_now": len(scan),
+        "sources_present_but_not_pinned": drift,
+    }
+
+
+def load_baseline(path):
+    d = json.load(open(path, encoding="utf-8"))
+    return d
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--baseline", default="results/e54_reference_budget/baseline/baseline.json")
+    ap.add_argument("--out", default="results/e54_reference_budget/budgets.json")
+    ap.add_argument("--pin", default=RUNTIME_CTX_PIN,
+                    help="pinned runtime-context observation manifest (D94)")
+    ap.add_argument("--repin", action="store_true",
+                    help="deliberately re-pin from the current scan; never automatic (D94)")
+    a = ap.parse_args()
+
+    base = load_baseline(os.path.join(REPO, a.baseline))
+    terms = app_io_buffer_terms(APP_SRC)
+    iree_ctx, drift_doc = iree_fixed_runtime_ctx(os.path.join(REPO, "results"), a.pin, a.repin)
+    with open(os.path.join(REPO, DRIFT_REPORT), "w", encoding="utf-8") as _df:
+        json.dump(drift_doc, _df, ensure_ascii=False, indent=1); _df.write("\n")
+
+    r_os_cfs = base["r_os_cfs_bytes"]
+    r_other_apps = base["r_other_apps_bytes"]
+    r_other_apps_note = base["r_other_apps_note"]
+    r_reserved = 0  # E44: no reservation-capable call exists in 85 source files; declared, not enforced.
+
+    models = {}
+    for name, rel in MODELS.items():
+        c = json.load(open(os.path.join(REPO, rel), encoding="utf-8"))
+        res = c["resources"]
+        in_b = res["static_external_input_bytes"]
+        out_b = res["static_external_output_bytes"]
+        in_elems, out_elems = in_b // 4, out_b // 4  # f32 interface (CONTRACT_DTYPES_ALL_F32)
+        stack = res.get("kernel_task_stack_invocation_bytes")
+        if stack is None:
+            stack = res.get("kernel_task_stack_bytes")
+        if stack is None:
+            raise SystemExit(f"E54: {name} declares no kernel task stack -- refusing to use 0")
+        io_b = app_io_buffer_bytes(terms, in_elems, out_elems)
+        artifact_b = res["binary_size_bytes"]
+        r_nc = iree_ctx["chosen_bytes"] + artifact_b + AI_LEARNER_STACK_BASE_BYTES + stack + io_b
+        models[name] = {
+            "contract_path": rel,
+            "U_bounded_bytes": res["bounded_bytes"],
+            "static_per_call_bytes": res["static_per_call_bytes"],
+            "module_resident_constant_bytes": res["module_resident_constant_bytes"],
+            "input_elems": in_elems, "output_elems": out_elems,
+            "R_noncontract_AI_bytes": r_nc,
+            "R_noncontract_AI_terms": {
+                "iree_fixed_runtime_ctx_bytes": iree_ctx["chosen_bytes"],
+                "module_image_artifact_bytes": artifact_b,
+                "task_stack_base_bytes": AI_LEARNER_STACK_BASE_BYTES,
+                "task_stack_kernel_bytes": stack,
+                "app_static_io_buffer_bytes": io_b,
+            },
+        }
+
+    profiles, cells = {}, []
+    for pid, p in PLATFORMS.items():
+        for mid, m in MARGINS.items():
+            prof = f"{pid}_{mid}"
+            usable = int(p["r_physical_bytes"] * (1.0 - m["fraction"]))
+            b_ai = usable - r_os_cfs - r_other_apps - r_reserved
+            profiles[prof] = {
+                "platform": pid, "platform_name": p["name"],
+                "platform_isa": p["isa"], "platform_source_grade": p["source_grade"],
+                "margin_id": mid, "margin_phase": m["phase"],
+                "margin_fraction": m["fraction"], "margin_source_grade": m["grade"],
+                "R_physical_bytes": p["r_physical_bytes"],
+                "R_usable_bytes": usable,
+                "R_OS_cFS_bytes": r_os_cfs,
+                "R_other_apps_bytes": r_other_apps,
+                "R_other_apps_note": r_other_apps_note,
+                "R_reserved_bytes": r_reserved,
+                "R_reserved_note": "0 by declaration: no mission-declared reservation, and E44 "
+                                   "counted 0 reservation-capable calls in 85 source files",
+                "B_AI_bytes": b_ai,
+            }
+            for name, mm in models.items():
+                b_contract = b_ai - mm["R_noncontract_AI_bytes"]
+                cells.append({
+                    "cell_id": f"{prof}__{name}",
+                    "budget_profile_id": prof, "model": name,
+                    "B_contract_bytes": b_contract,
+                    "U_bounded_bytes": mm["U_bounded_bytes"],
+                    "predicted_verdict": "ADMIT" if mm["U_bounded_bytes"] <= b_contract else "NOT_ADMITTED",
+                    "headroom_bytes": b_contract - mm["U_bounded_bytes"],
+                })
+
+    out = {
+        "experiment": "E54",
+        "plan": "docs/plans/E54_reference_budget_admission.md",
+        "directive": "docs/reviews/BUDGET_BASED_ADMISSION_ANALYSIS.md",
+        "formula": "B_contract(p,m) = R_physical(p)*(1-M) - R_OS_cFS - R_other_apps - R_reserved "
+                   "- R_noncontract_AI(m)",
+        "overhead_rule": "every overhead term takes the upper end of what was measured",
+        "scope_note": "B_* are process/system RAM; U is HAL device allocation. Comparable only "
+                      "because local-sync allocates HAL buffers on the in-process heap, so HAL "
+                      "bytes are a subset of process RSS. Not a licence for 'HAL peak == RSS' (D78).",
+        "platforms": PLATFORMS,
+        "margins": MARGINS,
+        "baseline": base,
+        "budget_nature": {
+            "kind": "constructed_reference_scenario",
+            "is_mission_allocation": False,
+            "statement": ("These budgets are REFERENCE SCENARIOS constructed from public "
+                          "platform evidence and this repository's own baseline measurements. "
+                          "No mission assigned them. They are not the allocation of any real "
+                          "flight programme, and a verdict computed against them is a statement "
+                          "about the constructed scenario, not about a mission's acceptance."),
+            "pre_fixed_result_sentence": ("\uc120\uc815\ud55c \ucc38\uc870 \ud50c\ub7ab\ud3fc\uacfc "
+                                         "\uc790\uc6d0 \ud560\ub2f9 \uc870\uac74\uc5d0\uc11c\ub294 "
+                                         "\ub124 \ubaa8\ub378\uc774 \ubaa8\ub450 \ubc30\uc815 "
+                                         "\uc608\uc0b0 \uc548\uc5d0 \uc788\uc5c8\ub2e4."),
+            "why_declared_here": ("E55/P0-1 completion criterion 3: the scoping existed only in "
+                                  "prose and only for the Part 2 grid; the Part 1 artefact itself "
+                                  "carried no such declaration, so a machine reading budgets.json "
+                                  "could not tell a constructed scenario from a mission allocation "
+                                  "(D65: the correction has to reach the machine-readable place)."),
+        },
+        "iree_fixed_runtime_ctx": iree_ctx,
+        "app_io_buffer_terms": terms,
+        "app_io_buffer_terms_note":
+            "counted from " + APP_SRC + " (E44: count, do not quote). The plan's prose named "
+            "three terms; counting finds " + str(len(terms)) + ".",
+        "models": models,
+        "profiles": profiles,
+        "cells": cells,
+    }
+    dest = os.path.join(REPO, a.out)
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    with open(dest, "w", encoding="utf-8") as f:
+        json.dump(out, f, indent=2, sort_keys=False)
+        f.write("\n")
+    print(f"wrote {a.out}: {len(profiles)} profiles x {len(models)} models = {len(cells)} cells")
+    for c in cells:
+        print(f"  {c['cell_id']:28s} B_contract={c['B_contract_bytes']:>14,}  "
+              f"U={c['U_bounded_bytes']:>12,}  -> {c['predicted_verdict']}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

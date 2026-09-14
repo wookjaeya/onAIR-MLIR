@@ -1,0 +1,748 @@
+{
+ "tool": "harness/fetch_real_inputs.py deepae",
+ "experiment": "E45",
+ "model": "b3_deepae (MLPerf Tiny anomaly detection, ad01 / ToyADMOS ToyCar)",
+ "goal": "G1 only -- real inputs for semantic equivalence. NO AUC, no reconstruction-error and no accuracy claim.",
+ "bytes_vendored_in_tree": false,
+ "why_not_vendored": {
+  "statement": "eembc/energyrunner README: 'You must obtain the input files from the dataset. EEMBC cannot redistribute the input files.'",
+  "purge_timeline_read_from_git": [
+   {
+    "commit": "4285411",
+    "date": "2021-06-11 10:32:36 -0700",
+    "subject": "Deleted license"
+   },
+   {
+    "commit": "00bc683",
+    "date": "2021-06-11 10:34:22 -0700",
+    "subject": "Update README.md"
+   },
+   {
+    "commit": "c38c333",
+    "date": "2021-06-11 10:35:52 -0700",
+    "subject": "Purged material copyrighted by other people."
+   }
+  ],
+  "reading": "This is not an unstated licence. The distributor removed the repository's Apache-2.0 file, wrote that the dataset folder is 'copyright of their respective creators', and deleted the files as 'material copyrighted by other people' -- all within three minutes. Vendoring the bytes would reverse a deliberate takedown."
+ },
+ "d43_position": {
+  "committed": "this script + the per-file sha256 manifest + the selection rule + the sha256 of each selected window",
+  "not_committed": "the 248 .bin (25395200 B)",
+  "precedent": "E31 does not store its 32 seeded synthetic inputs and E26d does not store its corrupted vmfb; both regenerate and compare sha256.",
+  "honest_difference": "those two regenerate with NO network. This one needs the network, so a fresh clone without it must SKIP with a reason -- never pass silently, never record a zero."
+ },
+ "source": {
+  "repo": "https://github.com/eembc/energyrunner",
+  "commit": "c38c333^ (pre-purge tree)",
+  "path": "datasets/ad01",
+  "n_files": 248,
+  "file_bytes_each": 102400,
+  "per_file_sha256": {
+   "anomaly_id_01_00000003_hist_librosa.bin": "a2c89a4d7d48caaf07a3ed42ee192edafecfe16e86d84ec7747bcd2af88ab884",
+   "anomaly_id_01_00000013_hist_librosa.bin": "0e9ff60be6c63c69e30ce355156acf565447a513345d27cd93dddf01033f77a6",
+   "anomaly_id_01_00000023_hist_librosa.bin": "cd0935eb706a5cf86a94772c2cc981d458a8e520df5003ebe58cc107c7683587",
+   "anomaly_id_01_00000033_hist_librosa.bin": "127de0aaf312d0de9833cac743f17183393ff92b07a6fa7d0d03d045056b6344",
+   "anomaly_id_01_00000043_hist_librosa.bin": "d520d8f752331d88697816cfbeb6e22c31fbb1a8fd2edf5b40bc9b8c4e9c9d84",
+   "anomaly_id_01_00000053_hist_librosa.bin": "ce576d5a5f6b2cbaa39318f4e8cfae65fb3f9dfddb8376decee8b6a06481141c",
+   "anomaly_id_01_00000063_hist_librosa.bin": "52eb57d7d00d10536374a6667c55b3b4ea3bcae2213f59999c14e8d7d5575ff1",
+   "anomaly_id_01_00000073_hist_librosa.bin": "553e269953ffe87c35bce70da0d28ada5d16c99dff6aee46edddaca7ebe847ff",
+   "anomaly_id_01_00000083_hist_librosa.bin": "59dc5b091f6e1df007e3d063cf43f0f84170fcd6b236c0a159072039c7aad90e",
+   "anomaly_id_01_00000093_hist_librosa.bin": "34ca18e44548e6fdf5ec4c514bfd42d11a174263cd1b61f4a78d6f47ccd23959",
+   "anomaly_id_01_00000103_hist_librosa.bin": "3a73a391f12516749519cd1ab80487efa518c3e27e6282a6d6452dc8430c3b00",
+   "anomaly_id_01_00000113_hist_librosa.bin": "548cea99bb29c238dae806cbe1a98a1261156056567facc56517600efcdbe7ec",
+   "anomaly_id_01_00000123_hist_librosa.bin": "0468f60dcbad46cb22fa34a98a6248811d58bd79c74c770287e85f886821f4fd",
+   "anomaly_id_01_00000133_hist_librosa.bin": "52c703e2b4d8f6ec1bea6b3f71bb3b1003e42bc8f9ce2e73a50cc9b2515ae50a",
+   "anomaly_id_01_00000143_hist_librosa.bin": "d8402009dc0f266ecaab7d5cf2248ad2a0431ee2aeb1d98c86acbb21d3f7b693",
+   "anomaly_id_01_00000153_hist_librosa.bin": "9b0f73d9f739b4bef21113a3af94b4128f89621f3f31c37c034d1e602cca0494",
+   "anomaly_id_01_00000163_hist_librosa.bin": "f52ee7d7d7db594fbc34aefc71728e83174d0123caf8e91b22b73a5c48bf81ea",
+   "anomaly_id_01_00000173_hist_librosa.bin": "8976d777eeb742879eab35e3f40fe78dae4b428e8a6cc12b473c395d07ab76da",
+   "anomaly_id_01_00000183_hist_librosa.bin": "5dc9f35074cf303859ed9c04c6a6312a156c549779494ea22a032a0e2b21ae4e",
+   "anomaly_id_01_00000193_hist_librosa.bin": "9867234a73d8731cb804e461f7281362e01b64ecd367c18effc6ea77c1dad71c",
+   "anomaly_id_01_00000203_hist_librosa.bin": "19d86b159a8492610c70de130f279742ae940c1e369e9214720c3f26529bcc77",
+   "anomaly_id_01_00000213_hist_librosa.bin": "489eab25f50bb5084f5096ccc0d73ab7c67ed625baf215258c4d32cedb383c02",
+   "anomaly_id_01_00000223_hist_librosa.bin": "f28380b45e4e1d2b1a6e21085b833c417ed78aa5a14de13f5685ab5afaf4d070",
+   "anomaly_id_01_00000233_hist_librosa.bin": "5cd5aa87e5e32254bec1fe9403f1b0d61d8777edc599f0693dc52f9e1cfd76d5",
+   "anomaly_id_01_00000243_hist_librosa.bin": "026eef9215f889f8e90f33f9b1cbf2df95fcba060c0514f6af5004f530866078",
+   "anomaly_id_01_00000253_hist_librosa.bin": "3af028087b08f49ebc99590e2b92eac519bd3be3da667daa2a05632a76c82a56",
+   "anomaly_id_01_00000263_hist_librosa.bin": "f301ba9835fb78dc7bf9d7f4257b58be6e8aeb68ed814dfff0d1a06ea1d5d968",
+   "anomaly_id_02_00000003_hist_librosa.bin": "fed5ab71fb73eaf09ca393d7daafb49b8be99e40567360d9a04269aef44db552",
+   "anomaly_id_02_00000013_hist_librosa.bin": "7f900a14b84116f6748a89ea91f930525c1290af6a9c0d0040323fdf81a21b3d",
+   "anomaly_id_02_00000023_hist_librosa.bin": "58ff201b24224323f70520bdc23c8bfa34c5940eaa9125444dfef7d7a5ccdce9",
+   "anomaly_id_02_00000033_hist_librosa.bin": "614fd3a35fa85fbcd10a9473489e419623d5fd9150cebfd28d96fb81b13c3d8d",
+   "anomaly_id_02_00000043_hist_librosa.bin": "0e9f5e2304890b6b77ff95d6148a62b41d8f74a4767c57f6060a73dc940b158b",
+   "anomaly_id_02_00000053_hist_librosa.bin": "88f2e085b84198c1f6a407a5fd7ce327667ba5e9fd520cbf1fbf7e52ca3ba04d",
+   "anomaly_id_02_00000063_hist_librosa.bin": "64781e06efa1343147087c4f69e34f47413bf980f62348a5a99c554e243849d7",
+   "anomaly_id_02_00000073_hist_librosa.bin": "716d34ed1c7a3c458003e89b521911c0e0be43d56df7b50a5c1776ef02eb1a73",
+   "anomaly_id_02_00000083_hist_librosa.bin": "662abf80567edb45e4ccb9941e4a936b5e34283893570fe04a75bb31e0ddf4bf",
+   "anomaly_id_02_00000093_hist_librosa.bin": "f50bf640cf6b763e89615f44ced9488ad030dcca34781ff5ae2d064a381f179b",
+   "anomaly_id_02_00000103_hist_librosa.bin": "949edd9097c494d8f1d694c9f68b268b28dfd42c125afb0c0c2dfac82109d4c3",
+   "anomaly_id_02_00000113_hist_librosa.bin": "4adcc6c458f11600341a96b3e6cf7f66230d0a1255e9b859e161a34c1c9ad10a",
+   "anomaly_id_02_00000123_hist_librosa.bin": "9a52c92b22c541aed8bd593c5088e4592302996a5b214781ae8e2407f80f104a",
+   "anomaly_id_02_00000133_hist_librosa.bin": "e83ab95978f8ada6c181521dbf04bc1f8755be8a457ea177461716f2840a91c6",
+   "anomaly_id_02_00000143_hist_librosa.bin": "e2022ed09d477e8d2a4f65223d92e8ea0fd18583925d6a7d0fbb00ab752acacc",
+   "anomaly_id_02_00000153_hist_librosa.bin": "9a6ff9ba31a370ea31d962f968b208efccde097cac72dc39965ab44dcd6df24b",
+   "anomaly_id_02_00000163_hist_librosa.bin": "74b07077b4450bdd99e3c59f56be8eebc7f702ffcdaa6ea66fc3d744a2b3b69b",
+   "anomaly_id_02_00000173_hist_librosa.bin": "43fcf981ed35f0ffec0a53aa4786a9f719478c842401608c769cacb843072b7e",
+   "anomaly_id_02_00000183_hist_librosa.bin": "edadb28320e8ebb706282b2a2d2395db28040b3d113df1adaf92c4d6461841c4",
+   "anomaly_id_02_00000193_hist_librosa.bin": "7fa758e893231184d88fc11063642f4216f2886085fbdcd5dd43cf6aae8d65a3",
+   "anomaly_id_02_00000203_hist_librosa.bin": "94ed3d54fe423e370035b59cefdaf76bb099d88d9c6ef9639b580f72131ac169",
+   "anomaly_id_02_00000213_hist_librosa.bin": "c4dfd5ccf7a1bb92f007dc5d4eddf623080ebf57c94073af92f034dbe2898ae7",
+   "anomaly_id_02_00000223_hist_librosa.bin": "fe65d8d88055d617082cfc90ce3348e35696b8417debac7afb0dae64f6231d0e",
+   "anomaly_id_02_00000233_hist_librosa.bin": "c8d468de3ca9d01d50ebcf88961c17070b1c7127f37523fd56820ed328c76313",
+   "anomaly_id_02_00000243_hist_librosa.bin": "bfde7f7ba00b466c39999578680287913e0cb3bcd9dca9e27691b08e336f1b0f",
+   "anomaly_id_02_00000253_hist_librosa.bin": "b4bc84d86ab6a2f6d81789819bd2c4750af76cd6defb87cbf1f60e81ef70d081",
+   "anomaly_id_02_00000263_hist_librosa.bin": "0ed500f98b4b8b4ca4b72d532d660489fa66b0012a362186ae7e9634cb7354e4",
+   "anomaly_id_03_00000003_hist_librosa.bin": "f52e845dd5b8214dc9195c9df22416af602a2dba5ee5ebc8a8e6898c4b70655b",
+   "anomaly_id_03_00000013_hist_librosa.bin": "2bbaa884d1bde19589d019f5edb7fc475c8751a0003b5df5679650f7475cbac1",
+   "anomaly_id_03_00000023_hist_librosa.bin": "48673209585bc018676615a37d197c791fc4170d7483bf5383380184497ed31e",
+   "anomaly_id_03_00000033_hist_librosa.bin": "d01535db9c4d7fde4e3464de2cbcf417aa9da00ee71670f4609e03b5589f5e5d",
+   "anomaly_id_03_00000043_hist_librosa.bin": "dde83a953403b12f736cd357bda9b08cbd0fc81838cfeab4ca9cf26d3de5db79",
+   "anomaly_id_03_00000053_hist_librosa.bin": "b751dad8145c7361fe15ed2d1dc7eb37e9fb2e856cd62b72951dd51cbb64b1d2",
+   "anomaly_id_03_00000063_hist_librosa.bin": "59495d8453b16160a888ae937b7d83f183866eda5bdfece480b3968d2ecf212f",
+   "anomaly_id_03_00000073_hist_librosa.bin": "797b3859fc3bdddf919ca32bd9abcc41a7daab75262bc4792a617fb3be25c65d",
+   "anomaly_id_03_00000083_hist_librosa.bin": "8737e528eb71ddbdc5aef775c3a480d984e0b7e5a2ebf87411bbf17e3df23de9",
+   "anomaly_id_03_00000093_hist_librosa.bin": "2a0d6b98adc9a0a00865b4f9a03dc8e5698ad98f9946ce53838bb0b18d78c85b",
+   "anomaly_id_03_00000103_hist_librosa.bin": "7dd66b6aaccb5e43b8dd58c71bdfab14861997d8cb19091cdcee009282fbe10f",
+   "anomaly_id_03_00000113_hist_librosa.bin": "60603b7dc8ef571aa05fb4d2d9d9648d57c5fb5d7c3b8662c9444651b560dc83",
+   "anomaly_id_03_00000123_hist_librosa.bin": "59f169726602d1ffe0bd3f1088b10bcb3e8f98f2796086104426491e2d4d8599",
+   "anomaly_id_03_00000133_hist_librosa.bin": "cfe322d350d31ce15b9c57fc89424bf3cd0da37c5d8503378db00e3d4e44a7b4",
+   "anomaly_id_03_00000143_hist_librosa.bin": "c562faa96bb110055efe4b1e79f9c8503ac5fa1d83a4d839a66e68ba2916f62a",
+   "anomaly_id_03_00000153_hist_librosa.bin": "3a06b9ee8cc9e8392a910939485146f872c6e8d35cb29a03fa0e4c9047271551",
+   "anomaly_id_03_00000163_hist_librosa.bin": "27d2181281c9cecc78bb742f7360f84095bfc04af1c1dd1587139a4b04bff3a4",
+   "anomaly_id_03_00000173_hist_librosa.bin": "775ef8fc69aa847548fe94629ceec150193933ca09bd53c2b0aa66e7e837419b",
+   "anomaly_id_03_00000183_hist_librosa.bin": "a091dfa6fed741f09fde7726bf56ae06fb15cc68e93b2d91e6c61f3527023e8c",
+   "anomaly_id_03_00000193_hist_librosa.bin": "1b8e5839ceba9883e5b3a2f787d703fbd8acd8851d591927f144a186a45ee7ee",
+   "anomaly_id_03_00000203_hist_librosa.bin": "ac3e5c575effec733a1a03b49ae6d089b878a1c043f4d0f91835ac0a5611e954",
+   "anomaly_id_03_00000213_hist_librosa.bin": "b7529b563e3a5e8a361e93a186da72c8c0d725733ed0991cd87bddb89a2f871e",
+   "anomaly_id_03_00000223_hist_librosa.bin": "15f3932940e4fb035c4b306a4c935278b096d0a733f25dd2afcf5dd4ed29cfc4",
+   "anomaly_id_03_00000233_hist_librosa.bin": "0a37c647abafe485412bb61274c2acf5833f1db836a75a62b59847f2da229ec7",
+   "anomaly_id_03_00000243_hist_librosa.bin": "13cedba7a69ff0a021c8e03abb5fb62833c9c0a2a17ba40ce0ee372341ed89b2",
+   "anomaly_id_03_00000253_hist_librosa.bin": "c11c2f016620747210b722122993fd70c7535e18f592d4f2ad89016e4e5e970f",
+   "anomaly_id_03_00000263_hist_librosa.bin": "260b653436ad67cab14b5077069b6d2a7dfcc700ed409967aa4062bd15954ee7",
+   "anomaly_id_04_00000003_hist_librosa.bin": "e1498140fd76c4f66b74b1a6976431d43a3581edc3c9b71b9b11faa1d6e34008",
+   "anomaly_id_04_00000013_hist_librosa.bin": "560206810cb0eed37b30cb124519296192a45c4cec32a1579a7cd76d49ea4b6d",
+   "anomaly_id_04_00000023_hist_librosa.bin": "55c1ed9a3ba2e4ff73e5f44ef201bf0cc7640fa8ec284bba6c6e2f1770602b98",
+   "anomaly_id_04_00000033_hist_librosa.bin": "07ededcb15b2ceb95bf8bab3803d4336755907c3103c225551ca47d7299c1068",
+   "anomaly_id_04_00000043_hist_librosa.bin": "370969d267214355f41256d0f8a7813f9dca4c356426ef14650c1713a449bf07",
+   "anomaly_id_04_00000053_hist_librosa.bin": "143e4a4bd02a00642519d310b5210d843efa72ef2da63bb4b183c20ddc110521",
+   "anomaly_id_04_00000063_hist_librosa.bin": "5c892a9965434a9db719142c9060da6fa9d007bc0451031b8a6843e48654033d",
+   "anomaly_id_04_00000073_hist_librosa.bin": "37df82d1fdb2a61c9be3d83056fc01a432de539a5ea6178eece54e0973448a1e",
+   "anomaly_id_04_00000083_hist_librosa.bin": "055a73f27ea0df30e65e2c00e23a54cb8116c29f3737a2651aad92857dace45d",
+   "anomaly_id_04_00000093_hist_librosa.bin": "0610a2f6626b77040dc60305522f28765736ddf14e95a27dfa36c2b95450d976",
+   "anomaly_id_04_00000103_hist_librosa.bin": "c560879a226046d39121abb65835fca16014ae8755cdc95ffa04ffed140ef371",
+   "anomaly_id_04_00000113_hist_librosa.bin": "434f87370df5d961b0e1d824229e6008a4671656b3412b7049d817c3e7fd982a",
+   "anomaly_id_04_00000123_hist_librosa.bin": "f2fe00dfb44561e0ed88fa75a198413210312f4b4bdbad4a4efe086840013160",
+   "anomaly_id_04_00000133_hist_librosa.bin": "b1054a27a3e33da5237ab260ed212d0869cac9ada25ffe57d2cb9e5f9a6140e3",
+   "anomaly_id_04_00000143_hist_librosa.bin": "53fb956a482e9a4dc033da13cb7924b52ebefbae50c92a02130cdd21379c2b2c",
+   "anomaly_id_04_00000153_hist_librosa.bin": "113772a1f30bd1ad39ac72d9ff2a1443806b602f39f50e610425e3c97a1afa75",
+   "anomaly_id_04_00000163_hist_librosa.bin": "e0e683c0c0ad91127c9490410635f45758c701f6851a81fd4446d98c2ff4ad71",
+   "anomaly_id_04_00000173_hist_librosa.bin": "18684d71be99258df68e08cf54bc09fe6e6cda2b79dd6bf71e8ceb581bb465c6",
+   "anomaly_id_04_00000183_hist_librosa.bin": "c3fa966da8ac7a94bf77084ec8d75292ea3126cdffc4b6be31eb37fb8794d87e",
+   "anomaly_id_04_00000193_hist_librosa.bin": "3b81eb73cbf6ccf7ac405ece1e2efdde8faf42b99ba714acce7acbbf5fec2e8a",
+   "anomaly_id_04_00000203_hist_librosa.bin": "3956546192e7c1ee2aae7995ea8b9e15acfa33c76029c44450a17738447dafca",
+   "anomaly_id_04_00000213_hist_librosa.bin": "ea98e73fa287810a8eb67efd966ec37e8245873ff0d934a573eb4a06a9f50853",
+   "anomaly_id_04_00000223_hist_librosa.bin": "39c4b8fb06c0cfd8282cd4cc3ac22db9e9073829145d7b7f7d3386409e0d8113",
+   "anomaly_id_04_00000233_hist_librosa.bin": "2fcd52b96379e013cc9f4f709b63d6c7efee93c5b73b54a3dc5ea485f21cb950",
+   "anomaly_id_04_00000243_hist_librosa.bin": "2b06f621ebd973aff642b9172d691ba908d99305f85b4f6c31381518c993e229",
+   "anomaly_id_04_00000253_hist_librosa.bin": "a6f328d5eb73d2074a75d58409ecdedd939b9ce409314846052719d9655a26db",
+   "anomaly_id_04_00000263_hist_librosa.bin": "f2136fd9b58433f73cefadf669c4c9bd3148466d22cdfd5a2bd2d77943a30175",
+   "normal_id_01_00000003_hist_librosa.bin": "8f22fcc19a2d99fd0d4a7d0ff3d09bc3733bc595d5b4fd45249c7a59ca8f3e8c",
+   "normal_id_01_00000013_hist_librosa.bin": "04ca29d55bfd95d3edfe19b144a988d8f24297d2735ceda37562145360d4a11c",
+   "normal_id_01_00000023_hist_librosa.bin": "8c77af4274fb50d1ebd7d0c2fd2d0f641d3e1e1feb7c09465e51fa7db7968f46",
+   "normal_id_01_00000033_hist_librosa.bin": "c4102e7d28c18878966802b174a5d79fb239abf16b144c55ec4f052e57fa981e",
+   "normal_id_01_00000043_hist_librosa.bin": "035297ebfdbb3ef2ef66b15b2443f4aafb5e873a3e3447ba8a4d9d649aef9c05",
+   "normal_id_01_00000053_hist_librosa.bin": "d7be3fa6c44c4202c1a04b4766136c97a4377ec597881b83d0e3aa6552eaeacd",
+   "normal_id_01_00000063_hist_librosa.bin": "0532f5a998d1c5f103ee504206979924429481469427a0f8582e467cc1787b37",
+   "normal_id_01_00000073_hist_librosa.bin": "c891ae089f6c376addc9d10a48488bb58f4c340b50afea525342db21a35c32ca",
+   "normal_id_01_00000083_hist_librosa.bin": "804462acaefbf050446b46d6304765c6513c6006a39e9e5d840d81e435bfcd26",
+   "normal_id_01_00000093_hist_librosa.bin": "0b4049b2fffe34c118f2866cd2481ad6db218c85f7e341187b2ff367aee4af08",
+   "normal_id_01_00000103_hist_librosa.bin": "722e42b19e3dd98f5a20e2f30206b2df6f39e4236d56cf8f0448d2afa415dacc",
+   "normal_id_01_00000113_hist_librosa.bin": "facc2b33184840115d69ffcf9dc0a7d125f454873aaeac5a91115840d0764bf5",
+   "normal_id_01_00000123_hist_librosa.bin": "88afad38024128187575982ec87eba9bacac8085d571c83dcf7ef6300de7062b",
+   "normal_id_01_00000133_hist_librosa.bin": "34e84c70274766eabb5313187e0750081ee12f7c6cac190202b46aa8918318ca",
+   "normal_id_01_00000143_hist_librosa.bin": "e983ea1c8b17820f8fa472fb38b323cc8f25d63745b32a3e86cac46e421c4720",
+   "normal_id_01_00000153_hist_librosa.bin": "a7ea25b1db0dd3a6c48716c37b03e4366f2d4478eb3a7e4895dfea47aad27c2b",
+   "normal_id_01_00000163_hist_librosa.bin": "4bc152bb9e918c80ba8a26c09f1b83da4de51fb41ed0893bd19c8b8028a857f1",
+   "normal_id_01_00000173_hist_librosa.bin": "7480f726c2b1950a86d2d5a434bb25868454788cedab4444a1bec7874a13c9d1",
+   "normal_id_01_00000183_hist_librosa.bin": "3b63ef0f99a3853c8ffaa8852b3b8ed9d9bf585a8621e1e917f660a19d7b745d",
+   "normal_id_01_00000193_hist_librosa.bin": "7c4de29067a6ba81f6d77f86998e7489f99275fbfcab6e93e8b84e8012f2febc",
+   "normal_id_01_00000203_hist_librosa.bin": "c5501b81386cb66eff19b40f977393002dd46080556a4ac19b74695ade216e6c",
+   "normal_id_01_00000213_hist_librosa.bin": "e751b49d365787ad66ca0c054ff886c9ef410e3a751439e6d9a622f1b1e3ba00",
+   "normal_id_01_00000223_hist_librosa.bin": "ec170548f5b8fab3ee1afaedcf1ca6aeaf6c38aa3b4afd2ae436ef8c41449735",
+   "normal_id_01_00000233_hist_librosa.bin": "ea54db727d253b55a1d32fe89bf53436b7cc71c4462ee52f19fa9265b16fffa3",
+   "normal_id_01_00000243_hist_librosa.bin": "ee9792e66266870ed161a0f1db5eb27623f286db7f1fd2906e0e30582ac4629d",
+   "normal_id_01_00000253_hist_librosa.bin": "24ea4a70af13fae0eb05c3b2d89bfe61c6f930cdc5a55c2ffd32ca7bc05578e6",
+   "normal_id_01_00000263_hist_librosa.bin": "aca6a8a52e2c81e0fde3304c61a2324edcf959b4a9baba80f39cd8281c1d97bc",
+   "normal_id_01_00000273_hist_librosa.bin": "8f30288c8a5e75e950f18002132631e5fa7645a3ebc84bacc69841971dec4a9b",
+   "normal_id_01_00000283_hist_librosa.bin": "4f29ef8d4375f0a133b958b4c22de9639e217bdacca03952311b401ec5a90bc9",
+   "normal_id_01_00000293_hist_librosa.bin": "98d466eb837d03a75b999b8215c4771b9b608623a98d4fb8f994bb61f1494af5",
+   "normal_id_01_00000303_hist_librosa.bin": "463604a2989a14deb4e56e9fddacc028f7ddfb56cb842fbed83bbbaf795ba16d",
+   "normal_id_01_00000313_hist_librosa.bin": "3acc0ccf22b6580afd30de2e2299343c7a64567d107662e4ffe6ebf83c38ead0",
+   "normal_id_01_00000323_hist_librosa.bin": "5225a76dc6975aae51e32ac932e611d8149773b1e2d9b08742e1506d5abf4652",
+   "normal_id_01_00000333_hist_librosa.bin": "963a43db2decb3c623e5933700e3e150f56d960e9bd2903e9cd3a67bcb6934c4",
+   "normal_id_01_00000343_hist_librosa.bin": "91c64934c15cc14869fdfd21a4c2dda3a09d16e7fb7652a6513739610113b3f6",
+   "normal_id_02_00000003_hist_librosa.bin": "afb07cf40e9565ef272b85c6dd50d971e42e70a18ec783d796b51bbf4ab9fe67",
+   "normal_id_02_00000013_hist_librosa.bin": "7a08cae841348e032dae4da1342afdf110acdf6fc4f8eac54ad40ad15a999462",
+   "normal_id_02_00000023_hist_librosa.bin": "a021473643ca89825cce2b25c8da54e9d68096c2060fbf8b9dfe54c364e233f6",
+   "normal_id_02_00000033_hist_librosa.bin": "f97b3b36707d8d8bf734aff89df87cc3298f852949046168eb65ecddf04c0ea3",
+   "normal_id_02_00000043_hist_librosa.bin": "7e0d3a43e210fa164ec74589d11047db8e68d9b3e5cc2449d555bd25b4d31cc5",
+   "normal_id_02_00000053_hist_librosa.bin": "1f6d4b865767d5457179ef7b38e05e1c2cd18f916f655dd5c20d474e92667bdc",
+   "normal_id_02_00000063_hist_librosa.bin": "583a7c3758e4268c9e124f2b12632f78bb24d649bbb296d32784582833911040",
+   "normal_id_02_00000073_hist_librosa.bin": "930ab6c5b37ffccfcb9bc81ccc6543e3b51ec0ec55ff468ef6aa2ecdb97d1b93",
+   "normal_id_02_00000083_hist_librosa.bin": "153eb50f168e8fdd7197540f4242135bda758efb26159a0e3ac00ffec4af236e",
+   "normal_id_02_00000093_hist_librosa.bin": "ba5c695edeeb58da70bc7e07de007edba1921316219efcb75105acf72ea8d9e2",
+   "normal_id_02_00000103_hist_librosa.bin": "9c3ab15d454cd6e6b17071aefc5011953001f8dd7a24c9d380ad8a7c7ee977e9",
+   "normal_id_02_00000113_hist_librosa.bin": "ba1175f3dbb4ab6903ed217b3759dab18357d68c0a60d8fa69bb2e716d2230b8",
+   "normal_id_02_00000123_hist_librosa.bin": "59aefe5b0e47fe1ec44648aa0819c1fb9810985136738581aebe577447f56e71",
+   "normal_id_02_00000133_hist_librosa.bin": "2b7f7fcef3a919fc1eeb0a03bd211073b82dc1878acbfcb8507c55603d2ee258",
+   "normal_id_02_00000143_hist_librosa.bin": "46f51a9a85832023906e18e15813f2fcab7e27924742193d674662f4132910be",
+   "normal_id_02_00000153_hist_librosa.bin": "1e3a49195b26a3ac9105a038438f4300fc6d63a00f195494753a7ac14c05a571",
+   "normal_id_02_00000163_hist_librosa.bin": "90a03416f86ba1f252040aba50d4280025455b8fc2729eef2280e690272a64cc",
+   "normal_id_02_00000173_hist_librosa.bin": "dc3544b0e912aeb0caff4965de004454d447f1fb421fe81ff5fbfe60c223a1f1",
+   "normal_id_02_00000183_hist_librosa.bin": "3732915614f0aaec67a6643e70e69b878015618b9d3c4d9bf3aeb02e3afee622",
+   "normal_id_02_00000193_hist_librosa.bin": "9615ed9dfa1b1111a2e388a3a870384b82029146fffc1962812b94c70fc73ace",
+   "normal_id_02_00000203_hist_librosa.bin": "9e0ab4aea867ddfa674ccb87f0a5f4eed907275c649e67e1329c3a646f2d3901",
+   "normal_id_02_00000213_hist_librosa.bin": "7c9f91ff82f00f17039377438bb6a2f05b290f0e4471dfa6fb7cd88c41013398",
+   "normal_id_02_00000223_hist_librosa.bin": "fd1fa334364fd8d446543df8147570ef5415eb51ce40c6fe81a7b78b111421c8",
+   "normal_id_02_00000233_hist_librosa.bin": "10b76565e891722b994222d9369e9c4e1e6d8345358488d1f543174d45bbc1b4",
+   "normal_id_02_00000243_hist_librosa.bin": "59924976c065a70a40afd3567c7a1284d416e1ceb99bae6b2509c7969ad7fdf2",
+   "normal_id_02_00000253_hist_librosa.bin": "46989256db6dd7f9a49e76aac95c694c46525d713ab3d7460e9d85a43f44afc6",
+   "normal_id_02_00000263_hist_librosa.bin": "0c6ee0f664ccec426753956fb9f038b8f3a2d9f20a49663c9dbe641ca7c567c0",
+   "normal_id_02_00000273_hist_librosa.bin": "183ec66d83566b168aafae6ed5cb523e7393d7b25b892f909aa51cf12e04a4e7",
+   "normal_id_02_00000283_hist_librosa.bin": "0e6acc4087c8cba4adb28c7bb78564866ee5056026d899cc920778fed7b278b6",
+   "normal_id_02_00000293_hist_librosa.bin": "7709594eeba5983415eb0d3123c0caf4e01ded79b120714873d5ec0dc3230b36",
+   "normal_id_02_00000303_hist_librosa.bin": "2321c51cf904fc1326afa5714eff838a2c098d7baee62b1a4bcf93dd3d9bf377",
+   "normal_id_02_00000313_hist_librosa.bin": "31270ddade05d7399a38a3eeaf6eae1f5aa7d212c50ec7973f238363f520f749",
+   "normal_id_02_00000323_hist_librosa.bin": "efb4da685944886dcec3ba524ec24d4581cc5250a21e46373bed30ff09efa3df",
+   "normal_id_02_00000333_hist_librosa.bin": "9c2a31fefece6227a77bb90e2346c30410376807c0c8a1a97c30eb95eeb50021",
+   "normal_id_02_00000343_hist_librosa.bin": "e891b596719e3a206d82ea11f4904a48b15845bc458dfa46dd7ec8afaa1dba74",
+   "normal_id_03_00000003_hist_librosa.bin": "695d7d930ceef82a27e0ad835a188ab6b5119f49c88b1c29762241dda112539e",
+   "normal_id_03_00000013_hist_librosa.bin": "effaedee659fe0f787c408ca8f3c52baa93377cd0502222e3465b71e284f5b81",
+   "normal_id_03_00000023_hist_librosa.bin": "04bc39c2daaae671f899e44025c2e6554eaac1ff8a29e3fa8a176c6fc8d60cca",
+   "normal_id_03_00000033_hist_librosa.bin": "232f1bb6fc9f3ec35aa6546bfeeee47cfd2bfb436df003cc34712da95ffab431",
+   "normal_id_03_00000043_hist_librosa.bin": "fbd270f8c576c80a9ec71fc4d7d5c175accb4b4c15372a6d79a9cceac968f788",
+   "normal_id_03_00000053_hist_librosa.bin": "e6d7080f1861cdb0f5780ec90279498bac2fb7c34938b24e8d5d24bd8f700231",
+   "normal_id_03_00000063_hist_librosa.bin": "f1bb5609e646d2ef709469b69495e168ec7e29111dc5141e98847b8a8a361a35",
+   "normal_id_03_00000073_hist_librosa.bin": "3e92e7d4c8b6336cc5a8d70bef36e515391d69f2fa9035e4301b47321b0aa83e",
+   "normal_id_03_00000083_hist_librosa.bin": "9ec61d05fd4b2a9061681b719ea905133e01253503c08c1ceb6a7974316f8b8e",
+   "normal_id_03_00000093_hist_librosa.bin": "6adbd2a6b502dfa4338adb41b25bc4ae0f7049f468ea976dae9fc97da835eaaf",
+   "normal_id_03_00000103_hist_librosa.bin": "a94e79bcf52ee0af96e06674eaf2617c88d45df65a99cb072168faa13e5ec499",
+   "normal_id_03_00000113_hist_librosa.bin": "eeb82cba947a8cb5c8d59879906f7186e1fd65286a7ef477cff955fe5fbe67d0",
+   "normal_id_03_00000123_hist_librosa.bin": "f45f0eeadca69cdcfde9f44099ded7a2669b0f15a07003d2851e3b9c1705d76a",
+   "normal_id_03_00000133_hist_librosa.bin": "84fcc8bcaf2a2db3574c266907158dc873af415285d2498db57fde83352a27cd",
+   "normal_id_03_00000143_hist_librosa.bin": "34e5c477cc0a2541f030f526f4a2cc0cafd4a20dbced21973ff3a455506bed85",
+   "normal_id_03_00000153_hist_librosa.bin": "bdd3a7a5812b6b2d637af3c988531b7e95101aff9ea74f1a88a1f9acc562f37f",
+   "normal_id_03_00000163_hist_librosa.bin": "054f5261cede9848055968cb84b771a926ee79f5be1e3f0aa8a6901615bfbfb1",
+   "normal_id_03_00000173_hist_librosa.bin": "4a34ffeea71a0b6ae77a4441e8e437cd69b3a21f317ec83b7e8e15a322a2fce6",
+   "normal_id_03_00000183_hist_librosa.bin": "5367bd266cc43da318e2e5c6863b170dd5d6c438d2d4f1259766a7c5995c9919",
+   "normal_id_03_00000193_hist_librosa.bin": "fae08f1d578a6511002ed19ee177e710ac4cae7e1b07511afa75bfc3d291a492",
+   "normal_id_03_00000203_hist_librosa.bin": "f84db4a40031da27c3ed41846c82b31654cf1cea0935e85041f6d6331e1d802f",
+   "normal_id_03_00000213_hist_librosa.bin": "487ce69421778f3e7d7b9d19e82b355d4b4819c6bf9af1c7c9410379d4003552",
+   "normal_id_03_00000223_hist_librosa.bin": "4b235ce4e847dbe8189d0b624fa8c1d5d595ee275a4ddd2a041bb31f1761eb96",
+   "normal_id_03_00000233_hist_librosa.bin": "dac0d8a48e8ead75b92851f2f14da399ab85f0971a673142dfd54703630a9af7",
+   "normal_id_03_00000243_hist_librosa.bin": "d6f4d08ab6957baaa556f57ec159c3e82d4c800ca5279daa6fefe4eb08088a1f",
+   "normal_id_03_00000253_hist_librosa.bin": "c263b6f6666b4cfae16001350113bde3ff69601c00c76602f36ab164af143ab9",
+   "normal_id_03_00000263_hist_librosa.bin": "c433ee500db06bce173b74d521aaa1f015c2cae2f9b194d80d3edca5f04573b5",
+   "normal_id_03_00000273_hist_librosa.bin": "5805a165971123eda73e44371875e81f4e3f7ea49df109ba45ed1808090e3b62",
+   "normal_id_03_00000283_hist_librosa.bin": "844f4ee588cec77232955566aa62bbec223ab697b78edc05359f5e75fc1ccfa7",
+   "normal_id_03_00000293_hist_librosa.bin": "f377289865fed201b75f6168a1f2bcec49277ef598e0c03b980d7a10b5af6447",
+   "normal_id_03_00000303_hist_librosa.bin": "09bac72f82685ec02ef18741932b67adf4594367b1da8c9e8f5e2faa3a0aef61",
+   "normal_id_03_00000313_hist_librosa.bin": "77bde7fbfca7c0d3ac8919a66b1273d00cf9facffb4a3c40854d022335eb9ce1",
+   "normal_id_03_00000323_hist_librosa.bin": "b8488e3b4fdf22203335fea318b31a7a26af975b9cbca1fbcaecaa85006ce495",
+   "normal_id_03_00000333_hist_librosa.bin": "8acc28313db0a8372a00bb57eaa2e4dc9bfa9532a21680b8a22cc0ca8082a1a4",
+   "normal_id_03_00000343_hist_librosa.bin": "f141d9ac180b4506cefad1e01bbba50aad00b429407c5f37663488190f7cfb31",
+   "normal_id_04_00000003_hist_librosa.bin": "5549eb3e6fca415a4346fa7e429593bcb4593dc0a25819bb124e9bafb3a3fc63",
+   "normal_id_04_00000013_hist_librosa.bin": "ce688ef44e0ff4ac2509d7c5687715bfa66af27b189629dbe89c14572db55b52",
+   "normal_id_04_00000023_hist_librosa.bin": "26172765f1bf6b54d6de9c8108884ccfabc5c71956ded5c749dbe7baa59f31bd",
+   "normal_id_04_00000033_hist_librosa.bin": "5048ba173a7e02351533a7a63a63173e8768c7c6bb4f38d30b577488f2fb656c",
+   "normal_id_04_00000043_hist_librosa.bin": "c32e2428e4178ea0a851ae44d8e44a970c477b126d9f6c9c67085bb51b4d19e1",
+   "normal_id_04_00000053_hist_librosa.bin": "825d0f2210f964bdeb54b9da439fdc2da958ddcdf8432d6468811af4b31f8adc",
+   "normal_id_04_00000063_hist_librosa.bin": "a457b43d7f0092591106a26fdf129067722cb448fbb90be8f9f1ee60f83b8ae9",
+   "normal_id_04_00000073_hist_librosa.bin": "3286d0e794b5805a5c043c759f02107fcc95c4ce1a6ed5060de1a67ca3a7ac28",
+   "normal_id_04_00000083_hist_librosa.bin": "ade7c2a472e6eb4778f865dc1f702ad2a62604de23cdceeadf7b26446102f876",
+   "normal_id_04_00000093_hist_librosa.bin": "3102d1f8a86eff060f28a153c0f543243e41bf502dc913e9935b2df52a0c9c8e",
+   "normal_id_04_00000103_hist_librosa.bin": "309c73802fddc3608a7c80c02103e58b04a99445dad1358754367a3248340b67",
+   "normal_id_04_00000113_hist_librosa.bin": "7d6c11132736e89ae119013e856b7f6bad273fff3fb58e46947102b072892452",
+   "normal_id_04_00000123_hist_librosa.bin": "9ede8b3246d9cea8f9a6a3e37b57c3fcc974d959689403b9e84de733ff675d16",
+   "normal_id_04_00000133_hist_librosa.bin": "2cfa44234427b5ad3bed1283857d5e09d0f9f63a86f4278a3151cb157f08578e",
+   "normal_id_04_00000143_hist_librosa.bin": "bbbd9b74005889ace59dd78335122ced8148753140eef6bd35680abdb081ff8e",
+   "normal_id_04_00000153_hist_librosa.bin": "b966324bb7f744c82655acde24aa220e937184f7bfed0fcd45f3d04cd86c65c6",
+   "normal_id_04_00000163_hist_librosa.bin": "2a66d4c8ec34510c63d5948f89574470a4756e591a3a7b9b604e6cf172a4a53c",
+   "normal_id_04_00000173_hist_librosa.bin": "4da27da5c56b5f8470bb9548ac34cb914ae3481f3da950f8d6596205c5d3c264",
+   "normal_id_04_00000183_hist_librosa.bin": "06ba341fd78bb4abf9a0c05797b9a5a9da7397e09de1e7f62958a9ce72c5aa32",
+   "normal_id_04_00000193_hist_librosa.bin": "e50e97b76a126a1d834efd475363e30cace4ae4fbae57a8834737d0fe2ee2409",
+   "normal_id_04_00000203_hist_librosa.bin": "4bac27f8b3c5d0f92f6085ba370652bf483882cd39492f2bccb69b28e239f377",
+   "normal_id_04_00000213_hist_librosa.bin": "dfc171efd24dbe7a27203571b1b1ecc4dde24d250af23f611d07d793e5eb4cab",
+   "normal_id_04_00000223_hist_librosa.bin": "10ea35ef9e736a1101041aa150af7e2790423105ffe34e6e3533300accabdafa",
+   "normal_id_04_00000233_hist_librosa.bin": "907456862a5e7a0820fb6f42f999332e3968f9aaf12b4d669fa59ac428dd07e7",
+   "normal_id_04_00000243_hist_librosa.bin": "c7afd6f73bfc36b81840c0700a0871cbd6645a8d5d8763cd47f6305fd95e89d6",
+   "normal_id_04_00000253_hist_librosa.bin": "3f84c4b3ecb38e4133f3fa1b20611c3a18a898d9cf82469ce8df0838c1372bba",
+   "normal_id_04_00000263_hist_librosa.bin": "670c3caf627c3a8553879f7541939c7b9fbb442dfc548ca1af3e751d1ed7f354",
+   "normal_id_04_00000273_hist_librosa.bin": "500e9b2f88876c7993b8b2e065c0e3cdc399ae290c9be60f88de62f71e4b9d4e",
+   "normal_id_04_00000283_hist_librosa.bin": "1a6d6a45e89ef19d610234dba0834b9bc14cf79953063631e686429050b66d36",
+   "normal_id_04_00000293_hist_librosa.bin": "695821fc0fa33abe3f7d363ef2b356cc85e666df2869c171fae700414bd60c25",
+   "normal_id_04_00000303_hist_librosa.bin": "2db042baa43fdf8e2c21212fbacda84f536cc6ae751b471cb6a9b01247c8e938",
+   "normal_id_04_00000313_hist_librosa.bin": "d18da45cf9870f69fbd6d5997b663ea383f0590211b9b63c147f9987bd12311a",
+   "normal_id_04_00000323_hist_librosa.bin": "6f5453d433addaccacfcf81ab2d9366aa221410471d59ec32668626348d1de60",
+   "normal_id_04_00000333_hist_librosa.bin": "e8bc4e51881638218d6168be689899a367f0d36346adaf7d67f6afebce337723",
+   "normal_id_04_00000343_hist_librosa.bin": "c3fb194b2e7a150a304080ce904df2f3d004dca6ad40da14d6bccb4678e0786a"
+  },
+  "aggregate_sha256_sorted_names": "41ba3e17b57304f695456d58f69b7f4a92ef2ad825d49aeaa92ad6476bd1c24a",
+  "y_labels_csv_sha256": "4ecd91868e197ee0a6739d4bd7abde73eac2fa31e9a88d6bc6aedefa136ff2a4"
+ },
+ "feature_definition": {
+  "shape_on_disk": [
+   200,
+   128
+  ],
+  "dtype": "float32 LE",
+  "generator": "mlcommons/tiny benchmark/training/anomaly_detection/common.py::file_to_vector_array, save_bin branch",
+  "config": "baseline.yaml n_mels=128 frames=5 n_fft=1024 hop_length=512 power=2.0",
+  "window": "the model input is 640 = 128 mels x 5 frames, and because the .bin is frame-major the window is a CONTIGUOUS 2560 B slice at frame i"
+ },
+ "selection_rule": {
+  "files": "sorted(names)[::7][:34]",
+  "window_index": 98,
+  "window_index_reason": "mid-clip (196 // 2), so the sample is not a clip edge",
+  "label_blind": true,
+  "label_blind_note": "the rule never reads y_labels.csv, so it cannot select on the dependent variable",
+  "fixed_before_selection": true,
+  "count_reason": "matches the 34 samples of the synthetic fixture it is compared against (results/e34_two_models/b3_deepae/fixture)"
+ },
+ "subset_is_not_the_eval_set": {
+  "n_here": 248,
+  "n_canonical_eval": 2459,
+  "note": "these 248 are EEMBC's performance-run stimulus subset, not the evaluation set. This is one of the two independent reasons no AUC or accuracy is claimed (the other is the redistribution position above)."
+ },
+ "tensors": {
+  "x": {
+   "file": "inputs/ad01_windows_f32.npy",
+   "shape": [
+    34,
+    1,
+    640
+   ],
+   "dtype": "float32",
+   "sha256": "d7f741654ec1d54f72b9bb5280a16a6140295a8bb737ec5d727e962a580df969"
+  }
+ },
+ "value_domain": {
+  "range": [
+   -69.21622467041016,
+   4.160799026489258
+  ],
+  "mean": -27.44542121887207,
+  "units": "log-mel, dB",
+  "contrast_with_existing_fixture": "results/e34_two_models/b3_deepae/fixture is uniform[0,1) -- outside this domain entirely"
+ },
+ "samples": [
+  {
+   "source_file": "anomaly_id_01_00000003_hist_librosa.bin",
+   "source_sha256": "a2c89a4d7d48caaf07a3ed42ee192edafecfe16e86d84ec7747bcd2af88ab884",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "270702a2b4929b23f3331884217fee277f072d02fea5b0c7430a3f60e94cf481",
+   "value_range": [
+    -59.494293212890625,
+    2.9052536487579346
+   ]
+  },
+  {
+   "source_file": "anomaly_id_01_00000073_hist_librosa.bin",
+   "source_sha256": "553e269953ffe87c35bce70da0d28ada5d16c99dff6aee46edddaca7ebe847ff",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "42e25107c07f00c73bdc7ee52794cc483c93183ff18f9e64a7963799eb4128ef",
+   "value_range": [
+    -65.0228500366211,
+    2.109179735183716
+   ]
+  },
+  {
+   "source_file": "anomaly_id_01_00000143_hist_librosa.bin",
+   "source_sha256": "d8402009dc0f266ecaab7d5cf2248ad2a0431ee2aeb1d98c86acbb21d3f7b693",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "14302aba2ae7ab73e84828aa4000a5f4066a28090deaa4f04d91082201de8114",
+   "value_range": [
+    -63.68242645263672,
+    3.8142518997192383
+   ]
+  },
+  {
+   "source_file": "anomaly_id_01_00000213_hist_librosa.bin",
+   "source_sha256": "489eab25f50bb5084f5096ccc0d73ab7c67ed625baf215258c4d32cedb383c02",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "164fc2fb516d680896faf0182c746e6ac314ffac7c83e544c4208e31f72db6cf",
+   "value_range": [
+    -65.44617462158203,
+    -1.3900965452194214
+   ]
+  },
+  {
+   "source_file": "anomaly_id_02_00000013_hist_librosa.bin",
+   "source_sha256": "7f900a14b84116f6748a89ea91f930525c1290af6a9c0d0040323fdf81a21b3d",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "177cad911c4b0964a37387685bbccd7cfc6203772d598cf46cc5efebf6f0fa91",
+   "value_range": [
+    -63.90020751953125,
+    3.1287758350372314
+   ]
+  },
+  {
+   "source_file": "anomaly_id_02_00000083_hist_librosa.bin",
+   "source_sha256": "662abf80567edb45e4ccb9941e4a936b5e34283893570fe04a75bb31e0ddf4bf",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "b9d23fb0c5853acd3e91461721293610a5a406cfcbc3bec14a90cdd1af9e15d6",
+   "value_range": [
+    -65.81340789794922,
+    1.4560860395431519
+   ]
+  },
+  {
+   "source_file": "anomaly_id_02_00000153_hist_librosa.bin",
+   "source_sha256": "9a6ff9ba31a370ea31d962f968b208efccde097cac72dc39965ab44dcd6df24b",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "7351a0407abf90783c41e82698c741f85b51f587004d856a4c624d82f43c11be",
+   "value_range": [
+    -64.49300384521484,
+    -6.316224098205566
+   ]
+  },
+  {
+   "source_file": "anomaly_id_02_00000223_hist_librosa.bin",
+   "source_sha256": "fe65d8d88055d617082cfc90ce3348e35696b8417debac7afb0dae64f6231d0e",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "9f393d7891354318e6e4a03c8a46ba80c1da3a0e95125be98df03d69ad18e547",
+   "value_range": [
+    -61.98892593383789,
+    3.195404291152954
+   ]
+  },
+  {
+   "source_file": "anomaly_id_03_00000023_hist_librosa.bin",
+   "source_sha256": "48673209585bc018676615a37d197c791fc4170d7483bf5383380184497ed31e",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "d5d892593d57165714cfbab74e6a77d19fe126b637f1740b916ba3bc6f9e1eb8",
+   "value_range": [
+    -69.21622467041016,
+    1.3707444667816162
+   ]
+  },
+  {
+   "source_file": "anomaly_id_03_00000093_hist_librosa.bin",
+   "source_sha256": "2a0d6b98adc9a0a00865b4f9a03dc8e5698ad98f9946ce53838bb0b18d78c85b",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "13475f9f88edfafb97c6f14b0768d52fdb66a247af3534046c8a28025d0b3ec4",
+   "value_range": [
+    -61.25414276123047,
+    2.951190948486328
+   ]
+  },
+  {
+   "source_file": "anomaly_id_03_00000163_hist_librosa.bin",
+   "source_sha256": "27d2181281c9cecc78bb742f7360f84095bfc04af1c1dd1587139a4b04bff3a4",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "cbc492bdbf342c1259842a57f1fd2fa121d6e2c463945ee2b580c46d89ce12fd",
+   "value_range": [
+    -64.29000091552734,
+    3.1985671520233154
+   ]
+  },
+  {
+   "source_file": "anomaly_id_03_00000233_hist_librosa.bin",
+   "source_sha256": "0a37c647abafe485412bb61274c2acf5833f1db836a75a62b59847f2da229ec7",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "6ea5b9709fea3c5767742a60ed4e979c06b17dbfad8ef7ac8a3261b50fa64779",
+   "value_range": [
+    -67.07081604003906,
+    -0.29339292645454407
+   ]
+  },
+  {
+   "source_file": "anomaly_id_04_00000033_hist_librosa.bin",
+   "source_sha256": "07ededcb15b2ceb95bf8bab3803d4336755907c3103c225551ca47d7299c1068",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "40de727109cddbfe9bf0267b7b79512efcef7933f8c32ddbd46bec9ceef64c45",
+   "value_range": [
+    -62.36032485961914,
+    2.5347654819488525
+   ]
+  },
+  {
+   "source_file": "anomaly_id_04_00000103_hist_librosa.bin",
+   "source_sha256": "c560879a226046d39121abb65835fca16014ae8755cdc95ffa04ffed140ef371",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "d7961b24c6ce521aa0b5bee8d36e558d216a0708ff7cec36cf3c0572b8febce4",
+   "value_range": [
+    -63.732120513916016,
+    0.3785395920276642
+   ]
+  },
+  {
+   "source_file": "anomaly_id_04_00000173_hist_librosa.bin",
+   "source_sha256": "18684d71be99258df68e08cf54bc09fe6e6cda2b79dd6bf71e8ceb581bb465c6",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "bdf6a66027d69aa3049a5697653eae2b96c7f6a15f39ad9badbb8aebe27defc9",
+   "value_range": [
+    -59.716819763183594,
+    -1.8196676969528198
+   ]
+  },
+  {
+   "source_file": "anomaly_id_04_00000243_hist_librosa.bin",
+   "source_sha256": "2b06f621ebd973aff642b9172d691ba908d99305f85b4f6c31381518c993e229",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "9d5baa19aa12c446f3e1ac3f79a2d56a804bb0beff79e6aecfaa9fd864143610",
+   "value_range": [
+    -65.95995330810547,
+    -0.7621895670890808
+   ]
+  },
+  {
+   "source_file": "normal_id_01_00000043_hist_librosa.bin",
+   "source_sha256": "035297ebfdbb3ef2ef66b15b2443f4aafb5e873a3e3447ba8a4d9d649aef9c05",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "63c69e08419c4e7637eef16ac1eb193d35543cb4d1c5533ab868a2cebc30cab8",
+   "value_range": [
+    -63.19749069213867,
+    2.012228012084961
+   ]
+  },
+  {
+   "source_file": "normal_id_01_00000113_hist_librosa.bin",
+   "source_sha256": "facc2b33184840115d69ffcf9dc0a7d125f454873aaeac5a91115840d0764bf5",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "effb32a6061cb9bb9b536c6ea9c09de0a40f175f17cc4296a4f61180b0a4c5bc",
+   "value_range": [
+    -64.77750396728516,
+    -1.9829038381576538
+   ]
+  },
+  {
+   "source_file": "normal_id_01_00000183_hist_librosa.bin",
+   "source_sha256": "3b63ef0f99a3853c8ffaa8852b3b8ed9d9bf585a8621e1e917f660a19d7b745d",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "0d21dd435c0076e794b74349ab28315bb55451550664d6cfda583fd2a9cc7a22",
+   "value_range": [
+    -62.32437515258789,
+    -0.27449366450309753
+   ]
+  },
+  {
+   "source_file": "normal_id_01_00000253_hist_librosa.bin",
+   "source_sha256": "24ea4a70af13fae0eb05c3b2d89bfe61c6f930cdc5a55c2ffd32ca7bc05578e6",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "b2ccee579ea0f09b679563262cbbc9ef28c50a16374a12e9285b8441c732e6bd",
+   "value_range": [
+    -62.397682189941406,
+    0.5964967012405396
+   ]
+  },
+  {
+   "source_file": "normal_id_01_00000323_hist_librosa.bin",
+   "source_sha256": "5225a76dc6975aae51e32ac932e611d8149773b1e2d9b08742e1506d5abf4652",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "cd94de5df750266bdb67dc16e700e953592fa7046eb9e239384371776384b927",
+   "value_range": [
+    -66.13510131835938,
+    -4.6436567306518555
+   ]
+  },
+  {
+   "source_file": "normal_id_02_00000043_hist_librosa.bin",
+   "source_sha256": "7e0d3a43e210fa164ec74589d11047db8e68d9b3e5cc2449d555bd25b4d31cc5",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "bf1f540e8da930ab20254afdd694e26be1492c9cd5f3c2dd5ed52d477643afd3",
+   "value_range": [
+    -67.74735260009766,
+    0.21946467459201813
+   ]
+  },
+  {
+   "source_file": "normal_id_02_00000113_hist_librosa.bin",
+   "source_sha256": "ba1175f3dbb4ab6903ed217b3759dab18357d68c0a60d8fa69bb2e716d2230b8",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "1fde433d46552616e10cf770016879d55c25fcc65fa083876304b4c6dd812235",
+   "value_range": [
+    -68.72822570800781,
+    4.160799026489258
+   ]
+  },
+  {
+   "source_file": "normal_id_02_00000183_hist_librosa.bin",
+   "source_sha256": "3732915614f0aaec67a6643e70e69b878015618b9d3c4d9bf3aeb02e3afee622",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "b775ce77f6975dcd86796af274d5d50a7c2f5458d4a60f27ffeb6b6b2dd24219",
+   "value_range": [
+    -68.18284606933594,
+    1.9020295143127441
+   ]
+  },
+  {
+   "source_file": "normal_id_02_00000253_hist_librosa.bin",
+   "source_sha256": "46989256db6dd7f9a49e76aac95c694c46525d713ab3d7460e9d85a43f44afc6",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "4cf4f6ec0ec6d53f50ce21f121d93a75d08f385b56413e46bde4646eb7aa1b84",
+   "value_range": [
+    -63.71957778930664,
+    -1.2846922874450684
+   ]
+  },
+  {
+   "source_file": "normal_id_02_00000323_hist_librosa.bin",
+   "source_sha256": "efb4da685944886dcec3ba524ec24d4581cc5250a21e46373bed30ff09efa3df",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "14073fb501a08e6f6cf3b93fa5bc4616f2f5edb52900164f428bae7476a4f987",
+   "value_range": [
+    -67.24061584472656,
+    0.24394096434116364
+   ]
+  },
+  {
+   "source_file": "normal_id_03_00000043_hist_librosa.bin",
+   "source_sha256": "fbd270f8c576c80a9ec71fc4d7d5c175accb4b4c15372a6d79a9cceac968f788",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "be3c847ec92fb0aa555e1eb67e3e750cb0c443b084bf54a4b3e6448247989cec",
+   "value_range": [
+    -61.27145767211914,
+    -0.4303767681121826
+   ]
+  },
+  {
+   "source_file": "normal_id_03_00000113_hist_librosa.bin",
+   "source_sha256": "eeb82cba947a8cb5c8d59879906f7186e1fd65286a7ef477cff955fe5fbe67d0",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "6bf7d0ea393136297016f448e97b0fda97f58a62c82700118fa212645e737524",
+   "value_range": [
+    -66.63167572021484,
+    0.20194484293460846
+   ]
+  },
+  {
+   "source_file": "normal_id_03_00000183_hist_librosa.bin",
+   "source_sha256": "5367bd266cc43da318e2e5c6863b170dd5d6c438d2d4f1259766a7c5995c9919",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "acf146fde0b3c10e9faf702335dc2f2d4503ae65323008904064c4e18409b146",
+   "value_range": [
+    -65.17072296142578,
+    1.506225824356079
+   ]
+  },
+  {
+   "source_file": "normal_id_03_00000253_hist_librosa.bin",
+   "source_sha256": "c263b6f6666b4cfae16001350113bde3ff69601c00c76602f36ab164af143ab9",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "8fb19004122908bb7f9ce957b2d4bbc6a58efad38a7ff022cc873f8fcdb90542",
+   "value_range": [
+    -66.38076782226562,
+    2.94571590423584
+   ]
+  },
+  {
+   "source_file": "normal_id_03_00000323_hist_librosa.bin",
+   "source_sha256": "b8488e3b4fdf22203335fea318b31a7a26af975b9cbca1fbcaecaa85006ce495",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "cf850e84e4823fd859c4b401172803d48d857bc1b2c59051bb2490ca1f64e25a",
+   "value_range": [
+    -66.12152099609375,
+    0.4193652272224426
+   ]
+  },
+  {
+   "source_file": "normal_id_04_00000043_hist_librosa.bin",
+   "source_sha256": "c32e2428e4178ea0a851ae44d8e44a970c477b126d9f6c9c67085bb51b4d19e1",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "024c8300cd90abe8721607b9cbf8c906aeebdb59ef9c0549b87789e06fd97951",
+   "value_range": [
+    -62.80080032348633,
+    3.5258030891418457
+   ]
+  },
+  {
+   "source_file": "normal_id_04_00000113_hist_librosa.bin",
+   "source_sha256": "7d6c11132736e89ae119013e856b7f6bad273fff3fb58e46947102b072892452",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "c01ad290c4c1ba63ea3eecb467893b51516087300393214e4ce62884a836baa1",
+   "value_range": [
+    -63.58219909667969,
+    0.3801425099372864
+   ]
+  },
+  {
+   "source_file": "normal_id_04_00000183_hist_librosa.bin",
+   "source_sha256": "06ba341fd78bb4abf9a0c05797b9a5a9da7397e09de1e7f62958a9ce72c5aa32",
+   "window_index": 98,
+   "byte_offset": 50176,
+   "byte_length": 2560,
+   "window_sha256": "00c22434bf3ab20f7d05fca105a2f7af783b34d18442e5ba174314a403dca2d0",
+   "value_range": [
+    -63.61274337768555,
+    -1.0453242063522339
+   ]
+  }
+ ]
+}

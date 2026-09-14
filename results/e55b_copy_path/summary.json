@@ -1,0 +1,1101 @@
+{
+ "experiment": "E55b",
+ "item": "AArch64 cFS copy path + map/copy integration",
+ "directive": "docs/reviews/COPY_MAP_ONAIR_RECOMMENDATION_v0.57.md SS3-SS4",
+ "plan": "docs/plans/E55b_copy_path_aarch64.md",
+ "design": "Per model one new cell: the SAME AArch64 vmfb and contract, the SAME fixture as an archived map-arm cFS run, UNCONDITIONAL admission at M = B_u, and exactly one changed variable -- AI_LEARNER_BLOB_ALIGN_OFFSET moves the module image off the 64-byte class so try_map's import is refused and the copy arm runs. No recompilation (0 iree-compile calls); the app knob is fail-closed and refuses outright when the conditional tier is enabled (plan SS2.1).",
+ "models": [
+  {
+   "cell": {
+    "log": "results/e55b_copy_path/cells/logs/e55b_b2_resnet_copy.log",
+    "present": true,
+    "blob_align": {
+     "app": "AI_LEARNER",
+     "stage": "blob_align",
+     "requested_offset": 8,
+     "state": "applied",
+     "module_ptr_mod64": 8
+    },
+    "build_config": {
+     "app": "AI_LEARNER",
+     "stage": "build_config",
+     "model": "b2_resnet",
+     "allow_conditional_map": 0,
+     "contract_bounded_bytes": 618856,
+     "contract_per_call_bytes": 309416,
+     "contract_const_bytes": 309440,
+     "contract_bound_known": true,
+     "contract_artifact_sha256": "2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb"
+    },
+    "map_branch": {
+     "app": "AI_LEARNER",
+     "stage": "map_branch",
+     "model": "b2_resnet",
+     "module_ptr_mod64": 8,
+     "hal_peak_after_append": 309440,
+     "contract_const_bytes": 309440,
+     "contract_per_call_bytes": 309416,
+     "arm": "copy",
+     "admission_mode": "unconditional"
+    },
+    "admission": {
+     "app": "AI_LEARNER",
+     "stage": "admission",
+     "verdict": "ADMIT",
+     "model": "b2_resnet",
+     "target": "aarch64-unknown-linux-gnu",
+     "bounded": 618856,
+     "budget": 618856,
+     "budget_source": "override",
+     "per_call": 309416,
+     "constants": 309440,
+     "kernel_stack_bytes": 1232,
+     "bound_known": true,
+     "scope": "per_app_local_budget"
+    },
+    "binding": {
+     "app": "AI_LEARNER",
+     "stage": "binding",
+     "verdict": "MATCH",
+     "artifact_bytes": 343538,
+     "artifact_sha256": "2e0bc7dc67af80b7",
+     "contract_sha256": "2e0bc7dc67af80b7"
+    },
+    "mem_init": {
+     "app": "AI_LEARNER",
+     "stage": "mem_init",
+     "model": "b2_resnet",
+     "target": "aarch64-unknown-linux-gnu",
+     "hal_peak": 321728,
+     "hal_allocated": 321728,
+     "bounded": 618856,
+     "peak_within_bounded": true,
+     "inferences_so_far": 0,
+     "process_rss_kb": 7512,
+     "rss_kb_before_runtime": 6536,
+     "rss_kb_after_session": 6824,
+     "rss_kb_after_init": 7508
+    },
+    "e25_equivalence": {
+     "app": "AI_LEARNER",
+     "stage": "e25_equivalence",
+     "inputs": 34,
+     "completed": 34,
+     "model": "b2_resnet",
+     "target": "aarch64-unknown-linux-gnu",
+     "artifact_sha256": "2e0bc7dc67af80b7..."
+    },
+    "e25_mode": {
+     "app": "AI_LEARNER",
+     "stage": "e25_mode",
+     "active": true,
+     "inputs_path": "/cf/e25_inputs.bin"
+    },
+    "run": {
+     "app": "AI_LEARNER",
+     "stage": "run",
+     "model": "b2_resnet",
+     "target": "aarch64-unknown-linux-gnu",
+     "attempted": 222,
+     "completed": 222,
+     "fail_input": 0,
+     "fail_invoke": 0,
+     "fail_output": 0,
+     "mean_us": 317136.97,
+     "max_us": 852276.59,
+     "last_us": 309718.99,
+     "out0": 0.34946,
+     "out_elems": 10,
+     "out_sha256": "24bd9a607a59835cbeab390e11ec8ed7aec57930d649c55985b8e75c33f9a89e",
+     "out_head": [
+      0.349459,
+      0.001114,
+      0.001795,
+      0.065403,
+      0.335932,
+      0.006331
+     ],
+     "out_tail": [
+      0.335932,
+      0.006331,
+      0.20136,
+      0.013375,
+      0.019186,
+      0.006046
+     ],
+     "out_full_file": "/cf/last_out.json",
+     "out_full_file_bytes": 184,
+     "out_full_file_reason": "ok",
+     "out_record_truncates": false
+    },
+    "mem": {
+     "app": "AI_LEARNER",
+     "stage": "mem",
+     "model": "b2_resnet",
+     "target": "aarch64-unknown-linux-gnu",
+     "completed": 222,
+     "hal_peak": 618856,
+     "peak_within_bounded": true,
+     "admitted_budget_bytes": 618856,
+     "peak_within_admitted_budget": true,
+     "admission_mode": "unconditional",
+     "hal_bytes_per_call_amortized": 344083.3,
+     "process_rss_kb": 8396,
+     "process_rss_delta_init_kb": 972,
+     "max_active_calls": 1,
+     "active_calls_now": 0,
+     "call_counter_balanced": true
+    },
+    "runtime_load_failed": null,
+    "exit": "EXIT=124",
+    "apps_after": 0
+   },
+   "model": "b2_resnet",
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "criteria_SS3_4": {
+    "load_ok": true,
+    "constants_copied_equals_C": true,
+    "ran_at_least_once": true,
+    "sound_H_le_P_plus_C": true,
+    "output_preserved": true
+   },
+   "tight_H_eq_P_plus_C": true,
+   "tightness_note": "recorded separately from soundness on the directive's instruction: H < P+C does not mean the bound is wrong",
+   "load_setting_SS3_3": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8,
+    "offset_reached_the_image": true,
+    "note": "the app allocates the image 64-byte aligned and returns base+offset, so mod64 must equal the requested offset; when posix_memalign fails it falls back to malloc and mod64 is whatever the allocator gave -- which is why this is measured, not assumed"
+   },
+   "copy_arm_confirmed_independently": true,
+   "arm_label_agrees": true,
+   "arm_label_note": "the app derives `arm` from hal_peak_after_append itself, so it is reported beside the independent facts, never in place of them (directive SS3.3)",
+   "observed": {
+    "hal_peak": 618856,
+    "hal_peak_after_append": 309440,
+    "mem_init_hal_peak": 321728,
+    "admission": "ADMIT",
+    "admitted_budget": 618856,
+    "admission_mode": "unconditional",
+    "peak_within_admitted_budget": true,
+    "e25_inputs": 34,
+    "e25_completed": 34,
+    "loop_completed": 222,
+    "max_active_calls": 1,
+    "call_counter_balanced": true,
+    "artifact_sha256_prefix": "2e0bc7dc67af80b7..."
+   },
+   "output_comparison": {
+    "compared": true,
+    "elements": 340,
+    "bitwise_identical": true,
+    "worst_abs_diff": 0.0,
+    "baseline": "results/e36b_aarch64_models/b2_resnet/e25_outputs.bin",
+    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+   },
+   "verdict": "PASS"
+  },
+  {
+   "cell": {
+    "log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
+    "present": true,
+    "blob_align": {
+     "app": "AI_LEARNER",
+     "stage": "blob_align",
+     "requested_offset": 8,
+     "state": "applied",
+     "module_ptr_mod64": 8
+    },
+    "build_config": {
+     "app": "AI_LEARNER",
+     "stage": "build_config",
+     "model": "b3_deepae",
+     "allow_conditional_map": 0,
+     "contract_bounded_bytes": 1069632,
+     "contract_per_call_bytes": 6208,
+     "contract_const_bytes": 1063424,
+     "contract_bound_known": true,
+     "contract_artifact_sha256": "9ff64bd168e07135c196423d44408e7780984c977912b67c8240c0db522c4d7c"
+    },
+    "map_branch": {
+     "app": "AI_LEARNER",
+     "stage": "map_branch",
+     "model": "b3_deepae",
+     "module_ptr_mod64": 8,
+     "hal_peak_after_append": 1063424,
+     "contract_const_bytes": 1063424,
+     "contract_per_call_bytes": 6208,
+     "arm": "copy",
+     "admission_mode": "unconditional"
+    },
+    "admission": {
+     "app": "AI_LEARNER",
+     "stage": "admission",
+     "verdict": "ADMIT",
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "bounded": 1069632,
+     "budget": 1069632,
+     "budget_source": "override",
+     "per_call": 6208,
+     "constants": 1063424,
+     "kernel_stack_bytes": 16,
+     "bound_known": true,
+     "scope": "per_app_local_budget"
+    },
+    "binding": {
+     "app": "AI_LEARNER",
+     "stage": "binding",
+     "verdict": "MATCH",
+     "artifact_bytes": 1080730,
+     "artifact_sha256": "9ff64bd168e07135",
+     "contract_sha256": "9ff64bd168e07135"
+    },
+    "mem_init": {
+     "app": "AI_LEARNER",
+     "stage": "mem_init",
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "hal_peak": 1065984,
+     "hal_allocated": 1065984,
+     "bounded": 1069632,
+     "peak_within_bounded": true,
+     "inferences_so_far": 0,
+     "process_rss_kb": 7980,
+     "rss_kb_before_runtime": 6320,
+     "rss_kb_after_session": 6616,
+     "rss_kb_after_init": 7980
+    },
+    "e25_equivalence": {
+     "app": "AI_LEARNER",
+     "stage": "e25_equivalence",
+     "inputs": 34,
+     "completed": 34,
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "artifact_sha256": "9ff64bd168e07135..."
+    },
+    "e25_mode": {
+     "app": "AI_LEARNER",
+     "stage": "e25_mode",
+     "active": true,
+     "inputs_path": "/cf/e25_inputs.bin"
+    },
+    "run": {
+     "app": "AI_LEARNER",
+     "stage": "run",
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "attempted": 224,
+     "completed": 224,
+     "fail_input": 0,
+     "fail_invoke": 0,
+     "fail_output": 0,
+     "mean_us": 15569.4,
+     "max_us": 38354.54,
+     "last_us": 15612.53,
+     "out0": -34.88327,
+     "out_elems": 640,
+     "out_sha256": "7377a66196d10b8f9095f1ec25df57b5b033488734ef3539915fd05471edb2fc",
+     "out_head": [
+      -34.88327,
+      -19.245007,
+      -10.683949,
+      -6.043216,
+      -3.147524,
+      1.497201
+     ],
+     "out_tail": [
+      -19.598969,
+      -18.188969,
+      -18.763275,
+      -20.377392,
+      -29.048273,
+      -42.49612
+     ],
+     "out_full_file": "/cf/last_out.json",
+     "out_full_file_bytes": 7046,
+     "out_full_file_reason": "ok",
+     "out_record_truncates": false
+    },
+    "mem": {
+     "app": "AI_LEARNER",
+     "stage": "mem",
+     "model": "b3_deepae",
+     "target": "aarch64-unknown-linux-gnu",
+     "completed": 224,
+     "hal_peak": 1069632,
+     "peak_within_bounded": true,
+     "admitted_budget_bytes": 1069632,
+     "peak_within_admitted_budget": true,
+     "admission_mode": "unconditional",
+     "hal_bytes_per_call_amortized": 8960.6,
+     "process_rss_kb": 8144,
+     "process_rss_delta_init_kb": 1660,
+     "max_active_calls": 1,
+     "active_calls_now": 0,
+     "call_counter_balanced": true
+    },
+    "runtime_load_failed": null,
+    "exit": "EXIT=124",
+    "apps_after": 0
+   },
+   "model": "b3_deepae",
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "criteria_SS3_4": {
+    "load_ok": true,
+    "constants_copied_equals_C": true,
+    "ran_at_least_once": true,
+    "sound_H_le_P_plus_C": true,
+    "output_preserved": true
+   },
+   "tight_H_eq_P_plus_C": true,
+   "tightness_note": "recorded separately from soundness on the directive's instruction: H < P+C does not mean the bound is wrong",
+   "load_setting_SS3_3": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8,
+    "offset_reached_the_image": true,
+    "note": "the app allocates the image 64-byte aligned and returns base+offset, so mod64 must equal the requested offset; when posix_memalign fails it falls back to malloc and mod64 is whatever the allocator gave -- which is why this is measured, not assumed"
+   },
+   "copy_arm_confirmed_independently": true,
+   "arm_label_agrees": true,
+   "arm_label_note": "the app derives `arm` from hal_peak_after_append itself, so it is reported beside the independent facts, never in place of them (directive SS3.3)",
+   "observed": {
+    "hal_peak": 1069632,
+    "hal_peak_after_append": 1063424,
+    "mem_init_hal_peak": 1065984,
+    "admission": "ADMIT",
+    "admitted_budget": 1069632,
+    "admission_mode": "unconditional",
+    "peak_within_admitted_budget": true,
+    "e25_inputs": 34,
+    "e25_completed": 34,
+    "loop_completed": 224,
+    "max_active_calls": 1,
+    "call_counter_balanced": true,
+    "artifact_sha256_prefix": "9ff64bd168e07135..."
+   },
+   "output_comparison": {
+    "compared": true,
+    "elements": 21760,
+    "bitwise_identical": true,
+    "worst_abs_diff": 0.0,
+    "baseline": "results/e36b_aarch64_models/b3_deepae/e25_outputs.bin",
+    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+   },
+   "verdict": "PASS"
+  },
+  {
+   "cell": {
+    "log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
+    "present": true,
+    "blob_align": {
+     "app": "AI_LEARNER",
+     "stage": "blob_align",
+     "requested_offset": 8,
+     "state": "applied",
+     "module_ptr_mod64": 8
+    },
+    "build_config": {
+     "app": "AI_LEARNER",
+     "stage": "build_config",
+     "model": "smartcam",
+     "allow_conditional_map": 0,
+     "contract_bounded_bytes": 18222796,
+     "contract_per_call_bytes": 9382092,
+     "contract_const_bytes": 8840704,
+     "contract_bound_known": true,
+     "contract_artifact_sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"
+    },
+    "map_branch": {
+     "app": "AI_LEARNER",
+     "stage": "map_branch",
+     "model": "smartcam",
+     "module_ptr_mod64": 8,
+     "hal_peak_after_append": 8840704,
+     "contract_const_bytes": 8840704,
+     "contract_per_call_bytes": 9382092,
+     "arm": "copy",
+     "admission_mode": "unconditional"
+    },
+    "admission": {
+     "app": "AI_LEARNER",
+     "stage": "admission",
+     "verdict": "ADMIT",
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "bounded": 18222796,
+     "budget": 18222796,
+     "budget_source": "override",
+     "per_call": 9382092,
+     "constants": 8840704,
+     "kernel_stack_bytes": 1919,
+     "bound_known": true,
+     "scope": "per_app_local_budget"
+    },
+    "binding": {
+     "app": "AI_LEARNER",
+     "stage": "binding",
+     "verdict": "MATCH",
+     "artifact_bytes": 8991281,
+     "artifact_sha256": "ecffe6e0bcbadf51",
+     "contract_sha256": "ecffe6e0bcbadf51"
+    },
+    "mem_init": {
+     "app": "AI_LEARNER",
+     "stage": "mem_init",
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "hal_peak": 9442816,
+     "hal_allocated": 9442816,
+     "bounded": 18222796,
+     "peak_within_bounded": true,
+     "inferences_so_far": 0,
+     "process_rss_kb": 24580,
+     "rss_kb_before_runtime": 14208,
+     "rss_kb_after_session": 14496,
+     "rss_kb_after_init": 24580
+    },
+    "e25_equivalence": {
+     "app": "AI_LEARNER",
+     "stage": "e25_equivalence",
+     "inputs": 5,
+     "completed": 5,
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "artifact_sha256": "ecffe6e0bcbadf51..."
+    },
+    "e25_mode": {
+     "app": "AI_LEARNER",
+     "stage": "e25_mode",
+     "active": true,
+     "inputs_path": "/cf/e25_inputs.bin"
+    },
+    "run": {
+     "app": "AI_LEARNER",
+     "stage": "run",
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "attempted": 105,
+     "completed": 105,
+     "fail_input": 0,
+     "fail_invoke": 0,
+     "fail_output": 0,
+     "mean_us": 8017903.7,
+     "max_us": 9918777.3,
+     "last_us": 7870717.82,
+     "out0": 0.85892,
+     "out_elems": 3,
+     "out_sha256": "989d0c885c469a1267e327d7f6eaaa990ed94dab35f064968afaff7105ad4b34",
+     "out_head": [
+      0.858921,
+      0.111592,
+      0.029487
+     ],
+     "out_tail": [
+      0.858921,
+      0.111592,
+      0.029487
+     ],
+     "out_full_file": "/cf/last_out.json",
+     "out_full_file_bytes": 119,
+     "out_full_file_reason": "ok",
+     "out_record_truncates": false
+    },
+    "mem": {
+     "app": "AI_LEARNER",
+     "stage": "mem",
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "completed": 105,
+     "hal_peak": 18222796,
+     "peak_within_bounded": true,
+     "admitted_budget_bytes": 18222796,
+     "peak_within_admitted_budget": true,
+     "admission_mode": "unconditional",
+     "hal_bytes_per_call_amortized": 9288005.9,
+     "process_rss_kb": 45308,
+     "process_rss_delta_init_kb": 10372,
+     "max_active_calls": 1,
+     "active_calls_now": 0,
+     "call_counter_balanced": true
+    },
+    "runtime_load_failed": null,
+    "exit": "EXIT=124",
+    "apps_after": 0
+   },
+   "model": "smartcam",
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "criteria_SS3_4": {
+    "load_ok": true,
+    "constants_copied_equals_C": true,
+    "ran_at_least_once": true,
+    "sound_H_le_P_plus_C": true,
+    "output_preserved": true
+   },
+   "tight_H_eq_P_plus_C": true,
+   "tightness_note": "recorded separately from soundness on the directive's instruction: H < P+C does not mean the bound is wrong",
+   "load_setting_SS3_3": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8,
+    "offset_reached_the_image": true,
+    "note": "the app allocates the image 64-byte aligned and returns base+offset, so mod64 must equal the requested offset; when posix_memalign fails it falls back to malloc and mod64 is whatever the allocator gave -- which is why this is measured, not assumed"
+   },
+   "copy_arm_confirmed_independently": true,
+   "arm_label_agrees": true,
+   "arm_label_note": "the app derives `arm` from hal_peak_after_append itself, so it is reported beside the independent facts, never in place of them (directive SS3.3)",
+   "observed": {
+    "hal_peak": 18222796,
+    "hal_peak_after_append": 8840704,
+    "mem_init_hal_peak": 9442816,
+    "admission": "ADMIT",
+    "admitted_budget": 18222796,
+    "admission_mode": "unconditional",
+    "peak_within_admitted_budget": true,
+    "e25_inputs": 5,
+    "e25_completed": 5,
+    "loop_completed": 105,
+    "max_active_calls": 1,
+    "call_counter_balanced": true,
+    "artifact_sha256_prefix": "ecffe6e0bcbadf51..."
+   },
+   "output_comparison": {
+    "compared": true,
+    "elements": 15,
+    "bitwise_identical": true,
+    "worst_abs_diff": 0.0,
+    "baseline": "results/e37_evidence_consolidation/s_cfs_post_d61/e25_outputs.bin",
+    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+   },
+   "verdict": "PASS"
+  },
+  {
+   "cell": {
+    "expected_log": "results/e55b_copy_path/cells/logs/e55b_wgan_copy.log",
+    "present": false,
+    "absent_reason": "cell has not produced a log yet"
+   },
+   "model": "wgan",
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "verdict": null,
+   "unavailable_reason": "copy cell log absent"
+  }
+ ],
+ "integration_table_SS4": [
+  {
+   "configuration": "unconditional_map_at_Bu",
+   "model": "b2_resnet",
+   "source": "archived",
+   "log": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log",
+   "expected_configuration": {
+    "arm": "map",
+    "admission_mode": "unconditional",
+    "admitted_budget": 618856,
+    "verdict": "ADMIT"
+   },
+   "observed_configuration": {
+    "arm": "map",
+    "admission_mode": "unconditional",
+    "admitted_budget": 618856,
+    "verdict": "ADMIT"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "budget_M": 618856,
+   "H": 309416,
+   "H_le_budget": true,
+   "H_eq_P": true,
+   "H_eq_P_plus_C": false,
+   "inferences": 204,
+   "max_active_calls": null
+  },
+  {
+   "configuration": "unconditional_copy_at_Bu",
+   "model": "b2_resnet",
+   "source": "measured_here",
+   "log": "results/e55b_copy_path/cells/logs/e55b_b2_resnet_copy.log",
+   "expected_configuration": {
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 618856,
+    "verdict": "ADMIT"
+   },
+   "observed_configuration": {
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 618856,
+    "verdict": "ADMIT"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "budget_M": 618856,
+   "H": 618856,
+   "H_le_budget": true,
+   "H_eq_P": false,
+   "H_eq_P_plus_C": true,
+   "inferences": 222,
+   "max_active_calls": 1
+  },
+  {
+   "configuration": "conditional_map_at_P",
+   "model": "b2_resnet",
+   "source": "archived_e55",
+   "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+   "expected_configuration": {
+    "arm": "map",
+    "admission_mode": "conditional_map",
+    "admitted_budget": 309416,
+    "verdict": "ADMIT_CONDITIONAL_MAP"
+   },
+   "observed_configuration": {
+    "arm": "map",
+    "admission_mode": "conditional_map",
+    "admitted_budget": 309416,
+    "verdict": "ADMIT_CONDITIONAL_MAP"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "budget_M": 309416,
+   "H": 309416,
+   "H_le_budget": true,
+   "H_eq_P": true,
+   "H_eq_P_plus_C": false,
+   "inferences": 74,
+   "max_active_calls": 1
+  },
+  {
+   "configuration": "conditional_disabled_control_at_P",
+   "model": "b2_resnet",
+   "source": "archived_e55",
+   "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_control.log",
+   "expected_configuration": {
+    "verdict": "NOT_ADMITTED"
+   },
+   "observed_configuration": {
+    "verdict": "NOT_ADMITTED"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "budget_M": 309416,
+   "H": null,
+   "H_le_budget": null,
+   "H_eq_P": null,
+   "H_eq_P_plus_C": null,
+   "inferences": 0,
+   "runtime_created": false,
+   "max_active_calls": null,
+   "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
+  },
+  {
+   "configuration": "unconditional_map_at_Bu",
+   "model": "b3_deepae",
+   "source": "archived",
+   "log": "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log",
+   "expected_configuration": {
+    "arm": "map",
+    "admission_mode": "unconditional",
+    "admitted_budget": 1069632,
+    "verdict": "ADMIT"
+   },
+   "observed_configuration": {
+    "arm": "map",
+    "admission_mode": "unconditional",
+    "admitted_budget": 1069632,
+    "verdict": "ADMIT"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "budget_M": 1069632,
+   "H": 6208,
+   "H_le_budget": true,
+   "H_eq_P": true,
+   "H_eq_P_plus_C": false,
+   "inferences": 148,
+   "max_active_calls": null
+  },
+  {
+   "configuration": "unconditional_copy_at_Bu",
+   "model": "b3_deepae",
+   "source": "measured_here",
+   "log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
+   "expected_configuration": {
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 1069632,
+    "verdict": "ADMIT"
+   },
+   "observed_configuration": {
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 1069632,
+    "verdict": "ADMIT"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "budget_M": 1069632,
+   "H": 1069632,
+   "H_le_budget": true,
+   "H_eq_P": false,
+   "H_eq_P_plus_C": true,
+   "inferences": 224,
+   "max_active_calls": 1
+  },
+  {
+   "configuration": "conditional_map_at_P",
+   "model": "b3_deepae",
+   "source": "archived_e55",
+   "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b3_deepae_conditional.log",
+   "expected_configuration": {
+    "arm": "map",
+    "admission_mode": "conditional_map",
+    "admitted_budget": 6208,
+    "verdict": "ADMIT_CONDITIONAL_MAP"
+   },
+   "observed_configuration": {
+    "arm": "map",
+    "admission_mode": "conditional_map",
+    "admitted_budget": 6208,
+    "verdict": "ADMIT_CONDITIONAL_MAP"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "budget_M": 6208,
+   "H": 6208,
+   "H_le_budget": true,
+   "H_eq_P": true,
+   "H_eq_P_plus_C": false,
+   "inferences": 74,
+   "max_active_calls": 1
+  },
+  {
+   "configuration": "conditional_disabled_control_at_P",
+   "model": "b3_deepae",
+   "source": "archived_e55",
+   "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b3_deepae_control.log",
+   "expected_configuration": {
+    "verdict": "NOT_ADMITTED"
+   },
+   "observed_configuration": {
+    "verdict": "NOT_ADMITTED"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "budget_M": 6208,
+   "H": null,
+   "H_le_budget": null,
+   "H_eq_P": null,
+   "H_eq_P_plus_C": null,
+   "inferences": 0,
+   "runtime_created": false,
+   "max_active_calls": null,
+   "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
+  },
+  {
+   "configuration": "unconditional_map_at_Bu",
+   "model": "smartcam",
+   "source": "archived",
+   "log": "results/e48_real_inputs_aarch64/cfs/logs/smartcam_admit_B_real.log",
+   "expected_configuration": {
+    "arm": "map",
+    "admission_mode": "unconditional",
+    "admitted_budget": 18222796,
+    "verdict": "ADMIT"
+   },
+   "observed_configuration": {
+    "arm": "map",
+    "admission_mode": "unconditional",
+    "admitted_budget": 18222796,
+    "verdict": "ADMIT"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "budget_M": 18222796,
+   "H": 9382092,
+   "H_le_budget": true,
+   "H_eq_P": true,
+   "H_eq_P_plus_C": false,
+   "inferences": 282,
+   "max_active_calls": null
+  },
+  {
+   "configuration": "unconditional_copy_at_Bu",
+   "model": "smartcam",
+   "source": "measured_here",
+   "log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
+   "expected_configuration": {
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 18222796,
+    "verdict": "ADMIT"
+   },
+   "observed_configuration": {
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 18222796,
+    "verdict": "ADMIT"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "budget_M": 18222796,
+   "H": 18222796,
+   "H_le_budget": true,
+   "H_eq_P": false,
+   "H_eq_P_plus_C": true,
+   "inferences": 105,
+   "max_active_calls": 1
+  },
+  {
+   "configuration": "conditional_map_at_P",
+   "model": "smartcam",
+   "source": "archived_e55",
+   "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_smartcam_conditional.log",
+   "expected_configuration": {
+    "arm": "map",
+    "admission_mode": "conditional_map",
+    "admitted_budget": 9382092,
+    "verdict": "ADMIT_CONDITIONAL_MAP"
+   },
+   "observed_configuration": {
+    "arm": "map",
+    "admission_mode": "conditional_map",
+    "admitted_budget": 9382092,
+    "verdict": "ADMIT_CONDITIONAL_MAP"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "budget_M": 9382092,
+   "H": 9382092,
+   "H_le_budget": true,
+   "H_eq_P": true,
+   "H_eq_P_plus_C": false,
+   "inferences": 48,
+   "max_active_calls": 1
+  },
+  {
+   "configuration": "conditional_disabled_control_at_P",
+   "model": "smartcam",
+   "source": "archived_e55",
+   "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_smartcam_control.log",
+   "expected_configuration": {
+    "verdict": "NOT_ADMITTED"
+   },
+   "observed_configuration": {
+    "verdict": "NOT_ADMITTED"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "budget_M": 9382092,
+   "H": null,
+   "H_le_budget": null,
+   "H_eq_P": null,
+   "H_eq_P_plus_C": null,
+   "inferences": 0,
+   "runtime_created": false,
+   "max_active_calls": null,
+   "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
+  },
+  {
+   "configuration": "unconditional_map_at_Bu",
+   "model": "wgan",
+   "source": "archived",
+   "log": "results/e53_wgan_aarch64/cfs/logs/cfs_B.log",
+   "expected_configuration": {
+    "arm": "map",
+    "admission_mode": "unconditional",
+    "admitted_budget": 135666432,
+    "verdict": "ADMIT"
+   },
+   "observed_configuration": {
+    "arm": "map",
+    "admission_mode": "unconditional",
+    "admitted_budget": 135666432,
+    "verdict": "ADMIT"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "budget_M": 135666432,
+   "H": 131382784,
+   "H_le_budget": true,
+   "H_eq_P": true,
+   "H_eq_P_plus_C": false,
+   "inferences": 4,
+   "max_active_calls": null
+  },
+  {
+   "configuration": "unconditional_copy_at_Bu",
+   "model": "wgan",
+   "source": "measured_here",
+   "expected_log": null,
+   "expected_configuration": {
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 135666432,
+    "verdict": "ADMIT"
+   },
+   "observed_configuration": {
+    "arm": null,
+    "admission_mode": null,
+    "admitted_budget": null,
+    "verdict": null
+   },
+   "configuration_matches": false,
+   "configuration_mismatch": [
+    "arm",
+    "admission_mode",
+    "admitted_budget",
+    "verdict"
+   ],
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "budget_M": null,
+   "H": null,
+   "H_le_budget": false,
+   "H_eq_P": null,
+   "H_eq_P_plus_C": null,
+   "inferences": null,
+   "max_active_calls": null
+  },
+  {
+   "configuration": "conditional_map_at_P",
+   "model": "wgan",
+   "source": "archived_e55",
+   "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_conditional.log",
+   "expected_configuration": {
+    "arm": "map",
+    "admission_mode": "conditional_map",
+    "admitted_budget": 131382784,
+    "verdict": "ADMIT_CONDITIONAL_MAP"
+   },
+   "observed_configuration": {
+    "arm": "map",
+    "admission_mode": "conditional_map",
+    "admitted_budget": 131382784,
+    "verdict": "ADMIT_CONDITIONAL_MAP"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "budget_M": 131382784,
+   "H": 131382784,
+   "H_le_budget": true,
+   "H_eq_P": true,
+   "H_eq_P_plus_C": false,
+   "inferences": 3,
+   "max_active_calls": 1
+  },
+  {
+   "configuration": "conditional_disabled_control_at_P",
+   "model": "wgan",
+   "source": "archived_e55",
+   "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_control.log",
+   "expected_configuration": {
+    "verdict": "NOT_ADMITTED"
+   },
+   "observed_configuration": {
+    "verdict": "NOT_ADMITTED"
+   },
+   "configuration_matches": true,
+   "configuration_mismatch": null,
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "budget_M": 131382784,
+   "H": null,
+   "H_le_budget": null,
+   "H_eq_P": null,
+   "H_eq_P_plus_C": null,
+   "inferences": 0,
+   "runtime_created": false,
+   "max_active_calls": null,
+   "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
+  }
+ ],
+ "falsification_conditions_SS5": {
+  "source": "docs/plans/E55b_copy_path_aarch64.md SS5, fixed before measurement",
+  "per_cell": [
+   {
+    "model": "b2_resnet",
+    "F1_offset_requested_but_mod64_zero": false,
+    "F2_arm_says_copy_but_after_append_is_not_C": false,
+    "F3_module_append_failed": false,
+    "F4_H_exceeds_P_plus_C": false
+   },
+   {
+    "model": "b3_deepae",
+    "F1_offset_requested_but_mod64_zero": false,
+    "F2_arm_says_copy_but_after_append_is_not_C": false,
+    "F3_module_append_failed": false,
+    "F4_H_exceeds_P_plus_C": false
+   },
+   {
+    "model": "smartcam",
+    "F1_offset_requested_but_mod64_zero": false,
+    "F2_arm_says_copy_but_after_append_is_not_C": false,
+    "F3_module_append_failed": false,
+    "F4_H_exceeds_P_plus_C": false
+   }
+  ],
+  "fired": [],
+  "note": "each condition is evaluated per cell and reported whether or not it fired; an unfired pre-registered falsifier that is never mentioned again cannot be told apart from a forgotten one"
+ },
+ "verdict": "INCOMPLETE_OR_FAIL",
+ "not_claimed": [
+  "that repeated-call long-term lifetime is verified -- four cells do not establish that (directive SS3.4, last paragraph)",
+  "any change to DeepAE's TFLite numerical-equivalence FAIL (D74): the map/copy output comparison here is between two IREE runs on the same target, which is a different comparison from the original-TFLite one (directive SS4)",
+  "that the copy arm is what any real deployment lands on -- E29 established that the arm follows the module image's 64-byte alignment, and this cell CONTROLS that alignment on purpose rather than reporting a deployment's natural behaviour",
+  "process RSS or whole-system RAM: every figure here is HAL device-allocation scope (D78)"
+ ]
+}
