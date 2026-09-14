@@ -160,3 +160,132 @@ D77(*"유도값을 출하할 때는 그 유도를 다시 돌려 보는 가드도
 **git 추적**됨 · **변조된 pin은 거부**(rc≠0) · 드리프트가 기계 판독 자리에 **기록**됨.
 **revert-and-confirm-fail**: pin 분기를 되돌려 옛 glob 동작으로 만들면 `e55/1`(재현성)과
 `e55/3`(변조 거부)이 **실제로 FAIL**한다(2/4).
+
+---
+
+## §2 P0-2 — 추출기 분류 범위 완결
+
+### 2.1 착수 전 측정 — **문자 그대로의 처방은 27/27 파일을 죽인다**
+
+계획 §2.1이 *"이 집합을 논증으로 정하지 않는다"*고 고정했으므로, 보관 layout IR **27개**의
+마지막 entry print에 실제로 나타나는 op을 **텍스트 스캔과 MLIR API 순회 두 방법으로 대조**해 셌다.
+**20종 / 2,415 인스턴스**이고 그중 walker가 실제로 분류하던 것은 6종뿐,
+**14종 / 1,994 인스턴스(82.6%)** 가 `startswith("stream.resource.")` 검사에서 맨 `continue`로 빠졌다.
+
+*"화이트리스트 밖은 전부 `unresolved`"* 를 문자 그대로 적용하면 어떻게 되는지 **채택 전에 쟀다**:
+
+> **27/27 파일 전멸.** 결정타는 `stream.yield`다 — MLIR API는 **99회** 보는데 IR 텍스트에는 **0회**다
+> (커스텀 프린터가 생략하는 암묵 terminator, `grep` 27파일 합계 0으로 확인). 정규식 파서는 그것을
+> **원리적으로 볼 수 없으므로** walker만 unresolved를 올리고 → `diff_against_regex`의 presence 비교
+> 불일치 → `make_contract.py` hard fail. `arith.constant`(792회)·`util.return`·`stream.timepoint.join`도
+> 같은 방향으로 죽인다.
+
+**E50이 출하했다 철회한 유형 (B)를 이 실험이 세 번째로 마주쳤고, 이번에는 밟기 전에 쟀다.**
+
+### 2.2 채택한 정의 — **자원 흐름**
+
+이름 접두어가 아니라, **result 또는 operand가 `!stream.resource<...>`인 op**만 분석 영역으로 본다.
+계약이 경계 짓는 것이 바로 그 자원의 바이트이기 때문이고, `arith.constant`·`util.return`·
+`hal.element_type`은 *낡을 수 있는 이름 목록*이 아니라 **자원을 만지지 않는다는 사실**로 빠진다.
+
+분류는 지시 §3-1이 요구한 세 갈래다:
+
+| 갈래 | op | 근거 |
+|---|---|---|
+| **지원**(크기를 유도) | `stream.resource.alloca` · `stream.tensor.import` · `stream.resource.subview` · `stream.tensor.export` · `stream.resource.dealloca` · `stream.cmd.dispatch` | 기존 |
+| **비할당 확인**(사유 기록) | `util.global.load` · `stream.cmd.execute` · `stream.timepoint.await` · `stream.cmd.fill` · `stream.cmd.concurrent` | 각 항목이 *왜* 할당하지 않는지를 문자열로 싣는다 — 그래야 두 번째 화이트리스트로 퇴화하지 않는다 |
+| **명시적 거절** | 그 밖의 자원 접촉 op | `unclassified_resource_ops` **전용 키**로 보고하고 `make_contract.py`가 거부 |
+
+**전용 키인 것이 핵심이다.** `unresolved`에 접어 넣으면 §2.1의 27/27 전멸이 그대로 재현된다 —
+정규식 파서는 op 구조를 볼 수 없으므로 모든 모델에서 presence가 어긋난다. E51이 적은
+*"거부는 귀속될 때만 근거다"*가 그대로 적용된다.
+
+### 2.3 결과 — 완료 기준 대조 (지시 §3)
+
+| # | 기준 | 결과 |
+|---|---|---|
+| 1 | 모든 분석 대상 resource 연산이 세 갈래 중 하나로 분류된다 | **충족** — 보관 26개 IR, 미분류 **0건** |
+| 2 | 알 수 없는 연산이 조용히 누락되는 경로가 없다 | **충족** — `_touches_resource`가 참이면 반드시 분류되거나 거절된다 |
+| 3 | 네 실물 모델의 기존 상한값이 유지된다 | **충족** — 보관 14개 계약 **diff 0**, 헤더 바이트 불변 |
+| 4 | 미지원 연산 음성 사례가 실제로 fail-closed | **충족** — 가드 `e55/7`(in-process로 목록에서 하나를 빼면 `unclassified_resource_ops`로 이동하고 `unresolved`에는 들어가지 않는다) |
+| 5 | (규율) revert 시 신규 시험이 실제로 FAIL | **충족 — 2건** |
+
+**비할당 확인 버킷은 476 인스턴스로 채워진다**(`util.global.load` 352 · `stream.cmd.fill` 72 ·
+`stream.cmd.execute` 26 · `stream.timepoint.await` 26).
+
+### 2.4 **D95 — 조용한 chunk 폴백** (이 항목이 찾은 결함)
+
+P0-2를 재려고 보관 IR을 전수로 훑다가, 같은 코드 경로에서 **더 무거운 것**이 나왔다.
+
+`mlir_alloc_walk.parse_alloc_ir_structural`은 entry chunk를 **가장 최근(=가장 lowered) 것부터**
+시도하는데, 그 chunk가 파싱에 실패하면 **조용히 이전 pre-layout chunk로 물러난다** —
+`ctx_errors`는 **모든** 조합이 실패했을 때만 표면화되기 때문이다.
+
+**원인은 IR이 아니라 컴파일러 진단 한 줄이다.** `iree-compile`이 IR 덤프와 같은 스트림에 쓴
+
+```
+results/e14_aarch64_qemu/models/dynamic/dyn_batch_mlp.mlir:0:0: remark: Executable benchmarks were requested but none were generated...
+```
+
+를 `split_dumps`가 마지막 chunk에 삼키고(마지막 chunk는 EOF까지다), MLIR이 `results`를 op 이름으로
+읽어 `custom op 'Executable' is unknown`으로 실패한다.
+
+**실행으로 양방향 재현**(보관 `dynamic` layout IR):
+
+| | `dispatches` | `pre_scheduling_ops` | `unresolved` |
+|---|---:|---|---|
+| remark 포함(커밋 상태) | **0** | async **6개** | `pre_scheduling_alloc_op:*` 6 + 1 |
+| remark 제거 | **2** | **0** | `non_constant_def:arith.muli` **3**(동적 형상 — 정직한 이유) |
+
+**따라서 D87의 기록이 틀렸다.** *"보관 dynamic 두 파일의 마지막 entry print에 async 6개"*는
+post-layout IR의 사실이 아니라 **chunk 선택 artifact**였다. E49의 원래 *"0회"*는 **IR에 대해서는
+옳았고**, 틀린 것은 그것이 잰 glob(D87이 정정)과 그 뒤 walker가 읽은 chunk(D95)였다.
+
+**오늘 이 결함이 무는 것은 어차피 거부되는 모델뿐이다. 고치는 이유는 반대 방향이다** —
+**정직한 정적 모델**의 마지막 chunk가 같은 이유로 깨지면 walker만 async를 unresolved로 올리고,
+정규식 파서 쪽은 비어 있으므로 크로스체크가 어긋나 **배치 가능한 모델이 컴파일러 remark 한 줄 때문에
+hard fail** 한다(유형 B).
+
+**수정은 한 방향으로만 작동한다** — 진단 줄 제거는 파싱 가능한 chunk를 **늘릴 뿐 줄이지 않고**,
+MLIR 한 줄이 `path:line:col: severity:` 형태를 가질 수 없으므로 IR을 지울 수 없다(D47과 같은 규율).
+여기에 `entry_chunk_rank_used`·`entry_chunk_parse_failures`를 더해 **폴백이 조용하지 않게** 했다.
+
+**첫 수정은 틀렸고 측정이 잡았다**: 접두어만 지워 메시지 본문이 남았고 MLIR이 이번엔 `Executable`을
+op으로 읽었다(`custom op 'Executable' is unknown`). 줄 전체를 지우도록 고쳤다.
+보관 14개 IR 전부 `rank=0`(폴백 0건), **보관 14개 계약 diff 0**.
+
+### 2.5 방법론 — **내 가드가 처음엔 약했다**
+
+P0-2 수정을 되돌리고 회귀를 돌렸더니 **0건 FAIL**이었다. 가드가 *"미분류가 없다"*만 보았고,
+**아무것도 분류하지 않는 walker도 그 조건을 만족**하기 때문이다 — D89가 경고한 바로 그 형태
+(*"revert가 실패를 만들지 않으면 고친 것은 코드가 아니라 기록이다"*)가 이 실험 자신의 시험에 왔다.
+분류 버킷이 **실제로 채워져 있음**(≥400)까지 요구하도록 고쳤고, 그 뒤 revert 시 **2건 FAIL**한다.
+
+---
+
+## §3 P0-3 — 순차 실행 전제의 관측
+
+### 3.1 계측
+
+한 번의 모델 실행은 `call_initialize*` 성공부터 `call_deinitialize`까지 자기 호출별 버퍼를 소유하므로,
+ENTER/EXIT는 **정확히 그 구간**을 감싼다. 함수 반환이 아니라 `deinitialize` 지점에 EXIT를 둔 이유는
+**전수 확인** 때문이다 — cFS 앱에 `call_deinitialize`가 **정확히 3곳**(`Infer`의 조기 반환 경로,
+`Infer`의 공통 꼬리, e25 등가성 루프), native 실행기에 **3곳**이고, `initialize`에 성공한 모든 경로가
+그중 정확히 하나에 도달한다.
+
+계측 자신이 심을 수 있는 결함도 함께 기록한다 — `active_calls_now`가 보고 시점에 0이 아니거나
+감소가 음수로 내려가면 `call_counter_balanced: false`다. **감소의 부재가 *"감소할 것이 없었다"*로
+읽히지 않게** 하는 것이 이 필드의 목적이다(D29·D51·D68).
+
+### 3.2 x86-64 native 실측 (첫 관측)
+
+```
+max_active_calls = 1 | active_calls_now = 0 | call_counter_balanced = true
+```
+
+E49 축 B가 `ARGUED_FROM_SOURCE` · `observed_value: null`로 적어 둔 전제가, 이 경로에 한해
+**관측**이 됐다. AArch64 cFS 네 모델의 관측은 §4에 있다.
+
+**E51 stage2의 기록은 그대로 둔다** — 그 실험의 주장은 *"소스를 읽는 것"*에 대한 것이고,
+호출부를 읽는 일은 여전히 논증이지 관측이 아니다. 바뀌는 것은 **E49의 전제 레코드**이지
+E51의 발견이 아니다.
