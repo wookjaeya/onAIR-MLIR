@@ -241,6 +241,29 @@ def main():
                                "the unconditional policy; the cell exists to make the conditional "
                                "cell's pass attributable to the tier and not to a loose budget")})
 
+    # Plan SS5 fixed four falsification conditions BEFORE measurement. Record whether each one
+    # fired, per cell, rather than leaving "none of them happened" implicit -- a pre-registered
+    # falsifier that is never mentioned again is indistinguishable from one that was forgotten.
+    falsifiers = []
+    for sc, r in zip(scs, rows):
+        c = r.get("cell") or {}
+        if not c.get("present"):
+            continue
+        mb, mem = c.get("map_branch") or {}, c.get("mem") or {}
+        ls = r.get("load_setting_SS3_3") or {}
+        falsifiers.append({
+          "model": r["model"],
+          "F1_offset_requested_but_mod64_zero": (ls.get("requested_offset", 0) > 0
+                                                 and mb.get("module_ptr_mod64") == 0),
+          "F2_arm_says_copy_but_after_append_is_not_C": (mb.get("arm") == "copy"
+                                                         and mb.get("hal_peak_after_append") != r["C"]),
+          "F3_module_append_failed": bool(c.get("runtime_load_failed")) or not mb,
+          "F4_H_exceeds_P_plus_C": (mem.get("hal_peak") is not None
+                                    and mem["hal_peak"] > r["B_u"]),
+        })
+    any_fired = [ (f["model"], k) for f in falsifiers for k, v in f.items()
+                  if k != "model" and v is True ]
+
     verdicts = [r.get("verdict") for r in rows]
     doc = {"experiment": "E55b", "item": "AArch64 cFS copy path + map/copy integration",
            "directive": "docs/reviews/COPY_MAP_ONAIR_RECOMMENDATION_v0.57.md SS3-SS4",
@@ -252,6 +275,13 @@ def main():
                       "recompilation (0 iree-compile calls); the app knob is fail-closed and refuses "
                       "outright when the conditional tier is enabled (plan SS2.1)."),
            "models": rows, "integration_table_SS4": table,
+           "falsification_conditions_SS5": {
+             "source": "docs/plans/E55b_copy_path_aarch64.md SS5, fixed before measurement",
+             "per_cell": falsifiers,
+             "fired": any_fired,
+             "note": ("each condition is evaluated per cell and reported whether or not it fired; "
+                      "an unfired pre-registered falsifier that is never mentioned again cannot be "
+                      "told apart from a forgotten one")},
            "verdict": ("PASS" if verdicts and all(v == "PASS" for v in verdicts)
                        else ("WITHHELD" if "WITHHELD" in verdicts else "INCOMPLETE_OR_FAIL")),
            "not_claimed": [

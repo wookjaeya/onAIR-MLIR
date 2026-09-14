@@ -8564,6 +8564,34 @@ def e55_optin_witness_cases(tmp):
                           not bad and pairs >= 1, "; ".join(bad) if bad else
                           ("%d model(s) paired: map H = P, copy H = P+C, difference = C exactly"
                            % pairs if pairs else "no copy cell has run yet")))
+
+    # --- e55b/13: the plan's four pre-registered falsifiers are reported per cell either way.
+    # A falsifier that is fixed before measurement and then never mentioned again reads exactly
+    # like one that was forgotten; the summary must carry all four for every cell that ran, and
+    # `fired` must agree with them (so "fired: []" cannot be written beside a true condition).
+    doc = load(sp)
+    fz = doc.get("falsification_conditions_SS5") or {}
+    per = fz.get("per_cell")
+    keys = {"F1_offset_requested_but_mod64_zero", "F2_arm_says_copy_but_after_append_is_not_C",
+            "F3_module_append_failed", "F4_H_exceeds_P_plus_C"}
+    ran = [r["model"] for r in doc.get("models", []) if (r.get("cell") or {}).get("present")]
+    why = []
+    if per is None:
+        why.append("summary carries no falsification_conditions_SS5.per_cell")
+    else:
+        if [c["model"] for c in per] != ran:
+            why.append("per_cell covers %r but cells that ran are %r" % ([c["model"] for c in per], ran))
+        for c in per:
+            missing = keys - set(c)
+            if missing:
+                why.append("%s: missing %s" % (c["model"], sorted(missing)))
+        derived = sorted((c["model"], k) for c in per for k in keys if c.get(k) is True)
+        if sorted(tuple(x) for x in (fz.get("fired") or [])) != derived:
+            why.append("`fired` %r disagrees with the per-cell flags %r" % (fz.get("fired"), derived))
+    results.append(Result("e55b/13: the plan's four falsifiers are reported per cell, fired or not",
+                          not why, "; ".join(why) if why else
+                          "%d cell(s) x 4 conditions recorded; fired=%r agrees with the flags"
+                          % (len(per or []), fz.get("fired"))))
     return results
 
 def e55_analysis_domain_cases(tmp):

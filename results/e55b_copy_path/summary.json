@@ -1063,6 +1063,34 @@
    "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
   }
  ],
+ "falsification_conditions_SS5": {
+  "source": "docs/plans/E55b_copy_path_aarch64.md SS5, fixed before measurement",
+  "per_cell": [
+   {
+    "model": "b2_resnet",
+    "F1_offset_requested_but_mod64_zero": false,
+    "F2_arm_says_copy_but_after_append_is_not_C": false,
+    "F3_module_append_failed": false,
+    "F4_H_exceeds_P_plus_C": false
+   },
+   {
+    "model": "b3_deepae",
+    "F1_offset_requested_but_mod64_zero": false,
+    "F2_arm_says_copy_but_after_append_is_not_C": false,
+    "F3_module_append_failed": false,
+    "F4_H_exceeds_P_plus_C": false
+   },
+   {
+    "model": "smartcam",
+    "F1_offset_requested_but_mod64_zero": false,
+    "F2_arm_says_copy_but_after_append_is_not_C": false,
+    "F3_module_append_failed": false,
+    "F4_H_exceeds_P_plus_C": false
+   }
+  ],
+  "fired": [],
+  "note": "each condition is evaluated per cell and reported whether or not it fired; an unfired pre-registered falsifier that is never mentioned again cannot be told apart from a forgotten one"
+ },
  "verdict": "INCOMPLETE_OR_FAIL",
  "not_claimed": [
   "that repeated-call long-term lifetime is verified -- four cells do not establish that (directive SS3.4, last paragraph)",
