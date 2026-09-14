@@ -3,8 +3,8 @@
  "what_this_is": "A snapshot of what the unpinned scan WOULD find today, kept OUT of budgets.json on purpose (see pin_note). It is expected to change; budgets.json is not.",
  "pin_state": "pinned",
  "pinned_observations": 21,
- "scan_sources_now": 48,
- "scan_observations_now": 48,
+ "scan_sources_now": 50,
+ "scan_observations_now": 50,
  "sources_present_but_not_pinned": [
   "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b2_resnet.log",
   "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b3_deepae.log",
@@ -32,6 +32,8 @@
   "results/e54_reference_budget/cells/undersized_window_first_attempt/e53_wgan_part1/logs/PB_ship30__wgan.log",
   "results/e54_reference_budget/cells/undersized_window_first_attempt/e53_wgan_part2/logs/sweep_wgan_pow2_above.log",
   "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
-  "results/e55_mandatory_followups/cells/p0_4/logs/e55_b3_deepae_conditional.log"
+  "results/e55_mandatory_followups/cells/p0_4/logs/e55_b3_deepae_conditional.log",
+  "results/e55_mandatory_followups/cells/p0_4/logs/e55_smartcam_conditional.log",
+  "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_conditional.log"
  ]
 }

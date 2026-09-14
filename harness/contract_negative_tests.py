@@ -8453,6 +8453,54 @@ def e55b_onair_linkage_cases(tmp):
                           "SS5.2 optional table not built"))
     return results
 
+
+def e55_optin_witness_cases(tmp):
+    """E55/E55b: every deployed tree's opt-in state is witnessed FROM THE BINARY, in-tree.
+
+    D69 is the rule: the setting a verdict was obtained under must be recorded independently of
+    the verdict, or the verdict becomes its own only evidence.  E38 built the witness that reads
+    `AI_LEARNER_ALLOW_CONDITIONAL_MAP` back out of the built `.so` rather than trusting the build
+    command, and these twelve trees are archived here for the same reason E38 archived its two:
+    the exe trees live outside the repository and vanish with the container, so without the
+    archived build_info + witness + `.so` hash the cells could not be re-attributed to a build.
+
+    The check is name-independent in the direction that matters: it does not accept a witness of
+    `undetermined`, because E38's witness returns that when its own positive control does not fire
+    -- a state that must never be read as "conditional is off".
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    want = {}
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        want[os.path.join("results", "e55_mandatory_followups", "trees", "e55_%s_cond0" % m)] = False
+        want[os.path.join("results", "e55_mandatory_followups", "trees", "e55_%s_cond1" % m)] = True
+        want[os.path.join("results", "e55b_copy_path", "trees", "e55b_%s_copy" % m)] = False
+    bad = []
+    for rel, expect in sorted(want.items()):
+        d = os.path.join(repo, rel)
+        wf, bf, hf = (os.path.join(d, "witness.json"), os.path.join(d, "build_info.json"),
+                      os.path.join(d, "ai_learner.so.sha256"))
+        if not all(os.path.isfile(f) for f in (wf, bf, hf)):
+            bad.append("%s: missing archived record" % os.path.basename(d)); continue
+        w, b = json.loads(read(wf)), json.loads(read(bf))
+        got = w.get("allow_conditional_map")
+        state = w.get("allow_conditional_map_state")
+        knob = (b.get("app_knobs") or {}).get("AI_LEARNER_ALLOW_CONDITIONAL_MAP")
+        h = read(hf).strip()
+        if got is not expect:
+            bad.append("%s: witness %r (state %r) != %r" % (os.path.basename(d), got, state, expect))
+        elif state == "undetermined":
+            bad.append("%s: witness undetermined -- never read that as 'off'" % os.path.basename(d))
+        elif knob != (1 if expect else 0):
+            bad.append("%s: build_info knob %r disagrees with the binary" % (os.path.basename(d), knob))
+        elif len(h) != 64:
+            bad.append("%s: archived .so sha256 is not a hash (%r)" % (os.path.basename(d), h[:16]))
+    results.append(Result("e55b/10: all 12 deployed trees witness their opt-in from the binary",
+                          not bad, "; ".join(bad) if bad else
+                          "12/12: 4 cond1 True, 4 cond0 False, 4 copy False; build_info agrees; "
+                          ".so hash archived"))
+    return results
+
 def e55_analysis_domain_cases(tmp):
     """E55/P0-2 (directive SS3): every op inside the analysis domain is classified.
 
@@ -8744,6 +8792,7 @@ def main():
         all_results += e55_analysis_domain_cases(tmp)
         all_results += e55b_copy_path_cases(tmp)
         all_results += e55b_onair_linkage_cases(tmp)
+        all_results += e55_optin_witness_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

@@ -819,6 +819,136 @@
       "fetched": {},
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT_CONDITIONAL_MAP"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": {
+        "app": "AI_LEARNER",
+        "stage": "run",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "attempted": 3,
+        "completed": 3,
+        "fail_input": 0,
+        "fail_invoke": 0,
+        "fail_output": 0,
+        "mean_us": 1537444101.1,
+        "max_us": 1659504639.55,
+        "last_us": 1659504639.55,
+        "out0": -0.04232,
+        "out_elems": 150528,
+        "out_sha256": "3932f2df508ca17a3d0f4dc36b1973072f66e3db651c3809f868afb92d0ea6a8",
+        "out_head": [
+          -0.042319,
+          0.048241,
+          0.281023,
+          0.151532,
+          0.015699,
+          -0.020236
+        ],
+        "out_tail": [
+          -0.023957,
+          -0.002322,
+          0.024561,
+          0.030613,
+          0.071833,
+          0.146621
+        ],
+        "out_full_file": "/cf/last_out.json",
+        "out_full_file_bytes": 1456090,
+        "out_full_file_reason": "ok",
+        "out_record_truncates": false
+      },
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 3,
+        "hal_peak": 131382784,
+        "peak_within_bounded": true,
+        "admitted_budget_bytes": 131382784,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "conditional_map",
+        "hal_bytes_per_call_amortized": 130981376.0,
+        "process_rss_kb": 15108,
+        "process_rss_delta_init_kb": 1644,
+        "max_active_calls": 1,
+        "active_calls_now": 0,
+        "call_counter_balanced": true
+      },
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 602112,
+        "hal_allocated": 602112,
+        "bounded": 135666432,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 11288,
+        "rss_kb_before_runtime": 9644,
+        "rss_kb_after_session": 9932,
+        "rss_kb_after_init": 11288
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": false,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:13:12.66986 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:13:13.96994 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=1644 KB",
+        ".............EVS Port1 1980-012-14:37:57.39932 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=1480982265.0us max=1480982265.0us hal_peak=131382784 within_bounded=1",
+        "......EVS Port1 1980-012-15:02:28.94049 66/1/AI_LEARNER 4: AI_LEARNER completed=2/2 mean=1476413831.9us max=1480982265.0us hal_peak=131382784 within_bounded=1",
+        "...EVS Port1 1980-012-15:30:02.48609 66/1/AI_LEARNER 4: AI_LEARNER completed=3/3 mean=1537444101.1us max=1659504639.6us hal_peak=131382784 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": null,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e55_wgan_conditional",
+      "model": "wgan",
+      "scenario": "E55/P0-4 conditional: conditional tier ENABLED (=1), same budget P = 131382784. Expect ADMIT_CONDITIONAL_MAP, >=1 inference, HAL peak <= P, max_active_calls == 1, module_ptr_mod64 == 0 and hal_peak_after_append == 0 (E29b's two preconditions checked BY MEASUREMENT, not assumed).",
+      "seconds": 5400,
+      "commands_sent": [],
+      "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_conditional.log",
+      "expect": {
+        "admission": "ADMIT_CONDITIONAL_MAP",
+        "binding": "MATCH",
+        "min_completed": 1,
+        "no_crash": true,
+        "cfs_operational": true,
+        "e25_mode_active": false
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "131382784"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }

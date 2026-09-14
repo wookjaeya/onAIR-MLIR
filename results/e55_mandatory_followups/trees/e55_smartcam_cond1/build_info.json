@@ -1,0 +1,143 @@
+{
+  "tag": "e55_smartcam_cond1",
+  "built_utc": "2026-09-14T02:40:30Z",
+  "cfs": {
+    "root": "/root/onair-mlir-bench/ext/cFS",
+    "commit": "78c23b0",
+    "config": "aarch64_std",
+    "simulation": "aarch64-linux-gnu",
+    "prep_opts": "-DENABLE_UNIT_TESTS=FALSE -DSIMULATION=aarch64-linux-gnu -DCFE_EDS_ENABLED=OFF -DMISSIONCONFIG=aarch64 -DCMAKE_BUILD_TYPE=debug -DCFS_APP_PATH=/root/onair-mlir-bench/ext/cFS/apps_aarch64 -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DCMAKE_BUILD_TYPE=debug -S \"/root/onair-mlir-bench/ext/cFS/cfe\" -DCMAKE_INSTALL_PREFIX=/exe",
+    "dropped_apps": [],
+    "cpu2_built": false,
+    "unit_tests": false
+  },
+  "iree_runtime": {
+    "build_dir": "/root/onair-mlir-bench/ext/iree-src/build-rt-aarch64",
+    "elf_machine": "AArch64"
+  },
+  "contract_header": {
+    "path": "/home/user/onAIR-MLIR/results/e32_smartcam_aarch64/build/contract_gen.smartcam.h",
+    "sha256": "14f8f6b1c684529b49c417e088c52bcbc193bcfd14e8daa77d2b45e84eb861c7",
+    "model_name": "smartcam",
+    "target_triple": "aarch64-unknown-linux-gnu",
+    "bound_known": 1,
+    "bounded_bytes": 18222796,
+    "artifact_sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1",
+    "kernel_stack_bytes_in_header": 1919
+  },
+  "app_knobs": {
+    "route": "cache",
+    "AI_LEARNER_BUDGET_BYTES": 18222797,
+    "AI_LEARNER_STACK_BASE_BYTES": 262144,
+    "AI_LEARNER_REPORT_EVERY": 1,
+    "AI_LEARNER_ALLOW_CONDITIONAL_MAP": 1,
+    "ai_learner_compile_defines": [
+      "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=1",
+      "-DAI_LEARNER_BUDGET_BYTES=18222797",
+      "-DAI_LEARNER_REPORT_EVERY=1",
+      "-DAI_LEARNER_STACK_BASE_BYTES=262144",
+      "-DIREE_ALLOCATOR_SYSTEM_CTL=iree_allocator_libc_ctl",
+      "-DSIMULATION=aarch64-linux-gnu",
+      "-D_XOPEN_SOURCE=600"
+    ]
+  },
+  "optin_witness": {
+    "allow_conditional_map": true,
+    "method": "disassembly: compare against CONTRACT_PER_CALL_BYTES in the admission path",
+    "isa": "aarch64",
+    "elf_machine": "AArch64",
+    "objdump": "aarch64-linux-gnu-objdump",
+    "per_call_bytes": 9382092,
+    "bounded_bytes": 18222796,
+    "conditional_compare_sites": [
+      {
+        "addr": "0x785c",
+        "value": 9382091,
+        "function": "AI_LEARNER_Init",
+        "materialised_at": "0x7854"
+      }
+    ],
+    "positive_control_sites": [
+      {
+        "addr": "0x7840",
+        "value": 18222795,
+        "function": "AI_LEARNER_Init",
+        "materialised_at": "0x7838"
+      },
+      {
+        "addr": "0x8168",
+        "value": 18222796,
+        "function": "AI_LEARNER_Init",
+        "materialised_at": "0x8160"
+      },
+      {
+        "addr": "0x8e2c",
+        "value": 18222796,
+        "function": "AI_LEARNER_Infer",
+        "materialised_at": "0x8e24"
+      }
+    ],
+    "note": "ai_learner.c gates the conditional tier on a compile-time constant; at 0 the compare against CONTRACT_PER_CALL_BYTES is not emitted at all",
+    "allow_conditional_map_state": "1",
+    "binary": "/root/onair-mlir-bench/ext/cfs-aarch64-exe/e55_smartcam_cond1/cpu1/cf/ai_learner.so",
+    "binary_sha256": "1614ea43395ed0d847add9568db34181c101254386eee4bc2df8da815a9bb229",
+    "binary_bytes": 862960
+  },
+  "task_stack": {
+    "stack_base_bytes": 262144,
+    "kernel_stack_bytes": 1919,
+    "startup_script_stack_bytes": 264063,
+    "startup_line": "CFE_APP, ai_learner,  AI_LEARNER_AppMain, AI_LEARNER,   55,   264063, 0x0, 0;",
+    "note": "task-stack budget bucket (AAPCS64 frame of the dispatch functions), not part of the HAL contract"
+  },
+  "exe": {
+    "dir": "/root/onair-mlir-bench/ext/cfs-aarch64-exe/e55_smartcam_cond1/cpu1",
+    "core_cpu1_bytes": 1620984,
+    "core_cpu1_sha256": "02d5a2313c5aa00d6cc21ff0944c95cbace05fb5361164b9e9e07af6f1bcb1b6",
+    "core_cpu1_needed": [
+      "libc.so.6",
+      "ld-linux-aarch64.so.1"
+    ],
+    "ai_learner_so_bytes": 862960,
+    "ai_learner_so_sha256": "1614ea43395ed0d847add9568db34181c101254386eee4bc2df8da815a9bb229",
+    "ai_learner_so_needed": [
+      "libm.so.6",
+      "libc.so.6",
+      "ld-linux-aarch64.so.1"
+    ],
+    "shared_objects": [
+      "ai_learner.so",
+      "cf.so",
+      "cfe_assert.so",
+      "cfe_testcase.so",
+      "ci_lab.so",
+      "cs.so",
+      "ds.so",
+      "fm.so",
+      "hk.so",
+      "hs.so",
+      "lc.so",
+      "md.so",
+      "mm.so",
+      "sample_app.so",
+      "sample_lib.so",
+      "sc.so",
+      "sch_lab.so",
+      "to_lab.so"
+    ],
+    "n_shared_objects": 18,
+    "iree_text_symbols_in_app": 1377,
+    "model_vmfb": "/home/user/onAIR-MLIR/results/e32_smartcam_aarch64/build/smartcam.vmfb",
+    "model_vmfb_matches_header": true
+  },
+  "compile_commands": {
+    "total": 480,
+    "with_mcpu_cortex_a53": 480
+  },
+  "build_seconds": {
+    "prep": 2,
+    "install": 2,
+    "total": 5,
+    "jobs": 4
+  }
+}

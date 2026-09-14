@@ -637,21 +637,166 @@
      "apps_after": 0
     },
     "conditional": {
-     "log": "/home/user/onAIR-MLIR/results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_conditional.log",
-     "present": false
+     "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_conditional.log",
+     "present": true,
+     "build_config": {
+      "app": "AI_LEARNER",
+      "stage": "build_config",
+      "model": "wgan",
+      "allow_conditional_map": 1,
+      "contract_bounded_bytes": 135666432,
+      "contract_per_call_bytes": 131382784,
+      "contract_const_bytes": 4283648,
+      "contract_bound_known": true,
+      "contract_artifact_sha256": "e382429cbfbf580356379365fa67a8a2b01b47d58ec4e04b4a4c14165be2e102"
+     },
+     "map_branch": {
+      "app": "AI_LEARNER",
+      "stage": "map_branch",
+      "model": "wgan",
+      "module_ptr_mod64": 0,
+      "hal_peak_after_append": 0,
+      "contract_const_bytes": 4283648,
+      "contract_per_call_bytes": 131382784,
+      "arm": "map",
+      "admission_mode": "conditional_map"
+     },
+     "admission": {
+      "app": "AI_LEARNER",
+      "stage": "admission",
+      "verdict": "ADMIT_CONDITIONAL_MAP",
+      "model": "wgan",
+      "target": "aarch64-unknown-linux-gnu",
+      "bounded": 135666432,
+      "budget": 131382784,
+      "budget_source": "override",
+      "per_call": 131382784,
+      "constants": 4283648,
+      "kernel_stack_bytes": 880,
+      "bound_known": true,
+      "scope": "per_app_local_budget"
+     },
+     "binding": {
+      "app": "AI_LEARNER",
+      "stage": "binding",
+      "verdict": "MATCH",
+      "artifact_bytes": 4321533,
+      "artifact_sha256": "e382429cbfbf5803",
+      "contract_sha256": "e382429cbfbf5803"
+     },
+     "mem_init": {
+      "app": "AI_LEARNER",
+      "stage": "mem_init",
+      "model": "wgan",
+      "target": "aarch64-unknown-linux-gnu",
+      "hal_peak": 602112,
+      "hal_allocated": 602112,
+      "bounded": 135666432,
+      "peak_within_bounded": true,
+      "inferences_so_far": 0,
+      "process_rss_kb": 11288,
+      "rss_kb_before_runtime": 9644,
+      "rss_kb_after_session": 9932,
+      "rss_kb_after_init": 11288
+     },
+     "run": {
+      "app": "AI_LEARNER",
+      "stage": "run",
+      "model": "wgan",
+      "target": "aarch64-unknown-linux-gnu",
+      "attempted": 3,
+      "completed": 3,
+      "fail_input": 0,
+      "fail_invoke": 0,
+      "fail_output": 0,
+      "mean_us": 1537444101.1,
+      "max_us": 1659504639.55,
+      "last_us": 1659504639.55,
+      "out0": -0.04232,
+      "out_elems": 150528,
+      "out_sha256": "3932f2df508ca17a3d0f4dc36b1973072f66e3db651c3809f868afb92d0ea6a8",
+      "out_head": [
+       -0.042319,
+       0.048241,
+       0.281023,
+       0.151532,
+       0.015699,
+       -0.020236
+      ],
+      "out_tail": [
+       -0.023957,
+       -0.002322,
+       0.024561,
+       0.030613,
+       0.071833,
+       0.146621
+      ],
+      "out_full_file": "/cf/last_out.json",
+      "out_full_file_bytes": 1456090,
+      "out_full_file_reason": "ok",
+      "out_record_truncates": false
+     },
+     "mem": {
+      "app": "AI_LEARNER",
+      "stage": "mem",
+      "model": "wgan",
+      "target": "aarch64-unknown-linux-gnu",
+      "completed": 3,
+      "hal_peak": 131382784,
+      "peak_within_bounded": true,
+      "admitted_budget_bytes": 131382784,
+      "peak_within_admitted_budget": true,
+      "admission_mode": "conditional_map",
+      "hal_bytes_per_call_amortized": 130981376.0,
+      "process_rss_kb": 15108,
+      "process_rss_delta_init_kb": 1644,
+      "max_active_calls": 1,
+      "active_calls_now": 0,
+      "call_counter_balanced": true
+     },
+     "e25_mode": {
+      "app": "AI_LEARNER",
+      "stage": "e25_mode",
+      "active": false,
+      "inputs_path": "/cf/e25_inputs.bin"
+     },
+     "exit": "EXIT=137",
+     "apps_after": 0
     }
    },
    "model": "wgan",
    "P": 131382784,
    "criteria": {
     "control_refused": true,
-    "control_no_runtime": true
+    "control_no_runtime": true,
+    "1_optin_recorded_before_verdict": true,
+    "2_module_ptr_64B_aligned": true,
+    "3_no_copy_arm_alloc_after_append": true,
+    "4_verdict_admit_conditional_map": true,
+    "5_at_least_one_inference": true,
+    "6_hal_peak_within_P": true,
+    "7_max_active_calls_is_1": true,
+    "8_output_baseline": null
    },
-   "verdict": null,
-   "unavailable_reason": "conditional cell log absent"
+   "observed": {
+    "hal_peak": 131382784,
+    "admitted_budget": 131382784,
+    "admission_mode": "conditional_map",
+    "arm": "map",
+    "completed": 3,
+    "max_active_calls": 1,
+    "call_counter_balanced": true,
+    "out_elems": 150528,
+    "out_sha256": "3932f2df508ca17a3d0f4dc36b1973072f66e3db651c3809f868afb92d0ea6a8",
+    "out_full_file": "/cf/last_out.json",
+    "out_full_file_reason": "ok",
+    "out_record_truncates": false
+   },
+   "verdict": "PASS",
+   "criterion_8_note": "output agreement against the archived AArch64 baseline is E48/E36b's axis and is not re-derived here; this cell replays SB telemetry bytes, not the semantic fixture"
   }
  ],
- "verdict": "INCOMPLETE_OR_FAIL",
+ "verdict": "PASS",
  "not_claimed": [
   "output semantic equivalence for these cells -- they replay SB telemetry bytes, not the E31/E48 fixture; criterion 8 is recorded as null, not as a pass",
   "that the conditional tier is worth enabling for every model -- E46 measured the gain as a function of the constant share (WGAN 1.03x is the floor)",
