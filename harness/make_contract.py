@@ -605,6 +605,31 @@ def build_contract(a, extra_args):
                             "schedule is not final, so sizes read from this entry do not bound execution"
                             % pre_sched)
 
+    # E55/P0-2 (directive SS3): an op inside the analysis domain that the walker could not
+    # classify must REFUSE, never be counted as zero bytes. The domain is defined by resource
+    # flow (mlir_alloc_walk._touches_resource), so this fires only for an op that actually
+    # produces or consumes a `!stream.resource<...>` and is neither sized nor on the
+    # verified-non-allocating list. Measured over the 26 archived layout IRs the list is empty
+    # (452 instances land in the verified-non-allocating bucket with a recorded reason), so
+    # this gate changes no existing contract -- it closes the path a FUTURE compiler version
+    # or model would otherwise take silently.
+    #
+    # It is a separate refusal, not an entry appended to `unresolved`: the regex parser cannot
+    # see op structure at all, so folding it in would make the two extractors disagree on
+    # unresolved presence for every model and hard-fail the whole corpus. E50 shipped exactly
+    # that shape as its first attempt at D86 and it rejected the two honest `dynamic`
+    # contracts -- the A8 negative scenario's own input.
+    unclassified = sorted(set(structural.get("unclassified_resource_ops") or [])) if structural is not None else []
+    if unclassified:
+        unclassified_note = (
+            "structural walker: op(s) %s carry a !stream.resource operand or result but are "
+            "neither sized nor on the verified-non-allocating list -- the analysis domain does "
+            "not cover them, so no bound can be stated for this entry" % unclassified)
+        notes.append(unclassified_note)
+        if not waive("--allow-unclassified-resource-ops", getattr(a, "allow_unclassified_resource_ops", False)):
+            hard_fail_errors.append(unclassified_note +
+                                    " (pass --allow-unclassified-resource-ops to override)")
+
     if structural_available and (structural is None or structural_diffs):
         notes.append(structural_note)
         if not waive("--allow-structural-mismatch", a.allow_structural_mismatch):
@@ -1344,6 +1369,10 @@ def parse_args(argv):
                          "the regex parser read from the same layout IR (default is to refuse writing "
                          "the contract; does not cover iree.compiler.ir being entirely uninstalled -- "
                          "see --allow-missing-structural-checker for that, F3 external review 2026-09)")
+    ap.add_argument("--allow-unclassified-resource-ops", action="store_true",
+                    help="E55/P0-2: emit a contract even though an op inside the analysis "
+                         "domain could not be classified. Recorded in provenance like every "
+                         "other override (D39) -- never silent.")
     ap.add_argument("--allow-missing-structural-checker", action="store_true",
                     help="do not hard-fail when iree.compiler.ir is not installed at all, so the structural "
                          "cross-check never ran (F3, external review 2026-09; default is to refuse writing "

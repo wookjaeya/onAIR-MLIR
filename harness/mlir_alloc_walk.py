@@ -50,6 +50,32 @@ GLOBAL_STORE_RE = re.compile(r'util\.global\.store\s+%[\w.#]+,\s*@([\w.$]+)\s*:\
 # name AS REPORTED BY THE COMPILER (op.name), not by any text pattern. Any
 # other stream.resource.*/stream.tensor.* op encountered in the entry body is
 # unresolved (D13 fail-closed policy: unknown -> refuse, never ignore).
+# E55/P0-2 (directive SS3): the analysis domain is defined by RESOURCE FLOW, not by a name
+# prefix.  An op belongs to it when any result or operand is a `!stream.resource<...>` --
+# that is the thing whose bytes the contract bounds.  Measured over the 27 archived layout
+# IRs, exactly ten ops in a post-layout entry touch a resource; six were already classified
+# (alloca / tensor.import / tensor.export / dealloca / subview / cmd.dispatch) and these four
+# were being skipped by the `startswith("stream.resource.")` test even though they carry
+# resources.  Each is listed with WHY it allocates nothing, so "verified non-allocating" is a
+# record with a reason and not a synonym for "not in the whitelist".
+#
+# Anything else that touches a resource goes to `unclassified_resource_ops` -- reported under
+# its own key, deliberately NOT folded into `unresolved`.  Folding it in would make the
+# structural walker disagree with the regex parser on unresolved presence for every model
+# (the regex parser cannot see op structure at all), and `make_contract.py` would hard-fail
+# the entire corpus: E50 shipped exactly that as its first attempt and it rejected the two
+# honest `dynamic` contracts, which are the A8 negative scenario's input.
+NON_ALLOCATING_RESOURCE_OPS = {
+    "stream.timepoint.await": "forwards resources through an await; result and operand types are "
+                              "the same resource (verified by type equality on the archived corpus)",
+    "util.global.load":       "reads a global the module initializer already allocated; inside the "
+                              "entry it is an alias, not a new allocation",
+    "stream.cmd.execute":     "RecursiveMemoryEffects -- captures resources in its with(...) clause; "
+                              "the effects belong to the ops in its body",
+    "stream.cmd.fill":        "writes into a resource some other op allocated (Stream_SubviewEffectOp)",
+    "stream.cmd.concurrent":  "RecursiveMemoryEffects, same as cmd.execute",
+}
+
 KNOWN_ENTRY_OPS = {"stream.tensor.import", "stream.tensor.export",
                    "stream.resource.alloca", "stream.resource.dealloca",
                    "stream.resource.pack", "stream.resource.subview"}
@@ -157,6 +183,7 @@ def _extract_from_entry(entry_op):
     has to exist rather than be assumed."""
     result = {"inputs": [], "outputs": [], "transient_slices": [], "transient_slabs": [],
              "constants": [], "unresolved": [], "pre_scheduling_ops": [],
+             "non_allocating_resource_ops": [], "unclassified_resource_ops": [],
              "dispatches": 0, "entry_found": True}
     for o in _walk(entry_op):
         name = o.name
@@ -166,12 +193,22 @@ def _extract_from_entry(entry_op):
         if not (name.startswith("stream.resource.") or name.startswith("stream.tensor.")):
             # D86: stream.async.* in a post-layout entry means layout did not
             # finish, so every size this walker derived below is derived from an
-            # unfinished schedule. Reported, not skipped. Other families
-            # (stream.cmd.*, stream.timepoint.*) do not allocate and stay out of
-            # the way -- narrowing by what E49's ledger measured, not by guess.
+            # unfinished schedule. Reported, not skipped.
             if name.startswith("stream.async."):
                 result["pre_scheduling_ops"].append(name)
                 result["unresolved"].append("pre_scheduling_alloc_op:%s" % name)
+                continue
+            # E55/P0-2: everything else still has to be CLASSIFIED, not skipped. The test is
+            # resource flow, measured from the op itself -- does it produce or consume a
+            # `!stream.resource<...>`? If it does not, it is outside the analysis domain and
+            # there is nothing to account for. If it does, it must be a verified non-allocating
+            # op; anything else is reported by name so that "we do not know what this does to
+            # memory" can never read as "it does nothing".
+            if _touches_resource(o):
+                if name in NON_ALLOCATING_RESOURCE_OPS:
+                    result["non_allocating_resource_ops"].append(name)
+                else:
+                    result["unclassified_resource_ops"].append(name)
             continue
         if name not in KNOWN_ENTRY_OPS:
             result["unresolved"].append("unrecognized_op:%s" % name)
@@ -233,6 +270,23 @@ def _extract_from_entry(entry_op):
     return result
 
 
+def _touches_resource(op):
+    """True when any result or operand of `op` is a `!stream.resource<...>`.
+
+    This is the measurable definition of "inside the analysis domain": the contract bounds
+    resource bytes, so an op that never touches a resource cannot move them. `arith.constant`,
+    `util.return`, `hal.element_type` and friends fall out automatically -- they are not
+    excluded by a name list that could go stale, they simply do not carry a resource.
+    """
+    try:
+        for v in list(op.results) + list(op.operands):
+            if str(v.type).startswith("!stream.resource"):
+                return True
+    except Exception:                                     # noqa: BLE001 - defensive on API shape
+        return True                                       # cannot tell -> treat as in-domain
+    return False
+
+
 def _extract_constants(module_op):
     """module_resident_constant_bytes: sum of stream.resource.alloc(constant)
     sizes anywhere in the module (these live in util.initializer, outside the
@@ -263,18 +317,28 @@ def parse_alloc_ir_structural(ir_text, entry="infer"):
     if not entry_chunks:
         return {"inputs": [], "outputs": [], "transient_slices": [], "transient_slabs": [],
                "constants": [], "unresolved": [], "pre_scheduling_ops": [],
+               "non_allocating_resource_ops": [], "unclassified_resource_ops": [],
                "dispatches": 0, "entry_found": False}
 
     best = None
     ctx_errors = []
+    # D95: index entry chunks from the end so a fallback can be NAMED, not just happen.
+    # 0 = the most-recently-printed (most-lowered) entry chunk, which is the one the
+    # contract is supposed to describe.
+    entry_rank = {id(c): i for i, c in enumerate(reversed(entry_chunks))}
+    chunk_failures = []
+    best_rank = None
     for ec in reversed(entry_chunks):           # most-recently-printed first
+        rank = entry_rank[id(ec)]
         for ic in (reversed(init_chunks) if init_chunks else [""]):
-            merged = "module {\n%s\n%s\n%s\n}\n" % (decls, ic, ec)
+            merged = "module {\n%s\n%s\n%s\n}\n" % (
+                decls, _strip_compiler_diagnostics(ic), _strip_compiler_diagnostics(ec))
             ctx = ir.Context()
             try:
                 mod = ir.Module.parse(merged, ctx)
             except Exception as e:
                 ctx_errors.append(str(e)[:200])
+                chunk_failures.append({"entry_chunk_rank": rank, "error": str(e)[:200]})
                 continue
             entries = _find_entry_candidates(mod.operation, entry)
             if not entries:
@@ -285,9 +349,56 @@ def parse_alloc_ir_structural(ir_text, entry="infer"):
                      -len(extracted["unresolved"]))
             if best is None or score > best[0]:
                 best = (score, extracted)
+                best_rank = rank
     if best is None:
         raise RuntimeError("no (entry, initializer) chunk combination parsed; errors: %s" % ctx_errors[:3])
-    return best[1]
+    out = best[1]
+    # D95: the selection is now part of the record. `entry_chunk_rank_used` == 0 means the
+    # walker read the most-lowered entry print; anything else means it fell back, and
+    # `entry_chunk_parse_failures` says why. Reported, never silent -- and deliberately NOT
+    # folded into `unresolved`, because the regex parser cannot see chunk structure at all and
+    # a presence mismatch there would hard-fail every model (E50's type-B trap, and E51's
+    # "a refusal is only evidence when it is attributable").
+    out["entry_chunk_rank_used"] = best_rank
+    out["entry_chunk_count"] = len(entry_chunks)
+    out["entry_chunk_parse_failures"] = chunk_failures
+    return out
+
+
+# The WHOLE line goes, message included. The first version of this stripped only the
+# `path:line:col: severity:` prefix and left the message text behind -- MLIR then read
+# `Executable` (the first word of the remark) as an op name and the chunk still failed to
+# parse. Measured, not assumed: the error was `custom op 'Executable' is unknown`.
+_DIAG_RE = re.compile(r"^\S+:\d+:\d+:\s+(?:remark|warning|note|error):.*(?:\n|$)", re.M)
+
+
+def _strip_compiler_diagnostics(chunk):
+    """Drop compiler diagnostic lines (`file:line:col: remark: ...`) from a dump chunk.
+
+    D95 (E55): `iree-compile` writes its diagnostics to the same stream the IR dump goes to,
+    and `split_dumps` ends the LAST chunk at EOF -- so a trailing remark is swallowed into the
+    most-lowered entry print.  MLIR then reads `results` (the first token of the remark's file
+    path) as an op name and the whole chunk fails to parse.  The loop below falls back to an
+    EARLIER, pre-layout chunk, and until now it did so SILENTLY: `ctx_errors` is only surfaced
+    when EVERY combination fails.
+
+    Measured on the archived corpus: 2 of 27 layout IRs carry such a line (both `dynamic`).
+    With the line, the walker reports `dispatches=0` and six `stream.async.*` ops; without it,
+    `dispatches=2`, zero async, and the unresolved list carries the HONEST reason
+    (`non_constant_def:arith.muli`, i.e. the dynamic shape).  So D87's record -- "the last
+    entry print of the two dynamic IRs contains 6 async ops" -- described a chunk-selection
+    artifact, not the post-layout IR.
+
+    Today this only bites a model that is refused anyway.  The reason it is fixed is the other
+    direction: an HONEST STATIC model whose last chunk breaks the same way would have its async
+    ops raised as unresolved while the regex parser (which never sees that chunk) reports none,
+    the cross-check would disagree, and make_contract.py would hard-fail a deployable model
+    over one compiler remark (type B).
+
+    The removal is ONE-DIRECTIONAL by construction: it can only make more chunks parse, never
+    fewer, and it cannot delete IR -- an MLIR line never matches `path:line:col: severity:`.
+    """
+    return _DIAG_RE.sub("", chunk)
 
 
 def diff_against_regex(structural, regex_based, constants_reference=None):

@@ -5918,17 +5918,35 @@ def d86_pre_scheduling_ops_cases(tmp):
                        "structural extractor unusable here (iree.compiler.ir not importable)", skip=True)]
     import mlir_alloc_walk as _maw                                  # noqa: PLC0415
 
-    # (1) the walker sees them at all -- the property that did not exist before
+    # (1) D95 (E55) CORRECTS what this used to pin. These two guards asserted that the
+    #     archived `dynamic` layout IR carries six allocating `stream.async.*` ops in its
+    #     POST-LAYOUT entry. It does not. The walker was reading a PRE-layout chunk, because
+    #     the last chunk failed to parse -- `iree-compile` appended a diagnostic remark to the
+    #     same stream, split_dumps ran the last chunk to EOF and swallowed it, and MLIR read
+    #     the remark's file path as an op name. The fallback to an earlier chunk was silent.
+    #     With the diagnostic stripped, the same file reports dispatches=2, zero async ops, and
+    #     the HONEST unresolved reasons (`non_constant_def:arith.muli` -- the dynamic shape).
+    #     The D86 MECHANISM is still under test: the synthetic injection below (3) exercises it
+    #     on a static entry, which is the case that actually matters.
     dyn_ir = read(os.path.join(root, "aarch64", "layout_ir", "dynamic.layout_ir.txt"))
     dyn = _maw.parse_alloc_ir_structural(dyn_ir, "infer")
     dyn_ps = dyn.get("pre_scheduling_ops") or []
-    results.append(Result("d86: walker reports allocating pre-scheduling ops in a post-layout entry "
-                          "(they used to be skipped silently, the D84 limit on this extractor too)",
-                          len(dyn_ps) == 6, "pre_scheduling_ops=%r" % (sorted(set(dyn_ps)),)))
-    results.append(Result("d86: it also routes them to unresolved, so the existing no-bound path "
-                          "(all_static=false -> bound_method NONE) is what states the refusal",
-                          any(u.startswith("pre_scheduling_alloc_op:") for u in dyn.get("unresolved") or []),
+    results.append(Result("d86/D95: the archived dynamic entry carries NO async ops once the trailing "
+                          "compiler diagnostic no longer breaks the last chunk -- the six that used to "
+                          "be pinned here came from a silent fallback to a pre-layout chunk",
+                          len(dyn_ps) == 0 and dyn.get("dispatches") == 2,
+                          "pre_scheduling_ops=%r dispatches=%r" % (sorted(set(dyn_ps)), dyn.get("dispatches"))))
+    results.append(Result("d86/D95: and its unresolved list now carries the honest reason for refusing "
+                          "this model (the dynamic shape), not a chunk-selection artefact",
+                          bool(dyn.get("unresolved"))
+                          and all("non_constant_def" in u for u in dyn.get("unresolved") or []),
                           "unresolved=%r" % ((dyn.get("unresolved") or [])[:3],)))
+    results.append(Result("d86/D95: the walker names which entry chunk it used and why any other "
+                          "failed -- a fallback is reported, never silent",
+                          dyn.get("entry_chunk_rank_used") == 0
+                          and isinstance(dyn.get("entry_chunk_parse_failures"), list),
+                          "rank_used=%r failures=%r" % (dyn.get("entry_chunk_rank_used"),
+                                                        len(dyn.get("entry_chunk_parse_failures") or []))))
 
     # (2) type (B): the honest dynamic contract must still be written, unchanged.
     #     This is the A8 negative scenario's input -- refusing to write it would
@@ -6002,9 +6020,13 @@ def d86_pre_scheduling_ops_cases(tmp):
     # regression that stops finding files still fails closed); the safety property
     # that actually matters -- no file beyond the known dynamic pair carries an
     # allocating async op in its entry -- stays an exact match.
-    results.append(Result("d86: archived layout IRs whose entry carries async ops is exactly the honest "
-                          "dynamic pair (E49 recorded 'zero', measured over files it did not include)",
-                          len(files) >= 25 and sorted(with_ps) == ["dynamic.layout_ir.txt"] * 2,
+    # D95 (E55): this used to expect exactly the dynamic pair. That expectation was the
+    # artefact, not the measurement -- see the two guards above. E49's original "zero" was
+    # right about the post-layout IR and wrong only about which files it globbed.
+    results.append(Result("d86/D95: NO archived layout IR carries an allocating async op in its "
+                          "post-layout entry -- E49's original 'zero' was correct about the IR; what "
+                          "was wrong was the glob it measured over, and later the chunk the walker read",
+                          len(files) >= 25 and sorted(with_ps) == [],
                           "files=%d with_async_in_entry=%r" % (len(files), sorted(with_ps))))
     return results
 
@@ -8166,26 +8188,35 @@ def e55_budget_reproducibility_cases(tmp):
         else:
             results.append(Result("e55/3: tampered pin refuses", False, "pin carries no observations"))
 
-    # --- (4) drift is reported, never silently absorbed ---
+    # --- (4) drift is reported, never silently absorbed -- in a SIBLING file ---
+    # E55 caught D94 a second time, on its own repair: the first fix wrote the scan counts
+    # INTO budgets.json, and guard (1) then failed the moment this experiment's own cells
+    # landed, because "how many AArch64 mem_init records exist right now" is a number that
+    # grows. A moving value does not belong in a committed budget; it belongs next to it.
     try:
         b = json.loads(open(committed, encoding="utf-8").read())
         ctx = b.get("iree_fixed_runtime_ctx") or {}
-        has_state = ctx.get("pin_state") == "pinned"
-        scan_now = ctx.get("scan_observations_now")
-        drift = ctx.get("sources_present_but_not_pinned")
-        # The point of the field is that it is ALLOWED to be non-empty and still visible.
-        ok = (has_state and isinstance(scan_now, int) and isinstance(drift, list)
-              and scan_now >= ctx.get("observations", 0))
+        drift_rel = ctx.get("drift_report")
+        drift_abs = os.path.join(repo, drift_rel) if drift_rel else None
+        dr = json.loads(open(drift_abs, encoding="utf-8").read()) if (drift_abs and os.path.exists(drift_abs)) else {}
+        ok = (ctx.get("pin_state") == "pinned"
+              and isinstance(drift_rel, str)
+              and isinstance(dr.get("scan_observations_now"), int)
+              and isinstance(dr.get("sources_present_but_not_pinned"), list)
+              and dr.get("pinned_observations") == ctx.get("observations")
+              and dr["scan_observations_now"] >= ctx.get("observations", 0)
+              and "scan_observations_now" not in ctx)
         results.append(Result(
-            "e55/4: budgets.json records pin_state, what the current scan would now find, and "
-            "which sources are present but not pinned -- drift stays VISIBLE instead of being "
-            "silently absorbed into a committed number (D65: the correction has to reach the "
-            "machine-readable place)",
-            ok, "pin_state=%r observations=%r scan_now=%r not_pinned=%s"
-                % (ctx.get("pin_state"), ctx.get("observations"), scan_now,
-                   len(drift) if isinstance(drift, list) else drift)))
+            "e55/4: budgets.json records pin_state and points at a SIBLING drift report; the "
+            "moving numbers (what the unpinned scan would find now, which sources are not pinned) "
+            "live there, so drift stays VISIBLE without making the committed budget unreproducible",
+            ok, "pin_state=%r observations=%r drift_file=%r scan_now=%r not_pinned=%s volatile_in_budget=%s"
+                % (ctx.get("pin_state"), ctx.get("observations"), drift_rel,
+                   dr.get("scan_observations_now"),
+                   len(dr.get("sources_present_but_not_pinned") or []),
+                   "scan_observations_now" in ctx)))
     except (OSError, ValueError) as exc:
-        results.append(Result("e55/4: drift reported in budgets.json", False, "unreadable: %s" % exc))
+        results.append(Result("e55/4: drift reported beside budgets.json", False, "unreadable: %s" % exc))
 
     # --- (5) the artefact says what kind of budget it is (directive SS2 criterion 3) ---
     try:
@@ -8204,6 +8235,116 @@ def e55_budget_reproducibility_cases(tmp):
     except (OSError, ValueError) as exc:
         results.append(Result("e55/5: budget nature declared", False, "unreadable: %s" % exc))
 
+    return results
+
+
+def e55_analysis_domain_cases(tmp):
+    """E55/P0-2 (directive SS3): every op inside the analysis domain is classified.
+
+    The domain is defined by RESOURCE FLOW, measured from the op itself -- an op is in it
+    when a result or operand is a `!stream.resource<...>`, because that is what the contract
+    bounds.  Ops outside it (arith.constant, util.return, hal.element_type ...) fall out
+    without needing a name list that can go stale.
+
+    Before E55 the walker's test was a NAME PREFIX (`stream.resource.` / `stream.tensor.`)
+    and everything else hit a bare `continue`.  Measured over the archived corpus that
+    silently skipped four resource-carrying ops -- `util.global.load`, `stream.cmd.execute`,
+    `stream.timepoint.await`, `stream.cmd.fill` -- 452 instances in all.  None of them
+    allocates, so no number was wrong; what was missing was the CHECK.
+
+    The literal reading of "unresolved everything outside the whitelist" was measured before
+    being adopted and rejected: it fails 27/27 archived IRs.  The decisive one is
+    `stream.yield`, which the MLIR API reports 99 times but which appears ZERO times in the
+    IR text (an implicit terminator the printer omits) -- so the regex parser can never see
+    it, the two extractors would disagree on unresolved presence, and make_contract would
+    hard-fail every model.  That is E50's type-(B) trap, which this experiment is the third
+    to walk up to.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    if not structural_available():
+        return [Result("e55/6-8: analysis-domain classification", None,
+                       "structural extractor unusable here (iree.compiler.ir not importable)", skip=True)]
+    import mlir_alloc_walk as _maw                                       # noqa: PLC0415
+
+    files = sorted(glob.glob(os.path.join(repo, "results", "**", "*layout_ir*.txt"), recursive=True))
+    files += sorted(glob.glob(os.path.join(repo, "results", "**", "layout_ir.txt"), recursive=True))
+    files = sorted(set(files))
+    unclassified, classified, scanned = {}, 0, 0
+    for f in files:
+        try:
+            r = _maw.parse_alloc_ir_structural(read(f))
+        except Exception:                                                # noqa: BLE001
+            continue
+        scanned += 1
+        classified += len(r.get("non_allocating_resource_ops") or [])
+        for op in r.get("unclassified_resource_ops") or []:
+            unclassified[op] = unclassified.get(op, 0) + 1
+
+    # `not unclassified` alone is satisfied by a walker that classifies NOTHING -- reverting
+    # the fix left this guard green, which is D89's lesson arriving on this experiment's own
+    # test. The corpus demonstrably contains in-domain non-allocating ops (452+ instances
+    # measured), so the bucket being POPULATED is part of the property.
+    results.append(Result(
+        "e55/6: across every archived layout IR, each op that carries a !stream.resource is "
+        "classified -- sized, or verified non-allocating WITH a recorded reason -- none is left "
+        "unclassified, AND the verified bucket is actually populated (an empty bucket would mean "
+        "the walker classified nothing, which this guard must not read as success)",
+        scanned >= 25 and not unclassified and classified >= 400,
+        "files=%d verified_non_allocating=%d unclassified=%s" % (scanned, classified, unclassified or "{}")))
+
+    results.append(Result(
+        "e55/6b: the verified-non-allocating list states WHY for every entry, so it cannot "
+        "decay into a second whitelist",
+        all(isinstance(v, str) and len(v) > 30 for v in _maw.NON_ALLOCATING_RESOURCE_OPS.values()),
+        "entries=%d" % len(_maw.NON_ALLOCATING_RESOURCE_OPS)))
+
+    # (7) in-process: an in-domain op that is NOT on the verified list must be REPORTED,
+    #     and must land in its own bucket rather than in `unresolved` (see the docstring).
+    victim = "stream.cmd.fill"
+    base = [f for f in files if "conv2d.layout_ir" in f or "multibranch.layout_ir" in f]
+    probe = None
+    for f in files:
+        r = _maw.parse_alloc_ir_structural(read(f))
+        if victim in (r.get("non_allocating_resource_ops") or []):
+            probe = f
+            break
+    if probe is None:
+        # NOT a skip: the archived corpus is known to contain this op (72 instances over 6
+        # files, measured). If no file exercises it, the classifier stopped classifying --
+        # which is exactly the state the reverted code is in.
+        results.append(Result("e55/7: an in-domain op that is not on the verified-non-allocating list "
+                              "is reported under its own key", False,
+                              "no archived IR reports %s as verified-non-allocating -- the classifier "
+                              "is not running" % victim))
+    else:
+        saved = dict(_maw.NON_ALLOCATING_RESOURCE_OPS)
+        try:
+            _maw.NON_ALLOCATING_RESOURCE_OPS.pop(victim, None)
+            r = _maw.parse_alloc_ir_structural(read(probe))
+            moved = victim in (r.get("unclassified_resource_ops") or [])
+            not_in_unresolved = not any(victim in u for u in r.get("unresolved") or [])
+        finally:
+            _maw.NON_ALLOCATING_RESOURCE_OPS.clear()
+            _maw.NON_ALLOCATING_RESOURCE_OPS.update(saved)
+        results.append(Result(
+            "e55/7: an in-domain op that is not on the verified-non-allocating list is reported "
+            "under `unclassified_resource_ops` and NOT folded into `unresolved` -- folding it in "
+            "would make the structural and regex readers disagree for every model, which is the "
+            "type-(B) failure E50 shipped and had to withdraw",
+            moved and not_in_unresolved,
+            "moved=%s kept_out_of_unresolved=%s probe=%s" % (moved, not_in_unresolved, os.path.basename(probe))))
+
+    # (8) the refusal is actually wired into the production path, and is overridable only
+    #     through a flag that gets recorded (D39).
+    src = read(os.path.join(HERE, "make_contract.py"))
+    wired = ("unclassified_resource_ops" in src
+             and 'waive("--allow-unclassified-resource-ops"' in src
+             and "hard_fail_errors.append(unclassified_note" in src)
+    results.append(Result(
+        "e55/8: make_contract.py refuses to state a bound when the walker could not classify an "
+        "in-domain op, and the only way past it is a flag the provenance records",
+        wired, "wired=%s" % wired))
     return results
 
 
@@ -8385,6 +8526,7 @@ def main():
         all_results += e53_wgan_aarch64_cases(tmp)
         all_results += e54_reference_budget_cases(tmp)
         all_results += e55_budget_reproducibility_cases(tmp)
+        all_results += e55_analysis_domain_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

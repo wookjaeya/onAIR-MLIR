@@ -29,6 +29,7 @@
  *   contract, so this should be unreachable for any header it produced; it only
  *   fires on a stale or hand-edited contract_gen.h).
  */
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +54,49 @@
 #endif
 #define GATE_BOUND_KNOWN (CONTRACT_BOUND_KNOWN && CONTRACT_SHAPES_STATIC)
 
-#define WARMUP_CALLS 200
+/* Warm-up call count.  The default is PRESERVED at 200; a run may override it with
+ * NATIVE_LEARNER_WARMUP_CALLS, and the APPLIED value plus its source are recorded in the
+ * `run` record.  E55/P0-4 pre-repair: E53 lost four hours to this constant -- it is
+ * model-independent, so a WGAN inference that costs ~33 min under qemu ran it 201 times
+ * before the loop could finish, while the values that run actually needed (admission,
+ * binding, one real inference) were already complete and flushed long before.
+ *
+ * Parsing mirrors AI_LEARNER_ResolveBudget (E36/D61): unset means the default, but a SET
+ * value that is empty, malformed, trailing-garbage or <= 0 is REFUSED rather than silently
+ * falling back -- an override that does not apply must not look like one that did. */
+#define WARMUP_CALLS_DEFAULT 200
+static int g_warmup = WARMUP_CALLS_DEFAULT;
+static const char* g_warmup_source = "default";
+
+static int resolve_warmup(void) {
+  const char* e = getenv("NATIVE_LEARNER_WARMUP_CALLS");
+  if (e == NULL) { g_warmup = WARMUP_CALLS_DEFAULT; g_warmup_source = "default"; return 1; }
+  while (*e == ' ' || *e == '\t') e++;
+  if (*e == '\0') return 0;                      /* set but empty: malformed, not absent */
+  char* end = NULL; errno = 0;
+  long v = strtol(e, &end, 10);
+  if (errno != 0 || end == e) return 0;
+  while (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r') end++;
+  if (*end != '\0') return 0;                    /* trailing garbage: refuse, do not guess */
+  if (v < 0 || v > 100000) return 0;
+  g_warmup = (int)v; g_warmup_source = "env";
+  return 1;
+}
+#define WARMUP_CALLS g_warmup
+
+/* E55/P0-3: same call-lifetime counter as ai_learner.c -- a model execution owns its
+ * per-call buffers from a successful call_initialize* until call_deinitialize, so ENTER/EXIT
+ * bracket exactly that.  Two deinitialize sites here (the E25 equivalence loop and the
+ * inference loop's early-return path plus its tail); every path that initialized reaches one. */
+static int g_active_calls = 0;
+static int g_max_active_calls = 0;
+static int g_call_counter_underflow = 0;
+#define NL_CALL_ENTER() do { \
+    if (++g_active_calls > g_max_active_calls) g_max_active_calls = g_active_calls; \
+  } while (0)
+#define NL_CALL_EXIT() do { \
+    if (--g_active_calls < 0) g_call_counter_underflow = 1; \
+  } while (0)
 
 /* All runtime objects live here so that one cleanup routine can release them
  * in the D4 order from every failure point. cleanup_calls is reported. */
@@ -152,6 +195,10 @@ int main(int argc, char** argv) {
                           "  budget does not cover bounded_bytes; the precondition is enforced and then verified\n"
                           "  after module append, refusing before any inference if the copy arm ran (E29).\n", argv[0]); return 2; }
   const char* vmfb_path = argv[1]; long budget = atol(argv[2]); int iters = atoi(argv[3]);
+  if (!resolve_warmup()) {
+    printf("{\"stage\":\"warmup\",\"verdict\":\"WARMUP_INVALID\",\"source\":\"env\",\"reason\":\"NATIVE_LEARNER_WARMUP_CALLS set but not a plain integer in [0,100000]\"}\n");
+    fflush(stdout); return 2;   /* E55: an override that does not apply must not look like one that did */
+  }
   { const char* cm = getenv("ONAIR_CONDITIONAL_MAP"); g.conditional_map = (cm && *cm == '1'); }
   g.conditional_map_requested = g.conditional_map;   /* E38: what was asked for, kept
       separate from what was applied -- the reset below is silent otherwise, and then
@@ -369,6 +416,7 @@ int main(int argc, char** argv) {
       iree_runtime_call_t c2; iree_hal_buffer_view_t* r2 = NULL;
       st = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &c2);
       if (!iree_status_is_ok(st)) { iree_status_free(st); iree_hal_buffer_view_release(xv); break; }
+      NL_CALL_ENTER();
       st = iree_runtime_call_inputs_push_back_buffer_view(&c2, xv);
       if (iree_status_is_ok(st)) st = iree_runtime_call_invoke(&c2, 0);
       if (iree_status_is_ok(st)) st = iree_runtime_call_outputs_pop_front_buffer_view(&c2, &r2);
@@ -380,6 +428,7 @@ int main(int argc, char** argv) {
       if (iree_status_is_ok(st)) { fwrite(e25_y, sizeof e25_y, 1, fo); done++; }
       else iree_status_free(st);
       if (r2) iree_hal_buffer_view_release(r2);
+      NL_CALL_EXIT();
       iree_runtime_call_deinitialize(&c2);
       iree_hal_buffer_view_release(xv);
     }
@@ -411,8 +460,9 @@ int main(int argc, char** argv) {
     attempted++;
     s = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &call);
     if (!iree_status_is_ok(s)) { fail_input++; NOTE_FAIL("call_initialize", s); if (i >= WARMUP_CALLS) lat[i - WARMUP_CALLS] = -1.0; continue; }
+    NL_CALL_ENTER();
     s = iree_runtime_call_inputs_push_back_buffer_view(&call, g.x);
-    if (!iree_status_is_ok(s)) { fail_input++; NOTE_FAIL("inputs_push_back", s); iree_runtime_call_deinitialize(&call); if (i >= WARMUP_CALLS) lat[i - WARMUP_CALLS] = -1.0; continue; }
+    if (!iree_status_is_ok(s)) { fail_input++; NOTE_FAIL("inputs_push_back", s); NL_CALL_EXIT(); iree_runtime_call_deinitialize(&call); if (i >= WARMUP_CALLS) lat[i - WARMUP_CALLS] = -1.0; continue; }
     double t0 = now_us();
     iree_status_t st_inv = iree_runtime_call_invoke(&call, 0);
     if (!iree_status_is_ok(st_inv)) { fail_invoke++; NOTE_FAIL("invoke", st_inv); }
@@ -423,6 +473,7 @@ int main(int argc, char** argv) {
     }
     double t1 = now_us();
     if (ret) iree_hal_buffer_view_release(ret);
+    NL_CALL_EXIT();
     iree_runtime_call_deinitialize(&call);
     if (ok) completed++;
     if (i >= WARMUP_CALLS) lat[i - WARMUP_CALLS] = ok ? (t1 - t0) : -1.0;
@@ -451,9 +502,11 @@ int main(int argc, char** argv) {
   int steady_within_per_call = steady_per_call <= (double)CONTRACT_PER_CALL_BYTES;
 
   printf("{\"stage\":\"run\",\"model\":\"%s\",\"target\":\"%s\",\"iters\":%d,\"warmup\":%d,"
-         "\"attempted\":%d,\"completed\":%d,\"fail_input\":%d,\"fail_invoke\":%d,\"fail_output\":%d,"
+         "\"warmup_source\":\"%s\",\"max_active_calls\":%d,\"active_calls_now\":%d,\"call_counter_balanced\":\"%s\",\"attempted\":%d,\"completed\":%d,\"fail_input\":%d,\"fail_invoke\":%d,\"fail_output\":%d,"
          "\"median_us\":%.2f,\"p99_us\":%.2f,\"max_us\":%.2f,\"out0\":%.6f,\"out\":[",
-         CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, iters, WARMUP_CALLS,
+         CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, iters, WARMUP_CALLS, g_warmup_source,
+         g_max_active_calls, g_active_calls,
+         (g_active_calls == 0 && !g_call_counter_underflow) ? "true" : "false",
          attempted, completed, fail_input, fail_invoke, fail_output,
          lat[iters / 2], lat[(int)(iters * 0.99)], lat[iters - 1], out[0]);
   for (int k = 0; k < CONTRACT_OUTPUT_ELEMS; ++k) printf("%s%.6f", k ? "," : "", out[k]);

@@ -84,6 +84,13 @@
 #define AI_LEARNER_MODEL_FILE "/cf/model.vmfb"
 #define AI_LEARNER_E25_INPUTS  "/cf/e25_inputs.bin"   /* E25: optional equivalence input set */
 #define AI_LEARNER_E25_OUTPUTS "/cf/e25_outputs.bin"
+#define AI_LEARNER_FULL_OUT    "/cf/last_out.json"   /* E55: full output vector, never truncated.
+   The name is SHORT on purpose: OSAL caps the filename component at OS_MAX_FILE_NAME (20), and the
+   first spelling ('ai_learner_last_out.json', 24 chars) made OS_TranslatePath return
+   OS_FS_ERR_NAME_TOO_LONG (-104).  That was found by MEASUREMENT, not by reading the header: the
+   write is best-effort, so the first run simply reported out_full_file:null with no reason -- which
+   is why the function now records WHY it failed (D51: "could not look" and "looked and found none"
+   are different records). */
 #define AI_LEARNER_HDR_BYTES 16   /* CCSDS primary + telemetry secondary header skipped before features */
 
 enum {
@@ -188,9 +195,75 @@ static void AI_LEARNER_StatusJson(iree_status_t st, char* out, size_t cap) {
   if (buf) iree_allocator_free(a, buf);
 }
 
+/* E55/P0-3 (directive SS4): OBSERVE the `max_in_flight_calls = 1` premise instead of arguing
+ * it from source.  E49 could only count task/thread-creation calls (0/0/0 across the three
+ * deployments) and recorded the premise as ARGUED_FROM_SOURCE with `observed_value: null`,
+ * because nothing recorded a call id at invoke entry and exit.
+ *
+ * A model execution owns its per-call buffers from a successful `call_initialize*` until
+ * `call_deinitialize`, so the counter brackets exactly that.  There are three deinitialize
+ * sites in this file and every path that initialized a call reaches exactly one of them --
+ * checked by enumeration, which is why EXIT sits at the deinitialize calls and not at the
+ * function returns.  `balanced` is the guard against the mistake this instrumentation could
+ * itself introduce: a path that increments and never decrements shows up as a non-zero
+ * `active_calls_now` at report time rather than as a quietly wrong maximum (D29/D51/D68 --
+ * the absence of a decrement must not read as "there was none to do"). */
+static int g_active_calls = 0;
+static int g_max_active_calls = 0;
+static int g_call_counter_underflow = 0;
+#define AI_LEARNER_CALL_ENTER() do { \
+    if (++g_active_calls > g_max_active_calls) g_max_active_calls = g_active_calls; \
+  } while (0)
+#define AI_LEARNER_CALL_EXIT() do { \
+    if (--g_active_calls < 0) g_call_counter_underflow = 1; \
+  } while (0)
+
 static void AI_LEARNER_FormatOut(char* b, size_t cap) {
   size_t o = 0;
   for (int k = 0; k < CONTRACT_OUTPUT_ELEMS && o < cap; ++k) o += (size_t)snprintf(b + o, cap - o, "%s%.6f", k ? "," : "", g.out[k]);
+}
+
+/* E55/P0-4 pre-repair (directive SS5): the console `run` record used to carry the WHOLE
+ * output array, and AI_LEARNER_Json's fixed `line[768]` cut it mid-array for any model
+ * whose output is large enough -- D68 saw it at DeepAE's 640 elements (truncating at 766
+ * chars) and D93 saw it again at WGAN's 150,528, where it made a PASSING cell record as
+ * FAIL because the gate that decides "pass" reads that record.  D93 patched the reader;
+ * the emitter stayed broken and the next larger model would step on it again.
+ *
+ * The record now carries element count + sha256 of the raw f32 bytes + head/tail summary,
+ * and the FULL array goes to its own file.  Two things are deliberate:
+ *   - `outs` is still built by AI_LEARNER_FormatOut and is still what gets written, so the
+ *     app's static footprint is UNCHANGED.  That matters beyond style: E54 counts this
+ *     app's contract-sized static buffers into R_noncontract_AI, so shrinking one would
+ *     silently move a committed budget.
+ *   - the write is best-effort.  A failed sink is reported as a null path with a reason;
+ *     it never fails an inference and never touches admission or the HAL statistics. */
+static const char* g_full_out_reason = "not attempted";
+static const char* AI_LEARNER_WriteFullOut(const char* text, long* out_bytes) {
+  static char real[OS_MAX_LOCAL_PATH_LEN];
+  static char why[96];
+  *out_bytes = -1;
+  int32 tr = OS_TranslatePath(AI_LEARNER_FULL_OUT, real);
+  if (tr != OS_SUCCESS) {
+    snprintf(why, sizeof why, "OS_TranslatePath rc=%ld", (long)tr);
+    g_full_out_reason = why; return NULL;
+  }
+  FILE* f = fopen(real, "wb");
+  if (!f) {
+    snprintf(why, sizeof why, "fopen errno=%d", errno);
+    g_full_out_reason = why; return NULL;
+  }
+  int n = fprintf(f, "{\"model\":\"%s\",\"target\":\"%s\",\"completed\":%u,\"elems\":%d,\"out\":[%s]}\n",
+                  CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE, (unsigned)g.n_infer,
+                  (int)CONTRACT_OUTPUT_ELEMS, text);
+  int cr = fclose(f);
+  if (cr != 0 || n < 0) {
+    snprintf(why, sizeof why, "fprintf n=%d fclose=%d errno=%d", n, cr, errno);
+    g_full_out_reason = why; return NULL;
+  }
+  *out_bytes = (long)n;
+  g_full_out_reason = "ok";
+  return AI_LEARNER_FULL_OUT;
 }
 
 /* Release everything that exists: input buffer -> session -> device -> instance
@@ -572,6 +645,7 @@ static int32 AI_LEARNER_Init(void) {
               iree_runtime_call_t c2; iree_hal_buffer_view_t* r2 = NULL;
               s2 = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &c2);
               if (!iree_status_is_ok(s2)) { iree_status_free(s2); break; }
+              AI_LEARNER_CALL_ENTER();
               s2 = iree_runtime_call_inputs_push_back_buffer_view(&c2, g.x);
               if (iree_status_is_ok(s2)) s2 = iree_runtime_call_invoke(&c2, 0);
               if (iree_status_is_ok(s2)) s2 = iree_runtime_call_outputs_pop_front_buffer_view(&c2, &r2);
@@ -579,6 +653,7 @@ static int32 AI_LEARNER_Init(void) {
               if (iree_status_is_ok(s2)) { fwrite(yv, sizeof yv, 1, fo); done++; }
               else iree_status_free(s2);
               if (r2) iree_hal_buffer_view_release(r2);
+              AI_LEARNER_CALL_EXIT();
               iree_runtime_call_deinitialize(&c2);
             }
             fclose(fo);
@@ -656,8 +731,9 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   iree_runtime_call_t call;
   s = iree_runtime_call_initialize_by_name(g.session, iree_make_cstring_view(CONTRACT_ENTRY), &call);
   if (!iree_status_is_ok(s)) { g.n_fail_input++; AI_LEARNER_NoteFail("call_initialize", s); return; }
+  AI_LEARNER_CALL_ENTER();
   s = iree_runtime_call_inputs_push_back_buffer_view(&call, g.x);
-  if (!iree_status_is_ok(s)) { g.n_fail_input++; AI_LEARNER_NoteFail("inputs_push_back", s); iree_runtime_call_deinitialize(&call); return; }
+  if (!iree_status_is_ok(s)) { g.n_fail_input++; AI_LEARNER_NoteFail("inputs_push_back", s); AI_LEARNER_CALL_EXIT(); iree_runtime_call_deinitialize(&call); return; }
   double t0 = now_us();
   iree_status_t st = iree_runtime_call_invoke(&call, 0);
   iree_hal_buffer_view_t* ret = NULL; static float out[CONTRACT_OUTPUT_ELEMS]; int ok = 0;  /* D52: was automatic */
@@ -669,6 +745,7 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
   }
   double dt = now_us() - t0;
   if (ret) iree_hal_buffer_view_release(ret);
+  AI_LEARNER_CALL_EXIT();
   iree_runtime_call_deinitialize(&call);
   if (!ok) return;
   g.n_infer++; g.lat_sum_us += dt; g.lat_last_us = dt; if (dt > g.lat_max_us) g.lat_max_us = dt;
@@ -694,19 +771,34 @@ static void AI_LEARNER_Infer(const CFE_SB_Buffer_t* buf) {
     static char outs[CONTRACT_OUTPUT_ELEMS * 16 + 8]; AI_LEARNER_FormatOut(outs, sizeof outs);  /* D52: was automatic, 16 B per output element */
     CFE_EVS_SendEvent(EID_REPORT, CFE_EVS_EventType_INFORMATION, "AI_LEARNER completed=%u/%u mean=%.1fus max=%.1fus hal_peak=%ld within_bounded=%d",
                       (unsigned)g.n_infer, (unsigned)g.n_attempt, g.lat_sum_us / g.n_infer, g.lat_max_us, (long)stats.device_bytes_peak, within);
+    long full_bytes = -1; const char* full_path = AI_LEARNER_WriteFullOut(outs, &full_bytes);
+    char ohex[65]; sha256_hex((const unsigned char*)g.out, sizeof(float) * (size_t)CONTRACT_OUTPUT_ELEMS, ohex);
+    char head[128], tail[128]; size_t ho = 0, to = 0;
+    const int NS = CONTRACT_OUTPUT_ELEMS < 6 ? CONTRACT_OUTPUT_ELEMS : 6;
+    for (int k = 0; k < NS && ho + 24 < sizeof head; ++k)
+      ho += (size_t)snprintf(head + ho, sizeof head - ho, "%s%.6f", k ? "," : "", g.out[k]);
+    for (int k = CONTRACT_OUTPUT_ELEMS - NS; k < CONTRACT_OUTPUT_ELEMS && to + 24 < sizeof tail; ++k)
+      to += (size_t)snprintf(tail + to, sizeof tail - to, "%s%.6f", k == CONTRACT_OUTPUT_ELEMS - NS ? "" : ",", g.out[k]);
     AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"run\",\"model\":\"%s\",\"target\":\"%s\",\"attempted\":%u,\"completed\":%u,\"fail_input\":%u,\"fail_invoke\":%u,\"fail_output\":%u,"
-                    "\"mean_us\":%.2f,\"max_us\":%.2f,\"last_us\":%.2f,\"out0\":%.5f,\"out\":[%s]}\n",
+                    "\"mean_us\":%.2f,\"max_us\":%.2f,\"last_us\":%.2f,\"out0\":%.5f,"
+                    "\"out_elems\":%d,\"out_sha256\":\"%s\",\"out_head\":[%s],\"out_tail\":[%s],"
+                    "\"out_full_file\":%s%s%s,\"out_full_file_bytes\":%ld,\"out_full_file_reason\":\"%s\",\"out_record_truncates\":false}\n",
                     CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE,
                     (unsigned)g.n_attempt, (unsigned)g.n_infer, (unsigned)g.n_fail_input, (unsigned)g.n_fail_invoke, (unsigned)g.n_fail_output,
-                    g.lat_sum_us / g.n_infer, g.lat_max_us, g.lat_last_us, g.out[0], outs);
+                    g.lat_sum_us / g.n_infer, g.lat_max_us, g.lat_last_us, g.out[0],
+                    (int)CONTRACT_OUTPUT_ELEMS, ohex, head, tail,
+                    full_path ? "\"" : "", full_path ? full_path : "null", full_path ? "\"" : "", full_bytes, g_full_out_reason);
     AI_LEARNER_Json("{\"app\":\"AI_LEARNER\",\"stage\":\"mem\",\"model\":\"%s\",\"target\":\"%s\",\"completed\":%u,\"hal_peak\":%ld,\"peak_within_bounded\":%s,"
                     "\"admitted_budget_bytes\":%ld,\"peak_within_admitted_budget\":%s,\"admission_mode\":\"%s\","
-                    "\"hal_bytes_per_call_amortized\":%.1f,\"process_rss_kb\":%ld,\"process_rss_delta_init_kb\":%ld}\n",
+                    "\"hal_bytes_per_call_amortized\":%.1f,\"process_rss_kb\":%ld,\"process_rss_delta_init_kb\":%ld,"
+                    "\"max_active_calls\":%d,\"active_calls_now\":%d,\"call_counter_balanced\":%s}\n",
                     CONTRACT_MODEL_NAME, CONTRACT_TARGET_TRIPLE,
                     (unsigned)g.n_infer, (long)stats.device_bytes_peak, within ? "true" : "false",
                     admitted_budget, within_budget ? "true" : "false",
                     g.conditional_map ? "conditional_map" : "unconditional",
-                    (double)stats.device_bytes_allocated / g.n_infer, rss_kb(), g.rss_kb_init1 - g.rss_kb_init0);
+                    (double)stats.device_bytes_allocated / g.n_infer, rss_kb(), g.rss_kb_init1 - g.rss_kb_init0,
+                    g_max_active_calls, g_active_calls,
+                    (g_active_calls == 0 && !g_call_counter_underflow) ? "true" : "false");
   }
 }
 

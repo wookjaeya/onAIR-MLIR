@@ -11,21 +11,21 @@
       "file": "native/cfs_app/fsw/src/ai_learner.c",
       "invoke_sites": [
         {
-          "line": 576,
+          "line": 650,
           "text": "if (iree_status_is_ok(s2)) s2 = iree_runtime_call_invoke(&c2, 0);",
           "enclosing_function": "AI_LEARNER_Init",
-          "enclosing_function_line": 284,
+          "enclosing_function_line": 357,
           "enclosing_loop": {
-            "line": 556,
+            "line": 629,
             "text": "for (long v = 0; v < nvec; ++v) {",
             "form": "braced"
           }
         },
         {
-          "line": 662,
+          "line": 738,
           "text": "iree_status_t st = iree_runtime_call_invoke(&call, 0);",
           "enclosing_function": "AI_LEARNER_Infer",
-          "enclosing_function_line": 634,
+          "enclosing_function_line": 709,
           "enclosing_loop": null
         }
       ],
@@ -36,23 +36,23 @@
       ],
       "dispatcher_sites": [
         {
-          "line": 717,
+          "line": 809,
           "text": "while (CFE_ES_RunLoop(&run) == true) {",
           "enclosing_function": "AI_LEARNER_AppMain",
-          "enclosing_function_line": 713,
+          "enclosing_function_line": 805,
           "enclosing_loop": {
-            "line": 717,
+            "line": 809,
             "text": "while (CFE_ES_RunLoop(&run) == true) {",
             "form": "braced"
           }
         },
         {
-          "line": 719,
+          "line": 811,
           "text": "int32 st = CFE_SB_ReceiveBuffer(&buf, g.pipe, 1000);",
           "enclosing_function": "AI_LEARNER_AppMain",
-          "enclosing_function_line": 713,
+          "enclosing_function_line": 805,
           "enclosing_loop": {
-            "line": 717,
+            "line": 809,
             "text": "while (CFE_ES_RunLoop(&run) == true) {",
             "form": "braced"
           }
@@ -71,23 +71,23 @@
       "file": "native/native_learner.c",
       "invoke_sites": [
         {
-          "line": 373,
+          "line": 421,
           "text": "if (iree_status_is_ok(st)) st = iree_runtime_call_invoke(&c2, 0);",
           "enclosing_function": "main",
-          "enclosing_function_line": 149,
+          "enclosing_function_line": 192,
           "enclosing_loop": {
-            "line": 362,
+            "line": 409,
             "text": "for (long v = 0; v < nvec; ++v) {",
             "form": "braced"
           }
         },
         {
-          "line": 417,
+          "line": 467,
           "text": "iree_status_t st_inv = iree_runtime_call_invoke(&call, 0);",
           "enclosing_function": "main",
-          "enclosing_function_line": 149,
+          "enclosing_function_line": 192,
           "enclosing_loop": {
-            "line": 407,
+            "line": 456,
             "text": "for (int i = 0; i < iters + WARMUP_CALLS; ++i) {",
             "form": "braced"
           }
@@ -99,10 +99,10 @@
       ],
       "dispatcher_sites": [
         {
-          "line": 149,
+          "line": 192,
           "text": "int main(int argc, char** argv) {",
           "enclosing_function": "main",
-          "enclosing_function_line": 149,
+          "enclosing_function_line": 192,
           "enclosing_loop": null
         }
       ],

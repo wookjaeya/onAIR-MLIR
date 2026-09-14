@@ -100,6 +100,7 @@ def app_io_buffer_bytes(terms, in_elems, out_elems):
 
 
 RUNTIME_CTX_PIN = "results/e54_reference_budget/sources/runtime_ctx_observations.json"
+DRIFT_REPORT = "results/e54_reference_budget/sources/runtime_ctx_drift_report.json"
 
 
 def _scan_mem_init(results_root):
@@ -202,12 +203,26 @@ def iree_fixed_runtime_ctx(results_root, pin_path=None, repin=False):
                  "image and module append (ai_learner.c:446 -> :461)",
         "pin_state": pin_state,
         "pin_manifest": pin_path,
-        "pin_note": ("D94: the input set is pinned and each record is re-extracted from its "
-                     "own raw log every run; drift is reported below, never absorbed."),
+        "pin_note": ("D94: the input set is pinned and each record is re-extracted from its own raw "
+                     "log every run. Drift -- what the current scan WOULD find -- is reported in "
+                     "`drift_report` (a sibling file), NOT here: a count of 'what exists right now' "
+                     "grows with every experiment that lands a cFS AArch64 cell, and putting a "
+                     "moving number inside the committed budget is what broke reproducibility in "
+                     "the first place. E55 caught this on its own guard: the first fix wrote the "
+                     "scan counts into budgets.json and the byte-identity check then failed as soon "
+                     "as this experiment's own cells landed -- D94 re-enacted by its own repair."),
+        "drift_report": DRIFT_REPORT,
+        "per_observation": obs,
+    }, {
+        "generated_by": "harness/e54_budgets.py",
+        "what_this_is": ("A snapshot of what the unpinned scan WOULD find today, kept OUT of "
+                         "budgets.json on purpose (see pin_note). It is expected to change; "
+                         "budgets.json is not."),
+        "pin_state": pin_state,
+        "pinned_observations": len(obs),
         "scan_sources_now": len({o["source"] for o in scan}),
         "scan_observations_now": len(scan),
         "sources_present_but_not_pinned": drift,
-        "per_observation": obs,
     }
 
 
@@ -228,7 +243,9 @@ def main():
 
     base = load_baseline(os.path.join(REPO, a.baseline))
     terms = app_io_buffer_terms(APP_SRC)
-    iree_ctx = iree_fixed_runtime_ctx(os.path.join(REPO, "results"), a.pin, a.repin)
+    iree_ctx, drift_doc = iree_fixed_runtime_ctx(os.path.join(REPO, "results"), a.pin, a.repin)
+    with open(os.path.join(REPO, DRIFT_REPORT), "w", encoding="utf-8") as _df:
+        json.dump(drift_doc, _df, ensure_ascii=False, indent=1); _df.write("\n")
 
     r_os_cfs = base["r_os_cfs_bytes"]
     r_other_apps = base["r_other_apps_bytes"]
