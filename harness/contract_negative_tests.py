@@ -8532,6 +8532,38 @@ def e55_optin_witness_cases(tmp):
                           not why, "; ".join(why) if why else
                           "both read iree_hal_allocator_query_statistics at different points in "
                           "Init(); neither substitutes a CONTRACT_ macro"))
+
+    # --- e55b/12: the SS4 table's first two rows are the whole point, so pin their relation.
+    # Same budget, same vmfb, same contract, same fixture -- and H comes out P on one row and
+    # P+C on the other, differing by EXACTLY the contract's constant count.  That is the run-time
+    # evidence for why B_u must be the max over the arms; if the two rows ever stopped differing
+    # by exactly C, either the bound's decomposition or one of the measurements would be wrong.
+    sp = os.path.join(repo, "results", "e55b_copy_path", "summary.json")
+    if not os.path.isfile(sp):
+        results.append(Result("e55b/12: same budget, two arms, difference is exactly C", False,
+                              "results/e55b_copy_path/summary.json absent"))
+        return results
+    tbl = load(sp).get("integration_table_SS4") or []
+    pairs, bad = 0, []
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        mp = next((t for t in tbl if t["model"] == m and t["configuration"] == "unconditional_map_at_Bu"), None)
+        cp = next((t for t in tbl if t["model"] == m and t["configuration"] == "unconditional_copy_at_Bu"), None)
+        if not mp or not cp or cp.get("H") is None:
+            continue                                   # copy cell not run yet -- not a failure
+        pairs += 1
+        P, C, B = cp["P"], cp["C"], cp["B_u"]
+        if mp.get("budget_M") != cp.get("budget_M"):
+            bad.append("%s: budgets differ (%r vs %r)" % (m, mp.get("budget_M"), cp.get("budget_M")))
+        elif mp.get("H") != P:
+            bad.append("%s: map H %r != P %d" % (m, mp.get("H"), P))
+        elif cp.get("H") != B:
+            bad.append("%s: copy H %r != P+C %d" % (m, cp.get("H"), B))
+        elif cp["H"] - mp["H"] != C:
+            bad.append("%s: arms differ by %d, not C=%d" % (m, cp["H"] - mp["H"], C))
+    results.append(Result("e55b/12: same budget, two arms, difference is exactly C",
+                          not bad and pairs >= 1, "; ".join(bad) if bad else
+                          ("%d model(s) paired: map H = P, copy H = P+C, difference = C exactly"
+                           % pairs if pairs else "no copy cell has run yet")))
     return results
 
 def e55_analysis_domain_cases(tmp):
