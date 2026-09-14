@@ -4846,9 +4846,17 @@ def e29_conditional_contract_cases():
             ("ai_learner.c", os.path.join(root, "native", "cfs_app", "fsw", "src", "ai_learner.c"),
              "AI_LEARNER_AllocModuleImage")):
         src = open(path, encoding="utf-8", errors="replace").read()
+        # E55b widened the cFS allocation to `n + off` so a cell can move the image OFF the
+        # 64-byte class on purpose.  What E29 pinned is unchanged and is pinned here more
+        # narrowly than before: the BASE is still requested 64-byte aligned, and the offset
+        # defaults to 0, so an unset knob reproduces E29's deployment byte for byte.
+        aligned64 = re.search(r"posix_memalign\(&p, 64, n\s*(\)|\+)", src) is not None
+        default0 = (label != "ai_learner.c") or ("if (e == NULL) return 0;" in src)
         results.append(Result("e29: %s allocates the module image 64-byte aligned" % label,
-                              "posix_memalign(&p, 64, n)" in src and (fn + "((size_t)") in src,
-                              "expected posix_memalign(...,64,...) via %s() in %s" % (fn, label)))
+                              aligned64 and (fn + "((size_t)") in src and default0,
+                              "expected posix_memalign(&p, 64, n[+off]) via %s() in %s, offset "
+                              "defaulting to 0 (aligned64=%s default0=%s)"
+                              % (fn, label, aligned64, default0)))
         results.append(Result("e29: %s measures the arm actually taken after append" % label,
                               "hal_peak_after_append" in src and "iree_hal_allocator_query_statistics" in src,
                               "no post-append allocator query in %s" % label))
@@ -8251,6 +8259,147 @@ def e55_budget_reproducibility_cases(tmp):
     return results
 
 
+
+def e55b_copy_path_cases(tmp):
+    """E55b (directive COPY_MAP_ONAIR SS3-SS4): the copy-arm cell is judged on facts, not labels.
+
+    The app derives its own `arm` string from `hal_peak_after_append` (ai_learner.c), so a judge
+    that accepts `arm == "copy"` is reading the app's conclusion back as an observation.  The
+    directive says so in SS3.3's last line, and these cases pin it: a synthetic cell that claims
+    `copy` while its post-append allocation is NOT the contract's constant count must not be
+    counted as a copy run, and a cell whose peak exceeds `P+C` must come back WITHHELD rather
+    than FAIL -- SS3.4 asks for the raw material to be kept and the claim suspended, which is a
+    different outcome from "the cell failed".
+
+    The alignment knob itself is checked in the app source, because that is where the fail-closed
+    rules live and the built binary is not in-tree.  The archived map-arm rows of the SS4 table
+    are checked against the raw logs they cite: the table must never carry an expected value as
+    if it were measured.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    app = read(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"))
+
+    # --- e55b/1: the knob is fail-closed on every condition the plan fixed before measurement
+    body = app.split("AI_LEARNER_BlobAlignOffset(const char** why)", 1)
+    body = body[1].split("\nstatic void* AI_LEARNER_AllocModuleImage", 1)[0] if len(body) > 1 else ""
+    need = {"not an integer": "non-integer", "trailing garbage": "trailing garbage",
+            "out of range": "range", "% 8 != 0": "not a multiple of 8",
+            "% 64 == 0": "nonzero multiple of 64",
+            "AI_LEARNER_ALLOW_CONDITIONAL_MAP": "conditional build refused (plan SS2.1)"}
+    missing = [d for k, d in need.items() if k not in body]
+    results.append(Result("e55b/1: alignment knob refuses every condition the plan fixed", not missing,
+                          "missing refusal(s): %s" % missing if missing else
+                          "6/6 refusal conditions present in AI_LEARNER_BlobAlignOffset"))
+
+    # --- e55b/2: the offset pointer is handed to IREE, the BASE pointer is what gets freed
+    alloc = app.split("AI_LEARNER_AllocModuleImage(size_t n, int* out_mod64)", 1)
+    alloc = alloc[1][:900] if len(alloc) > 1 else ""
+    ok = ("g.blob_alloc = p" in alloc and "+ off" in alloc and "% 64" in alloc
+          and "free(g.blob_alloc)" in app)
+    results.append(Result("e55b/2: offset pointer is used, base pointer is freed", ok,
+                          "alloc returns base+off, stores base in g.blob_alloc, cleanup frees that"
+                          if ok else "alignment offset bookkeeping not as the plan requires"))
+
+    sys.path.insert(0, HERE)
+    try:
+        import mk_e55b_summary as _e55b                                  # noqa: PLC0415
+    except Exception as e:                                               # noqa: BLE001
+        results.append(Result("e55b/3-5: copy-cell judge", False, "cannot import mk_e55b_summary: %s" % e))
+        return results
+
+    P, C = 6208, 1063424
+    sc = {"model": "synthetic", "e55b": {"P": P, "C": C, "B_u": P + C, "align_offset": 8,
+                                         "map_arm_baseline_outputs": "results/does-not-exist.bin"}}
+
+    def cell(after_append, peak, mod64=8):
+        return {"present": True, "blob_align": {"requested_offset": 8, "state": "applied"},
+                "map_branch": {"module_ptr_mod64": mod64, "hal_peak_after_append": after_append,
+                               "arm": "copy"},
+                "admission": {"verdict": "ADMIT"}, "binding": {"verdict": "MATCH"},
+                "mem": {"hal_peak": peak, "completed": 5, "max_active_calls": 1},
+                "e25_equivalence": {"inputs": 1, "completed": 1}, "run": {"completed": 5},
+                "mem_init": {"hal_peak": C}, "runtime_load_failed": None}
+
+    # --- e55b/3: `arm: "copy"` with a post-append allocation that is NOT C is not a copy run
+    j = _e55b.judge_copy(sc, cell(C - 8, P + C), "/nonexistent")
+    ok = (j["copy_arm_confirmed_independently"] is False and j["verdict"] != "PASS"
+          and j["arm_label_agrees"] is True)
+    results.append(Result("e55b/3: arm label alone does not confirm copy", ok,
+                          "label says copy, post-append != C -> not counted as copy (verdict %s)"
+                          % j["verdict"] if ok else "judge accepted the label: %r" % j))
+
+    # --- e55b/4: the offset must have reached the image; mod64 == 0 means the knob did not apply
+    j0 = _e55b.judge_copy(sc, cell(C, P + C, mod64=0), "/nonexistent")
+    ok0 = (j0["copy_arm_confirmed_independently"] is False
+           and j0["load_setting_SS3_3"]["offset_reached_the_image"] is False)
+    results.append(Result("e55b/4: mod64 == 0 means the knob did not apply (plan SS5-1)", ok0,
+                          "offset requested 8 but image landed on 0 -> not counted"
+                          if ok0 else "judge counted a cell whose offset never reached: %r" % j0))
+
+    # --- e55b/5: H > P+C is WITHHELD (SS3.4), which is not the same outcome as FAIL
+    jw = _e55b.judge_copy(sc, cell(C, P + C + 1), "/nonexistent")
+    results.append(Result("e55b/5: H > P+C withholds the claim instead of failing",
+                          jw["verdict"] == "WITHHELD",
+                          "verdict=%s" % jw["verdict"]))
+
+    # --- e55b/6: the SS4 archived rows are read from the logs they cite, never asserted
+    bad = []
+    want = {"b2_resnet": (309416, 618856), "b3_deepae": (6208, 1069632),
+            "smartcam": (9382092, 18222796), "wgan": (131382784, 135666432)}
+    for m, rel in _e55b.ARCHIVED_MAP_BU.items():
+        f = os.path.join(repo, rel)
+        if not os.path.isfile(f):
+            bad.append("%s: missing %s" % (m, rel)); continue
+        c = _e55b.read_cell(f)
+        mb, mem = c.get("map_branch") or {}, c.get("mem") or {}
+        Pm, Bm = want[m]
+        if (mb.get("arm") != "map" or mem.get("admission_mode") != "unconditional"
+                or mem.get("admitted_budget_bytes") != Bm or mem.get("hal_peak") != Pm):
+            bad.append("%s: arm=%r mode=%r budget=%r peak=%r" % (m, mb.get("arm"),
+                       mem.get("admission_mode"), mem.get("admitted_budget_bytes"), mem.get("hal_peak")))
+    results.append(Result("e55b/6: SS4 archived map rows match the logs they cite", not bad,
+                          "; ".join(bad) if bad else
+                          "4/4 archived cells: arm=map, unconditional, M=B_u, H=P"))
+
+    # --- e55b/7: the regenerable input sets still rebuild to the sha256 the scenarios declare
+    manp = os.path.join(repo, "results", "e55b_copy_path", "fixtures", "manifest.json")
+    if not os.path.isfile(manp):
+        results.append(Result("e55b/7: e25 input sets regenerate to the declared hash", False,
+                              "fixtures/manifest.json absent"))
+        return results
+    man = json.loads(read(manp))
+    try:
+        import numpy  # noqa: F401,PLC0415
+    except Exception:                                                    # noqa: BLE001
+        results.append(Result("e55b/7: e25 input sets regenerate to the declared hash", None,
+                              "needs numpy (mk_e25_inputs.py reads .npy fixtures)", skip=True))
+        return results
+    bad = []
+    for s in man["sets"]:
+        if s.get("in_tree"):
+            f = os.path.join(repo, s["in_tree"])
+            got = hashlib.sha256(open(f, "rb").read()).hexdigest() if os.path.isfile(f) else None
+            if got != s["sha256"]:
+                bad.append("%s: in-tree %s != declared" % (s["model"], (got or "missing")[:16]))
+            continue
+        argv = list(s["regenerate"])
+        out = os.path.join(tmp, "%s.bin" % s["model"])
+        argv = [sys.executable, os.path.join(repo, argv[0])] + argv[1:]
+        argv[argv.index("--out-bin") + 1] = out
+        argv[argv.index("--out-order") + 1] = os.path.join(tmp, "%s.order.json" % s["model"])
+        r = subprocess.run(argv, cwd=repo, capture_output=True, text=True)
+        if r.returncode != 0 or not os.path.isfile(out):
+            bad.append("%s: regeneration rc=%d %s" % (s["model"], r.returncode, r.stderr[-120:]))
+            continue
+        got = hashlib.sha256(open(out, "rb").read()).hexdigest()
+        if got != s["sha256"]:
+            bad.append("%s: %s != %s" % (s["model"], got[:16], s["sha256"][:16]))
+    results.append(Result("e55b/7: e25 input sets regenerate to the declared hash", not bad,
+                          "; ".join(bad) if bad else
+                          "%d/%d input sets reproduce byte for byte" % (len(man["sets"]), len(man["sets"]))))
+    return results
+
 def e55_analysis_domain_cases(tmp):
     """E55/P0-2 (directive SS3): every op inside the analysis domain is classified.
 
@@ -8540,6 +8689,7 @@ def main():
         all_results += e54_reference_budget_cases(tmp)
         all_results += e55_budget_reproducibility_cases(tmp)
         all_results += e55_analysis_domain_cases(tmp)
+        all_results += e55b_copy_path_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
