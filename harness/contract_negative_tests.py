@@ -8400,6 +8400,59 @@ def e55b_copy_path_cases(tmp):
                           "%d/%d input sets reproduce byte for byte" % (len(man["sets"]), len(man["sets"]))))
     return results
 
+
+def e55b_onair_linkage_cases(tmp):
+    """E55b SS5: the OnAIR contribution is CONNECTED to E33, not widened.
+
+    The directive asks for no new OnAIR experiment, so the only thing that can go wrong here is a
+    claim drifting past the record.  Two shapes are pinned: the three cited conditions must come
+    back with the verdicts E33's raw JSON actually holds (including that p_mismatch is ADMITted by
+    the memory gate and refused by the artifact gate -- a row that reads "ADMIT, 0 inferences" is
+    easy to mis-summarise), and the two things E33 did NOT measure must stay null WITH a reason:
+    HAL peak on this path, and output-object release (D60 withdrew the "released" wording after
+    the raw record showed nanobind instances alive at exit).  A guard that let those become 0 or
+    false would re-commit D29/D51/D68 in the one place this directive names.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    out = os.path.join(tmp, "onair_link.json")
+    rc, _, err = run([PY, os.path.join(HERE, "mk_e55b_onair_link.py"), "--out",
+                      os.path.relpath(out, repo)], cwd=repo)
+    if rc != 0:
+        return [Result("e55b/8-9: OnAIR linkage", False, "generator rc=%d %s" % (rc, err[-160:]))]
+    d = load(out)
+    want = {"p_admit": ("ADMIT", None, True, 5), "p_deny": ("NOT_ADMITTED", "admission", False, 0),
+            "p_mismatch": ("ADMIT", "binding", False, 0)}
+    bad = []
+    for r in d.get("conditions", []):
+        w = want.get(r["cell"])
+        got = (r.get("admission_verdict"), r.get("refused_at"), r.get("active"), r.get("inferences"))
+        if w is None or got != w:
+            bad.append("%s: %r != %r" % (r["cell"], got, w))
+    if len(d.get("conditions", [])) != 3:
+        bad.append("expected the 3 conditions SS5.1 cites, got %d" % len(d.get("conditions", [])))
+    results.append(Result("e55b/8: OnAIR rows match E33's raw records, refusal stage included",
+                          not bad, "; ".join(bad) if bad else
+                          "3/3 conditions; p_mismatch is ADMIT at the memory gate, refused at binding"))
+
+    holes = []
+    for r in d.get("conditions", []):
+        if r.get("hal_peak") is not None or not r.get("hal_peak_unavailable_reason"):
+            holes.append("%s: hal_peak not null-with-reason" % r["cell"])
+        if r.get("output_object_release") is not None or not r.get("output_object_release_unavailable_reason"):
+            holes.append("%s: output release not null-with-reason" % r["cell"])
+    if d.get("new_experiment_run") is not False:
+        holes.append("new_experiment_run should be False (SS5: no new OnAIR experiment)")
+    if d.get("optional_table_SS5_2_built") is not False:
+        holes.append("SS5.2's optional table must not be built while its claim is not made")
+    if not any("AArch64 OnAIR" in x for x in d.get("not_claimed", [])):
+        holes.append("not_claimed must keep AArch64 OnAIR out (SS5.2 last paragraph)")
+    results.append(Result("e55b/9: what E33 did not measure stays null WITH a reason",
+                          not holes, "; ".join(holes) if holes else
+                          "HAL peak and output-object release null+reason in 3/3; no new experiment; "
+                          "SS5.2 optional table not built"))
+    return results
+
 def e55_analysis_domain_cases(tmp):
     """E55/P0-2 (directive SS3): every op inside the analysis domain is classified.
 
@@ -8690,6 +8743,7 @@ def main():
         all_results += e55_budget_reproducibility_cases(tmp)
         all_results += e55_analysis_domain_cases(tmp)
         all_results += e55b_copy_path_cases(tmp)
+        all_results += e55b_onair_linkage_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
