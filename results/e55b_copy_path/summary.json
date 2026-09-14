@@ -393,16 +393,190 @@
   },
   {
    "cell": {
-    "expected_log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
-    "present": false,
-    "absent_reason": "cell has not produced a log yet"
+    "log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
+    "present": true,
+    "blob_align": {
+     "app": "AI_LEARNER",
+     "stage": "blob_align",
+     "requested_offset": 8,
+     "state": "applied",
+     "module_ptr_mod64": 8
+    },
+    "build_config": {
+     "app": "AI_LEARNER",
+     "stage": "build_config",
+     "model": "smartcam",
+     "allow_conditional_map": 0,
+     "contract_bounded_bytes": 18222796,
+     "contract_per_call_bytes": 9382092,
+     "contract_const_bytes": 8840704,
+     "contract_bound_known": true,
+     "contract_artifact_sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"
+    },
+    "map_branch": {
+     "app": "AI_LEARNER",
+     "stage": "map_branch",
+     "model": "smartcam",
+     "module_ptr_mod64": 8,
+     "hal_peak_after_append": 8840704,
+     "contract_const_bytes": 8840704,
+     "contract_per_call_bytes": 9382092,
+     "arm": "copy",
+     "admission_mode": "unconditional"
+    },
+    "admission": {
+     "app": "AI_LEARNER",
+     "stage": "admission",
+     "verdict": "ADMIT",
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "bounded": 18222796,
+     "budget": 18222796,
+     "budget_source": "override",
+     "per_call": 9382092,
+     "constants": 8840704,
+     "kernel_stack_bytes": 1919,
+     "bound_known": true,
+     "scope": "per_app_local_budget"
+    },
+    "binding": {
+     "app": "AI_LEARNER",
+     "stage": "binding",
+     "verdict": "MATCH",
+     "artifact_bytes": 8991281,
+     "artifact_sha256": "ecffe6e0bcbadf51",
+     "contract_sha256": "ecffe6e0bcbadf51"
+    },
+    "mem_init": {
+     "app": "AI_LEARNER",
+     "stage": "mem_init",
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "hal_peak": 9442816,
+     "hal_allocated": 9442816,
+     "bounded": 18222796,
+     "peak_within_bounded": true,
+     "inferences_so_far": 0,
+     "process_rss_kb": 24580,
+     "rss_kb_before_runtime": 14208,
+     "rss_kb_after_session": 14496,
+     "rss_kb_after_init": 24580
+    },
+    "e25_equivalence": {
+     "app": "AI_LEARNER",
+     "stage": "e25_equivalence",
+     "inputs": 5,
+     "completed": 5,
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "artifact_sha256": "ecffe6e0bcbadf51..."
+    },
+    "e25_mode": {
+     "app": "AI_LEARNER",
+     "stage": "e25_mode",
+     "active": true,
+     "inputs_path": "/cf/e25_inputs.bin"
+    },
+    "run": {
+     "app": "AI_LEARNER",
+     "stage": "run",
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "attempted": 105,
+     "completed": 105,
+     "fail_input": 0,
+     "fail_invoke": 0,
+     "fail_output": 0,
+     "mean_us": 8017903.7,
+     "max_us": 9918777.3,
+     "last_us": 7870717.82,
+     "out0": 0.85892,
+     "out_elems": 3,
+     "out_sha256": "989d0c885c469a1267e327d7f6eaaa990ed94dab35f064968afaff7105ad4b34",
+     "out_head": [
+      0.858921,
+      0.111592,
+      0.029487
+     ],
+     "out_tail": [
+      0.858921,
+      0.111592,
+      0.029487
+     ],
+     "out_full_file": "/cf/last_out.json",
+     "out_full_file_bytes": 119,
+     "out_full_file_reason": "ok",
+     "out_record_truncates": false
+    },
+    "mem": {
+     "app": "AI_LEARNER",
+     "stage": "mem",
+     "model": "smartcam",
+     "target": "aarch64-unknown-linux-gnu",
+     "completed": 105,
+     "hal_peak": 18222796,
+     "peak_within_bounded": true,
+     "admitted_budget_bytes": 18222796,
+     "peak_within_admitted_budget": true,
+     "admission_mode": "unconditional",
+     "hal_bytes_per_call_amortized": 9288005.9,
+     "process_rss_kb": 45308,
+     "process_rss_delta_init_kb": 10372,
+     "max_active_calls": 1,
+     "active_calls_now": 0,
+     "call_counter_balanced": true
+    },
+    "runtime_load_failed": null,
+    "exit": "EXIT=124",
+    "apps_after": 0
    },
    "model": "smartcam",
    "P": 9382092,
    "C": 8840704,
    "B_u": 18222796,
-   "verdict": null,
-   "unavailable_reason": "copy cell log absent"
+   "criteria_SS3_4": {
+    "load_ok": true,
+    "constants_copied_equals_C": true,
+    "ran_at_least_once": true,
+    "sound_H_le_P_plus_C": true,
+    "output_preserved": true
+   },
+   "tight_H_eq_P_plus_C": true,
+   "tightness_note": "recorded separately from soundness on the directive's instruction: H < P+C does not mean the bound is wrong",
+   "load_setting_SS3_3": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8,
+    "offset_reached_the_image": true,
+    "note": "the app allocates the image 64-byte aligned and returns base+offset, so mod64 must equal the requested offset; when posix_memalign fails it falls back to malloc and mod64 is whatever the allocator gave -- which is why this is measured, not assumed"
+   },
+   "copy_arm_confirmed_independently": true,
+   "arm_label_agrees": true,
+   "arm_label_note": "the app derives `arm` from hal_peak_after_append itself, so it is reported beside the independent facts, never in place of them (directive SS3.3)",
+   "observed": {
+    "hal_peak": 18222796,
+    "hal_peak_after_append": 8840704,
+    "mem_init_hal_peak": 9442816,
+    "admission": "ADMIT",
+    "admitted_budget": 18222796,
+    "admission_mode": "unconditional",
+    "peak_within_admitted_budget": true,
+    "e25_inputs": 5,
+    "e25_completed": 5,
+    "loop_completed": 105,
+    "max_active_calls": 1,
+    "call_counter_balanced": true,
+    "artifact_sha256_prefix": "ecffe6e0bcbadf51..."
+   },
+   "output_comparison": {
+    "compared": true,
+    "elements": 15,
+    "bitwise_identical": true,
+    "worst_abs_diff": 0.0,
+    "baseline": "results/e37_evidence_consolidation/s_cfs_post_d61/e25_outputs.bin",
+    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+   },
+   "verdict": "PASS"
   },
   {
    "cell": {
@@ -685,7 +859,7 @@
    "configuration": "unconditional_copy_at_Bu",
    "model": "smartcam",
    "source": "measured_here",
-   "expected_log": null,
+   "log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
    "expected_configuration": {
     "arm": "copy",
     "admission_mode": "unconditional",
@@ -693,28 +867,23 @@
     "verdict": "ADMIT"
    },
    "observed_configuration": {
-    "arm": null,
-    "admission_mode": null,
-    "admitted_budget": null,
-    "verdict": null
+    "arm": "copy",
+    "admission_mode": "unconditional",
+    "admitted_budget": 18222796,
+    "verdict": "ADMIT"
    },
-   "configuration_matches": false,
-   "configuration_mismatch": [
-    "arm",
-    "admission_mode",
-    "admitted_budget",
-    "verdict"
-   ],
+   "configuration_matches": true,
+   "configuration_mismatch": null,
    "P": 9382092,
    "C": 8840704,
    "B_u": 18222796,
-   "budget_M": null,
-   "H": null,
-   "H_le_budget": false,
-   "H_eq_P": null,
-   "H_eq_P_plus_C": null,
-   "inferences": null,
-   "max_active_calls": null
+   "budget_M": 18222796,
+   "H": 18222796,
+   "H_le_budget": true,
+   "H_eq_P": false,
+   "H_eq_P_plus_C": true,
+   "inferences": 105,
+   "max_active_calls": 1
   },
   {
    "configuration": "conditional_map_at_P",
