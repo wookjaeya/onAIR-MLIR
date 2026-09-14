@@ -8499,6 +8499,39 @@ def e55_optin_witness_cases(tmp):
                           not bad, "; ".join(bad) if bad else
                           "12/12: 4 cond1 True, 4 cond0 False, 4 copy False; build_info agrees; "
                           ".so hash archived"))
+
+    # --- e55b/11: the two records that agree are MEASURED, not derived from the contract.
+    # E55b SS5 predicted mem_init.hal_peak = C + input bytes before any copy cell existed and the
+    # first cell matched to the byte.  An exact match is the moment to suspect one's own tool
+    # (E35's rule, applied when there is NO difference): if either record were computed from
+    # CONTRACT_* the agreement would be an identity, not evidence.  Both come from
+    # iree_hal_allocator_query_statistics, at two different points in Init().
+    app = read(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"))
+    def emits_measured(stage_tag, window):
+        i = app.find(stage_tag)
+        if i < 0:
+            return False, "record %s not emitted" % stage_tag
+        pre = app[max(0, i - window):i]
+        if "iree_hal_allocator_query_statistics" not in pre:
+            return False, "%s is not preceded by an allocator query" % stage_tag
+        return True, ""
+    why = []
+    ok1, m1 = emits_measured('\\"stage\\":\\"mem_init\\"', 400)
+    ok2, m2 = emits_measured('\\"stage\\":\\"map_branch\\",\\"model\\"', 900)
+    why += [m for m in (m1, m2) if m]
+    # and neither prints a CONTRACT_ macro in the peak position
+    # The peak must be the FIRST value printed, not merely mentioned somewhere in the block:
+    # the same expression also appears in the `peak_within_bounded` ternary, so a substring test
+    # stays green while the printed number is swapped for a contract macro (measured: reverting
+    # the argument alone left the first version of this guard passing -- D89's shape).
+    if "(long)st0.device_bytes_peak, (long)st0.device_bytes_allocated," not in app:
+        why.append("mem_init does not print st0.device_bytes_peak as its hal_peak argument")
+    if "g.hal_peak_after_append = (long)s0.device_bytes_peak" not in app:
+        why.append("hal_peak_after_append is not s0.device_bytes_peak")
+    results.append(Result("e55b/11: mem_init and hal_peak_after_append are measured, not derived",
+                          not why, "; ".join(why) if why else
+                          "both read iree_hal_allocator_query_statistics at different points in "
+                          "Init(); neither substitutes a CONTRACT_ macro"))
     return results
 
 def e55_analysis_domain_cases(tmp):
