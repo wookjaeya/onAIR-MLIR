@@ -58,6 +58,8 @@ FAIL한다. **`/12`·`/13`은 커밋된 `summary.json`만 읽어서 원자료를
 사전 등록 반증 조건 **F2가 거의 공허**함(앱이 `arm`을 `hal_peak_after_append`에서 유도하므로
 `copy`는 `C`가 아닌 값 옆에 나올 수 없다 — D72의 형태)도 기계 판독으로 적었다.
 
+**CI 실측**(커밋 `d8eba8f`, run 338, 3레그 success): `full` **860/860 + 5 SKIP** · `without-iree` **684/684 + 39 SKIP** · `stdlib-only` **684/684 + 39 SKIP**. 직전 커밋(`25fe4c2`, run 337: `full` 858/858+4 · 축소 두 레그 682/682+38) 대비 **세 레그 전부 PASS +2 · SKIP +1 = 정확히 3**이라 신규 가드 3건이 전부 나타난다 — `e55b/12a`·`e55b/14`는 보관 로그 판독이라 툴체인 없이 돌고, **`e55b/15`는 CI의 얕은 체크아웃에 이력이 없어 정직하게 SKIP된다**(사유 목록의 `needs git history for the baseline commits`). 이 컨테이너(**866/866 + 1 SKIP**)와 `full`의 PASS 차이 **6건**·SKIP 차이 **4건**은 E38이 확립한 다섯(PyYAML 1 · `aarch64-linux-gnu-objdump` 미설치로 정직하게 SKIP되는 2 · 그 툴체인이 없으면 분기가 아예 없어 존재하지 않는 2)에 **그 `e55b/15` 1건**이 더해진 것이다.
+
 **하지 않음(명시)**: 반복 호출 장기 수명 · *"실제 배포가 copy를 탄다"*(반대다 — 두 C 실행기는
 E29b 이후 구조적으로 map이고 copy 셀은 정렬을 **일부러 제어**해 만든 것) · DeepAE의 TFLite 대비
 FAIL 변경(D74 유지) · 프로세스 RSS(D78) · AArch64 OnAIR · 지연·성능(`FUNCTIONAL_ONLY`).

@@ -213,6 +213,14 @@ smartcam 602,112 · wgan 602,112 · bigact 4,096). 그리고 **델타는 두 분
 `unconditional_map_at_Bu` 행이 전부 `arm: map` · `admission_mode: unconditional` ·
 `admitted_budget = Bᵤ`임을 로그에서 확인했고, 가드 `e55b/6`이 그것을 고정한다.
 
+**정정(D98)** — 네 번째 행(조건부 **대조**)은 그 검증에서 빠져 있었다. 예산이 하드코딩돼 있었고
+`build_config.allow_conditional_map`을 **파싱해 놓고 쓰지 않아**, 판정(`NOT_ADMITTED`) 하나로
+설정을 역추정하는 모양이 됐다 — **E38/D69가 없애려고 만든 순환**이다. 지금은 네 행 전부
+`allow_conditional_map`과 실제 예산을 **`build_config` 레코드에서 읽어** 기대값과 대조하고,
+`opt_in_source`가 *"build_config record, emitted before every gate (E38/D69) — NOT inferred from
+the verdict"*라고 자기 출처를 적는다. 그 레코드는 **모든 게이트보다 먼저** 나오므로 거부 셀도
+남긴다. 셀의 실제 설정은 처음부터 옳았다 — 틀린 것은 **그것을 검증하지 않았다**는 사실이다.
+
 ## §6 OnAIR — 기존 결과 연결, 신규 실험 0건 (지시 §5)
 
 지시 §5는 **기여를 확대하지 말고 연결하라**고 했다. `harness/mk_e55b_onair_link.py`가 E33의
