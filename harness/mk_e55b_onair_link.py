@@ -56,11 +56,41 @@ def cell(name):
             "hal_peak_unavailable_reason": ("E33 did not instrument HAL allocation on the OnAIR "
                                             "path; the field is absent from the raw record, not zero"),
             "output_object_release": None,
-            "output_object_release_unavailable_reason": ("D60: the raw record of this cell reports "
-                                                         "nanobind instances still alive at exit, so "
-                                                         "release is UNVERIFIED -- neither released "
-                                                         "nor leaked may be written")}
+            # D99: this reason used to be emitted unconditionally and asserted a fact about THIS
+            # cell's record ("reports nanobind instances still alive at exit").  Measured: that is
+            # true of p_admit and p_legacy and FALSE of p_deny and p_mismatch, whose stderr carries
+            # zero nanobind lines -- and whose true reason is different in kind, because no runtime
+            # was ever created so no output object existed.  Writing the leak sentence for them was
+            # D51 inverted: "looked and found none" recorded as "looked and found leaks".
+            # The reason is now DERIVED from the cell's own record.
+            "output_object_release_unavailable_reason": _release_reason(d, init),
+            "nanobind_lines_in_record": _nanobind_lines(d)}
 
+
+def _nanobind_lines(d):
+    """Count the nanobind leak lines this cell's own record actually carries."""
+    blob = "\n".join(str(d.get(k) or "") for k in ("stdout_tail", "stderr_tail"))
+    return [ln.strip() for ln in blob.splitlines() if "nanobind" in ln]
+
+
+def _release_reason(d, init):
+    """Why output-object release is unverified FOR THIS CELL, read from this cell's record.
+
+    Two different reasons exist in E33 and they are not interchangeable:
+      * the cell ran inferences and its record reports instances still alive at exit (D60), or
+      * the cell never created a runtime at all, so no output object ever existed.
+    Emitting the first sentence for a cell of the second kind is D51 inverted."""
+    n = _nanobind_lines(d)
+    if n:
+        return ("D60: this cell's raw record reports objects still alive at exit (%s), so release "
+                "is UNVERIFIED -- neither released nor leaked may be written" % "; ".join(n))
+    if not init.get("active") and (d.get("inferences") or 0) == 0:
+        return ("not applicable rather than unverified: this cell was refused before the runtime "
+                "was created (active=false, inferences=0), so no output object existed to release. "
+                "Its record carries zero nanobind lines, and that absence is NOT evidence of "
+                "clean release in the cells that did run")
+    return ("no release instrumentation on this path and no leak lines in the record; the state is "
+            "UNVERIFIED in both directions")
 
 def main():
     ap = argparse.ArgumentParser()

@@ -8362,6 +8362,82 @@ def e55b_copy_path_cases(tmp):
                           "; ".join(bad) if bad else
                           "4/4 archived cells: arm=map, unconditional, M=B_u, H=P"))
 
+    _sum55b = os.path.join(repo, "results", "e55b_copy_path", "summary.json")
+    doc55b = json.loads(read(_sum55b)) if os.path.isfile(_sum55b) else None
+
+    # --- e55b/14: the OUTPUT baselines are a different set of cells from e55b/6's, and the claim
+    # that they ran on the map arm was prose in E55b's first version -- a derived statement shipped
+    # with no derivation (D77), which a D89-shaped test would have let stand.  Re-read each
+    # baseline's own map_branch record here and require the summary to carry the same facts.
+    # The map arm is recognised by mod64 == 0 AND a post-append allocation of 0 (it maps, so it
+    # allocates nothing); the app's own `arm` label is reported beside that, never in place of it.
+    bad = []
+    for m, rel in _e55b.OUTPUT_BASELINE_LOG.items():
+        f = os.path.join(repo, rel)
+        if not os.path.isfile(f):
+            bad.append("%s: missing %s" % (m, rel)); continue
+        mb = (_e55b.read_cell(f).get("map_branch") or {})
+        if mb.get("module_ptr_mod64") != 0 or mb.get("hal_peak_after_append") != 0:
+            bad.append("%s: baseline is not map-arm (mod64=%r, after_append=%r)"
+                       % (m, mb.get("module_ptr_mod64"), mb.get("hal_peak_after_append")))
+            continue
+        row = next((r for r in (doc55b.get("models") or []) if r["model"] == m), None) if doc55b else None
+        obs = ((row or {}).get("output_comparison") or {}).get("baseline_arm_observed")
+        if row is None or not (row.get("output_comparison") or {}).get("compared"):
+            continue                                     # copy cell not run yet -- not a failure
+        if not isinstance(obs, dict) or obs.get("observed") is not True:
+            bad.append("%s: the summary carries no derived baseline_arm_observed" % m)
+        elif (obs.get("module_ptr_mod64") != mb.get("module_ptr_mod64")
+              or obs.get("hal_peak_after_append") != mb.get("hal_peak_after_append")
+              or obs.get("arm_label") != mb.get("arm") or obs.get("is_map_arm") is not True):
+            bad.append("%s: summary's baseline_arm_observed disagrees with %s" % (m, rel))
+    results.append(Result("e55b/14: the output baselines' map arm is read from their logs, not asserted",
+                          not bad, "; ".join(bad) if bad else
+                          "4/4 output baselines: mod64=0, post-append allocation 0, label=map -- "
+                          "and the summary reports the same values it read"))
+
+    # --- e55b/15: D97.  E55b's first version said "the only difference between the two runs is
+    # the module image's load alignment".  That is false: each output baseline was built from the
+    # commit that archived it, and one intervening commit (330c4f3 / D75) changed `float yv[]` to
+    # `static float yv[]` inside the e25 replay loop that writes the compared outputs.  The
+    # summary now MEASURES how far the app source moved; this re-runs the same measurement.
+    # A checkout without history (shallow CI clone) SKIPs honestly instead of passing vacuously.
+    cvs = (doc55b or {}).get("changed_variable_scope")
+    if cvs is None:
+        results.append(Result("e55b/15: the app-source delta vs each baseline is measured, not asserted",
+                              False, "summary carries no changed_variable_scope block"))
+    elif ("app binary" not in (cvs.get("NOT_held_fixed") or "")
+          or not (cvs.get("held_fixed") or [])
+          or any("binary" in h for h in (cvs.get("held_fixed") or []))):
+        results.append(Result("e55b/15: the app-source delta vs each baseline is measured, not asserted",
+                              False, "the block does not name the app binary as NOT held fixed"))
+    else:
+        bad, checked = [], 0
+        for row in cvs.get("per_model") or []:
+            d = row.get("app_source_delta")
+            if d is None:
+                if not row.get("unavailable_reason"):
+                    bad.append("%s: delta is null with no reason" % row["model"])
+                continue
+            r = subprocess.run(["git", "diff", "--numstat", row["baseline_built_at"], "--",
+                                _e55b.APP_SRC], cwd=repo, capture_output=True, text=True)
+            if r.returncode != 0:
+                continue                       # no history here -- handled by the skip below
+            checked += 1
+            parts = r.stdout.split()
+            ins, dele = (int(parts[0]), int(parts[1])) if len(parts) >= 2 else (0, 0)
+            if (ins, dele) != (d.get("insertions"), d.get("deletions")):
+                bad.append("%s: live %d/%d != recorded %r/%r"
+                           % (row["model"], ins, dele, d.get("insertions"), d.get("deletions")))
+        if not checked and not bad:
+            results.append(Result("e55b/15: the app-source delta vs each baseline is measured, not asserted",
+                                  None, "needs git history for the baseline commits", skip=True))
+        else:
+            results.append(Result("e55b/15: the app-source delta vs each baseline is measured, not asserted",
+                                  not bad, "; ".join(bad) if bad else
+                                  "%d/%d baselines re-measured with git diff --numstat; the summary "
+                                  "names the app binary as NOT held fixed" % (checked, len(cvs["per_model"]))))
+
     # --- e55b/7: the regenerable input sets still rebuild to the sha256 the scenarios declare
     manp = os.path.join(repo, "results", "e55b_copy_path", "fixtures", "manifest.json")
     if not os.path.isfile(manp):
@@ -8543,7 +8619,31 @@ def e55_optin_witness_cases(tmp):
         results.append(Result("e55b/12: same budget, two arms, difference is exactly C", False,
                               "results/e55b_copy_path/summary.json absent"))
         return results
-    tbl = load(sp).get("integration_table_SS4") or []
+    # D89 (found by adversarial verification of E55b itself): e55b/12 and e55b/13 used to read the
+    # COMMITTED summary.json only, so reverting the raw material they are about -- the guest logs --
+    # left both green.  A guard that survives a revert of its subject is not a guard.  They now
+    # RE-DERIVE the summary from the logs into a temp file and judge that, and separately require
+    # the live derivation to agree with what is committed.
+    live_sp = os.path.join(tmp, "e55b_live_summary.json")
+    rc_live, _, err_live = run([PY, os.path.join(HERE, "mk_e55b_summary.py"),
+                                "--out", os.path.relpath(live_sp, repo)], cwd=repo)
+    if rc_live != 0:
+        results.append(Result("e55b/12: same budget, two arms, difference is exactly C", False,
+                              "live re-derivation failed rc=%d %s" % (rc_live, err_live[-160:])))
+        return results
+    live = load(live_sp)
+    committed = load(sp)
+    def _subst(doc):
+        return [{k: t.get(k) for k in ("configuration", "model", "budget_M", "H", "H_eq_P",
+                                       "H_eq_P_plus_C", "configuration_matches")}
+                for t in (doc.get("integration_table_SS4") or [])]
+    results.append(Result("e55b/12a: the SS4 table re-derives from the guest logs and agrees",
+                          _subst(live) == _subst(committed),
+                          "live re-derivation differs from the committed summary"
+                          if _subst(live) != _subst(committed) else
+                          "%d rows re-derived from raw logs, identical to committed"
+                          % len(_subst(live))))
+    tbl = live.get("integration_table_SS4") or []
     pairs, bad = 0, []
     for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
         mp = next((t for t in tbl if t["model"] == m and t["configuration"] == "unconditional_map_at_Bu"), None)
@@ -8569,7 +8669,7 @@ def e55_optin_witness_cases(tmp):
     # A falsifier that is fixed before measurement and then never mentioned again reads exactly
     # like one that was forgotten; the summary must carry all four for every cell that ran, and
     # `fired` must agree with them (so "fired: []" cannot be written beside a true condition).
-    doc = load(sp)
+    doc = live                                    # D89: judge the LIVE derivation, not the file
     fz = doc.get("falsification_conditions_SS5") or {}
     per = fz.get("per_cell")
     keys = {"F1_offset_requested_but_mod64_zero", "F2_arm_says_copy_but_after_append_is_not_C",

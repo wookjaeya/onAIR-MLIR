@@ -3,7 +3,65 @@
  "item": "AArch64 cFS copy path + map/copy integration",
  "directive": "docs/reviews/COPY_MAP_ONAIR_RECOMMENDATION_v0.57.md SS3-SS4",
  "plan": "docs/plans/E55b_copy_path_aarch64.md",
- "design": "Per model one new cell: the SAME AArch64 vmfb and contract, the SAME fixture as an archived map-arm cFS run, UNCONDITIONAL admission at M = B_u, and exactly one changed variable -- AI_LEARNER_BLOB_ALIGN_OFFSET moves the module image off the 64-byte class so try_map's import is refused and the copy arm runs. No recompilation (0 iree-compile calls); the app knob is fail-closed and refuses outright when the conditional tier is enabled (plan SS2.1).",
+ "design": "Per model one new cell: the SAME AArch64 vmfb and contract, the SAME fixture as an archived map-arm cFS run, UNCONDITIONAL admission at M = B_u, and exactly one changed SETTING -- AI_LEARNER_BLOB_ALIGN_OFFSET moves the module image off the 64-byte class so try_map's import is refused and the copy arm runs. No recompilation (0 iree-compile calls); the app knob is fail-closed and refuses outright when the conditional tier is enabled (plan SS2.1). The app BINARY is not held fixed against the archived baselines -- see changed_variable_scope.",
+ "changed_variable_scope": {
+  "the_only_changed_setting": "AI_LEARNER_BLOB_ALIGN_OFFSET (0 -> 8)",
+  "held_fixed": [
+   "AArch64 vmfb (same sha256 as the baseline cell's)",
+   "contract (P, C, B_u)",
+   "e25 fixture bytes (sha256 declared in the scenario)",
+   "budget M = B_u",
+   "admission mode (unconditional)"
+  ],
+  "NOT_held_fixed": "the app binary. Each baseline was built from the commit that archived it; the copy cells are built from today's source. One intervening commit (330c4f3, D75) changed `float yv[]` to `static float yv[]` inside the e25 replay loop that writes the compared outputs, so the comparison spans a real code change, not only an alignment change.",
+  "why_this_does_not_weaken_the_result": "the outputs came out BIT-IDENTICAL across that span, which is a stronger statement than bit-identical across an otherwise-frozen binary would be. What cannot be written is 'the only difference between the two runs is the alignment'.",
+  "per_model": [
+   {
+    "model": "b2_resnet",
+    "baseline_built_at": "b6c778f",
+    "baseline_experiment": "E36b",
+    "app_source_delta": {
+     "insertions": 195,
+     "deletions": 11,
+     "commits": 4
+    },
+    "command": "git diff --numstat b6c778f -- native/cfs_app/fsw/src/ai_learner.c"
+   },
+   {
+    "model": "b3_deepae",
+    "baseline_built_at": "b6c778f",
+    "baseline_experiment": "E36b",
+    "app_source_delta": {
+     "insertions": 195,
+     "deletions": 11,
+     "commits": 4
+    },
+    "command": "git diff --numstat b6c778f -- native/cfs_app/fsw/src/ai_learner.c"
+   },
+   {
+    "model": "smartcam",
+    "baseline_built_at": "6598cf4",
+    "baseline_experiment": "E37",
+    "app_source_delta": {
+     "insertions": 195,
+     "deletions": 11,
+     "commits": 4
+    },
+    "command": "git diff --numstat 6598cf4 -- native/cfs_app/fsw/src/ai_learner.c"
+   },
+   {
+    "model": "wgan",
+    "baseline_built_at": "788234c",
+    "baseline_experiment": "E53",
+    "app_source_delta": {
+     "insertions": 166,
+     "deletions": 10,
+     "commits": 2
+    },
+    "command": "git diff --numstat 788234c -- native/cfs_app/fsw/src/ai_learner.c"
+   }
+  ]
+ },
  "models": [
   {
    "cell": {
@@ -194,7 +252,16 @@
     "bitwise_identical": true,
     "worst_abs_diff": 0.0,
     "baseline": "results/e36b_aarch64_models/b2_resnet/e25_outputs.bin",
-    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+    "baseline_arm_observed": {
+     "observed": true,
+     "log": "results/e36b_aarch64_models/cfs/resnet_equiv.log",
+     "module_ptr_mod64": 0,
+     "hal_peak_after_append": 0,
+     "arm_label": "map",
+     "admission_mode": "unconditional",
+     "is_map_arm": true
+    },
+    "baseline_note": "archived AArch64 cFS run over the same fixture; whether it ran on the MAP arm is READ from its own map_branch record in `baseline_arm_observed`, not asserted here"
    },
    "verdict": "PASS"
   },
@@ -387,7 +454,16 @@
     "bitwise_identical": true,
     "worst_abs_diff": 0.0,
     "baseline": "results/e36b_aarch64_models/b3_deepae/e25_outputs.bin",
-    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+    "baseline_arm_observed": {
+     "observed": true,
+     "log": "results/e36b_aarch64_models/cfs/deepae_equiv.log",
+     "module_ptr_mod64": 0,
+     "hal_peak_after_append": 0,
+     "arm_label": "map",
+     "admission_mode": "unconditional",
+     "is_map_arm": true
+    },
+    "baseline_note": "archived AArch64 cFS run over the same fixture; whether it ran on the MAP arm is READ from its own map_branch record in `baseline_arm_observed`, not asserted here"
    },
    "verdict": "PASS"
   },
@@ -574,7 +650,16 @@
     "bitwise_identical": true,
     "worst_abs_diff": 0.0,
     "baseline": "results/e37_evidence_consolidation/s_cfs_post_d61/e25_outputs.bin",
-    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+    "baseline_arm_observed": {
+     "observed": true,
+     "log": "results/e37_evidence_consolidation/s_cfs_post_d61/s_cfs_equiv.log",
+     "module_ptr_mod64": 0,
+     "hal_peak_after_append": 0,
+     "arm_label": "map",
+     "admission_mode": "unconditional",
+     "is_map_arm": true
+    },
+    "baseline_note": "archived AArch64 cFS run over the same fixture; whether it ran on the MAP arm is READ from its own map_branch record in `baseline_arm_observed`, not asserted here"
    },
    "verdict": "PASS"
   },
@@ -767,7 +852,16 @@
     "bitwise_identical": true,
     "worst_abs_diff": 0.0,
     "baseline": "results/e53_wgan_aarch64/cfs/logs/cfs_B.e25_outputs.bin",
-    "baseline_note": "archived AArch64 cFS run on the MAP arm over the same fixture; the only difference between the two runs is the module image's load alignment"
+    "baseline_arm_observed": {
+     "observed": true,
+     "log": "results/e53_wgan_aarch64/cfs/logs/cfs_B.log",
+     "module_ptr_mod64": 0,
+     "hal_peak_after_append": 0,
+     "arm_label": "map",
+     "admission_mode": "unconditional",
+     "is_map_arm": true
+    },
+    "baseline_note": "archived AArch64 cFS run over the same fixture; whether it ran on the MAP arm is READ from its own map_branch record in `baseline_arm_observed`, not asserted here"
    },
    "verdict": "PASS"
   }
@@ -869,10 +963,14 @@
    "source": "archived_e55",
    "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_control.log",
    "expected_configuration": {
-    "verdict": "NOT_ADMITTED"
+    "verdict": "NOT_ADMITTED",
+    "allow_conditional_map": 0,
+    "budget": 309416
    },
    "observed_configuration": {
-    "verdict": "NOT_ADMITTED"
+    "verdict": "NOT_ADMITTED",
+    "allow_conditional_map": 0,
+    "budget": 309416
    },
    "configuration_matches": true,
    "configuration_mismatch": null,
@@ -887,6 +985,7 @@
    "inferences": 0,
    "runtime_created": false,
    "max_active_calls": null,
+   "opt_in_source": "build_config record, emitted before every gate (E38/D69) -- NOT inferred from the verdict",
    "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
   },
   {
@@ -985,10 +1084,14 @@
    "source": "archived_e55",
    "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b3_deepae_control.log",
    "expected_configuration": {
-    "verdict": "NOT_ADMITTED"
+    "verdict": "NOT_ADMITTED",
+    "allow_conditional_map": 0,
+    "budget": 6208
    },
    "observed_configuration": {
-    "verdict": "NOT_ADMITTED"
+    "verdict": "NOT_ADMITTED",
+    "allow_conditional_map": 0,
+    "budget": 6208
    },
    "configuration_matches": true,
    "configuration_mismatch": null,
@@ -1003,6 +1106,7 @@
    "inferences": 0,
    "runtime_created": false,
    "max_active_calls": null,
+   "opt_in_source": "build_config record, emitted before every gate (E38/D69) -- NOT inferred from the verdict",
    "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
   },
   {
@@ -1101,10 +1205,14 @@
    "source": "archived_e55",
    "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_smartcam_control.log",
    "expected_configuration": {
-    "verdict": "NOT_ADMITTED"
+    "verdict": "NOT_ADMITTED",
+    "allow_conditional_map": 0,
+    "budget": 9382092
    },
    "observed_configuration": {
-    "verdict": "NOT_ADMITTED"
+    "verdict": "NOT_ADMITTED",
+    "allow_conditional_map": 0,
+    "budget": 9382092
    },
    "configuration_matches": true,
    "configuration_mismatch": null,
@@ -1119,6 +1227,7 @@
    "inferences": 0,
    "runtime_created": false,
    "max_active_calls": null,
+   "opt_in_source": "build_config record, emitted before every gate (E38/D69) -- NOT inferred from the verdict",
    "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
   },
   {
@@ -1217,10 +1326,14 @@
    "source": "archived_e55",
    "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_control.log",
    "expected_configuration": {
-    "verdict": "NOT_ADMITTED"
+    "verdict": "NOT_ADMITTED",
+    "allow_conditional_map": 0,
+    "budget": 131382784
    },
    "observed_configuration": {
-    "verdict": "NOT_ADMITTED"
+    "verdict": "NOT_ADMITTED",
+    "allow_conditional_map": 0,
+    "budget": 131382784
    },
    "configuration_matches": true,
    "configuration_mismatch": null,
@@ -1235,9 +1348,85 @@
    "inferences": 0,
    "runtime_created": false,
    "max_active_calls": null,
+   "opt_in_source": "build_config record, emitted before every gate (E38/D69) -- NOT inferred from the verdict",
    "note": "P < B_u for every model here, so refusing is the correct behaviour of the unconditional policy; the cell exists to make the conditional cell's pass attributable to the tier and not to a loose budget"
   }
  ],
+ "mem_init_relation_SS5": {
+  "relation": "mem_init.hal_peak == hal_peak_after_append + input_bytes",
+  "status": "identity_by_construction",
+  "mechanism": [
+   "IREE allocator.h:777 device_bytes_peak = max(peak, allocated - freed) -- a high-water mark that is never reset",
+   "both records read that same field of the same session allocator (ai_learner.c: post-append read, then the mem_init read)",
+   "between the two reads the app allocates exactly one device buffer (the input, CONTRACT_INPUT_ELEMS f32) and frees nothing"
+  ],
+  "measured_over_every_archived_cell_with_both_records": {
+   "b2_resnet": {
+    "cells": 10,
+    "distinct_deltas": [
+     12288
+    ],
+    "arms_seen": [
+     "copy",
+     "map"
+    ],
+    "contract_input_bytes": 12288,
+    "delta_equals_input_bytes": true
+   },
+   "b3_deepae": {
+    "cells": 12,
+    "distinct_deltas": [
+     2560
+    ],
+    "arms_seen": [
+     "copy",
+     "map"
+    ],
+    "contract_input_bytes": 2560,
+    "delta_equals_input_bytes": true
+   },
+   "bigact": {
+    "cells": 2,
+    "distinct_deltas": [
+     4096
+    ],
+    "arms_seen": [
+     "copy",
+     "map"
+    ],
+    "contract_input_bytes": null,
+    "delta_equals_input_bytes": false
+   },
+   "smartcam": {
+    "cells": 19,
+    "distinct_deltas": [
+     602112
+    ],
+    "arms_seen": [
+     "copy",
+     "map"
+    ],
+    "contract_input_bytes": 602112,
+    "delta_equals_input_bytes": true
+   },
+   "wgan": {
+    "cells": 13,
+    "distinct_deltas": [
+     602112
+    ],
+    "arms_seen": [
+     "copy",
+     "map"
+    ],
+    "contract_input_bytes": 602112,
+    "delta_equals_input_bytes": true
+   }
+  },
+  "total_cells": 56,
+  "is_not_evidence_for": "which try_map arm ran. The delta is the same on both arms (see arms_seen), so the relation cannot discriminate them; the copy arm is established by hal_peak_after_append == C and by the end-of-run H = P+C contrast against the archived map cells",
+  "is_evidence_for": "instrumentation self-consistency: the input buffer is the only device allocation between the two readings, and nothing is freed there",
+  "prediction_note": "EVIDENCE_v0.59_E55b SS5 committed the four values before the cells ran (commit c1aaf32) and they matched. That ordering is real, but a pre-registered ARITHMETIC CONSEQUENCE is not a pre-registered observation -- and a copy-arm cell carrying the same relation (results/e29b_conditional_verify/cfs/bigact_before_fix_condmap_shim_FAILOPEN.log: 14016 + 4096 = 18112) was already committed at that point, four days earlier"
+ },
  "falsification_conditions_SS5": {
   "source": "docs/plans/E55b_copy_path_aarch64.md SS5, fixed before measurement",
   "per_cell": [
@@ -1271,7 +1460,8 @@
    }
   ],
   "fired": [],
-  "note": "each condition is evaluated per cell and reported whether or not it fired; an unfired pre-registered falsifier that is never mentioned again cannot be told apart from a forgotten one"
+  "note": "each condition is evaluated per cell and reported whether or not it fired; an unfired pre-registered falsifier that is never mentioned again cannot be told apart from a forgotten one",
+  "F2_is_near_vacuous": "ai_learner.c:614-615 derives `arm` from hal_peak_after_append, so the app cannot emit `copy` beside a value other than CONTRACT_CONST_BYTES: F2 false is structurally guaranteed within one cell and is NOT evidence that the copy arm ran (D72's shape). It can still fire when the scenario's declared C disagrees with the header's, which is a different condition. The non-vacuous check is criteria_SS3_4.constants_copied_equals_C, which compares the measurement with the contract and never reads the label."
  },
  "verdict": "PASS",
  "not_claimed": [

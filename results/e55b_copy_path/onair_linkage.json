@@ -28,7 +28,15 @@
    "hal_peak": null,
    "hal_peak_unavailable_reason": "E33 did not instrument HAL allocation on the OnAIR path; the field is absent from the raw record, not zero",
    "output_object_release": null,
-   "output_object_release_unavailable_reason": "D60: the raw record of this cell reports nanobind instances still alive at exit, so release is UNVERIFIED -- neither released nor leaked may be written",
+   "output_object_release_unavailable_reason": "D60: this cell's raw record reports objects still alive at exit (nanobind: leaked 10 instances!; nanobind: leaked 5 keep_alive records!; nanobind: leaked 2 types!; nanobind: leaked 13 functions!; nanobind: this is likely caused by a reference counting issue in the binding code.; See https://nanobind.readthedocs.io/en/latest/refleaks.html), so release is UNVERIFIED -- neither released nor leaked may be written",
+   "nanobind_lines_in_record": [
+    "nanobind: leaked 10 instances!",
+    "nanobind: leaked 5 keep_alive records!",
+    "nanobind: leaked 2 types!",
+    "nanobind: leaked 13 functions!",
+    "nanobind: this is likely caused by a reference counting issue in the binding code.",
+    "See https://nanobind.readthedocs.io/en/latest/refleaks.html"
+   ],
    "condition": "budget == unconditional bound",
    "expected_role": "runs"
   },
@@ -53,7 +61,8 @@
    "hal_peak": null,
    "hal_peak_unavailable_reason": "E33 did not instrument HAL allocation on the OnAIR path; the field is absent from the raw record, not zero",
    "output_object_release": null,
-   "output_object_release_unavailable_reason": "D60: the raw record of this cell reports nanobind instances still alive at exit, so release is UNVERIFIED -- neither released nor leaked may be written",
+   "output_object_release_unavailable_reason": "not applicable rather than unverified: this cell was refused before the runtime was created (active=false, inferences=0), so no output object existed to release. Its record carries zero nanobind lines, and that absence is NOT evidence of clean release in the cells that did run",
+   "nanobind_lines_in_record": [],
    "condition": "budget == unconditional bound - 1 byte",
    "expected_role": "refused at admission"
   },
@@ -78,7 +87,8 @@
    "hal_peak": null,
    "hal_peak_unavailable_reason": "E33 did not instrument HAL allocation on the OnAIR path; the field is absent from the raw record, not zero",
    "output_object_release": null,
-   "output_object_release_unavailable_reason": "D60: the raw record of this cell reports nanobind instances still alive at exit, so release is UNVERIFIED -- neither released nor leaked may be written",
+   "output_object_release_unavailable_reason": "not applicable rather than unverified: this cell was refused before the runtime was created (active=false, inferences=0), so no output object existed to release. Its record carries zero nanobind lines, and that absence is NOT evidence of clean release in the cells that did run",
+   "nanobind_lines_in_record": [],
    "condition": "contract / artifact mismatch",
    "expected_role": "refused at binding"
   }
@@ -104,7 +114,15 @@
   "hal_peak": null,
   "hal_peak_unavailable_reason": "E33 did not instrument HAL allocation on the OnAIR path; the field is absent from the raw record, not zero",
   "output_object_release": null,
-  "output_object_release_unavailable_reason": "D60: the raw record of this cell reports nanobind instances still alive at exit, so release is UNVERIFIED -- neither released nor leaked may be written",
+  "output_object_release_unavailable_reason": "D60: this cell's raw record reports objects still alive at exit (nanobind: leaked 8 instances!; nanobind: leaked 4 keep_alive records!; nanobind: leaked 2 types!; nanobind: leaked 13 functions!; nanobind: this is likely caused by a reference counting issue in the binding code.; See https://nanobind.readthedocs.io/en/latest/refleaks.html), so release is UNVERIFIED -- neither released nor leaked may be written",
+  "nanobind_lines_in_record": [
+   "nanobind: leaked 8 instances!",
+   "nanobind: leaked 4 keep_alive records!",
+   "nanobind: leaked 2 types!",
+   "nanobind: leaked 13 functions!",
+   "nanobind: this is likely caused by a reference counting issue in the binding code.",
+   "See https://nanobind.readthedocs.io/en/latest/refleaks.html"
+  ],
   "why_separate": "p_legacy carries a pre-E40 contract, so its admission is NOT_EVALUATED. It is an E33 cell but not one of the three conditions SS5.1 cites, and listing it inline would turn a three-condition table into a four-row one"
  },
  "optional_table_SS5_2_built": false,
