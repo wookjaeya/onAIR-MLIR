@@ -8419,7 +8419,19 @@ def e55b_copy_path_cases(tmp):
                 if not row.get("unavailable_reason"):
                     bad.append("%s: delta is null with no reason" % row["model"])
                 continue
-            r = subprocess.run(["git", "diff", "--numstat", row["baseline_built_at"], "--",
+            # D102: the delta has TWO endpoints.  E55b pinned only the baseline and diffed against
+            # the working tree, so the recorded number drifted the moment ai_learner.c changed
+            # again (E56 narrowed the alignment knob's conditional-tier axis) -- and this guard
+            # then demanded that a historical record be rewritten to match a source the E55b cells
+            # were never built from.  A record whose derivation moves with HEAD is not reproducible.
+            # Require the end revision to be pinned, and diff the range.
+            end = row.get("cells_built_at")
+            if not end:
+                bad.append("%s: app_source_delta pins no cells_built_at, so the recorded number "
+                           "is a diff against whatever HEAD happens to be (D102)" % row["model"])
+                continue
+            r = subprocess.run(["git", "diff", "--numstat",
+                                "%s..%s" % (row["baseline_built_at"], end), "--",
                                 _e55b.APP_SRC], cwd=repo, capture_output=True, text=True)
             if r.returncode != 0:
                 continue                       # no history here -- handled by the skip below
@@ -8988,6 +9000,7 @@ def main():
         all_results += e55_optin_witness_cases(tmp)
         all_results += e41b_driver_peak_cases(tmp)
         all_results += e52_evidence_pointer_cases(tmp)
+        all_results += e56_conditional_refusal_aarch64_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9081,6 +9094,181 @@ def e41b_driver_peak_cases(tmp):
     results.append(Result("e41b/8: no source still attributes the measurement to E41",
                           not bad, "still attributing: %s" % bad if bad else ""))
     return results
+
+
+
+def e56_conditional_refusal_aarch64_cases(tmp):
+    """E56: the conditional tier's precondition-failure refusal, on the EVALUATION TARGET.
+
+    Until E56 the only cells exercising that refusal ran cFS on the x86-64 development host
+    (results/e29_conditional_contract/cfs/..., results/e29b_conditional_verify/cfs/...), on a
+    synthetic model, and needed a shim that defeats the app's own 64-byte alignment.  The
+    standing research directive is that x86-64 is neither a target nor a validation platform,
+    so those cells could not carry the claim.  E56 reproduces the refusal in the AArch64 guest
+    on all four real models using the app's own AI_LEARNER_BLOB_ALIGN_OFFSET knob.
+
+    Reaching that combination required NARROWING one axis of that knob (E56 plan SS1.1): E55b
+    refused every non-zero offset on a conditional build, which made the refusal path
+    unobservable on the target.  These guards pin both halves -- the narrowing stayed narrow,
+    and the cells it enabled say what the pre-registered plan said they would.
+    """
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e56_conditional_refusal_aarch64")
+    src = os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c")
+
+    # --- 1. the narrowing stayed narrow: every other fail-closed axis is still there -------
+    try:
+        text = open(src, encoding="utf-8").read()
+        fn = text[text.index("static long AI_LEARNER_BlobAlignOffset"):]
+        fn = fn[:fn.index("\n}\n")]
+        # D85/E54-guard-8: strip C comments first.  The narrowing's own explanatory comment
+        # names AI_LEARNER_ALLOW_CONDITIONAL_MAP, so a guard that greps the raw text reports
+        # the sentence that documents the rule as a violation of it.  Read executable lines.
+        fn = re.sub(r"/\*.*?\*/", " ", fn, flags=re.S)
+        fn = re.sub(r"//[^\n]*", " ", fn)
+        axes = {
+            "set but empty": "empty string",
+            "not an integer": "non-integer",
+            "trailing garbage": "trailing garbage",
+            "out of range": "range",
+            "multiple of 8": "8-byte multiple (E29 module verification)",
+            "changes no alignment class": "non-zero multiple of 64",
+        }
+        missing = [d for k, d in axes.items() if k not in fn]
+        out.append(Result("e56/1 blob-align knob keeps its six fail-closed axes",
+                          not missing,
+                          "missing: " + ", ".join(missing) if missing else "all six present"))
+        # the ONLY axis that may be gone is the conditional-tier one
+        has_cond_axis = "AI_LEARNER_ALLOW_CONDITIONAL_MAP" in fn
+        out.append(Result("e56/2 conditional-tier axis removed from the knob (the narrowing)",
+                          not has_cond_axis,
+                          "the axis is back: a conditional build would refuse the offset again, "
+                          "and the refusal path becomes unobservable on the target"
+                          if has_cond_axis else "absent, as E56 plan SS1.1 requires"))
+    except Exception as exc:                                     # pragma: no cover
+        out.append(Result("e56/1-2 blob-align knob axes", False, "could not read %s: %s" % (src, exc)))
+
+    # --- 2. both conditional-tier defences survive the narrowing ---------------------------
+    try:
+        text = open(src, encoding="utf-8").read()
+        both = ("MAP_PRECONDITION_UNMET" in text) and ("MAP_PRECONDITION_FAILED" in text)
+        out.append(Result("e56/3 conditional tier keeps pre-append AND post-append defences",
+                          both,
+                          "pre-append=%s post-append=%s" % ("MAP_PRECONDITION_UNMET" in text,
+                                                            "MAP_PRECONDITION_FAILED" in text)))
+    except Exception as exc:                                     # pragma: no cover
+        out.append(Result("e56/3 conditional tier defences", False, str(exc)))
+
+    # --- 3. the four refusal cells, read from the guest raw logs ---------------------------
+    MODELS = {"b2_resnet": 309416, "b3_deepae": 6208,
+              "smartcam": 9382092, "wgan": 131382784}
+    for model, per_call in sorted(MODELS.items()):
+        log = os.path.join(root, "cells", "logs", "e56_%s_refuse.log" % model)
+        if not os.path.exists(log):
+            out.append(Result("e56/4 %s refusal cell log present" % model, False,
+                              "missing %s" % log))
+            continue
+        blob = open(log, encoding="utf-8", errors="ignore").read()
+        recs = [json.loads(m.group(0))
+                for m in re.finditer(r'\{"app":"AI_LEARNER"[^}]*\}', blob)]
+        by = {}
+        for r in recs:
+            by.setdefault(r.get("stage"), []).append(r)
+        align = (by.get("blob_align") or [{}])[0]
+        adm = (by.get("admission") or [{}])[0]
+        mb = [r for r in by.get("map_branch", []) if "verdict" in r]
+        checks = {
+            # F3: the offset actually applied -- otherwise the cell does not test what it claims
+            "blob_align.state == applied": align.get("state") == "applied",
+            "module_ptr_mod64 == 8": align.get("module_ptr_mod64") == 8,
+            # the cell was admitted on the conditional tier, on P, from the runtime override
+            "admission == ADMIT_CONDITIONAL_MAP": adm.get("verdict") == "ADMIT_CONDITIONAL_MAP",
+            "budget == per_call": adm.get("budget") == per_call,
+            "budget_source == override": adm.get("budget_source") == "override",
+            "target is aarch64": str(adm.get("target", "")).startswith("aarch64"),
+            # the refusal itself
+            "map_branch == MAP_PRECONDITION_UNMET":
+                bool(mb) and mb[0].get("verdict") == "MAP_PRECONDITION_UNMET",
+            # F1: refused BEFORE runtime creation.  D80: the repository infers this from the
+            # ABSENCE of mem_init, there is still no direct signal, and this guard inherits
+            # that limitation rather than hiding it.
+            "no mem_init record (F1)": not by.get("mem_init"),
+            # F2
+            "zero inferences (F2)": not by.get("run"),
+            # the setting is recorded before the verdict (E38/D69)
+            "build_config records allow_conditional_map=1":
+                bool(by.get("build_config")) and by["build_config"][0].get("allow_conditional_map") == 1,
+        }
+        bad = [k for k, v in checks.items() if not v]
+        out.append(Result("e56/5 %s refused before runtime creation on AArch64" % model,
+                          not bad,
+                          "failed: " + "; ".join(bad) if bad else
+                          "mod64=8, ADMIT_CONDITIONAL_MAP on P=%d, MAP_PRECONDITION_UNMET, "
+                          "no mem_init, 0 inferences" % per_call))
+
+    # --- 4. the positive controls: the narrowing did not break the passing path (F4) -------
+    for model, per_call in sorted(MODELS.items()):
+        log = os.path.join(root, "cells", "logs", "e56_%s_admit.log" % model)
+        if not os.path.exists(log):
+            # wgan's window is long; a missing positive cell is reported, never assumed to pass
+            out.append(Result("e56/6 %s positive control present" % model, False,
+                              "missing %s -- the refusal cells are only attributable to the gate "
+                              "if the same binary still passes when the precondition holds (D97)"
+                              % log))
+            continue
+        blob = open(log, encoding="utf-8", errors="ignore").read()
+        recs = [json.loads(m.group(0))
+                for m in re.finditer(r'\{"app":"AI_LEARNER"[^}]*\}', blob)]
+        by = {}
+        for r in recs:
+            by.setdefault(r.get("stage"), []).append(r)
+        align = (by.get("blob_align") or [{}])[0]
+        adm = (by.get("admission") or [{}])[0]
+        arms = [r for r in by.get("map_branch", []) if "arm" in r]
+        peaks = re.findall(r"hal_peak=(\d+)", blob)
+        checks = {
+            "offset unset": align.get("requested_offset") in (0, None),
+            "module_ptr_mod64 == 0": align.get("module_ptr_mod64") == 0,
+            "admission == ADMIT_CONDITIONAL_MAP": adm.get("verdict") == "ADMIT_CONDITIONAL_MAP",
+            "budget == per_call": adm.get("budget") == per_call,
+            "arm == map": bool(arms) and arms[0].get("arm") == "map",
+            "hal_peak_after_append == 0": bool(arms) and arms[0].get("hal_peak_after_append") == 0,
+            "at least one inference": bool(by.get("run")),
+            "mem_init present": bool(by.get("mem_init")),
+            # F4: the conditional bound is attained exactly, not merely respected
+            "final peak == P exactly (F4)": bool(peaks) and int(peaks[-1]) == per_call,
+        }
+        bad = [k for k, v in checks.items() if not v]
+        out.append(Result("e56/6 %s positive control: peak is exactly P (F4)" % model,
+                          not bad,
+                          "failed: " + "; ".join(bad) if bad else
+                          "arm=map, append peak 0, %d inference records, final peak %d == P"
+                          % (len(by.get("run", [])), per_call)))
+
+    # --- 5. the cells were built with the opt-in, read back from the BINARY ----------------
+    for model in sorted(MODELS):
+        w = os.path.join(root, "trees", "e56_%s" % model, "optin_witness.json")
+        if not os.path.exists(w):
+            out.append(Result("e56/7 %s opt-in witness archived" % model, False, "missing %s" % w))
+            continue
+        try:
+            d = json.load(open(w, encoding="utf-8"))
+        except Exception as exc:                                 # pragma: no cover
+            out.append(Result("e56/7 %s opt-in witness archived" % model, False, str(exc)))
+            continue
+        # E38: the witness says false only after a positive control matched; anything else is
+        # "undetermined", and an undetermined witness must not be read as a confirmed opt-in.
+        ok = d.get("allow_conditional_map") is True and d.get("elf_machine") == "AArch64"
+        out.append(Result("e56/7 %s opt-in read back from the AArch64 binary" % model, ok,
+                          "allow_conditional_map=%r elf_machine=%r"
+                          % (d.get("allow_conditional_map"), d.get("elf_machine"))))
+
+    # --- 6. the plan was committed before the measurement ---------------------------------
+    plan = os.path.join(repo, "docs", "plans", "E56_conditional_refusal_aarch64.md")
+    out.append(Result("e56/8 pre-registered plan present", os.path.exists(plan),
+                      plan if os.path.exists(plan) else "missing"))
+    return out
 
 
 def e52_evidence_pointer_cases(tmp):

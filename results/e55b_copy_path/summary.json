@@ -25,7 +25,9 @@
      "deletions": 11,
      "commits": 4
     },
-    "command": "git diff --numstat b6c778f -- native/cfs_app/fsw/src/ai_learner.c"
+    "command": "git diff --numstat b6c778f..3e746a8 -- native/cfs_app/fsw/src/ai_learner.c",
+    "cells_built_at": "3e746a8",
+    "cells_built_at_note": "D102: the delta has two endpoints and only the baseline was pinned. The command diffed the baseline against the WORKING TREE, so the recorded number drifted the moment ai_learner.c changed again (E56 narrowed the alignment knob's conditional-tier axis), and the guard then demanded that a historical record be rewritten to match a source these cells were never built from. The end revision is now pinned to the last commit that changed the app source before these cells ran; the numbers are unchanged."
    },
    {
     "model": "b3_deepae",
@@ -36,7 +38,9 @@
      "deletions": 11,
      "commits": 4
     },
-    "command": "git diff --numstat b6c778f -- native/cfs_app/fsw/src/ai_learner.c"
+    "command": "git diff --numstat b6c778f..3e746a8 -- native/cfs_app/fsw/src/ai_learner.c",
+    "cells_built_at": "3e746a8",
+    "cells_built_at_note": "D102: the delta has two endpoints and only the baseline was pinned. The command diffed the baseline against the WORKING TREE, so the recorded number drifted the moment ai_learner.c changed again (E56 narrowed the alignment knob's conditional-tier axis), and the guard then demanded that a historical record be rewritten to match a source these cells were never built from. The end revision is now pinned to the last commit that changed the app source before these cells ran; the numbers are unchanged."
    },
    {
     "model": "smartcam",
@@ -47,7 +51,9 @@
      "deletions": 11,
      "commits": 4
     },
-    "command": "git diff --numstat 6598cf4 -- native/cfs_app/fsw/src/ai_learner.c"
+    "command": "git diff --numstat 6598cf4..3e746a8 -- native/cfs_app/fsw/src/ai_learner.c",
+    "cells_built_at": "3e746a8",
+    "cells_built_at_note": "D102: the delta has two endpoints and only the baseline was pinned. The command diffed the baseline against the WORKING TREE, so the recorded number drifted the moment ai_learner.c changed again (E56 narrowed the alignment knob's conditional-tier axis), and the guard then demanded that a historical record be rewritten to match a source these cells were never built from. The end revision is now pinned to the last commit that changed the app source before these cells ran; the numbers are unchanged."
    },
    {
     "model": "wgan",
@@ -58,7 +64,9 @@
      "deletions": 10,
      "commits": 2
     },
-    "command": "git diff --numstat 788234c -- native/cfs_app/fsw/src/ai_learner.c"
+    "command": "git diff --numstat 788234c..3e746a8 -- native/cfs_app/fsw/src/ai_learner.c",
+    "cells_built_at": "3e746a8",
+    "cells_built_at_note": "D102: the delta has two endpoints and only the baseline was pinned. The command diffed the baseline against the WORKING TREE, so the recorded number drifted the moment ai_learner.c changed again (E56 narrowed the alignment knob's conditional-tier axis), and the guard then demanded that a historical record be rewritten to match a source these cells were never built from. The end revision is now pinned to the last commit that changed the app source before these cells ran; the numbers are unchanged."
    }
   ]
  },

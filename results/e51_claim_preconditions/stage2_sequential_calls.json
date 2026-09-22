@@ -11,21 +11,21 @@
       "file": "native/cfs_app/fsw/src/ai_learner.c",
       "invoke_sites": [
         {
-          "line": 714,
+          "line": 724,
           "text": "if (iree_status_is_ok(s2)) s2 = iree_runtime_call_invoke(&c2, 0);",
           "enclosing_function": "AI_LEARNER_Init",
-          "enclosing_function_line": 408,
+          "enclosing_function_line": 418,
           "enclosing_loop": {
-            "line": 693,
+            "line": 703,
             "text": "for (long v = 0; v < nvec; ++v) {",
             "form": "braced"
           }
         },
         {
-          "line": 802,
+          "line": 812,
           "text": "iree_status_t st = iree_runtime_call_invoke(&call, 0);",
           "enclosing_function": "AI_LEARNER_Infer",
-          "enclosing_function_line": 773,
+          "enclosing_function_line": 783,
           "enclosing_loop": null
         }
       ],
@@ -36,23 +36,23 @@
       ],
       "dispatcher_sites": [
         {
-          "line": 873,
+          "line": 883,
           "text": "while (CFE_ES_RunLoop(&run) == true) {",
           "enclosing_function": "AI_LEARNER_AppMain",
-          "enclosing_function_line": 869,
+          "enclosing_function_line": 879,
           "enclosing_loop": {
-            "line": 873,
+            "line": 883,
             "text": "while (CFE_ES_RunLoop(&run) == true) {",
             "form": "braced"
           }
         },
         {
-          "line": 875,
+          "line": 885,
           "text": "int32 st = CFE_SB_ReceiveBuffer(&buf, g.pipe, 1000);",
           "enclosing_function": "AI_LEARNER_AppMain",
-          "enclosing_function_line": 869,
+          "enclosing_function_line": 879,
           "enclosing_loop": {
-            "line": 873,
+            "line": 883,
             "text": "while (CFE_ES_RunLoop(&run) == true) {",
             "form": "braced"
           }
