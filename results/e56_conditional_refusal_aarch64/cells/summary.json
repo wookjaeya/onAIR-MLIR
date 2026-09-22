@@ -1231,6 +1231,136 @@
       "fetched": {},
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT_CONDITIONAL_MAP"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": {
+        "app": "AI_LEARNER",
+        "stage": "run",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "attempted": 1,
+        "completed": 1,
+        "fail_input": 0,
+        "fail_invoke": 0,
+        "fail_output": 0,
+        "mean_us": 2859128833.76,
+        "max_us": 2859128833.76,
+        "last_us": 2859128833.76,
+        "out0": -0.04231,
+        "out_elems": 150528,
+        "out_sha256": "a955c79670e044abe86f78d1d8cb5dc520c8efbe812fd15828c73cccf333ef85",
+        "out_head": [
+          -0.042312,
+          0.048241,
+          0.281001,
+          0.151537,
+          0.01572,
+          -0.020227
+        ],
+        "out_tail": [
+          -0.023806,
+          -0.002283,
+          0.02454,
+          0.03061,
+          0.071837,
+          0.146624
+        ],
+        "out_full_file": "/cf/last_out.json",
+        "out_full_file_bytes": 1454973,
+        "out_full_file_reason": "ok",
+        "out_record_truncates": false
+      },
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 1,
+        "hal_peak": 131382784,
+        "peak_within_bounded": true,
+        "admitted_budget_bytes": 131382784,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "conditional_map",
+        "hal_bytes_per_call_amortized": 131382784.0,
+        "process_rss_kb": 15732,
+        "process_rss_delta_init_kb": 1644,
+        "max_active_calls": 1,
+        "active_calls_now": 0,
+        "call_counter_balanced": true
+      },
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 602112,
+        "hal_allocated": 602112,
+        "bounded": 135666432,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 12500,
+        "rss_kb_before_runtime": 10856,
+        "rss_kb_after_session": 11144,
+        "rss_kb_after_init": 12500
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": false,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:03:21.47209 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:03:23.22567 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=1644 KB",
+        "....EVS Port1 1980-012-14:50:53.30255 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=2859128833.8us max=2859128833.8us hal_peak=131382784 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": null,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e56_wgan_admit",
+      "model": "wgan",
+      "scenario": "E56 P-cell: SAME binary as e56_wgan_refuse, same budget M = P = 131382784, but no alignment offset, so the precondition holds. Control for D97: the narrowed guard must not have broken the passing path. Expect ADMIT_CONDITIONAL_MAP, arm=map, hal_peak_after_append=0, >=1 inference, final peak exactly P. Plan SS3, falsifier F4.",
+      "seconds": 5400,
+      "commands_sent": [],
+      "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_wgan_admit.log",
+      "expect": {
+        "admission": "ADMIT_CONDITIONAL_MAP",
+        "binding": "MATCH",
+        "min_completed": 1,
+        "runtime_created": true,
+        "mem_init_present": true,
+        "hal_peak_le_bounded": 135666432,
+        "no_crash": true,
+        "cfs_operational": true
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "131382784"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }

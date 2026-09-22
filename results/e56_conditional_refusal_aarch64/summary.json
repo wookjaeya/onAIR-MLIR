@@ -1,0 +1,402 @@
+{
+ "experiment": "E56",
+ "title": "Conditional-tier precondition-failure refusal on the evaluation target (AArch64 cFS)",
+ "plan": "docs/plans/E56_conditional_refusal_aarch64.md",
+ "generated_by": "harness/mk_e56_summary.py",
+ "target": "aarch64-unknown-linux-gnu, cFS AI_LEARNER in a QEMU system guest",
+ "why": "Until E56 the only cells exercising this refusal ran cFS on the x86-64 development host, on a synthetic model, and needed a shim that defeats the app's own 64-byte alignment. The standing research directive excludes x86-64 as a target and as a validation platform, so those cells could not carry the claim.",
+ "replaces": {
+  "cells": [
+   "results/e29_conditional_contract/cfs/b3_deepae_conditional_map_PRECONDITION_FAILED.log",
+   "results/e29b_conditional_verify/cfs/bigact_after_fix_condmap_shim_REFUSED.log"
+  ],
+  "note": "Those two x86-64 cells are kept on disk but are no longer cited as evidence. The replacement is stronger on three axes: evaluation target instead of the development host, four real models instead of one synthetic model plus DeepAE, and the application's own knob instead of a shim that defeats its alignment."
+ },
+ "enabled_by": {
+  "change": "native/cfs_app/fsw/src/ai_learner.c -- AI_LEARNER_BlobAlignOffset",
+  "kind": "type (B) over-rejection, narrowed",
+  "detail": "E55b refused every non-zero offset on a build with AI_LEARNER_ALLOW_CONDITIONAL_MAP=1, reasoning the knob must not walk around the conditional gate. It cannot: with the tier enabled a non-zero offset is what makes module_ptr_mod64 != 0, and the pre-append check refuses before any runtime exists. The combination is the only way to make the gate fire.",
+  "unchanged": [
+   "the knob's other six fail-closed axes",
+   "the pre-append MAP_PRECONDITION_UNMET defence",
+   "the post-append MAP_PRECONDITION_FAILED defence",
+   "unconditional builds (the #if never compiles there)"
+  ]
+ },
+ "cells": [
+  {
+   "model": "b2_resnet",
+   "role": "refusal",
+   "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_b2_resnet_refuse.log",
+   "present": true,
+   "build_config": {
+    "allow_conditional_map": 1
+   },
+   "blob_align": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8
+   },
+   "admission": {
+    "verdict": "ADMIT_CONDITIONAL_MAP",
+    "budget": 309416,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu",
+    "bounded": 618856,
+    "per_call": 309416
+   },
+   "map_branch_verdict": "MAP_PRECONDITION_UNMET",
+   "arm": null,
+   "hal_peak_after_append": null,
+   "inferences": 0,
+   "mem_init_present": false,
+   "runtime_created_inferred_from_mem_init": false,
+   "final_hal_peak": null,
+   "cfs_reached_operational": true,
+   "exit_app": true,
+   "falsifiers": {
+    "F1_mem_init_present": false,
+    "F2_inferences_gt_0": false,
+    "F3_offset_not_applied": false,
+    "F5_cfs_not_operational": false
+   },
+   "expected": {
+    "admission": "ADMIT_CONDITIONAL_MAP",
+    "budget": 309416,
+    "map_branch_verdict": "MAP_PRECONDITION_UNMET",
+    "module_ptr_mod64": 8,
+    "inferences": 0
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  {
+   "model": "b2_resnet",
+   "role": "positive_control",
+   "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_b2_resnet_admit.log",
+   "present": true,
+   "build_config": {
+    "allow_conditional_map": 1
+   },
+   "blob_align": {
+    "requested_offset": 0,
+    "state": "unset",
+    "module_ptr_mod64": 0
+   },
+   "admission": {
+    "verdict": "ADMIT_CONDITIONAL_MAP",
+    "budget": 309416,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu",
+    "bounded": 618856,
+    "per_call": 309416
+   },
+   "map_branch_verdict": null,
+   "arm": "map",
+   "hal_peak_after_append": 0,
+   "inferences": 223,
+   "mem_init_present": true,
+   "runtime_created_inferred_from_mem_init": true,
+   "final_hal_peak": 309416,
+   "cfs_reached_operational": true,
+   "exit_app": false,
+   "falsifiers": {
+    "F4_final_peak_ne_P": false
+   },
+   "expected": {
+    "admission": "ADMIT_CONDITIONAL_MAP",
+    "budget": 309416,
+    "arm": "map",
+    "hal_peak_after_append": 0,
+    "min_inferences": 1,
+    "final_hal_peak": 309416
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  {
+   "model": "b3_deepae",
+   "role": "refusal",
+   "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_b3_deepae_refuse.log",
+   "present": true,
+   "build_config": {
+    "allow_conditional_map": 1
+   },
+   "blob_align": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8
+   },
+   "admission": {
+    "verdict": "ADMIT_CONDITIONAL_MAP",
+    "budget": 6208,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu",
+    "bounded": 1069632,
+    "per_call": 6208
+   },
+   "map_branch_verdict": "MAP_PRECONDITION_UNMET",
+   "arm": null,
+   "hal_peak_after_append": null,
+   "inferences": 0,
+   "mem_init_present": false,
+   "runtime_created_inferred_from_mem_init": false,
+   "final_hal_peak": null,
+   "cfs_reached_operational": true,
+   "exit_app": true,
+   "falsifiers": {
+    "F1_mem_init_present": false,
+    "F2_inferences_gt_0": false,
+    "F3_offset_not_applied": false,
+    "F5_cfs_not_operational": false
+   },
+   "expected": {
+    "admission": "ADMIT_CONDITIONAL_MAP",
+    "budget": 6208,
+    "map_branch_verdict": "MAP_PRECONDITION_UNMET",
+    "module_ptr_mod64": 8,
+    "inferences": 0
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  {
+   "model": "b3_deepae",
+   "role": "positive_control",
+   "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_b3_deepae_admit.log",
+   "present": true,
+   "build_config": {
+    "allow_conditional_map": 1
+   },
+   "blob_align": {
+    "requested_offset": 0,
+    "state": "unset",
+    "module_ptr_mod64": 0
+   },
+   "admission": {
+    "verdict": "ADMIT_CONDITIONAL_MAP",
+    "budget": 6208,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu",
+    "bounded": 1069632,
+    "per_call": 6208
+   },
+   "map_branch_verdict": null,
+   "arm": "map",
+   "hal_peak_after_append": 0,
+   "inferences": 224,
+   "mem_init_present": true,
+   "runtime_created_inferred_from_mem_init": true,
+   "final_hal_peak": 6208,
+   "cfs_reached_operational": true,
+   "exit_app": false,
+   "falsifiers": {
+    "F4_final_peak_ne_P": false
+   },
+   "expected": {
+    "admission": "ADMIT_CONDITIONAL_MAP",
+    "budget": 6208,
+    "arm": "map",
+    "hal_peak_after_append": 0,
+    "min_inferences": 1,
+    "final_hal_peak": 6208
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  {
+   "model": "smartcam",
+   "role": "refusal",
+   "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_smartcam_refuse.log",
+   "present": true,
+   "build_config": {
+    "allow_conditional_map": 1
+   },
+   "blob_align": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8
+   },
+   "admission": {
+    "verdict": "ADMIT_CONDITIONAL_MAP",
+    "budget": 9382092,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu",
+    "bounded": 18222796,
+    "per_call": 9382092
+   },
+   "map_branch_verdict": "MAP_PRECONDITION_UNMET",
+   "arm": null,
+   "hal_peak_after_append": null,
+   "inferences": 0,
+   "mem_init_present": false,
+   "runtime_created_inferred_from_mem_init": false,
+   "final_hal_peak": null,
+   "cfs_reached_operational": true,
+   "exit_app": true,
+   "falsifiers": {
+    "F1_mem_init_present": false,
+    "F2_inferences_gt_0": false,
+    "F3_offset_not_applied": false,
+    "F5_cfs_not_operational": false
+   },
+   "expected": {
+    "admission": "ADMIT_CONDITIONAL_MAP",
+    "budget": 9382092,
+    "map_branch_verdict": "MAP_PRECONDITION_UNMET",
+    "module_ptr_mod64": 8,
+    "inferences": 0
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  {
+   "model": "smartcam",
+   "role": "positive_control",
+   "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_smartcam_admit.log",
+   "present": true,
+   "build_config": {
+    "allow_conditional_map": 1
+   },
+   "blob_align": {
+    "requested_offset": 0,
+    "state": "unset",
+    "module_ptr_mod64": 0
+   },
+   "admission": {
+    "verdict": "ADMIT_CONDITIONAL_MAP",
+    "budget": 9382092,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu",
+    "bounded": 18222796,
+    "per_call": 9382092
+   },
+   "map_branch_verdict": null,
+   "arm": "map",
+   "hal_peak_after_append": 0,
+   "inferences": 139,
+   "mem_init_present": true,
+   "runtime_created_inferred_from_mem_init": true,
+   "final_hal_peak": 9382092,
+   "cfs_reached_operational": true,
+   "exit_app": false,
+   "falsifiers": {
+    "F4_final_peak_ne_P": false
+   },
+   "expected": {
+    "admission": "ADMIT_CONDITIONAL_MAP",
+    "budget": 9382092,
+    "arm": "map",
+    "hal_peak_after_append": 0,
+    "min_inferences": 1,
+    "final_hal_peak": 9382092
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  {
+   "model": "wgan",
+   "role": "refusal",
+   "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_wgan_refuse.log",
+   "present": true,
+   "build_config": {
+    "allow_conditional_map": 1
+   },
+   "blob_align": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8
+   },
+   "admission": {
+    "verdict": "ADMIT_CONDITIONAL_MAP",
+    "budget": 131382784,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu",
+    "bounded": 135666432,
+    "per_call": 131382784
+   },
+   "map_branch_verdict": "MAP_PRECONDITION_UNMET",
+   "arm": null,
+   "hal_peak_after_append": null,
+   "inferences": 0,
+   "mem_init_present": false,
+   "runtime_created_inferred_from_mem_init": false,
+   "final_hal_peak": null,
+   "cfs_reached_operational": true,
+   "exit_app": true,
+   "falsifiers": {
+    "F1_mem_init_present": false,
+    "F2_inferences_gt_0": false,
+    "F3_offset_not_applied": false,
+    "F5_cfs_not_operational": false
+   },
+   "expected": {
+    "admission": "ADMIT_CONDITIONAL_MAP",
+    "budget": 131382784,
+    "map_branch_verdict": "MAP_PRECONDITION_UNMET",
+    "module_ptr_mod64": 8,
+    "inferences": 0
+   },
+   "verdict": "PASS",
+   "failed": []
+  },
+  {
+   "model": "wgan",
+   "role": "positive_control",
+   "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_wgan_admit.log",
+   "present": true,
+   "build_config": {
+    "allow_conditional_map": 1
+   },
+   "blob_align": {
+    "requested_offset": 0,
+    "state": "unset",
+    "module_ptr_mod64": 0
+   },
+   "admission": {
+    "verdict": "ADMIT_CONDITIONAL_MAP",
+    "budget": 131382784,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu",
+    "bounded": 135666432,
+    "per_call": 131382784
+   },
+   "map_branch_verdict": null,
+   "arm": "map",
+   "hal_peak_after_append": 0,
+   "inferences": 1,
+   "mem_init_present": true,
+   "runtime_created_inferred_from_mem_init": true,
+   "final_hal_peak": 131382784,
+   "cfs_reached_operational": true,
+   "exit_app": false,
+   "falsifiers": {
+    "F4_final_peak_ne_P": false
+   },
+   "expected": {
+    "admission": "ADMIT_CONDITIONAL_MAP",
+    "budget": 131382784,
+    "arm": "map",
+    "hal_peak_after_append": 0,
+    "min_inferences": 1,
+    "final_hal_peak": 131382784
+   },
+   "verdict": "PASS",
+   "failed": []
+  }
+ ],
+ "verdicts": {
+  "cells_run": 8,
+  "cells_expected": 8,
+  "refusal_pass": 4,
+  "positive_pass": 4,
+  "any_falsifier_fired": [],
+  "overall": "PASS"
+ },
+ "not_claimed": [
+  "Nothing was run on x86-64 for this experiment.",
+  "The refusal preceding runtime creation is INFERRED from the absence of a mem_init record (D80). The application still emits no direct signal for it.",
+  "No accuracy, latency or power claim: platform_check.py reports FUNCTIONAL_ONLY here.",
+  "The positive controls use Software Bus telemetry as features, so they do not replay the E31/E48 output fixtures and make no output-equivalence claim."
+ ]
+}
