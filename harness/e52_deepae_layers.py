@@ -424,7 +424,7 @@ def main():
         "conversion_semantics": {"excluded": q1_ok,
                                  "evidence": "배포 상수 20/20 이 원본 .tflite 상수와 바이트 동일 (Q1)"},
         "input_preprocessing": {"excluded": True,
-                                "evidence": "E45 §2.4 — 두 경로가 같은 한 파일을 읽고 전처리가 항등"},
+                                "evidence": "E45 §2.3 — 두 경로가 같은 한 파일을 읽고 전처리가 항등"},
         "fp_contraction_fma": {"excluded": all(
             v.get("identical_to_deployed") for k, v in fma.items() if "error" not in v),
             "evidence": "FMA 를 끄거나 generic CPU 로 낮춰도 출력이 배포본과 비트 동일"},

@@ -8986,6 +8986,8 @@ def main():
         all_results += e55b_copy_path_cases(tmp)
         all_results += e55b_onair_linkage_cases(tmp)
         all_results += e55_optin_witness_cases(tmp)
+        all_results += e41b_driver_peak_cases(tmp)
+        all_results += e52_evidence_pointer_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9012,6 +9014,124 @@ def main():
               " (%d skipped: %s)" % (n_skip, "; ".join(reasons)) if n_skip else ""))
         return 1 if n_fail else 0
 
+
+def e41b_driver_peak_cases(tmp):
+    """D100 -- E41's prose asserted a cross-driver HAL peak with no archived cell.
+
+    E41b measured it. These guards hold the measurement, and they hold the two
+    things it does NOT establish, because the previous failure was exactly that a
+    number travelled from a pre-start investigation into a verdict sentence.
+    """
+    results = []
+    root = os.path.join(os.path.dirname(HERE), "results", "e41b_driver_peak")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.isfile(sp):
+        return [Result("e41b/1: summary.json present", False, "missing %s" % sp)]
+    s = load(sp)
+
+    results.append(Result("e41b/1: both driver legs archived, N=1, 3 repeats",
+                          sorted(s["drivers"]) == ["local-sync", "local-task"]
+                          and s["threads"] == 1 and s["repeats"] == 3,
+                          "drivers=%s threads=%s repeats=%s"
+                          % (s["drivers"], s["threads"], s["repeats"])))
+
+    # the claim itself, read from the cells rather than from the summary flags
+    cells = s["cells"]
+    ident = [c for c in cells if c["peak_local_sync"] == c["peak_local_task"]]
+    results.append(Result("e41b/2: every cell byte-identical across the two drivers",
+                          len(ident) == len(cells) and len(cells) == 6,
+                          "%d/%d" % (len(ident), len(cells))))
+    results.append(Result("e41b/3: b2_resnet is the 309,416 the prose named",
+                          any(c["model"] == "b2_resnet"
+                              and c["peak_local_sync"] == 309416
+                              and c["peak_local_task"] == 309416 for c in cells),
+                          "the number E41 asserted without a cell"))
+    results.append(Result("e41b/4: every peak equals per_call and every repeat agreed",
+                          all(c["peak_equals_per_call"] for c in cells)
+                          and all(c["deterministic_local_sync"]
+                                  and c["deterministic_local_task"] for c in cells)))
+
+    # D100's actual lesson: the scope limits must be carried, not just the number
+    scope = " ".join(s["scope_this_does_NOT_establish"])
+    results.append(Result("e41b/5: the summary states it does not establish the arm across drivers",
+                          "arm" in scope and "copy_buffer" in scope))
+    results.append(Result("e41b/6: the summary states the C deployments have no local-task",
+                          "IREE_ENABLE_THREADING=OFF" in scope
+                          and "LOCAL_SYNC=ON" in scope))
+
+    # the prose that used to assert this must now point at the cells
+    for rel, needle in (
+            ("plugins/compiled_learner/artifact_binding.py", "e41b_driver_peak"),
+            ("configs/deployments/onair_deployments.json", "e41b_driver_peak"),
+            ("CLAUDE.md", "e41b_driver_peak")):
+        p = os.path.join(os.path.dirname(HERE), rel)
+        txt = open(p, encoding="utf-8").read() if os.path.isfile(p) else ""
+        results.append(Result("e41b/7 %s cites the measurement" % rel,
+                              needle in txt))
+
+    # and no surviving place may still say E41 measured it
+    bad = []
+    for rel in ("plugins/compiled_learner/artifact_binding.py",
+                "configs/deployments/onair_deployments.json"):
+        p = os.path.join(os.path.dirname(HERE), rel)
+        if os.path.isfile(p):
+            t = open(p, encoding="utf-8").read()
+            if "E41 measured" in t:
+                bad.append(rel)
+    results.append(Result("e41b/8: no source still attributes the measurement to E41",
+                          not bad, "still attributing: %s" % bad if bad else ""))
+    return results
+
+
+def e52_evidence_pointer_cases(tmp):
+    """D101 -- the preprocessing evidence is E45 SS2.3, not SS2.4.
+
+    The string was hardcoded in the generator, so a guard that reads only the
+    emitted JSON would go green again after the next regeneration (D91's lesson).
+    These read the generator, the emitted JSON, and E45 itself.
+    """
+    results = []
+    base = os.path.dirname(HERE)
+    e45 = os.path.join(base, "docs", "EVIDENCE_v0.45_E45.md")
+    gen = os.path.join(base, "harness", "e52_deepae_layers.py")
+    div = os.path.join(base, "results", "e52_deepae_divergence", "divergence.json")
+    for p in (e45, gen, div):
+        if not os.path.isfile(p):
+            return [Result("e52-ptr: inputs present", False, "missing %s" % p)]
+
+    # derive, do not assume: which subsection actually holds the preprocessing table
+    lines = open(e45, encoding="utf-8").read().split("\n")
+    heads = [(i + 1, l) for i, l in enumerate(lines) if re.match(r"^#{2,4} ", l)]
+
+    def section_of(pred):
+        for i, l in enumerate(lines):
+            if pred(l):
+                cur = None
+                for n, h in heads:
+                    if n <= i + 1:
+                        cur = h
+                return cur
+        return None
+
+    pre = section_of(lambda l: "--mean 0 --std 1" in l and "normalisation" in l)
+    third = section_of(lambda l: "제3의 기준값이 없다" in l)
+    results.append(Result("e52-ptr/1: preprocessing identity lives in E45 SS2.3",
+                          pre is not None and "§2.3" in pre, str(pre)))
+    results.append(Result("e52-ptr/2: the other SS2.4 citation is still correct",
+                          third is not None and "§2.4" in third, str(third)))
+
+    gen_txt = open(gen, encoding="utf-8").read()
+    div_txt = open(div, encoding="utf-8").read()
+    needle = "두 경로가 같은 한 파일을 읽고 전처리가 항등"
+    results.append(Result("e52-ptr/3: the GENERATOR cites SS2.3 (fixing the JSON alone regresses)",
+                          ("E45 §2.3 — " + needle) in gen_txt
+                          and ("E45 §2.4 — " + needle) not in gen_txt))
+    results.append(Result("e52-ptr/4: the emitted divergence.json cites SS2.3",
+                          ("E45 §2.3 — " + needle) in div_txt
+                          and ("E45 §2.4 — " + needle) not in div_txt))
+    results.append(Result("e52-ptr/5: generator and emitted record agree on the pointer",
+                          ("E45 §2.3" in gen_txt) == ("E45 §2.3" in div_txt)))
+    return results
 
 if __name__ == "__main__":
     sys.exit(main())

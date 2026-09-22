@@ -792,7 +792,7 @@
     },
     "input_preprocessing": {
       "excluded": true,
-      "evidence": "E45 §2.4 — 두 경로가 같은 한 파일을 읽고 전처리가 항등"
+      "evidence": "E45 §2.3 — 두 경로가 같은 한 파일을 읽고 전처리가 항등"
     },
     "fp_contraction_fma": {
       "excluded": true,

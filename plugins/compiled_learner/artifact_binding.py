@@ -72,10 +72,11 @@ def check_declared_driver(contract, deployment_driver):
     would reject an honest contract (the D31 shape). If NONE declares a driver that is
     a refusal too -- absence is not agreement (D29).
 
-    This is a DECLARATION check, like the target-triple and ABI checks. E41 measured the
-    same VMFB under `local-sync` and `local-task` and got a byte-identical HAL peak at
-    one in-flight call; that is not a claim that other drivers are safe or unsafe, only
-    that this check is about what the contract says, not about measured harm.
+    This is a DECLARATION check, like the target-triple and ABI checks. E41b measured the
+    same VMFB under `local-sync` and `local-task` and got a byte-identical HAL peak at one
+    in-flight call in 6/6 cells (results/e41b_driver_peak/summary.json); that is not a claim
+    that other drivers are safe or unsafe, and it does not establish the loading arm across
+    drivers -- only that this check is about what the contract says, not about measured harm.
 
     Returns the declared driver on success; raises DeclaredDriverError otherwise.
     """
