@@ -352,9 +352,16 @@ static void AI_LEARNER_AdmissionJson(const char* verdict) {
  *     "the copy arm ran".
  *   - a multiple of 64      -> refuse.  It does not change the alignment class at all, so it
  *     cannot produce copy; accepting it would let a no-op look like a control.
- *   - built with AI_LEARNER_ALLOW_CONDITIONAL_MAP=1 -> refuse.  Plan SS2.1: the conditional tier
- *     refuses before runtime creation when the precondition is unmet, and this knob must not be
- *     used to walk around that.  Copy cells run on the UNCONDITIONAL path only.
+ * E56 (plan SS1.1) NARROWED one axis that was an over-rejection.  E55b refused every non-zero
+ * offset when the app was built with AI_LEARNER_ALLOW_CONDITIONAL_MAP=1, reasoning that the knob
+ * must not be used to walk around the conditional gate.  It cannot: with the conditional tier
+ * enabled, a non-zero offset is exactly what makes module_ptr_mod64 != 0, and the pre-append
+ * check refuses BEFORE any runtime is created (E29b/D54).  The combination is not a way around
+ * the gate -- it is the only way to make the gate fire.  E55b's sentence was that experiment's
+ * scoping decision ("copy cells run unconditional"), not a safety property, and blocking the
+ * combination left the refusal path unobservable on the evaluation target.  The other five axes
+ * are unchanged, and the blob_align record still carries requested_offset/state/module_ptr_mod64
+ * so the setting is recorded independently of the verdict (D69).
  * Returns the offset, or -1 to refuse (the caller turns that into an init refusal). */
 static long AI_LEARNER_BlobAlignOffset(const char** why) {
   const char* e = getenv("AI_LEARNER_BLOB_ALIGN_OFFSET");
@@ -370,9 +377,12 @@ static long AI_LEARNER_BlobAlignOffset(const char** why) {
   if (v < 0 || v > 4096) { *why = "out of range [0,4096]"; return -1; }
   if (v % 8 != 0) { *why = "not a multiple of 8 (E29: module verification fails)"; return -1; }
   if (v != 0 && v % 64 == 0) { *why = "multiple of 64 changes no alignment class"; return -1; }
-#if AI_LEARNER_ALLOW_CONDITIONAL_MAP
-  if (v != 0) { *why = "refused: conditional admission is enabled (plan SS2.1)"; return -1; }
-#endif
+  /* No AI_LEARNER_ALLOW_CONDITIONAL_MAP axis here -- see the note above.  Under the conditional
+   * tier a non-zero offset is what makes the pre-append precondition check fire, and that check
+   * runs before the runtime exists, so allowing it does not widen what an ADMITTED execution
+   * does.  The two conditional-tier defences (pre-append module_ptr_mod64 != 0, post-append
+   * hal_peak_after_append != 0) are untouched, and on an unconditional build this whole function
+   * behaves byte for byte as before. */
   *why = "applied";
   return v;
 }
