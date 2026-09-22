@@ -1,0 +1,134 @@
+[
+ {
+  "part": "e56_conditional_refusal_aarch64",
+  "model": "b2_resnet",
+  "so": "variants/e56_b2_resnet/ai_learner.so",
+  "startup": "variants/e56_b2_resnet/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "id": "e56_b2_resnet_admit",
+  "seconds": 900,
+  "desc": "E56 P-cell: SAME binary as e56_b2_resnet_refuse, same budget M = P = 309416, but no alignment offset, so the precondition holds. Control for D97: the narrowed guard must not have broken the passing path. Expect ADMIT_CONDITIONAL_MAP, arm=map, hal_peak_after_append=0, >=1 inference, final peak exactly P. Plan SS3, falsifier F4.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "309416"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "runtime_created": true,
+   "mem_init_present": true,
+   "hal_peak_le_bounded": 618856,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e56": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 0,
+   "role": "positive_control",
+   "expect_arm": "map",
+   "expect_module_ptr_mod64": 0,
+   "expect_final_peak": 309416
+  }
+ },
+ {
+  "part": "e56_conditional_refusal_aarch64",
+  "model": "b3_deepae",
+  "so": "variants/e56_b3_deepae/ai_learner.so",
+  "startup": "variants/e56_b3_deepae/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "id": "e56_b3_deepae_admit",
+  "seconds": 900,
+  "desc": "E56 P-cell: SAME binary as e56_b3_deepae_refuse, same budget M = P = 6208, but no alignment offset, so the precondition holds. Control for D97: the narrowed guard must not have broken the passing path. Expect ADMIT_CONDITIONAL_MAP, arm=map, hal_peak_after_append=0, >=1 inference, final peak exactly P. Plan SS3, falsifier F4.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "6208"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "runtime_created": true,
+   "mem_init_present": true,
+   "hal_peak_le_bounded": 1069632,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e56": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 0,
+   "role": "positive_control",
+   "expect_arm": "map",
+   "expect_module_ptr_mod64": 0,
+   "expect_final_peak": 6208
+  }
+ },
+ {
+  "part": "e56_conditional_refusal_aarch64",
+  "model": "smartcam",
+  "so": "variants/e56_smartcam/ai_learner.so",
+  "startup": "variants/e56_smartcam/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "id": "e56_smartcam_admit",
+  "seconds": 1800,
+  "desc": "E56 P-cell: SAME binary as e56_smartcam_refuse, same budget M = P = 9382092, but no alignment offset, so the precondition holds. Control for D97: the narrowed guard must not have broken the passing path. Expect ADMIT_CONDITIONAL_MAP, arm=map, hal_peak_after_append=0, >=1 inference, final peak exactly P. Plan SS3, falsifier F4.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "9382092"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "runtime_created": true,
+   "mem_init_present": true,
+   "hal_peak_le_bounded": 18222796,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e56": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 0,
+   "role": "positive_control",
+   "expect_arm": "map",
+   "expect_module_ptr_mod64": 0,
+   "expect_final_peak": 9382092
+  }
+ },
+ {
+  "part": "e56_conditional_refusal_aarch64",
+  "model": "wgan",
+  "so": "variants/e56_wgan/ai_learner.so",
+  "startup": "variants/e56_wgan/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "id": "e56_wgan_admit",
+  "seconds": 5400,
+  "desc": "E56 P-cell: SAME binary as e56_wgan_refuse, same budget M = P = 131382784, but no alignment offset, so the precondition holds. Control for D97: the narrowed guard must not have broken the passing path. Expect ADMIT_CONDITIONAL_MAP, arm=map, hal_peak_after_append=0, >=1 inference, final peak exactly P. Plan SS3, falsifier F4.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "131382784"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "runtime_created": true,
+   "mem_init_present": true,
+   "hal_peak_le_bounded": 135666432,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e56": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 0,
+   "role": "positive_control",
+   "expect_arm": "map",
+   "expect_module_ptr_mod64": 0,
+   "expect_final_peak": 131382784
+  }
+ }
+]
