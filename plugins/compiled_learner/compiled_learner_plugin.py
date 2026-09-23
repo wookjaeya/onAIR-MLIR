@@ -61,6 +61,12 @@ Design points carried over and the reasons they exist:
   status is MEMORY RELEASE NOT VERIFIED on this path -- E33's own runs report unreleased
   nanobind instances at interpreter shutdown and no HAL peak was measured here. The
   opposite ("this leaks") may not be written either. See docs/EVIDENCE_v0.36_E33.md SS10.
+  E57 (v0.66) then OBSERVED it on the evaluation target (D103): with `np.array(out)` the
+  binding's host readback keeps one output buffer per call. E62 moves the readback into
+  `readback.py`, whose default path copies through the buffer protocol and drops every
+  reference; the previous path stays selectable as `output_readback: "asarray"` (E57's
+  deployments pin it so E57 remains reproducible). Whether the default path releases the
+  buffer is the measured question of docs/plans/E62_onair_output_release.md.
 """
 
 import json
@@ -75,6 +81,7 @@ from onair.src.ai_components.ai_plugin_abstract.ai_plugin import AIPlugin
 
 from . import artifact_binding as ab
 from .artifact_binding import ArtifactBindingError, verify_artifact_binding
+from .readback import DEFAULT_READBACK, READBACK_MODES, ReadbackUnavailable, read_output
 
 _HARNESS = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "harness")
@@ -112,6 +119,18 @@ class Plugin(AIPlugin):
         # D60 withdrew "released" because nothing here had ever measured it.
         self.record_hal_statistics = bool(d.get("record_hal_statistics", False))
         self.hal_after_append = None
+        # E62: how the result is copied to the host. The default releases the device buffer;
+        # "asarray" is the pre-E62 path (D103), kept as a named control. An unknown value
+        # refuses inside the guard below rather than guessing.
+        self.output_readback = d.get("output_readback", DEFAULT_READBACK)
+        # E62: the ENFORCEMENT half of premise A on this path (v19 metareview M1). The cFS
+        # application enforces call sequentiality with its own counter (E55/P0-3); this path had
+        # only the budget comparison. On, the plugin reads its allocator after every call and, if
+        # the live bytes did not return to their post-append value, records
+        # `precondition_violated` and stops inferring -- before the next call can stack another
+        # output. Opt-in: off, every existing deployment behaves exactly as before.
+        self.enforce_output_release = bool(d.get("enforce_output_release", False))
+        self.n_precondition_violations = 0
 
         # state that must exist even when the plugin refuses to activate, so that a
         # refusal is a reported state rather than an exception through OnAIR
@@ -159,6 +178,9 @@ class Plugin(AIPlugin):
         # down (plan SS4-3). The first version of this file loaded the contract above the
         # guard and killed the OnAIR run on a missing file -- measured, then fixed.
         try:
+            if self.output_readback not in READBACK_MODES:
+                raise ContractViolation("unknown output_readback %r (one of %s)"
+                                        % (self.output_readback, READBACK_MODES))
             self.contract = self._load_contract()
             self.entry = self.contract["interface"].get("entry", "infer")
             self.in_shape = tuple(int(v) for v in self.contract["interface"]["input"]["shape"])
@@ -172,8 +194,13 @@ class Plugin(AIPlugin):
             self._check_declared_driver()
             self._decide_admission()
             self._load_artifact()
-            if self.record_hal_statistics:
+            if self.record_hal_statistics or self.enforce_output_release:
                 self.hal_after_append = self._hal_stats()
+            if self.enforce_output_release and not (self.hal_after_append or {}).get("available"):
+                # cannot enforce what cannot be observed: refuse instead of running unenforced
+                raise ContractViolation(
+                    "enforce_output_release requested but allocator statistics are unavailable (%s)"
+                    % (self.hal_after_append or {}).get("unavailable_reason"))
             self.active = True
         except (ContractViolation, ap.AdmissionInputError, OSError, KeyError, ValueError) as e:
             # Never take the OnAIR process down with us: stay inactive and say why.
@@ -187,8 +214,10 @@ class Plugin(AIPlugin):
                     "deployment_source": self.deployment.get("source"),
                     # E57: a DIRECT signal, not an inference from a missing record (D80): the
                     # IREE context exists only if _load_artifact() got past every gate
-                    "runtime_created": self._ctx is not None}
-        if self.record_hal_statistics:
+                    "runtime_created": self._ctx is not None,
+                    "output_readback": self.output_readback,
+                    "enforce_output_release": self.enforce_output_release}
+        if self.record_hal_statistics or self.enforce_output_release:
             init_rec["hal_after_append"] = self.hal_after_append
             init_rec["module_ptr_mod64"] = None
             init_rec["module_ptr_mod64_unavailable_reason"] = (
@@ -461,8 +490,19 @@ class Plugin(AIPlugin):
         out = self._fn(self._x, *self._weights)
         t2 = time.perf_counter_ns()
         # read every element back, then let the device buffer go: the contract's
-        # per-call term counts ONE live input/output pair (E32/D59)
-        y = np.array(out, copy=True).reshape(-1)
+        # per-call term counts ONE live input/output pair (E32/D59). The readback path is
+        # E62's: the pre-E62 `np.array(out)` kept one output buffer per call (D103).
+        try:
+            y = read_output(out, self.output_readback)
+        except ReadbackUnavailable as e:
+            del out
+            # never fall back to the retaining path silently: stop inferring and say why
+            self.active = False
+            self.inactive_reason = "ReadbackUnavailable: %s" % e
+            self._record({"event": "readback_unavailable", "n": self.n_infer,
+                          "output_readback": self.output_readback, "reason": str(e)})
+            print("[%s] INACTIVE -- %s" % (self.component_name, self.inactive_reason))
+            return {"active": False, "reason": self.inactive_reason, "inferences": self.n_infer}
         del out
         t3 = time.perf_counter_ns()
 
@@ -473,12 +513,32 @@ class Plugin(AIPlugin):
         rec = {"event": "inference", "n": self.n_infer,
                "sample_id": self.last_sample_id, "mode": self.input_mode,
                "output": self.last_output,
+               "output_readback": self.output_readback,
                "admitted_budget_bytes": (self.admission or {}).get("admitted_budget_bytes")}
-        if self.record_hal_statistics:
+        hal_now = None
+        if self.record_hal_statistics or self.enforce_output_release:
             # read AFTER `del out`: this plugin holds no reference to the device result here,
             # so a live count above the post-append value is a buffer the path did not release
-            rec["hal"] = self._hal_stats()
+            hal_now = self._hal_stats()
+        if self.record_hal_statistics:
+            rec["hal"] = hal_now
         self._record(rec)
+        violated = False
+        if self.enforce_output_release:
+            base = (self.hal_after_append or {}).get("device_bytes_live")
+            live = (hal_now or {}).get("device_bytes_live")
+            if not (hal_now or {}).get("available") or base is None or live is None or live != base:
+                # unobservable counts as violated: enforcement must not pass what it cannot see
+                violated = True
+                self.n_precondition_violations += 1
+                self.active = False
+                self.inactive_reason = ("precondition_violated: output_release -- live %s after call %d, "
+                                        "post-append %s" % (live, self.n_infer, base))
+                self._record({"event": "precondition_violated", "premise": "output_release",
+                              "n": self.n_infer, "device_bytes_live": live,
+                              "post_append_live": base, "hal": hal_now,
+                              "output_readback": self.output_readback})
+                print("[%s] INACTIVE -- %s" % (self.component_name, self.inactive_reason))
 
         if self.bound_us is not None and self.bound_boundary in self.lat:
             if self.lat[self.bound_boundary][-1] / 1e3 > self.bound_us:
@@ -486,8 +546,9 @@ class Plugin(AIPlugin):
 
         # The framework gets a summary; the FULL output stays available for
         # verification (a 640-output autoencoder has no meaningful argmax).
-        return {"active": True, "mode": self.input_mode,
+        return {"active": not violated, "mode": self.input_mode,
                 "sample_id": self.last_sample_id,
+                "precondition_violated": violated,
                 "output_elements": len(self.last_output),
                 "score": self.last_output[0],
                 "argmax": int(np.argmax(y)) if y.size else None}
