@@ -9081,6 +9081,7 @@ def main():
         all_results += e52_evidence_pointer_cases(tmp)
         all_results += e56_conditional_refusal_aarch64_cases(tmp)
         all_results += e59_info_levels_aarch64_cases(tmp)
+        all_results += e58_alignment_sweep_aarch64_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:

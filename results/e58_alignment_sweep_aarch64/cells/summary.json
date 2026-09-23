@@ -3508,6 +3508,228 @@
       "fetched": {},
       "expect_failures": [],
       "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 4885760,
+        "hal_allocated": 4885760,
+        "bounded": 135666432,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 15508,
+        "rss_kb_before_runtime": 9652,
+        "rss_kb_after_session": 9940,
+        "rss_kb_after_init": 15508
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": false,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:06:06.02322 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:06:13.38490 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=5856 KB"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": null,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e58_wgan_off40",
+      "model": "wgan",
+      "scenario": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=40 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+      "seconds": 90,
+      "commands_sent": [],
+      "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off40.log",
+      "expect": {
+        "admission": "ADMIT",
+        "binding": "MATCH",
+        "no_crash": true,
+        "cfs_operational": true,
+        "mem_init_present": true
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BLOB_ALIGN_OFFSET": "40",
+        "AI_LEARNER_BUDGET_OVERRIDE": "135666432"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 4885760,
+        "hal_allocated": 4885760,
+        "bounded": 135666432,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 16724,
+        "rss_kb_before_runtime": 10872,
+        "rss_kb_after_session": 11160,
+        "rss_kb_after_init": 16724
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": false,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:03:22.25009 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:03:29.86705 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=5852 KB"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": null,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e58_wgan_off48",
+      "model": "wgan",
+      "scenario": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=48 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+      "seconds": 90,
+      "commands_sent": [],
+      "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off48.log",
+      "expect": {
+        "admission": "ADMIT",
+        "binding": "MATCH",
+        "no_crash": true,
+        "cfs_operational": true,
+        "mem_init_present": true
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BLOB_ALIGN_OFFSET": "48",
+        "AI_LEARNER_BUDGET_OVERRIDE": "135666432"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 4885760,
+        "hal_allocated": 4885760,
+        "bounded": 135666432,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 15516,
+        "rss_kb_before_runtime": 9664,
+        "rss_kb_after_session": 9952,
+        "rss_kb_after_init": 15516
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": false,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:04:47.55982 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:04:53.53887 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=5852 KB"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": null,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e58_wgan_off56",
+      "model": "wgan",
+      "scenario": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=56 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+      "seconds": 90,
+      "commands_sent": [],
+      "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off56.log",
+      "expect": {
+        "admission": "ADMIT",
+        "binding": "MATCH",
+        "no_crash": true,
+        "cfs_operational": true,
+        "mem_init_present": true
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BLOB_ALIGN_OFFSET": "56",
+        "AI_LEARNER_BUDGET_OVERRIDE": "135666432"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
     }
   ]
 }
