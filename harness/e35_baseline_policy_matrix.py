@@ -72,13 +72,12 @@ def bands(bounded, per_call):
             ("band_below_P", per_call - 1)]
 
 
-def main():
-    ap_ = argparse.ArgumentParser()
-    ap_.add_argument("--out", default="results/e35_fair_baseline/summary.json")
-    a = ap_.parse_args()
-
+def collect(model_list, experiment="E35",
+            plan="docs/plans/E35_fair_baseline.md (committed before measurement, 3bc617f)"):
+    """One implementation for every model set (E59 reuses it for the AArch64 artifacts rather
+    than growing a second copy of the same comparison -- E44)."""
     cells, models = [], {}
-    for name, vmfb, contract_p in MODELS:
+    for name, vmfb, contract_p in model_list:
         vmfb_abs = os.path.join(ROOT, vmfb)
         con_abs = os.path.join(ROOT, contract_p)
         entry = {"vmfb": vmfb, "contract": contract_p}
@@ -161,8 +160,8 @@ def main():
     disagreeing = [c for c in cells if not c["verdicts_agree"]]
     doc = {
         "tool": "harness/e35_baseline_policy_matrix.py",
-        "experiment": "E35",
-        "plan": "docs/plans/E35_fair_baseline.md (committed before measurement, 3bc617f)",
+        "experiment": experiment,
+        "plan": plan,
         "fairness": {
             "same_policy_code": "harness/admission_policy.py, applied to BOTH levels",
             "conditional_knowledge_given_to_baseline": True,
@@ -186,6 +185,14 @@ def main():
         },
         "disagreeing_cells": disagreeing,
     }
+    return doc
+
+
+def main():
+    ap_ = argparse.ArgumentParser()
+    ap_.add_argument("--out", default="results/e35_fair_baseline/summary.json")
+    a = ap_.parse_args()
+    doc = collect(MODELS)
     out = os.path.join(ROOT, a.out) if not os.path.isabs(a.out) else a.out
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:

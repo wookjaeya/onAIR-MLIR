@@ -105,6 +105,13 @@ class Plugin(AIPlugin):
         self.verify_artifact_hash = bool(d.get("verify_artifact_hash", True))
         self.allow_conditional_map = bool(d.get("allow_conditional_map", False))
         self.budget_bytes = d.get("budget_bytes")
+        # E57: opt-in HAL allocator statistics. Off by default so every existing deployment
+        # records exactly what it recorded before; on, the plugin reads the allocator of ITS
+        # OWN context after module append and after each inference (post `del out`), which is
+        # the only way to observe premise A (output released between calls) on this path --
+        # D60 withdrew "released" because nothing here had ever measured it.
+        self.record_hal_statistics = bool(d.get("record_hal_statistics", False))
+        self.hal_after_append = None
 
         # state that must exist even when the plugin refuses to activate, so that a
         # refusal is a reported state rather than an exception through OnAIR
@@ -165,17 +172,45 @@ class Plugin(AIPlugin):
             self._check_declared_driver()
             self._decide_admission()
             self._load_artifact()
+            if self.record_hal_statistics:
+                self.hal_after_append = self._hal_stats()
             self.active = True
         except (ContractViolation, ap.AdmissionInputError, OSError, KeyError, ValueError) as e:
             # Never take the OnAIR process down with us: stay inactive and say why.
             self.inactive_reason = "%s: %s" % (type(e).__name__, e)
             print("[%s] INACTIVE -- %s" % (self.component_name, self.inactive_reason))
-        self._record({"event": "init", "active": self.active,
-                      "inactive_reason": self.inactive_reason,
-                      "input_mode": self.input_mode,
-                      "admission": self.admission, "binding": self.binding,
-                      "entry": getattr(self, "entry", None),
-                      "deployment_source": self.deployment.get("source")})
+        init_rec = {"event": "init", "active": self.active,
+                    "inactive_reason": self.inactive_reason,
+                    "input_mode": self.input_mode,
+                    "admission": self.admission, "binding": self.binding,
+                    "entry": getattr(self, "entry", None),
+                    "deployment_source": self.deployment.get("source"),
+                    # E57: a DIRECT signal, not an inference from a missing record (D80): the
+                    # IREE context exists only if _load_artifact() got past every gate
+                    "runtime_created": self._ctx is not None}
+        if self.record_hal_statistics:
+            init_rec["hal_after_append"] = self.hal_after_append
+            init_rec["module_ptr_mod64"] = None
+            init_rec["module_ptr_mod64_unavailable_reason"] = (
+                "not observable from the Python binding: VmModule.copy_buffer places its own copy "
+                "of the image and does not expose the address")
+        self._record(init_rec)
+
+    def _hal_stats(self):
+        """Allocator statistics of this plugin's own context. Unavailable is recorded as
+        unavailable with the reason -- never as zero (D29/D51/D68, E57 plan F6)."""
+        try:
+            alloc = self._ctx.config.device.allocator
+            if not getattr(alloc, "has_statistics", False):
+                return {"available": False,
+                        "unavailable_reason": "allocator reports has_statistics=False"}
+            st = dict(alloc.statistics)
+        except Exception as e:                                  # noqa: BLE001
+            return {"available": False, "unavailable_reason": "%s: %s" % (type(e).__name__, e)}
+        a, f = st.get("device_bytes_allocated"), st.get("device_bytes_freed")
+        return {"available": True, "device_bytes_peak": st.get("device_bytes_peak"),
+                "device_bytes_allocated": a, "device_bytes_freed": f,
+                "device_bytes_live": (a - f) if (a is not None and f is not None) else None}
 
     def _record(self, obj):
         if not self.record_path:
@@ -435,10 +470,15 @@ class Plugin(AIPlugin):
         self.lat["L2b_reason"].append(t3 - t0)
         self.n_infer += 1
         self.last_output = [float(v) for v in y]
-        self._record({"event": "inference", "n": self.n_infer,
-                      "sample_id": self.last_sample_id, "mode": self.input_mode,
-                      "output": self.last_output,
-                      "admitted_budget_bytes": (self.admission or {}).get("admitted_budget_bytes")})
+        rec = {"event": "inference", "n": self.n_infer,
+               "sample_id": self.last_sample_id, "mode": self.input_mode,
+               "output": self.last_output,
+               "admitted_budget_bytes": (self.admission or {}).get("admitted_budget_bytes")}
+        if self.record_hal_statistics:
+            # read AFTER `del out`: this plugin holds no reference to the device result here,
+            # so a live count above the post-append value is a buffer the path did not release
+            rec["hal"] = self._hal_stats()
+        self._record(rec)
 
         if self.bound_us is not None and self.bound_boundary in self.lat:
             if self.lat[self.bound_boundary][-1] / 1e3 > self.bound_us:
