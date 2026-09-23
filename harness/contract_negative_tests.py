@@ -7843,6 +7843,84 @@ def e52_deepae_divergence_cases(tmp):
 
 
 # ---------------------------------------------------------------------------
+# E60 -- DeepAE's layer-wise divergence re-measured on the evaluation target.
+# ---------------------------------------------------------------------------
+def e60_deepae_layers_aarch64_cases(tmp):
+    """E60: WHERE DeepAE's outputs leave the tolerance, measured on the AArch64 guest (the x86-64
+    decomposition of E52 left the manuscript under the AArch64-only directive).  The validity check
+    V is RE-DERIVED from the committed guest outputs and E48's archived AArch64 output -- neither
+    needs the input, which the repository does not carry (E45).  The layer comparison needs the
+    input, so its live re-run is gated on E52_INPUTS exactly like E52's (D77/D89)."""
+    results = []
+    repo = os.path.dirname(HERE)
+    path = os.path.join(repo, "results", "e60_deepae_layers_aarch64", "layers.json")
+    gpath = os.path.join(repo, "results", "e60_deepae_layers_aarch64", "guest", "guest_outputs.json")
+    if not (os.path.isfile(path) and os.path.isfile(gpath)):
+        return [Result("e60: layers.json and guest outputs present", False, "missing")]
+    d = load(path)
+    g = load(gpath)
+    import e52_deepae_layers as e52
+    results.append(Result("e60: the tolerance is still E25's, unchanged (the FAIL is explained, not softened)",
+                          d["tolerance"]["abs"] == 1e-4 == e52.ABS_TOL and d["tolerance"]["rel"] == 1e-5 == e52.REL_TOL,
+                          str(d["tolerance"])))
+    results.append(Result("e60: the committed layer record names the committed guest outputs by hash",
+                          d["guest_outputs"]["sha256"] == hashlib.sha256(open(gpath, "rb").read()).hexdigest(),
+                          d["guest_outputs"]["sha256"][:16]))
+    try:
+        import numpy as np                                         # noqa: PLC0415
+    except ImportError:
+        np = None
+    if np is None:
+        results.append(Result("e60 V: the chain's last module on the target equals E48's archived AArch64 output",
+                              True, "needs numpy", skip=True))
+    else:
+        arch, why = e52.archived_aarch64_output(d["sample"])
+        last = sorted(g["layers"], key=lambda r: r["index"])[-1]
+        ok = g.get("machine") == "aarch64" and arch is not None and len(g["layers"]) == 10 and \
+            np.array_equal(np.asarray(last["values"], dtype=np.float32), arch.astype(np.float32))
+        results.append(Result("e60 V: the chain's last module on the target equals E48's archived AArch64 output "
+                              "bitwise (re-derived from the raw guest outputs, not read from layers.json)",
+                              ok and d["validity"]["chain_final_equals_archived_aarch64_output"] is True,
+                              "machine=%s why=%s" % (g.get("machine"), why)))
+    viol = d["violations_per_layer_vs_reference_runtime"]
+    results.append(Result("e60 L1/L2: first layer over tolerance is 6 and the bulk is at the last layer (46 = E48's "
+                          "count for this window)",
+                          d["L1_first_layer_over_tolerance"] == 6 and d["L2_layer_with_most_violations"] == 9
+                          and viol == [0, 0, 0, 0, 0, 0, 1, 1, 0, 46] and d["layers"][-1]["has_relu"] is False,
+                          str(viol)))
+    results.append(Result("e60 L3: at no layer is the target bit-identical to sequential float32 accumulation",
+                          d["L3_bit_identical_to_sequential_f32_per_layer"] == [False] * 10
+                          and d["layers"][-1]["vs_sequential_f32"]["violations"] == 30,
+                          "final vs sequential: %s" % d["layers"][-1]["vs_sequential_f32"]["violations"]))
+    results.append(Result("e60: the reference runtime's intermediates come from a run that preserves the default "
+                          "output (E52's check, carried over)",
+                          d["reference_runtime_intermediates"].get("preserving_run_matches_default_output_bitwise") is True,
+                          ""))
+    results.append(Result("e60: growth ratios are recorded beside the verdict and marked as not part of it (plan SS3)",
+                          d["supplementary_growth"]["not_part_of_the_verdict"] is True, ""))
+    inputs = os.environ.get("E52_INPUTS", "")
+    if not (inputs and os.path.isdir(inputs) and np is not None):
+        results.append(Result("e60: comparison re-runs live from the committed guest outputs", True,
+                              "needs the real ad01 inputs (network; set E52_INPUTS)", skip=True))
+        return results
+    out = os.path.join(tmp, "e60_live.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e60_deepae_layers_aarch64.py"), "compare", "--inputs", inputs,
+                      "--guest-outputs", gpath, "--out", out], cwd=repo)
+    live = load(out) if rc == 0 else {}
+
+    def shape(doc):
+        return {"V": doc.get("validity", {}).get("chain_final_equals_archived_aarch64_output"),
+                "L1": doc.get("L1_first_layer_over_tolerance"), "L2": doc.get("L2_layer_with_most_violations"),
+                "L3": doc.get("L3_bit_identical_to_sequential_f32_per_layer"),
+                "per_layer": [(r["index"], r["vs_reference_runtime"].get("violations"),
+                               r["vs_sequential_f32"]["violations"], r["vs_float64"]["violations"])
+                              for r in doc.get("layers", [])]}
+    results.append(Result("e60: comparison re-runs live from the committed guest outputs and agrees layer by layer",
+                          rc == 0 and shape(live) == shape(d), "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+# ---------------------------------------------------------------------------
 # E39b -- three primary documents read in full, and what that does NOT license.
 # ---------------------------------------------------------------------------
 def e39b_prior_art_fulltext_cases(tmp):
@@ -8990,6 +9068,7 @@ def main():
         all_results += e51_stage2_cases(tmp)
         all_results += e51_stage3_cases(tmp)
         all_results += e52_deepae_divergence_cases(tmp)
+        all_results += e60_deepae_layers_aarch64_cases(tmp)
         all_results += e39b_prior_art_fulltext_cases(tmp)
         all_results += e53_wgan_aarch64_cases(tmp)
         all_results += e54_reference_budget_cases(tmp)

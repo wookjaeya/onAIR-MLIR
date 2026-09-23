@@ -1,0 +1,80 @@
+{
+ "mlir": "results/e36b_aarch64_models/b3_deepae/b3_deepae.mlir",
+ "layers": [
+  {
+   "index": 0,
+   "width": 128,
+   "has_relu": true,
+   "vmfb": "layer0.vmfb",
+   "vmfb_sha256": "9b480308d1500e82c0e13911d434eaa2894e9a6a279df05fe689ce81d636135a"
+  },
+  {
+   "index": 1,
+   "width": 128,
+   "has_relu": true,
+   "vmfb": "layer1.vmfb",
+   "vmfb_sha256": "c0c13573dc59bbb6ca582defa2853e79de1201df72f084e981304577cf329e69"
+  },
+  {
+   "index": 2,
+   "width": 128,
+   "has_relu": true,
+   "vmfb": "layer2.vmfb",
+   "vmfb_sha256": "e3d08ed139716e15038a00ab07a5c9e0137f3053fd651fa1c2d78271ecfad525"
+  },
+  {
+   "index": 3,
+   "width": 128,
+   "has_relu": true,
+   "vmfb": "layer3.vmfb",
+   "vmfb_sha256": "ec9221b89aa01e653d02793ccc72c76e54f018c0b986ac7b35d662c9c04ac1de"
+  },
+  {
+   "index": 4,
+   "width": 8,
+   "has_relu": true,
+   "vmfb": "layer4.vmfb",
+   "vmfb_sha256": "da006c5cb48722f6aa19ae6fee036dac2e9bb0b4ad6a52192657f167a5c362ab"
+  },
+  {
+   "index": 5,
+   "width": 128,
+   "has_relu": true,
+   "vmfb": "layer5.vmfb",
+   "vmfb_sha256": "ad7f5d8438c093a9e004724b6b3eb5149e9a3d362d693f8117b15c358910e30d"
+  },
+  {
+   "index": 6,
+   "width": 128,
+   "has_relu": true,
+   "vmfb": "layer6.vmfb",
+   "vmfb_sha256": "b0d885368f481c89302be3d0e92b3a7de6cb7c02dd424edae96cb7b66adbf6e9"
+  },
+  {
+   "index": 7,
+   "width": 128,
+   "has_relu": true,
+   "vmfb": "layer7.vmfb",
+   "vmfb_sha256": "c7ca6449ec7aee4781dfa405d45d6aecfa9ae6ccbefd28561f07124a51f5bfd5"
+  },
+  {
+   "index": 8,
+   "width": 128,
+   "has_relu": true,
+   "vmfb": "layer8.vmfb",
+   "vmfb_sha256": "8290504bd6c0dfcbb341b2a2a7dea3f6cc9d872be8e6b00b05153e984b8ebc4b"
+  },
+  {
+   "index": 9,
+   "width": 640,
+   "has_relu": false,
+   "vmfb": "layer9.vmfb",
+   "vmfb_sha256": "b2e31874ef7644d9a666ceee8f52e0757fdf2332c3057824ea52f4f5d1c37e52"
+  }
+ ],
+ "compile_flags": [
+  "--iree-hal-target-backends=llvm-cpu",
+  "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+  "--iree-llvmcpu-target-cpu=cortex-a53"
+ ]
+}
