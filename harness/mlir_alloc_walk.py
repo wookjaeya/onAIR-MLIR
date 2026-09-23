@@ -76,6 +76,24 @@ NON_ALLOCATING_RESOURCE_OPS = {
     "stream.cmd.concurrent":  "RecursiveMemoryEffects, same as cmd.execute",
 }
 
+# D105 (v20 manuscript review, SS4 "support range boundary"): calls and control flow are outside the
+# analysis domain, and the walker has no rule for them -- it does not follow a callee (a callee
+# printed in the same chunk as the entry had its allocation omitted and a bound was still issued),
+# and it counts each allocation op once, so an allocation inside a loop would be under-counted by
+# its trip count. Measured on hand-edited copies of the archived ResNet AArch64 layout IR; no
+# archived entry contains any of these ops (their only region-holding ops are stream.cmd.execute
+# and stream.cmd.concurrent). Rather than extend the domain, the walker REPORTS them under their
+# own key and make_contract.py refuses: a structure the analysis cannot count is not given a
+# number. Branches are refused too: summing two branches would be conservative, but "which
+# structures are counted how" stays one rule instead of three.
+UNSUPPORTED_CONTROL_PREFIXES = ("scf.", "cf.", "affine.")
+UNSUPPORTED_CALL_OPS = {"func.call", "func.call_indirect", "util.call"}
+
+
+def _is_unsupported_control(name):
+    return name in UNSUPPORTED_CALL_OPS or name.startswith(UNSUPPORTED_CONTROL_PREFIXES)
+
+
 KNOWN_ENTRY_OPS = {"stream.tensor.import", "stream.tensor.export",
                    "stream.resource.alloca", "stream.resource.dealloca",
                    "stream.resource.pack", "stream.resource.subview"}
@@ -184,9 +202,15 @@ def _extract_from_entry(entry_op):
     result = {"inputs": [], "outputs": [], "transient_slices": [], "transient_slabs": [],
              "constants": [], "unresolved": [], "pre_scheduling_ops": [],
              "non_allocating_resource_ops": [], "unclassified_resource_ops": [],
+             "unsupported_control_ops": [],
              "dispatches": 0, "entry_found": True}
     for o in _walk(entry_op):
         name = o.name
+        if _is_unsupported_control(name):
+            # D105: reported, not classified; make_contract.py refuses the entry. The walk still
+            # descends into the op's regions (that is _walk's job), so allocations inside are seen.
+            result["unsupported_control_ops"].append(name)
+            continue
         if name == "stream.cmd.dispatch":
             result["dispatches"] += 1
             continue

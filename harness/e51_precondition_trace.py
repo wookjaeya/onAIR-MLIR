@@ -257,14 +257,26 @@ def _production_run(fx, layout_ir_rel, out_dir, tag):
         hdr_path = os.path.join(out_dir, "%s.contract_gen.h" % tag)
         if os.path.exists(hdr_path):
             os.unlink(hdr_path)
+        # D106: the generator takes two POSITIONAL arguments. The first version of this harness
+        # passed --contract/--out, got the usage error (rc 2) for the positive control and for
+        # the unresolved-size cell alike, and recorded "no header" -- a tool error written down
+        # as an observation (D51's family). The positive control now has to produce a header
+        # with CONTRACT_BOUND_KNOWN 1 before any header outcome counts.
         hr = subprocess.run([sys.executable, os.path.join(HERE, "gen_contract_header.py"),
-                             "--contract", os.path.relpath(con_path, ROOT),
-                             "--out", os.path.relpath(hdr_path, ROOT)],
+                             os.path.relpath(con_path, ROOT), os.path.relpath(hdr_path, ROOT)],
                             cwd=ROOT, capture_output=True, text=True)
         hdr_rc, hdr_written = hr.returncode, os.path.isfile(hdr_path)
+        if hdr_written:
+            m = re.search(r"#define\s+CONTRACT_BOUND_KNOWN\s+(\d+)", open(hdr_path, encoding="utf-8").read())
+            hdr_bound_known = int(m.group(1)) if m else None
+        else:
+            hdr_bound_known = None
+    else:
+        hdr_bound_known = None
     return {"make_contract_rc": r.returncode, "contract_file_written": written,
             "bound_method": bound_method, "unresolved_sizes": unresolved,
             "gen_contract_header_rc": hdr_rc, "header_file_written": hdr_written,
+            "header_bound_known": hdr_bound_known,
             "stderr_head": (r.stderr or "").strip()[:500]}
 
 
@@ -308,7 +320,8 @@ def q2_violations(fx, out_dir):
     control = _production_run(fx, os.path.relpath(ctrl_ir, ROOT), out_dir, "control")
     control["extractors"] = _extractor_views(ir)
     control["ok"] = (control["make_contract_rc"] == 0 and control["contract_file_written"]
-                     and control["bound_method"] != "NONE")
+                     and control["bound_method"] != "NONE"
+                     and control["gen_contract_header_rc"] == 0 and control["header_bound_known"] == 1)
 
     cells = []
     for v in VIOLATIONS:
@@ -330,9 +343,18 @@ def q2_violations(fx, out_dir):
                 "e51" in str(u) or "async.alloca" in str(u) or "arith.addi" in str(u)
                 for u in sw.get("unresolved", [])):
             seen_by.append("structural_walker")
-        refused_as = ("no_contract_file" if not res["contract_file_written"]
-                      else ("contract_states_no_bound_and_no_header"
-                            if res["bound_method"] == "NONE" and not res["header_file_written"] else None))
+        # D106: a contract that states no bound yields a header with CONTRACT_BOUND_KNOWN 0, and
+        # the flight application refuses such a header at Init before any runtime resource
+        # (ai_learner.c: GATE_BOUND_KNOWN -> UNKNOWN_BOUND; observed on the guest in E14 A8).
+        # That header is not a deployable artifact; a header claiming a known bound would be.
+        if not res["contract_file_written"]:
+            refused_as = "no_contract_file"
+        elif res["bound_method"] == "NONE" and res["header_file_written"] and res["header_bound_known"] == 0:
+            refused_as = "contract_states_no_bound_header_bound_known_0_refused_at_init"
+        elif res["bound_method"] == "NONE" and not res["header_file_written"] and res["gen_contract_header_rc"] == 1:
+            refused_as = "contract_states_no_bound_header_generator_refused"
+        else:
+            refused_as = None
         cells.append(dict(v, layout_ir=os.path.relpath(mut_path, ROOT), injected_line=v["inject"].strip(),
                           seen_by_extractor=seen_by, extractors=ex, refused_as=refused_as,
                           deployable_artifact_produced=refused_as is None, **res))

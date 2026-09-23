@@ -8887,11 +8887,15 @@ def e55_analysis_domain_cases(tmp):
     files = sorted(glob.glob(os.path.join(repo, "results", "**", "*layout_ir*.txt"), recursive=True))
     files += sorted(glob.glob(os.path.join(repo, "results", "**", "layout_ir.txt"), recursive=True))
     files = sorted(set(files))
-    unclassified, classified, scanned = {}, 0, 0
+    unclassified, classified, scanned, parse_failures = {}, 0, 0, []
     for f in files:
         try:
             r = _maw.parse_alloc_ir_structural(read(f))
-        except Exception:                                                # noqa: BLE001
+        except Exception as exc:                                         # noqa: BLE001
+            # v20 review follow-up: a file that fails to parse used to be skipped silently, and
+            # the count only had to reach 25 -- so the guard did not pin the corpus the
+            # manuscript cites. A failure is now reported and fails the guard.
+            parse_failures.append((os.path.relpath(f, repo), str(exc)[:80]))
             continue
         scanned += 1
         classified += len(r.get("non_allocating_resource_ops") or [])
@@ -8907,8 +8911,9 @@ def e55_analysis_domain_cases(tmp):
         "classified -- sized, or verified non-allocating WITH a recorded reason -- none is left "
         "unclassified, AND the verified bucket is actually populated (an empty bucket would mean "
         "the walker classified nothing, which this guard must not read as success)",
-        scanned >= 25 and not unclassified and classified >= 400,
-        "files=%d verified_non_allocating=%d unclassified=%s" % (scanned, classified, unclassified or "{}")))
+        scanned == len(files) and scanned >= 26 and not parse_failures and not unclassified and classified >= 400,
+        "files=%d/%d verified_non_allocating=%d unclassified=%s parse_failures=%s"
+        % (scanned, len(files), classified, unclassified or "{}", parse_failures or "[]")))
 
     results.append(Result(
         "e55/6b: the verified-non-allocating list states WHY for every entry, so it cannot "
@@ -9157,6 +9162,8 @@ def main():
         all_results += e57_onair_aarch64_cases(tmp)
         all_results += e63_single_build_and_conditional_floor_cases(tmp)
         all_results += e62_onair_output_release_cases(tmp)
+        all_results += d105_control_flow_boundary_cases(tmp)
+        all_results += d106_e51_header_leg_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9376,6 +9383,114 @@ def e58_alignment_sweep_aarch64_cases(tmp):
         json.load(open(live)).get("totals") == t and json.load(open(live)).get("verdict") == s.get("verdict")
     out.append(Result("e58/5 re-derived from the raw guest logs, the verdict equals the committed one", ok,
                       "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def d105_control_flow_boundary_cases(tmp):
+    """D105 (v20 review SS4): a call or a control-flow op in a post-layout entry is REFUSED.
+
+    Before the fix the walker had no rule for them: it does not follow a callee and it counts an
+    allocation op once, so a hand-edited entry with a same-chunk callee allocation, or with an
+    allocation inside a loop, was issued a bound (before_32f5102.json). No archived entry contains
+    such ops, so nothing reported changes; what changes is that the boundary is a refusal."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "d105_control_flow_boundary")
+    bp, ap = os.path.join(root, "before_32f5102.json"), os.path.join(root, "after.json")
+    if not (os.path.exists(bp) and os.path.exists(ap)):
+        return [Result("d105/0 before/after records present", False, "missing under %s" % root)]
+    before, after = load(bp)["cells"], load(ap)["cells"]
+    ok = (before["util_call_callee_in_same_chunk"].get("bounded_bytes") == 618856
+          and before["func_call_callee_in_same_chunk"].get("bounded_bytes") == 618856
+          and before["scf_for_alloca_no_dealloca"].get("bounded_bytes") == 618856 + 4096)
+    out.append(Result("d105/1 the defect is on record: before the fix a same-chunk callee's allocation was omitted "
+                      "(618,856 issued) and a loop allocation was counted once (622,952 issued)", ok,
+                      "" if ok else json.dumps({k: before[k].get("bounded_bytes") for k in before})[:300]))
+    ctrl = after.get("control_unedited", {})
+    bad = [k for k, v in after.items() if k != "control_unedited"
+           and (v.get("make_contract_rc") == 0 or v.get("contract_written"))]
+    out.append(Result("d105/2 after the fix: the unedited IR still issues 618,856; every call / loop / branch "
+                      "variant ends with no specification", ctrl.get("bounded_bytes") == 618856 and not bad
+                      and len(after) == 13, "bad: %s" % bad if bad else "12/12 refused"))
+    src = read(os.path.join(HERE, "make_contract.py"))
+    ok = ('structural.get("unsupported_control_ops")' in src and "hard_fail_errors.append(ctl_note)" in src
+          and 'waive("--allow-unsupported' not in src)
+    out.append(Result("d105/3 make_contract.py refuses unsupported_control_ops and offers no override", ok,
+                      "" if ok else "changed"))
+    if not structural_available():
+        out.append(Result("d105/4 no archived layout IR contains a call or control-flow op in its entry", True,
+                          "needs iree.compiler.ir", skip=True))
+        out.append(Result("d105/5 the probe re-runs live and equals after.json", True,
+                          "needs iree-compile and iree.compiler.ir", skip=True))
+        return out
+    import gzip                                                          # noqa: PLC0415
+    import mlir_alloc_walk as _maw                                       # noqa: PLC0415
+    files = sorted(set(glob.glob(os.path.join(repo, "results", "**", "*layout_ir*.txt"), recursive=True)))
+    files += sorted(glob.glob(os.path.join(repo, "results", "**", "*layout_ir*.txt.gz"), recursive=True))
+    hits, fails = {}, []
+    for f in files:
+        try:
+            text = gzip.open(f, "rt").read() if f.endswith(".gz") else read(f)
+            r = _maw.parse_alloc_ir_structural(text)
+        except Exception as exc:                                         # noqa: BLE001
+            fails.append(os.path.relpath(f, repo) + ": " + str(exc)[:60])
+            continue
+        if r.get("unsupported_control_ops"):
+            hits[os.path.relpath(f, repo)] = sorted(set(r["unsupported_control_ops"]))
+    out.append(Result("d105/4 no archived layout IR contains a call or control-flow op in its entry "
+                      "(over-refusal 0 on the whole corpus, compressed drift IRs included)",
+                      len(files) >= 30 and not hits and not fails,
+                      "files=%d hits=%s fails=%s" % (len(files), hits or "{}", fails or "[]")))
+    if not iree_tools_available():
+        out.append(Result("d105/5 the probe re-runs live and equals after.json", True,
+                          "needs iree-compile and iree-dump-module", skip=True))
+        return out
+    live = os.path.join(tmp, "d105_after_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "d105_control_flow_probe.py"), "--out", live],
+                       capture_output=True, text=True, cwd=repo)
+    ok = r.returncode == 0 and os.path.exists(live) and load(live)["cells"] == after
+    out.append(Result("d105/5 the probe re-runs live against the production path and equals after.json", ok,
+                      "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def d106_e51_header_leg_cases(tmp):
+    """D106: E51 invoked gen_contract_header.py with --contract/--out; the generator takes two
+    positional arguments, so the positive control and the unresolved-size cell both got the
+    usage error (rc 2) and E51 recorded "no header". Corrected: the positive control must yield a
+    header with CONTRACT_BOUND_KNOWN 1, and an unresolved size yields a header with
+    CONTRACT_BOUND_KNOWN 0, which the flight application refuses at Init (UNKNOWN_BOUND)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    d = os.path.join(repo, "results", "e51_claim_preconditions")
+    new, old = os.path.join(d, "stage1_preconditions.json"), os.path.join(d, "stage1_preconditions.pre_d106.json")
+    if not (os.path.exists(new) and os.path.exists(old)):
+        return [Result("d106/0 corrected and pre-D106 records present", False, "missing under %s" % d)]
+    q2o = load(old)["Q2_violation_produces_no_deployable_artifact"]
+    q2 = load(new)["Q2_violation_produces_no_deployable_artifact"]
+    out.append(Result("d106/1 the defect is on record: the pre-D106 positive control's header leg returned the "
+                      "usage error (rc 2)", q2o["positive_control"].get("gen_contract_header_rc") == 2,
+                      "rc=%s" % q2o["positive_control"].get("gen_contract_header_rc")))
+    pc = q2["positive_control"]
+    out.append(Result("d106/2 corrected: the positive control writes a header with CONTRACT_BOUND_KNOWN 1",
+                      pc.get("ok") is True and pc.get("gen_contract_header_rc") == 0 and pc.get("header_bound_known") == 1,
+                      json.dumps({k: pc.get(k) for k in ("gen_contract_header_rc", "header_bound_known")})))
+    cell = next((c for c in q2["cells"] if c.get("id") == "unresolvable_alloca_size"), {})
+    out.append(Result("d106/3 corrected: an unresolved size yields a header with CONTRACT_BOUND_KNOWN 0, classified "
+                      "as refused at Init, not as deployable",
+                      cell.get("header_bound_known") == 0
+                      and cell.get("refused_as") == "contract_states_no_bound_header_bound_known_0_refused_at_init"
+                      and cell.get("deployable_artifact_produced") is False,
+                      json.dumps({k: cell.get(k) for k in ("header_bound_known", "refused_as")})))
+    src = read(os.path.join(HERE, "e51_precondition_trace.py"))
+    out.append(Result("d106/4 the harness calls the generator with positional arguments",
+                      '"--contract", os.path.relpath(con_path' not in src
+                      and 'os.path.relpath(con_path, ROOT), os.path.relpath(hdr_path, ROOT)]' in src, ""))
+    a8 = os.path.join(repo, "results", "e14_aarch64_qemu", "cfs", "logs", "A8_dynamic_unknown.log")
+    txt = read(a8) if os.path.exists(a8) else ""
+    out.append(Result("d106/5 the refusal at Init is observed on the guest (E14 A8: UNKNOWN_BOUND, no mem_init)",
+                      '"verdict":"UNKNOWN_BOUND"' in txt and '"stage":"mem_init"' not in txt,
+                      "log present" if txt else "A8 log missing"))
     return out
 
 

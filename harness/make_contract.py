@@ -630,6 +630,18 @@ def build_contract(a, extra_args):
             hard_fail_errors.append(unclassified_note +
                                     " (pass --allow-unclassified-resource-ops to override)")
 
+    # D105: a call or a control-flow op in the entry is outside the analysis domain -- the walker
+    # neither follows callees nor multiplies an allocation by a trip count -- so no bound is
+    # stated. Not overridable: there is no reading of such an entry under which the issued figure
+    # would be the bound it claims to be.
+    unsupported_ctl = sorted(set(structural.get("unsupported_control_ops") or [])) if structural is not None else []
+    if unsupported_ctl:
+        ctl_note = ("structural walker: the entry contains call or control-flow op(s) %s; the analysis "
+                    "does not follow calls or multiply allocations by trip counts, so no bound can be "
+                    "stated for this entry" % unsupported_ctl)
+        notes.append(ctl_note)
+        hard_fail_errors.append(ctl_note)
+
     if structural_available and (structural is None or structural_diffs):
         notes.append(structural_note)
         if not waive("--allow-structural-mismatch", a.allow_structural_mismatch):
