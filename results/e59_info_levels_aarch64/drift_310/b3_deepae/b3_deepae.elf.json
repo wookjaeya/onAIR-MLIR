@@ -1,0 +1,384 @@
+{
+  "tool": "harness/elf_stack_frame.py",
+  "elf": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/e59work/b3_deepae/drift_310/dump/module_b3_deepae_linked_embedded_elf_arm_64.so",
+  "arch": "aarch64",
+  "elf_bytes": 8824,
+  "elf_sha256": "abeb097fb0a9dbee28599fff0e3541e96a677b16f29febe0335fdbfc00cad9fe",
+  "objdump": {
+    "tool": "aarch64-linux-gnu-objdump",
+    "file_format": "elf64-littleaarch64"
+  },
+  "elf_type": "ET_DYN",
+  "sections": {
+    ".dynsym": 48,
+    ".hash": 24,
+    ".dynstr": 35,
+    ".rela.dyn": 768,
+    ".rodata": 1360,
+    ".eh_frame": 184,
+    ".text": 1524,
+    ".data.rel.ro": 464,
+    ".dynamic": 192,
+    ".relro_padding": 3104
+  },
+  "text_bytes": 1524,
+  "rodata_bytes": 1360,
+  "symbols": [
+    {
+      "name": "iree_hal_executable_library_query",
+      "addr": "0x11130"
+    }
+  ],
+  "undefined_symbols": [],
+  "relocations": {
+    "count": 32,
+    "types": {
+      "R_AARCH64_RELATIVE": 32
+    },
+    "non_relative": 0
+  },
+  "exports": [
+    {
+      "ordinal": 0,
+      "name": "infer_dispatch_0_matmul_1x128x640_f32",
+      "addr": "0x10b50"
+    },
+    {
+      "ordinal": 1,
+      "name": "infer_dispatch_1_matmul_1x128x128_f32",
+      "addr": "0x10cb0"
+    },
+    {
+      "ordinal": 2,
+      "name": "infer_dispatch_4_matmul_1x8x128_f32",
+      "addr": "0x10e00"
+    },
+    {
+      "ordinal": 3,
+      "name": "infer_dispatch_5_matmul_1x128x8_f32",
+      "addr": "0x10ec0"
+    },
+    {
+      "ordinal": 4,
+      "name": "infer_dispatch_9_matmul_1x640x128_f32",
+      "addr": "0x11000"
+    }
+  ],
+  "function_split_method": "symtab+export_table(.rela.dyn)",
+  "functions": [
+    {
+      "name": "infer_dispatch_0_matmul_1x128x640_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x10b50",
+      "insns": 88,
+      "padding_insns_after": 0,
+      "code_bytes": 352,
+      "callee_save_bytes": 16,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 16,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "stp x29, x30, [sp, #-16]!",
+        "mov x29, sp"
+      ],
+      "epilogue": [
+        "ldp x29, x30, [sp], #16"
+      ],
+      "realign_max_pad_bytes": 0,
+      "realign_restore_form": null,
+      "frame_bytes": 16,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 4,
+        "fmul": 0,
+        "fadd": 4,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 84
+      },
+      "neon_or_avx_width_hint": "NEON 128-bit, compute arrangement v.4s (32-bit x4); arrangements seen: ['16b', '2d', '4s']",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "infer_dispatch_1_matmul_1x128x128_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x10cb0",
+      "insns": 84,
+      "padding_insns_after": 0,
+      "code_bytes": 336,
+      "callee_save_bytes": 16,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 16,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "stp x29, x30, [sp, #-16]!",
+        "mov x29, sp"
+      ],
+      "epilogue": [
+        "ldp x29, x30, [sp], #16"
+      ],
+      "realign_max_pad_bytes": 0,
+      "realign_restore_form": null,
+      "frame_bytes": 16,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 4,
+        "fmul": 0,
+        "fadd": 4,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 84
+      },
+      "neon_or_avx_width_hint": "NEON 128-bit, compute arrangement v.4s (32-bit x4); arrangements seen: ['16b', '2d', '4s']",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "infer_dispatch_4_matmul_1x8x128_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x10e00",
+      "insns": 48,
+      "padding_insns_after": 0,
+      "code_bytes": 192,
+      "callee_save_bytes": 16,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 16,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "stp x29, x30, [sp, #-16]!",
+        "mov x29, sp"
+      ],
+      "epilogue": [
+        "ldp x29, x30, [sp], #16"
+      ],
+      "realign_max_pad_bytes": 0,
+      "realign_restore_form": null,
+      "frame_bytes": 16,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 2,
+        "fmul": 0,
+        "fadd": 2,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 42
+      },
+      "neon_or_avx_width_hint": "NEON 128-bit, compute arrangement v.4s (32-bit x4); arrangements seen: ['16b', '2d', '4s']",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "infer_dispatch_5_matmul_1x128x8_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x10ec0",
+      "insns": 77,
+      "padding_insns_after": 0,
+      "code_bytes": 320,
+      "callee_save_bytes": 16,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 16,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "stp x29, x30, [sp, #-16]!",
+        "mov x29, sp"
+      ],
+      "epilogue": [
+        "ldp x29, x30, [sp], #16"
+      ],
+      "realign_max_pad_bytes": 0,
+      "realign_restore_form": null,
+      "frame_bytes": 16,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 4,
+        "fmul": 0,
+        "fadd": 4,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 84
+      },
+      "neon_or_avx_width_hint": "NEON 128-bit, compute arrangement v.4s (32-bit x4); arrangements seen: ['16b', '2d', '4s']",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "infer_dispatch_9_matmul_1x640x128_f32",
+      "name_source": "export_table(.rela.dyn)",
+      "addr": "0x11000",
+      "insns": 76,
+      "padding_insns_after": 0,
+      "code_bytes": 304,
+      "callee_save_bytes": 16,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 16,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": true,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [
+        "stp x29, x30, [sp, #-16]!",
+        "mov x29, sp"
+      ],
+      "epilogue": [
+        "ldp x29, x30, [sp], #16"
+      ],
+      "realign_max_pad_bytes": 0,
+      "realign_restore_form": null,
+      "frame_bytes": 16,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 4,
+        "fmul": 0,
+        "fadd": 4,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 64
+      },
+      "neon_or_avx_width_hint": "NEON 128-bit, compute arrangement v.4s (32-bit x4); arrangements seen: ['2d', '4s']",
+      "invocation_stack_bytes": 16
+    },
+    {
+      "name": "iree_hal_executable_library_query",
+      "name_source": "symtab",
+      "addr": "0x11130",
+      "insns": 5,
+      "padding_insns_after": 0,
+      "code_bytes": null,
+      "callee_save_bytes": 0,
+      "local_alloc_bytes": 0,
+      "restore_bytes": 0,
+      "dynamic_stack_alloc": false,
+      "has_frame_record": false,
+      "call_insns": 0,
+      "call_targets": [],
+      "ret_insns": 1,
+      "sp_relative_mem_ops": 0,
+      "sp_relative_mem_op_list": [],
+      "prologue": [],
+      "epilogue": [],
+      "realign_max_pad_bytes": 0,
+      "realign_restore_form": null,
+      "frame_bytes": 0,
+      "frame_balanced": true,
+      "return_address_bytes": 0,
+      "vector_insns": {
+        "fmla": 0,
+        "fmul": 0,
+        "fadd": 0,
+        "fmls": 0,
+        "fsub": 0,
+        "neon_vreg_operands": 0
+      },
+      "neon_or_avx_width_hint": "scalar (no NEON vector arrangements)",
+      "invocation_stack_bytes": 0
+    }
+  ],
+  "dispatch_functions": [
+    "infer_dispatch_0_matmul_1x128x640_f32",
+    "infer_dispatch_1_matmul_1x128x128_f32",
+    "infer_dispatch_4_matmul_1x8x128_f32",
+    "infer_dispatch_5_matmul_1x128x8_f32",
+    "infer_dispatch_9_matmul_1x640x128_f32"
+  ],
+  "max_dispatch_frame_bytes": 16,
+  "sum_dispatch_frame_bytes": 80,
+  "max_dispatch_invocation_stack_bytes": 16,
+  "max_dispatch_local_alloc_bytes": 0,
+  "total_call_insns": 0,
+  "total_insns": 378,
+  "total_padding_insns": 0,
+  "total_code_insns": 378,
+  "dispatch_insns": 373,
+  "vector_insns_total": {
+    "fmla": 18,
+    "fmul": 0,
+    "fadd": 18,
+    "fmls": 0,
+    "fsub": 0,
+    "neon_vreg_operands": 358
+  },
+  "any_dynamic_stack_alloc": false,
+  "any_sp_relative_mem_ops": false,
+  "all_dispatch_frames_balanced": true,
+  "call_resolution": {
+    "total_call_insns": 0,
+    "unresolved_call_insns": 0,
+    "resolved": true,
+    "reason": "no call instructions",
+    "distinct_targets": [],
+    "callees": [],
+    "max_chain_stack_bytes": 0
+  },
+  "unresolved_call_insns": 0,
+  "max_dispatch_invocation_stack_bytes_with_calls": 16,
+  "classification_note": "bucket (2) TASK-STACK: each dispatch function reserves at most 16 B of stack (frame record/callee-saved registers only, no explicit locals and no sp-relative loads/stores (no spills, no locals)), 0 call instructions -> call depth 1 below the runtime; per-invocation stack = 16 B incl. return address. Not HAL memory (not in bounded_bytes); add it explicitly to the task/thread stack budget.",
+  "source": {
+    "dump_dir": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/e59work/b3_deepae/drift_310/dump",
+    "dump_dir_elf_files": [
+      {
+        "path": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/e59work/b3_deepae/drift_310/dump/module_b3_deepae_linked_embedded_elf_arm_64.o",
+        "bytes": 29328,
+        "arch": "aarch64",
+        "e_type": 1,
+        "sha256": "469dc242ee0abc0a89208a5bd39af54968384dc19e4440af968bfee29343ad1f"
+      },
+      {
+        "path": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/e59work/b3_deepae/drift_310/dump/module_b3_deepae_linked_embedded_elf_arm_64.so",
+        "bytes": 8824,
+        "arch": "aarch64",
+        "e_type": 3,
+        "sha256": "abeb097fb0a9dbee28599fff0e3541e96a677b16f29febe0335fdbfc00cad9fe"
+      }
+    ],
+    "selected": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/e59work/b3_deepae/drift_310/dump/module_b3_deepae_linked_embedded_elf_arm_64.so",
+    "vmfb": "/tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/e59work/b3_deepae/drift_310/b3_deepae.vmfb",
+    "vmfb_bytes": 1082170,
+    "vmfb_sha256": "7675d9baf664a8f07fbeca0121ffe59af659b26d46244521cb21f85a9c69c5f8",
+    "vmfb_embedded_elfs": [
+      {
+        "offset": 9440,
+        "size": 8824,
+        "arch": "aarch64",
+        "e_type": 3,
+        "zip_entry": {
+          "name": "b3_deepae_linked_embedded_elf_arm_64.so",
+          "uncompressed_size": 8824,
+          "compressed_size": 8824,
+          "method": 0
+        },
+        "size_confirmed_by_zip_entry": true,
+        "sha256": "abeb097fb0a9dbee28599fff0e3541e96a677b16f29febe0335fdbfc00cad9fe"
+      }
+    ],
+    "vmfb_embedded_elf_matches_elf": true
+  }
+}

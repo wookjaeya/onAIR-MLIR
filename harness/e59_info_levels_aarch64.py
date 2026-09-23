@@ -285,6 +285,8 @@ def main():
     ap.add_argument("--part", choices=["A", "B"], required=True)
     ap.add_argument("--iree310", help="iree-compile of IREE 3.10.0rc20260107 (Part B)")
     ap.add_argument("--work", help="scratch dir for Part B compiles")
+    ap.add_argument("--out", help="write the part's JSON here instead of the committed record "
+                                  "(regression guards re-run into a temp dir, never over the record)")
     a = ap.parse_args()
     os.makedirs(os.path.join(ROOT, OUT_DIR), exist_ok=True)
     if a.part == "A":
@@ -296,6 +298,8 @@ def main():
         doc = {"experiment": "E59 Part B", "plan": PLAN, "target": TRIPLE, "cpu": CPU,
                **part_b(a.iree310, a.work)}
         out = os.path.join(ROOT, OUT_DIR, "part_b.json")
+    if a.out:
+        out = a.out
     with open(out, "w", encoding="utf-8") as f:
         json.dump(doc, f, indent=1, ensure_ascii=False)
     print(json.dumps(doc.get("totals") or {"per_level": doc.get("per_level"),

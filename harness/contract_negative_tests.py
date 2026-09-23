@@ -9001,6 +9001,7 @@ def main():
         all_results += e41b_driver_peak_cases(tmp)
         all_results += e52_evidence_pointer_cases(tmp)
         all_results += e56_conditional_refusal_aarch64_cases(tmp)
+        all_results += e59_info_levels_aarch64_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9095,6 +9096,117 @@ def e41b_driver_peak_cases(tmp):
                           not bad, "still attributing: %s" % bad if bad else ""))
     return results
 
+
+
+def e59_info_levels_aarch64_cases(tmp):
+    """E59: the information-level comparison (E35/E27) redone on the EVALUATION TARGET's artifacts.
+
+    Until E59 three of E35's four configurations and E27's drift artifact were x86-64; the
+    standing directive excludes x86-64 as a target and a validation platform.  These guards pin
+    what E59 measured and -- the part a stored JSON cannot prove -- that it was measured on
+    AArch64 artifacts with a compiler revision that really differs.
+    """
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e59_info_levels_aarch64")
+    pa_p, pb_p = os.path.join(root, "part_a.json"), os.path.join(root, "part_b.json")
+    if not (os.path.exists(pa_p) and os.path.exists(pb_p)):
+        return [Result("e59/0 part_a.json and part_b.json present", False, "missing under %s" % root)]
+    pa, pb = json.load(open(pa_p)), json.load(open(pb_p))
+
+    t = pa.get("totals", {})
+    ok = (t.get("models_total") == 4 and t.get("models_where_three_figures_agree") == 4
+          and t.get("models_where_kernel_stack_agrees") == 4 and t.get("artifacts_matching_contract") == 4)
+    out.append(Result("e59/1 Part A: artifact-only level matches three figures and kernel stack 4/4, "
+                      "each on the very artifact its contract names", ok, json.dumps(t)))
+    vm = [m.get("vmfb", "") for m in pa.get("models", {}).values()]
+    triples = []
+    for m in pa.get("models", {}).values():
+        try:
+            triples.append(json.load(open(os.path.join(repo, m["contract"])))["target"]["triple"])
+        except Exception as exc:                                  # pragma: no cover
+            triples.append("unreadable: %s" % exc)
+    ok = len(vm) == 4 and all(x == "aarch64-unknown-linux-gnu" for x in triples) \
+        and not any("x86" in v for v in vm)
+    out.append(Result("e59/2 Part A reads AArch64 contracts only (no x86-64 artifact in the set)",
+                      ok, "triples=%s" % triples))
+
+    pl = pb.get("per_level", {})
+    ok = (pl.get("c", {}).get("value") == 4 and pl.get("b", {}).get("impossible_value") == 4
+          and pl.get("b_prime", {}).get("explicit_refusal") == 4 and pb.get("collection_clean") is True
+          and pb.get("controls_reproducing") == 4)
+    out.append(Result("e59/3 Part B: under drift (c) value 4, (b) impossible 4, (b') refusal 4; "
+                      "clean collection; 3.11 controls reproduce the archived figures 4/4",
+                      ok, json.dumps({"per_level": pl, "controls": pb.get("controls_reproducing")})))
+
+    # recompute the impossibility floor from the contracts instead of trusting the stored one
+    bad = []
+    for c in pb.get("drift_cells", []):
+        if c.get("level") != "b":
+            continue
+        mp = next((m for m in pa["models"] if m == c["model"]), None)
+        con = json.load(open(os.path.join(repo, pa["models"][mp]["contract"]))) if mp else None
+        floor = 0
+        for d in (con["interface"]["inputs"] + con["interface"]["outputs"]) if con else []:
+            n = 1
+            for x in d["shape"]:
+                n *= int(x)
+            floor += 4 * n
+        if not (c.get("per_call") is not None and c["per_call"] < floor):
+            bad.append((c["model"], c.get("per_call"), floor))
+    out.append(Result("e59/4 each (b) drift figure is below I+O recomputed from its contract "
+                      "(impossible for any compile of that interface)", not bad and bool(pb.get("drift_cells")),
+                      "violations: %s" % bad if bad else "4/4 below the floor"))
+
+    bad = []
+    for name, m in pb.get("per_model", {}).items():
+        c = m.get("drift_310", {}).get("levels", {}).get("c", {})
+        notes = " ".join(c.get("notes") or [])
+        if c.get("differs_from_311_reference") is not False or "bytecode version mismatch" not in notes:
+            bad.append(name)
+    out.append(Result("e59/5 (c) under drift issues the 3.11 figures AND names the failed read in a note",
+                      not bad, "models lacking value+note: %s" % bad if bad else "4/4"))
+
+    bad = []
+    for name, m in pb.get("per_model", {}).items():
+        dv = m.get("drift_310", {}).get("compile", {}).get("compiler_version", "")
+        cv = m.get("control_311", {}).get("compile", {}).get("compiler_version", "")
+        if "3.10.0rc20260107" not in dv or "3.11.0rc20260316" not in cv:
+            bad.append((name, dv[-60:], cv[-60:]))
+        stored = os.path.join(root, "drift_310", name, name + ".vmfb")
+        want = m.get("drift_310", {}).get("compile", {}).get("vmfb_sha256")
+        if not os.path.exists(stored) or hashlib.sha256(open(stored, "rb").read()).hexdigest() != want:
+            bad.append((name, "stored drift vmfb does not match the recorded sha256"))
+    out.append(Result("e59/6 the drift variable is real (3.10 vs 3.11 recorded per compile) and the "
+                      "stored drift artifacts are the ones the cells read", not bad, str(bad) if bad else "4/4"))
+
+    if shutil.which("iree-dump-module") is None:
+        out.append(Result("e59/7 live re-run of Part A equals the committed record", True,
+                          "needs iree-dump-module", skip=True))
+    else:
+        live_p = os.path.join(tmp, "e59_part_a_live.json")
+        r = subprocess.run([sys.executable, os.path.join(HERE, "e59_info_levels_aarch64.py"), "--part", "A",
+                            "--out", live_p], capture_output=True, text=True)
+        live = json.load(open(live_p)) if r.returncode == 0 else None
+        ok = live is not None and live.get("totals") == pa.get("totals") and \
+            {k: (v.get("three_figures_agree"), v.get("kernel_stack_agrees")) for k, v in live["models"].items()} == \
+            {k: (v.get("three_figures_agree"), v.get("kernel_stack_agrees")) for k, v in pa["models"].items()}
+        out.append(Result("e59/7 live re-run of Part A equals the committed record", ok,
+                          "rc=%d" % r.returncode if r.returncode else "identical totals and per-model agreement"))
+        bad = []
+        for name in pb.get("per_model", {}):
+            v = os.path.join(root, "drift_310", name, name + ".vmfb")
+            rr = subprocess.run([sys.executable, os.path.join(HERE, "e27_baseline_vmfb_only_hardened.py"), v],
+                                capture_output=True, text=True)
+            try:
+                code = json.loads(rr.stdout).get("refusal_code")
+            except ValueError:
+                code = None
+            if code != "C4_DISASM":
+                bad.append((name, code))
+        out.append(Result("e59/8 live: the hardened analyzer still refuses each stored drift artifact "
+                          "with C4_DISASM", not bad, str(bad) if bad else "4/4"))
+    return out
 
 
 def e56_conditional_refusal_aarch64_cases(tmp):
