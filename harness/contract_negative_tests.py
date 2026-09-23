@@ -9177,6 +9177,132 @@ def e41b_driver_peak_cases(tmp):
 
 
 
+def e57_onair_aarch64_cases(tmp):
+    """E57/E57b/E57c: the OnAIR plugin path on the evaluation target.  Pins (a) decision equivalence
+    with the flight application at eight budget cells, (b) the OBSERVED failure of the output-release
+    premise on this path (F4) and the admitted budget being exceeded at call 417 (F5, E57c), and
+    (c) where the retention sits (E57b).  Everything is re-derived from the plugin's own records;
+    the committed summary is compared with the re-derivation, never trusted alone (D89)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e57_onair_aarch64")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e57/0 summary.json present", False, "missing %s" % sp)]
+    s = json.load(open(sp))
+    A = s.get("experiment_A", [])
+    ok = len(A) == 8 and all(c.get("present") and c.get("verdicts_agree") and c.get("artifact_sha256_matches_cfs_cell")
+                             and c.get("onair_core_unmodified") for c in A)
+    out.append(Result("e57/1 eight budget cells: OnAIR verdict == flight-app verdict on the same artifact, "
+                      "official loader, OnAIR core unmodified", ok,
+                      "%d cells" % len(A) if ok else json.dumps([(c.get("deployment"), c.get("onair_verdict"),
+                                                                 c.get("cfs_verdict")) for c in A])[:300]))
+    den = [c for c in A if c.get("deployment", "").endswith("_Bum1")]
+    ok = len(den) == 4 and all(c.get("runtime_created") is False and c.get("inferences") == 0 for c in den)
+    out.append(Result("e57/2 B_u-1: NOT_ADMITTED with runtime_created=false (direct record) and 0 inferences",
+                      ok, "4/4" if ok else str([(c.get("deployment"), c.get("runtime_created")) for c in den])))
+    B = {b["deployment"]: b for b in s.get("experiment_B", [])}
+    bad = []
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        b = B.get("e57_%s_Bu" % m) or {}
+        if not (b.get("peak_after_append") == 0 and b.get("live_increment_per_call") == [b.get("O")]
+                and b.get("peak_1") == b.get("P") and b.get("peak_N") == b.get("P", 0) + (b.get("N", 1) - 1) * (b.get("O") or 0)):
+            bad.append(m)
+    out.append(Result("e57/3 premise A observed NOT to hold on this path: +O live bytes per call, peak = P+(n-1)O "
+                      "(F4, as the plan anticipated)", not bad, "bad: %s" % bad if bad else "4/4"))
+    L = B.get("e57_b3_deepae_Bu_long") or {}
+    out.append(Result("e57/4 E57c: DeepAE's admitted budget is first exceeded at call 417 (F5 observed, predicted 417)",
+                      L.get("N") == 450 and L.get("first_call_with_peak_over_admitted_budget") == 417,
+                      "N=%s first=%s" % (L.get("N"), L.get("first_call_with_peak_over_admitted_budget"))))
+    probe = {}
+    for m in ("R0", "R1", "R2", "R3"):
+        pth = os.path.join(root, "e57b_retention", "e57b_%s.json" % m)
+        probe[m] = json.load(open(pth))["rows"] if os.path.exists(pth) else None
+    ok = all(probe.values()) and all(r["live"] == 0 and r["peak"] in (0, 6208) for r in probe["R0"]) and \
+        all(probe[m][-1]["live"] == 20 * 2560 for m in ("R1", "R2", "R3"))
+    out.append(Result("e57/5 E57b: discarding the result releases (live 0, peak P); np.array / to_host readback "
+                      "retain O per call and gc.collect does not release", ok,
+                      "ok" if ok else json.dumps({k: (v[-1] if v else None) for k, v in probe.items()})))
+    src = open(os.path.join(repo, "plugins", "compiled_learner", "compiled_learner_plugin.py"), encoding="utf-8").read()
+    ok = 'bool(d.get("record_hal_statistics", False))' in src and '"runtime_created": self._ctx is not None' in src
+    out.append(Result("e57/6 plugin: HAL statistics are opt-in (default off -- existing deployments unchanged) and "
+                      "the init record carries a direct runtime_created", ok, "" if ok else "changed"))
+    try:
+        import numpy                                              # noqa: F401,PLC0415
+        have_np = True
+    except ImportError:
+        have_np = False
+    if not have_np:
+        out.append(Result("e57/7 re-derived from the plugin's own records, the verdict equals the committed one",
+                          True, "needs numpy", skip=True))
+    else:
+        live = os.path.join(tmp, "e57_summary_live.json")
+        r = subprocess.run([sys.executable, os.path.join(HERE, "mk_e57_summary.py"), "--out", live],
+                           capture_output=True, text=True)
+        ok = r.returncode == 0 and json.load(open(live)).get("verdict") == s.get("verdict") and \
+            json.load(open(live)).get("falsifiers") == s.get("falsifiers")
+        out.append(Result("e57/7 re-derived from the plugin's own records, the verdict equals the committed one", ok,
+                          "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def e58_alignment_sweep_aarch64_cases(tmp):
+    """E58: the constant-loading arm's determinant, measured in the flight application on the
+    evaluation target at all eight 8-byte alignment classes (replaces the x86-64 E29 probe as
+    the manuscript's determinant evidence).  The verdict is RE-DERIVED from the guest raw logs
+    into a temp file and compared with the committed summary -- a guard that only read the
+    committed JSON would stay green if the logs were reverted (D89)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e58_alignment_sweep_aarch64")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e58/0 summary.json present", False, "missing %s" % sp)]
+    s = json.load(open(sp))
+    t = s.get("totals", {})
+    out.append(Result("e58/1 32 valid cells: 4 map + 28 copy, no third value, PASS",
+                      t == {"cells": 32, "valid": 32, "map": 4, "copy": 28, "third_value": 0}
+                      and s.get("verdict", {}).get("PASS") is True, json.dumps(t)))
+    pm = s.get("per_model", {})
+    bad = [m for m, v in pm.items() if v.get("map_at") != [0] or v.get("copy_at") != [8, 16, 24, 32, 40, 48, 56]]
+    out.append(Result("e58/2 every model: map exactly at offset 0, copy at all seven others",
+                      not bad and len(pm) == 4, "bad: %s" % bad if bad else "4/4"))
+    bad = [(c["model"], c["offset"]) for c in s.get("cells", [])
+           if c.get("valid") and c.get("hal_peak_after_append") not in (0, c.get("C"))]
+    out.append(Result("e58/3 D1 re-checked per cell: append peak in {0, C}", not bad, str(bad) if bad else "32/32"))
+    # one binary per model: the plan's point is that alignment is the ONLY varied setting
+    bad = []
+    for m in pm:
+        shas = set()
+        for c in s["cells"]:
+            if c["model"] != m:
+                continue
+            txt = open(os.path.join(repo, c["log"]), encoding="utf-8", errors="ignore").read()
+            mm = re.search(r'"stage":"build_config"[^}]*"contract_artifact_sha256":"([0-9a-f]+)"', txt)
+            shas.add(mm.group(1) if mm else None)
+        if len(shas) != 1 or None in shas:
+            bad.append((m, sorted(str(x) for x in shas)))
+    out.append(Result("e58/4 the eight cells of a model bound one artifact (build_config read from each raw log)",
+                      not bad, str(bad) if bad else "4/4"))
+    # and ran one application binary: the scenario file names the deployed .so per cell
+    scen = json.load(open(os.path.join(root, "scenarios.json")))
+    so = {}
+    for c in scen:
+        so.setdefault(c["model"], set()).add(c["so"])
+    bad = {m: sorted(v) for m, v in so.items() if len(v) != 1}
+    out.append(Result("e58/4b the eight cells of a model ran one application binary (scenario file)",
+                      not bad and len(so) == 4 and all(len([c for c in scen if c["model"] == m]) == 8 for m in so),
+                      str(bad) if bad else "4 models x 1 binary"))
+    live = os.path.join(tmp, "e58_summary_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "mk_e58_summary.py"), "--out", live],
+                       capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live) and \
+        json.load(open(live)).get("totals") == t and json.load(open(live)).get("verdict") == s.get("verdict")
+    out.append(Result("e58/5 re-derived from the raw guest logs, the verdict equals the committed one", ok,
+                      "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
 def e59_info_levels_aarch64_cases(tmp):
     """E59: the information-level comparison (E35/E27) redone on the EVALUATION TARGET's artifacts.
 

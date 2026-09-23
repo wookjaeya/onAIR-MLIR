@@ -69,6 +69,10 @@ def cell(model, off):
 
 
 def main():
+    import argparse                                                # noqa: PLC0415
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", help="write here instead of the committed summary (guards re-derive into a temp dir)")
+    a = ap.parse_args()
     cells = [cell(m, o) for m in MODELS for o in OFFSETS]
     valid = [c for c in cells if c["valid"]]
     d1 = all(not c["third_value"] for c in valid)
@@ -114,7 +118,7 @@ def main():
             "the map arm; this sweep controls the alignment on purpose",
         ],
     }
-    out = os.path.join(ROOT, "summary.json")
+    out = a.out or os.path.join(ROOT, "summary.json")
     with open(out, "w", encoding="utf-8") as f:
         json.dump(doc, f, indent=1)
     print(json.dumps({"totals": doc["totals"], "verdict": doc["verdict"]}, indent=1))

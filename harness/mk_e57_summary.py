@@ -65,11 +65,16 @@ def sha256(path):
 
 
 def main():
+    import argparse                                                # noqa: PLC0415
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", help="write here instead of the committed summary (guards re-derive into a temp dir)")
+    args = ap.parse_args()
     cfg = json.load(open(CONFIG))["deployments"]
     import numpy as np                                            # noqa: PLC0415
     cells_a, cells_b, falsified = [], [], {f: [] for f in ("F1", "F2", "F3", "F4", "F5", "F6")}
-    for m in MODELS:
-        for tag in ("Bu", "Bum1"):
+    extra_b = [("b3_deepae", "Bu_long")]      # E57c (docs/plans/E57c_deepae_long_run.md)
+    for m, tag in [(m, t) for m in MODELS for t in ("Bu", "Bum1")] + extra_b:
+        if True:
             dep = "e57_%s_%s" % (m, tag)
             c = onair_cell(dep)
             dcfg = cfg[dep]
@@ -82,7 +87,8 @@ def main():
                                               dcfg["contract_file"])))
             art_sha = con["artifact"]["sha256"]
             if c is None:
-                cells_a.append({"deployment": dep, "present": False})
+                if tag != "Bu_long":
+                    cells_a.append({"deployment": dep, "present": False})
                 continue
             init, run, inf = c["init"], c["run"], c["inferences"]
             onair_verdict = (init.get("admission") or {}).get("verdict")
@@ -117,8 +123,9 @@ def main():
                 falsified["F2"].append(dep)
             if not row["artifact_sha256_matches_cfs_cell"]:
                 falsified["F3"].append(dep)
-            cells_a.append(row)
-            if tag != "Bu":
+            if tag != "Bu_long":
+                cells_a.append(row)
+            if tag not in ("Bu", "Bu_long"):
                 continue
             # ---- experiment B: peaks over N calls, read after `del out` by the plugin ----
             ha = init.get("hal_after_append") or {}
@@ -136,7 +143,13 @@ def main():
             else:
                 peaks = [h["device_bytes_peak"] for h in hals]
                 lives = [h["device_bytes_live"] for h in hals]
+                budget = (init.get("admission") or {}).get("admitted_budget_bytes", -1)
+                over = [r.get("n") for r, h in zip(inf, hals) if h["device_bytes_peak"] > budget]
+                incs = sorted(set(b2 - a2 for a2, b2 in zip(lives, lives[1:])))
                 b.update({
+                    "first_call_with_peak_over_admitted_budget": over[0] if over else None,
+                    "live_increment_per_call": incs,
+                    "O": 4 * int(np.prod(con["interface"]["output"]["shape"])),
                     "peak_after_append": ha["device_bytes_peak"], "live_after_append": ha["device_bytes_live"],
                     "peak_1": peaks[0], "peak_N": peaks[-1], "peak_max": max(peaks), "peak_min": min(peaks),
                     "live_after_each_call": sorted(set(lives)),
@@ -149,7 +162,8 @@ def main():
                     falsified["F4"].append(dep)
                 if not b["peak_within_admitted_budget"]:
                     falsified["F5"].append(dep)
-            b["N_meets_plan"] = len(inf) >= N_REQUIRED[m]
+            b["N_meets_plan"] = len(inf) >= (450 if tag == "Bu_long" else N_REQUIRED[m])
+            b["role"] = "E57c extension of B-2 (designed after E57's F4)" if tag == "Bu_long" else "E57 plan cell"
             # ---- supplementary: outputs vs the archived AArch64 cFS run on the same artifact ----
             ob, oo = CFS_OUTPUTS[m]
             try:
@@ -200,7 +214,7 @@ def main():
         ],
     }
     os.makedirs(ROOT, exist_ok=True)
-    with open(os.path.join(ROOT, "summary.json"), "w", encoding="utf-8") as f:
+    with open(args.out or os.path.join(ROOT, "summary.json"), "w", encoding="utf-8") as f:
         json.dump(doc, f, indent=1)
     print(json.dumps({"verdict": doc["verdict"], "falsifiers": falsified}, indent=1))
     return 0
