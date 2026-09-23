@@ -9183,16 +9183,31 @@ def e59_info_levels_aarch64_cases(tmp):
     if shutil.which("iree-dump-module") is None:
         out.append(Result("e59/7 live re-run of Part A equals the committed record", True,
                           "needs iree-dump-module", skip=True))
+        out.append(Result("e59/8 live: the hardened analyzer refuses each stored drift artifact", True,
+                          "needs iree-dump-module", skip=True))
     else:
-        live_p = os.path.join(tmp, "e59_part_a_live.json")
-        r = subprocess.run([sys.executable, os.path.join(HERE, "e59_info_levels_aarch64.py"), "--part", "A",
-                            "--out", live_p], capture_output=True, text=True)
-        live = json.load(open(live_p)) if r.returncode == 0 else None
-        ok = live is not None and live.get("totals") == pa.get("totals") and \
-            {k: (v.get("three_figures_agree"), v.get("kernel_stack_agrees")) for k, v in live["models"].items()} == \
-            {k: (v.get("three_figures_agree"), v.get("kernel_stack_agrees")) for k, v in pa["models"].items()}
-        out.append(Result("e59/7 live re-run of Part A equals the committed record", ok,
-                          "rc=%d" % r.returncode if r.returncode else "identical totals and per-model agreement"))
+        # The kernel-stack half reads AArch64 ELF with aarch64-linux-gnu-objdump. Without it the
+        # live run reports the stack as not produced, which is an environment gap, not a changed
+        # result -- the first version of this guard FAILED in the CI full leg for exactly that
+        # reason (run 364) and printed the success text as its detail. SKIP, and say why.
+        if shutil.which("aarch64-linux-gnu-objdump") is None:
+            out.append(Result("e59/7 live re-run of Part A equals the committed record", True,
+                              "needs aarch64-linux-gnu-objdump (kernel stack of AArch64 ELF)", skip=True))
+        else:
+            live_p = os.path.join(tmp, "e59_part_a_live.json")
+            r = subprocess.run([sys.executable, os.path.join(HERE, "e59_info_levels_aarch64.py"), "--part", "A",
+                                "--out", live_p], capture_output=True, text=True)
+            live = json.load(open(live_p)) if r.returncode == 0 else None
+            ok = live is not None and live.get("totals") == pa.get("totals") and \
+                {k: (v.get("three_figures_agree"), v.get("kernel_stack_agrees")) for k, v in live["models"].items()} == \
+                {k: (v.get("three_figures_agree"), v.get("kernel_stack_agrees")) for k, v in pa["models"].items()}
+            if r.returncode:
+                det = "rc=%d" % r.returncode
+            elif ok:
+                det = "identical totals and per-model agreement"
+            else:
+                det = "live totals %s != recorded %s" % (json.dumps((live or {}).get("totals")), json.dumps(pa.get("totals")))
+            out.append(Result("e59/7 live re-run of Part A equals the committed record", ok, det))
         bad = []
         for name in pb.get("per_model", {}):
             v = os.path.join(root, "drift_310", name, name + ".vmfb")
