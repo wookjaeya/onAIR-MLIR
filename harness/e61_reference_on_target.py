@@ -163,6 +163,9 @@ def judge(a):
         if ground is not None:
             rec["Q1"] = _q1(g, ground, want_ids)
             rec["Q1"]["ground_reference"] = cfg["ground"] or a.wgan_ground
+            if not cfg["ground"]:
+                rec["Q1"]["ground_reference_note"] = ("not in the repository: E53 cited this ground-side file by a /tmp "
+                                                      "path; Q1 for WGAN is re-derivable only where that file exists")
         else:
             rec["Q1"] = {"unavailable_reason": "ground-side WGAN reference not supplied (--wgan-ground)"}
         # Q2: re-judge the archived target outputs against the GUEST reference, same options as before

@@ -7947,18 +7947,18 @@ def e61_reference_on_target_cases(tmp):
     rows = {m: (M[m]["Q2"]["cfs"]["verdict"], M[m]["Q2"]["cfs"]["totals"]["elements_failed"]) for m in M}
     agree = all(M[m]["Q2"]["native"]["verdict"] == M[m]["Q2"]["cfs"]["verdict"] and
                 M[m]["Q2"]["native"]["totals"] == M[m]["Q2"]["cfs"]["totals"] for m in M)
-    results.append(Result("e61/2 re-judged against the target reference: ResNet PASS 0, DeepAE FAIL 139, SmartCam PASS 0 "
-                          "(native and cFS rows identical)",
+    results.append(Result("e61/2 re-judged against the target reference: ResNet PASS 0, DeepAE FAIL 139, SmartCam PASS 0, "
+                          "WGAN PASS 0 (native and cFS rows identical)",
                           agree and rows.get("b2_resnet") == ("PASS", 0) and rows.get("b3_deepae") == ("FAIL", 139)
-                          and rows.get("smartcam") == ("PASS", 0), str(rows)))
+                          and rows.get("smartcam") == ("PASS", 0) and rows.get("wgan") == ("PASS", 0), str(rows)))
     cmp = load(os.path.join(root, "comparisons", "b3_deepae_cfs.json"))
     failing = sorted(x["sample_id"] for x in cmp["samples"] if not x["ok"])
     results.append(Result("e61/3 DeepAE's exceedance spans four windows against the target reference (one against the ground one)",
                           len(failing) == 4 and "normal_id_04_00000043_hist_librosa_w98" in failing, str(failing)))
     q1 = {m: (M[m]["Q1"].get("bitwise_identical_samples"), M[m]["Q1"].get("samples")) for m in M}
     results.append(Result("e61/4 Q1 recorded as an observation: the reference runtime's outputs differ from the ground-side "
-                          "ones at every sample of the three E45 models",
-                          all(q1[m][0] == 0 and q1[m][1] for m in ("b2_resnet", "b3_deepae", "smartcam")), str(q1)))
+                          "ones at every sample of all four models",
+                          all(q1[m][0] == 0 and q1[m][1] for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan")), str(q1)))
     L = d["e60_layers"]
     results.append(Result("e61/5 E60's window against the target's own intermediates: no layer before the last exceeds "
                           "tolerance, the last has 37 (it had L1=6 and 46 against the ground reference)",
@@ -9140,6 +9140,7 @@ def main():
         all_results += e51_stage3_cases(tmp)
         all_results += e52_deepae_divergence_cases(tmp)
         all_results += e60_deepae_layers_aarch64_cases(tmp)
+        all_results += e61_reference_on_target_cases(tmp)
         all_results += e39b_prior_art_fulltext_cases(tmp)
         all_results += e53_wgan_aarch64_cases(tmp)
         all_results += e54_reference_budget_cases(tmp)
