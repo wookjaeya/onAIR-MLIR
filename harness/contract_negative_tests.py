@@ -9377,6 +9377,130 @@ def e58_alignment_sweep_aarch64_cases(tmp):
     return out
 
 
+def e62_onair_output_release_cases(tmp):
+    """E62: the OnAIR output-buffer retention (D103) -- its mechanism measured, the fix (buffer-protocol
+    readback) and the enforcement check (per-call live bytes vs the post-append baseline) run on the
+    evaluation target.  The committed verdict is re-derived from the plugin's own records, the probe's
+    JSON and the archived E57 cells (D89); the source guards pin the defaults so that an existing
+    deployment's readback and an E57 reproduction cannot change silently."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e62_onair_output_release")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e62/0 summary.json present", False, "missing %s" % sp)]
+    s = json.load(open(sp))
+    c = s.get("criteria", {})
+    out.append(Result("e62/1 verdict PASS (P1-P9 all hold)", s.get("verdict") == "PASS" and all((s.get("holds") or {0: 0}).values()),
+                      json.dumps(s.get("holds"))))
+    p1 = c.get("P1_mechanism", {})
+    ok = ((p1.get("asarray_refcount") or {}).get("delta_after") == 1 and p1.get("asarray_live_after_all_dropped") == 2560
+          and (p1.get("bufproto_refcount") or {}).get("delta_after") == 0 and p1.get("bufproto_live_after_all_dropped") == 0
+          and p1.get("same_output") is True)
+    out.append(Result("e62/2 mechanism: asarray leaves +1 reference on the mapping and O live bytes after every "
+                      "reference is dropped; the buffer-protocol read leaves 0 and 0, same output", ok,
+                      json.dumps({k: p1.get(k) for k in ("asarray_refcount", "bufproto_refcount")})))
+    fx = (c.get("P3_fix_arm") or {}).get("cells", {})
+    bad = [d for d, r in fx.items() if not (r.get("present") and r.get("all_peak_eq_P_live_eq_post_append")
+                                            and r.get("any_call_over_admitted_budget") is False)]
+    lg = fx.get("e62_b3_deepae_Bu_long_fix", {})
+    out.append(Result("e62/3 fix arm (4 models + DeepAE 450 calls): every call peaks at exactly P and returns live "
+                      "bytes to the post-append level; no call over the admitted budget", len(fx) == 5 and not bad
+                      and lg.get("inferences") == 450, "bad: %s" % bad if bad else "5/5, long=%s" % lg.get("inferences")))
+    ctl = (c.get("P5_control_reproduces_e57") or {}).get("cells", {})
+    out.append(Result("e62/4 control arm (asarray) reproduces the archived E57 peak/live series exactly (4 models)",
+                      len(ctl) == 4 and all(r.get("series_equal_e57") for r in ctl.values()),
+                      json.dumps({d: r.get("series_equal_e57") for d, r in ctl.items()})))
+    out.append(Result("e62/5 outputs unchanged: fix, control and default cells bit-identical to E57, call for call",
+                      (c.get("P4_values_unchanged") or {}).get("holds") is True,
+                      json.dumps(c.get("P4_values_unchanged"))))
+    p6 = c.get("P6_shutdown_leak_report", {})
+    out.append(Result("e62/6 nanobind's shutdown report: fix cells leak 0 instances, control cells 2N instances and "
+                      "N keep_alive records", p6.get("holds") is True, "" if p6.get("holds") else json.dumps(p6)[:300]))
+    p8 = c.get("P8_decision_half_and_core", {})
+    out.append(Result("e62/7 decision half unchanged: B_u - 1 NOT_ADMITTED, runtime_created false, 0 inferences "
+                      "(4 models); OnAIR core unmodified in every cell", p8.get("holds") is True,
+                      json.dumps(p8.get("deny"))[:300]))
+    enf = (c.get("P9_enforcement") or {}).get("cells", {})
+    ok = len(enf) == 6 and all(r and r.get("holds") for r in enf.values())
+    out.append(Result("e62/8 enforcement: the asarray readback is stopped after call 1 with live = O over a baseline "
+                      "of 0; the buffer-protocol readback runs its planned calls without a stop (3 models)", ok,
+                      json.dumps({d: (r or {}).get("violations") for d, r in enf.items()})))
+    src = open(os.path.join(repo, "plugins", "compiled_learner", "compiled_learner_plugin.py"), encoding="utf-8").read()
+    rb = open(os.path.join(repo, "plugins", "compiled_learner", "readback.py"), encoding="utf-8").read()
+    ok = ('DEFAULT_READBACK = "buffer_protocol"' in rb and 'd.get("output_readback", DEFAULT_READBACK)' in src
+          and 'bool(d.get("enforce_output_release", False))' in src)
+    out.append(Result("e62/9 plugin defaults: readback buffer_protocol, enforcement opt-in (default off)", ok,
+                      "" if ok else "changed"))
+    e57cfg = json.load(open(os.path.join(repo, "configs", "deployments", "onair_deployments_e57_aarch64.json")))
+    deps = e57cfg.get("deployments", {})
+    bad = [k for k, v in deps.items() if v.get("output_readback") != "asarray"]
+    out.append(Result("e62/10 every E57 deployment pins the asarray readback, so E57 stays reproducible from "
+                      "repository content", deps and not bad, "bad: %s" % bad if bad else "%d/%d" % (len(deps), len(deps))))
+    live = os.path.join(tmp, "e62_summary_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "mk_e62_summary.py"), "--out", live],
+                       capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live)
+    if ok:
+        L = json.load(open(live))
+        ok = L.get("verdict") == s.get("verdict") and L.get("criteria") == s.get("criteria")
+    out.append(Result("e62/11 re-derived from the plugin records, probe JSON and archived E57 cells, the criteria "
+                      "equal the committed ones", ok, "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def e63_single_build_and_conditional_floor_cases(tmp):
+    """E63: Table 7 of the manuscript on ONE application build per model (metareview A, M2) and the conditional
+    policy's floor M = P - 1 (metareview B, SS4).  Both are re-derived from the flight app's own guest logs into a
+    temp file and compared with the committed summary (D89); the binary identity is the guest-side sha256 checked
+    against the archived tree records, not the scenario file alone."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e63_single_build_and_conditional_floor")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e63/0 summary.json present", False, "missing %s" % sp)]
+    s = json.load(open(sp))
+    out.append(Result("e63/1 verdict Q1 PASS and Q2 PASS", s.get("verdict") == {"Q1": "PASS", "Q2": "PASS"},
+                      json.dumps(s.get("verdict"))))
+    cf = s.get("Q2_conditional_floor", {}).get("cells", {})
+    bad = [m for m, r in cf.items() if not (r.get("verdict") == "NOT_ADMITTED" and r.get("allow_conditional_map") == 1
+                                            and r.get("budget_is_P_minus_1") and r.get("mem_init_records") == 0
+                                            and r.get("map_branch_records") == 0 and r.get("run_records") == 0
+                                            and r.get("cfs_operational") is True)]
+    out.append(Result("e63/2 conditional build at M = P - 1: NOT_ADMITTED, no module append, no runtime init, "
+                      "no inference, cFS operational (4 models)", len(cf) == 4 and not bad,
+                      "bad: %s" % bad if bad else "4/4"))
+    t7 = s.get("Q1_table7_single_build", {}).get("cell", {})
+    ok = (t7.get("verdict") == "ADMIT" and t7.get("binding") == "MATCH"
+          and (t7.get("blob_align") or {}).get("module_ptr_mod64") == 0 and t7.get("hal_peak_after_append") == 0
+          and (t7.get("completed") or 0) >= 1 and t7.get("final_hal_peak") == 131382784)
+    out.append(Result("e63/3 WGAN on the E55b build with the image aligned: map arm (mod64 0, append 0), "
+                      ">=1 inference, final peak exactly P = 131,382,784", ok,
+                      json.dumps({k: t7.get(k) for k in ("verdict", "binding", "hal_peak_after_append",
+                                                         "completed", "final_hal_peak")})))
+    rows = s.get("table7_one_build_per_model", {}).get("rows", {})
+    bad = [m for m, r in rows.items() if not (r.get("same_binary") and r.get("map_eq_P") and r.get("copy_eq_P_plus_C"))]
+    out.append(Result("e63/4 Table 7: each model's map and copy cells ran one binary (guest sha256 == archived "
+                      "E55b tree), map peak = P, copy peak = P + C", len(rows) == 4 and not bad,
+                      "bad: %s" % bad if bad else "4/4"))
+    hashes = [r.get("so_guest_sha256") for r in cf.values()] + [t7.get("so_guest_sha256")]
+    out.append(Result("e63/5 V: every binary the cells loaded matches its archived record (5/5)",
+                      all(r.get("V_so_matches") for r in cf.values()) and t7.get("V_so_matches") is True
+                      and None not in hashes, "%d hashes" % len(hashes)))
+    live = os.path.join(tmp, "e63_summary_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "mk_e63_summary.py"), "--out", live],
+                       capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live)
+    if ok:
+        L = json.load(open(live))
+        ok = (L.get("verdict") == s.get("verdict") and L.get("table7_one_build_per_model") == s.get("table7_one_build_per_model")
+              and L.get("Q2_conditional_floor") == s.get("Q2_conditional_floor"))
+    out.append(Result("e63/6 re-derived from the raw guest logs, verdict, Table 7 rows and floor cells equal the "
+                      "committed ones", ok, "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
 def e59_info_levels_aarch64_cases(tmp):
     """E59: the information-level comparison (E35/E27) redone on the EVALUATION TARGET's artifacts.
 
