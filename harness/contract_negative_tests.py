@@ -9155,6 +9155,7 @@ def main():
         all_results += e59_info_levels_aarch64_cases(tmp)
         all_results += e58_alignment_sweep_aarch64_cases(tmp)
         all_results += e57_onair_aarch64_cases(tmp)
+        all_results += e63_single_build_and_conditional_floor_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
