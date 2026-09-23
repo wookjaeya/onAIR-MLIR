@@ -7921,6 +7921,77 @@ def e60_deepae_layers_aarch64_cases(tmp):
 
 
 # ---------------------------------------------------------------------------
+# E61 -- the reference outputs of tab:outputs, produced on the evaluation target.
+# ---------------------------------------------------------------------------
+def e61_reference_on_target_cases(tmp):
+    """E61: every reference (original TFLite runtime output) used to be produced on the ground side;
+    E61 produces it in the AArch64 guest and re-judges the archived target outputs against it.
+    The committed guest records are the raw data; the verdict is RE-DERIVED from them into a temp
+    dir (D89) -- a guard that only read summary.json would stay green if the records were reverted."""
+    results = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e61_reference_on_target")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.isfile(sp):
+        return [Result("e61: summary.json present", False, "missing")]
+    d = load(sp)
+    M = d["models"]
+    import e61_reference_on_target as e61
+    bad = []
+    for m, r in M.items():
+        want = hashlib.sha256(open(os.path.join(repo, e61.TFLITE[m]), "rb").read()).hexdigest()
+        if not (r.get("valid") and r.get("machine") == "aarch64" and r.get("model_sha256") == want):
+            bad.append(m)
+    results.append(Result("e61/1 all four references were produced on aarch64 from the preserved original .tflite",
+                          not bad and len(M) == 4 and d["verdict"]["all_valid"] is True, "bad: %s" % bad if bad else "4/4"))
+    rows = {m: (M[m]["Q2"]["cfs"]["verdict"], M[m]["Q2"]["cfs"]["totals"]["elements_failed"]) for m in M}
+    agree = all(M[m]["Q2"]["native"]["verdict"] == M[m]["Q2"]["cfs"]["verdict"] and
+                M[m]["Q2"]["native"]["totals"] == M[m]["Q2"]["cfs"]["totals"] for m in M)
+    results.append(Result("e61/2 re-judged against the target reference: ResNet PASS 0, DeepAE FAIL 139, SmartCam PASS 0 "
+                          "(native and cFS rows identical)",
+                          agree and rows.get("b2_resnet") == ("PASS", 0) and rows.get("b3_deepae") == ("FAIL", 139)
+                          and rows.get("smartcam") == ("PASS", 0), str(rows)))
+    cmp = load(os.path.join(root, "comparisons", "b3_deepae_cfs.json"))
+    failing = sorted(x["sample_id"] for x in cmp["samples"] if not x["ok"])
+    results.append(Result("e61/3 DeepAE's exceedance spans four windows against the target reference (one against the ground one)",
+                          len(failing) == 4 and "normal_id_04_00000043_hist_librosa_w98" in failing, str(failing)))
+    q1 = {m: (M[m]["Q1"].get("bitwise_identical_samples"), M[m]["Q1"].get("samples")) for m in M}
+    results.append(Result("e61/4 Q1 recorded as an observation: the reference runtime's outputs differ from the ground-side "
+                          "ones at every sample of the three E45 models",
+                          all(q1[m][0] == 0 and q1[m][1] for m in ("b2_resnet", "b3_deepae", "smartcam")), str(q1)))
+    L = d["e60_layers"]
+    results.append(Result("e61/5 E60's window against the target's own intermediates: no layer before the last exceeds "
+                          "tolerance, the last has 37 (it had L1=6 and 46 against the ground reference)",
+                          L["violations_per_layer_vs_guest_reference"] == [0] * 9 + [37]
+                          and L["preserving_run_matches_default_output_bitwise"] is True
+                          and L["guest_final_layer_equals_guest_oracle_for_this_window"] is True
+                          and L["violations_per_layer_vs_ground_reference_E60"] == [0, 0, 0, 0, 0, 0, 1, 1, 0, 46],
+                          str(L["violations_per_layer_vs_guest_reference"])))
+    src = open(os.path.join(HERE, "tflite_oracle.py"), encoding="utf-8").read()
+    results.append(Result("e61/6 the reference tool records the machine that produced it",
+                          '"machine": platform.machine()' in src, ""))
+    try:
+        import numpy  # noqa: F401,PLC0415
+    except ImportError:
+        results.append(Result("e61/7 re-derived from the committed guest records, the verdict equals the committed one",
+                              True, "needs numpy", skip=True))
+        return results
+    out = os.path.join(tmp, "e61_live")
+    rc, _, err = run([PY, os.path.join(HERE, "e61_reference_on_target.py"), "judge", "--guest",
+                      os.path.join(root, "guest"), "--out", out], cwd=repo)
+    live = load(os.path.join(out, "summary.json")) if rc == 0 else {}
+
+    def shape(doc):
+        mm = doc.get("models", {})
+        return {"q2": {m: {w: (mm[m]["Q2"][w]["verdict"], mm[m]["Q2"][w]["totals"]) for w in ("native", "cfs")}
+                       for m in mm if mm[m].get("valid")},
+                "e60": (doc.get("e60_layers") or {}).get("violations_per_layer_vs_guest_reference")}
+    results.append(Result("e61/7 re-derived from the committed guest records, the verdict equals the committed one",
+                          rc == 0 and shape(live) == shape(d), "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+# ---------------------------------------------------------------------------
 # E39b -- three primary documents read in full, and what that does NOT license.
 # ---------------------------------------------------------------------------
 def e39b_prior_art_fulltext_cases(tmp):
