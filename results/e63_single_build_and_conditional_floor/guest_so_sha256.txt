@@ -1,0 +1,11 @@
+# sha256 of the guest binaries, computed in the guest immediately before the E63 cells (plan SS3 V)
+28d85cf763766217bb3633f68b8484ad6392a119d4b24875b959ad92750855ce  /home/ubuntu/e55_run/variants/e55b_wgan_copy/ai_learner.so
+631e96f8a35567e371f21ad028f7d4aad3fbec9389989b86115d1d9120584c02  /home/ubuntu/e56_run/variants/e56_b2_resnet/ai_learner.so
+58112d2677458d5f199b6febab518c3652f50ae8da652730d3ff173e4d354e1f  /home/ubuntu/e56_run/variants/e56_b3_deepae/ai_learner.so
+225925a8b51067adf96a7687397e42bb854e2ac3ad1040c8fb302b62cf5f5c04  /home/ubuntu/e56_run/variants/e56_smartcam/ai_learner.so
+8d89a41c49e655e795b0a0b99124c7fd57eb099025131db5f0b7d0f87756d5a4  /home/ubuntu/e56_run/variants/e56_wgan/ai_learner.so
+# added while the T7 cell ran: the other three E55b binaries at the path E58's off00 cells loaded
+# (results/e58_alignment_sweep_aarch64/scenarios.json `so`), so Table 7's map column can be tied to the same files
+f43281ddb717791b74a081e0cb338aa9f25513acbd77e852451ced5c291a11aa  /home/ubuntu/e55_run/variants/e55b_b2_resnet_copy/ai_learner.so
+146158d7909a9bf79c41ed572221822245ad7a75b5efbb8ce7acfba2a458d5dc  /home/ubuntu/e55_run/variants/e55b_b3_deepae_copy/ai_learner.so
+592bf99f79013534bee3a6d5c4edc7ecc925a3076b422256786590cf403cb670  /home/ubuntu/e55_run/variants/e55b_smartcam_copy/ai_learner.so

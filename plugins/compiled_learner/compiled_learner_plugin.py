@@ -61,6 +61,12 @@ Design points carried over and the reasons they exist:
   status is MEMORY RELEASE NOT VERIFIED on this path -- E33's own runs report unreleased
   nanobind instances at interpreter shutdown and no HAL peak was measured here. The
   opposite ("this leaks") may not be written either. See docs/EVIDENCE_v0.36_E33.md SS10.
+  E57 (v0.66) then OBSERVED it on the evaluation target (D103): with `np.array(out)` the
+  binding's host readback keeps one output buffer per call. E62 moves the readback into
+  `readback.py`, whose default path copies through the buffer protocol and drops every
+  reference; the previous path stays selectable as `output_readback: "asarray"` (E57's
+  deployments pin it so E57 remains reproducible). Whether the default path releases the
+  buffer is the measured question of docs/plans/E62_onair_output_release.md.
 """
 
 import json
@@ -73,7 +79,9 @@ import numpy as np
 
 from onair.src.ai_components.ai_plugin_abstract.ai_plugin import AIPlugin
 
+from . import artifact_binding as ab
 from .artifact_binding import ArtifactBindingError, verify_artifact_binding
+from .readback import DEFAULT_READBACK, READBACK_MODES, ReadbackUnavailable, read_output
 
 _HARNESS = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))), "harness")
@@ -104,6 +112,25 @@ class Plugin(AIPlugin):
         self.verify_artifact_hash = bool(d.get("verify_artifact_hash", True))
         self.allow_conditional_map = bool(d.get("allow_conditional_map", False))
         self.budget_bytes = d.get("budget_bytes")
+        # E57: opt-in HAL allocator statistics. Off by default so every existing deployment
+        # records exactly what it recorded before; on, the plugin reads the allocator of ITS
+        # OWN context after module append and after each inference (post `del out`), which is
+        # the only way to observe premise A (output released between calls) on this path --
+        # D60 withdrew "released" because nothing here had ever measured it.
+        self.record_hal_statistics = bool(d.get("record_hal_statistics", False))
+        self.hal_after_append = None
+        # E62: how the result is copied to the host. The default releases the device buffer;
+        # "asarray" is the pre-E62 path (D103), kept as a named control. An unknown value
+        # refuses inside the guard below rather than guessing.
+        self.output_readback = d.get("output_readback", DEFAULT_READBACK)
+        # E62: the ENFORCEMENT half of premise A on this path (v19 metareview M1). The cFS
+        # application enforces call sequentiality with its own counter (E55/P0-3); this path had
+        # only the budget comparison. On, the plugin reads its allocator after every call and, if
+        # the live bytes did not return to their post-append value, records
+        # `precondition_violated` and stops inferring -- before the next call can stack another
+        # output. Opt-in: off, every existing deployment behaves exactly as before.
+        self.enforce_output_release = bool(d.get("enforce_output_release", False))
+        self.n_precondition_violations = 0
 
         # state that must exist even when the plugin refuses to activate, so that a
         # refusal is a reported state rather than an exception through OnAIR
@@ -151,6 +178,9 @@ class Plugin(AIPlugin):
         # down (plan SS4-3). The first version of this file loaded the contract above the
         # guard and killed the OnAIR run on a missing file -- measured, then fixed.
         try:
+            if self.output_readback not in READBACK_MODES:
+                raise ContractViolation("unknown output_readback %r (one of %s)"
+                                        % (self.output_readback, READBACK_MODES))
             self.contract = self._load_contract()
             self.entry = self.contract["interface"].get("entry", "infer")
             self.in_shape = tuple(int(v) for v in self.contract["interface"]["input"]["shape"])
@@ -161,19 +191,55 @@ class Plugin(AIPlugin):
             self.bound_us = self.contract.get("timing", {}).get("execution_bound_us")
             self.bound_boundary = self.contract.get("timing", {}).get("boundary")
             self._validate_inputs_against_headers()
+            self._check_declared_driver()
             self._decide_admission()
             self._load_artifact()
+            if self.record_hal_statistics or self.enforce_output_release:
+                self.hal_after_append = self._hal_stats()
+            if self.enforce_output_release and not (self.hal_after_append or {}).get("available"):
+                # cannot enforce what cannot be observed: refuse instead of running unenforced
+                raise ContractViolation(
+                    "enforce_output_release requested but allocator statistics are unavailable (%s)"
+                    % (self.hal_after_append or {}).get("unavailable_reason"))
             self.active = True
         except (ContractViolation, ap.AdmissionInputError, OSError, KeyError, ValueError) as e:
             # Never take the OnAIR process down with us: stay inactive and say why.
             self.inactive_reason = "%s: %s" % (type(e).__name__, e)
             print("[%s] INACTIVE -- %s" % (self.component_name, self.inactive_reason))
-        self._record({"event": "init", "active": self.active,
-                      "inactive_reason": self.inactive_reason,
-                      "input_mode": self.input_mode,
-                      "admission": self.admission, "binding": self.binding,
-                      "entry": getattr(self, "entry", None),
-                      "deployment_source": self.deployment.get("source")})
+        init_rec = {"event": "init", "active": self.active,
+                    "inactive_reason": self.inactive_reason,
+                    "input_mode": self.input_mode,
+                    "admission": self.admission, "binding": self.binding,
+                    "entry": getattr(self, "entry", None),
+                    "deployment_source": self.deployment.get("source"),
+                    # E57: a DIRECT signal, not an inference from a missing record (D80): the
+                    # IREE context exists only if _load_artifact() got past every gate
+                    "runtime_created": self._ctx is not None,
+                    "output_readback": self.output_readback,
+                    "enforce_output_release": self.enforce_output_release}
+        if self.record_hal_statistics or self.enforce_output_release:
+            init_rec["hal_after_append"] = self.hal_after_append
+            init_rec["module_ptr_mod64"] = None
+            init_rec["module_ptr_mod64_unavailable_reason"] = (
+                "not observable from the Python binding: VmModule.copy_buffer places its own copy "
+                "of the image and does not expose the address")
+        self._record(init_rec)
+
+    def _hal_stats(self):
+        """Allocator statistics of this plugin's own context. Unavailable is recorded as
+        unavailable with the reason -- never as zero (D29/D51/D68, E57 plan F6)."""
+        try:
+            alloc = self._ctx.config.device.allocator
+            if not getattr(alloc, "has_statistics", False):
+                return {"available": False,
+                        "unavailable_reason": "allocator reports has_statistics=False"}
+            st = dict(alloc.statistics)
+        except Exception as e:                                  # noqa: BLE001
+            return {"available": False, "unavailable_reason": "%s: %s" % (type(e).__name__, e)}
+        a, f = st.get("device_bytes_allocated"), st.get("device_bytes_freed")
+        return {"available": True, "device_bytes_peak": st.get("device_bytes_peak"),
+                "device_bytes_allocated": a, "device_bytes_freed": f,
+                "device_bytes_live": (a - f) if (a is not None and f is not None) else None}
 
     def _record(self, obj):
         if not self.record_path:
@@ -250,14 +316,45 @@ class Plugin(AIPlugin):
         if not fx or not os.path.isdir(fx):
             raise ContractViolation("file_replay mode needs an existing fixture_dir (got %r)" % fx)
 
+    def _check_declared_driver(self):
+        """E41: refuse a deployment driver the contract does not declare.
+
+        The rule itself lives in artifact_binding.check_declared_driver() -- a pure,
+        stdlib-only function, so it can be exercised without standing up OnAIR (the
+        same shape as the artifact hash/size gate next to it). Refuses BEFORE the
+        runtime is created, like every other binding check here.
+        """
+        try:
+            ab.check_declared_driver(self.contract, self.driver)
+        except ab.DeclaredDriverError as e:
+            raise ContractViolation(str(e))
+
     def _decide_admission(self):
         """Decide BEFORE the artifact is opened, so a refusal never touches the runtime."""
+        # E44: say WHERE the budget came from. The cFS app has recorded `budget_source`
+        # since E36 ("macro" | "override") and native_learner records "argv"; this path
+        # took its budget from the deployment JSON and labelled nothing, so one of the
+        # three deployment paths could not state its budget's provenance.
+        #
+        # The value names the mechanism that exists, not the roadmap's
+        # {mission configuration, cFS table, experiment override}: "cFS table" has no
+        # implementation here (CFE_TBL appears only in cFS boot logs, never in source)
+        # and "mission configuration" would promote a config file into a claim.
+        #
+        # `budget_scope` is deliberately NOT added -- resources.scope,
+        # accounting_rules.excluded (E40) and "scope":"per_app_local_budget" already
+        # carry it, and a fourth name for one concept is D65's pattern.
         if self.budget_bytes is None:
             self.admission = {"verdict": "NOT_EVALUATED", "admitted_budget_bytes": None,
+                              "budget_source": "none",
+                              "budget_source_note": "this deployment declares no budget_bytes, "
+                                                    "so there is nothing to source",
                               "reason": "no budget_bytes configured for this deployment"}
             return
         self.admission = ap.decide(self.contract, int(self.budget_bytes),
                                    allow_conditional_map=self.allow_conditional_map)
+        self.admission["budget_source"] = "deployment_config"
+        self.admission["budget_source_detail"] = self.deployment.get("source")
         if not ap.admitted(self.admission["verdict"]):
             raise ContractViolation("admission %s -- %s"
                                     % (self.admission["verdict"], self.admission["reason"]))
@@ -393,8 +490,19 @@ class Plugin(AIPlugin):
         out = self._fn(self._x, *self._weights)
         t2 = time.perf_counter_ns()
         # read every element back, then let the device buffer go: the contract's
-        # per-call term counts ONE live input/output pair (E32/D59)
-        y = np.array(out, copy=True).reshape(-1)
+        # per-call term counts ONE live input/output pair (E32/D59). The readback path is
+        # E62's: the pre-E62 `np.array(out)` kept one output buffer per call (D103).
+        try:
+            y = read_output(out, self.output_readback)
+        except ReadbackUnavailable as e:
+            del out
+            # never fall back to the retaining path silently: stop inferring and say why
+            self.active = False
+            self.inactive_reason = "ReadbackUnavailable: %s" % e
+            self._record({"event": "readback_unavailable", "n": self.n_infer,
+                          "output_readback": self.output_readback, "reason": str(e)})
+            print("[%s] INACTIVE -- %s" % (self.component_name, self.inactive_reason))
+            return {"active": False, "reason": self.inactive_reason, "inferences": self.n_infer}
         del out
         t3 = time.perf_counter_ns()
 
@@ -402,10 +510,35 @@ class Plugin(AIPlugin):
         self.lat["L2b_reason"].append(t3 - t0)
         self.n_infer += 1
         self.last_output = [float(v) for v in y]
-        self._record({"event": "inference", "n": self.n_infer,
-                      "sample_id": self.last_sample_id, "mode": self.input_mode,
-                      "output": self.last_output,
-                      "admitted_budget_bytes": (self.admission or {}).get("admitted_budget_bytes")})
+        rec = {"event": "inference", "n": self.n_infer,
+               "sample_id": self.last_sample_id, "mode": self.input_mode,
+               "output": self.last_output,
+               "output_readback": self.output_readback,
+               "admitted_budget_bytes": (self.admission or {}).get("admitted_budget_bytes")}
+        hal_now = None
+        if self.record_hal_statistics or self.enforce_output_release:
+            # read AFTER `del out`: this plugin holds no reference to the device result here,
+            # so a live count above the post-append value is a buffer the path did not release
+            hal_now = self._hal_stats()
+        if self.record_hal_statistics:
+            rec["hal"] = hal_now
+        self._record(rec)
+        violated = False
+        if self.enforce_output_release:
+            base = (self.hal_after_append or {}).get("device_bytes_live")
+            live = (hal_now or {}).get("device_bytes_live")
+            if not (hal_now or {}).get("available") or base is None or live is None or live != base:
+                # unobservable counts as violated: enforcement must not pass what it cannot see
+                violated = True
+                self.n_precondition_violations += 1
+                self.active = False
+                self.inactive_reason = ("precondition_violated: output_release -- live %s after call %d, "
+                                        "post-append %s" % (live, self.n_infer, base))
+                self._record({"event": "precondition_violated", "premise": "output_release",
+                              "n": self.n_infer, "device_bytes_live": live,
+                              "post_append_live": base, "hal": hal_now,
+                              "output_readback": self.output_readback})
+                print("[%s] INACTIVE -- %s" % (self.component_name, self.inactive_reason))
 
         if self.bound_us is not None and self.bound_boundary in self.lat:
             if self.lat[self.bound_boundary][-1] / 1e3 > self.bound_us:
@@ -413,8 +546,9 @@ class Plugin(AIPlugin):
 
         # The framework gets a summary; the FULL output stays available for
         # verification (a 640-output autoencoder has no meaningful argmax).
-        return {"active": True, "mode": self.input_mode,
+        return {"active": not violated, "mode": self.input_mode,
                 "sample_id": self.last_sample_id,
+                "precondition_violated": violated,
                 "output_elements": len(self.last_output),
                 "score": self.last_output[0],
                 "argmax": int(np.argmax(y)) if y.size else None}

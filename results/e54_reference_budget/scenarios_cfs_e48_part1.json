@@ -1,0 +1,206 @@
+[
+  {
+    "id": "PA_pdr50__b2_resnet",
+    "part": "part1_reference_profile",
+    "model": "b2_resnet",
+    "desc": "E54 Part 1: reference budget PA_pdr50 (B_contract=1917443102, U=618856)",
+    "so": "variants/b2_resnet/ai_learner.so",
+    "startup": "variants/b2_resnet/cfe_es_startup.scr",
+    "vmfb": "models/b2_resnet.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "1917443102"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PA_pdr50__b3_deepae",
+    "part": "part1_reference_profile",
+    "model": "b3_deepae",
+    "desc": "E54 Part 1: reference budget PA_pdr50 (B_contract=1916708942, U=1069632)",
+    "so": "variants/b3_deepae/ai_learner.so",
+    "startup": "variants/b3_deepae/cfe_es_startup.scr",
+    "vmfb": "models/b3_deepae.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "1916708942"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PA_pdr50__smartcam",
+    "part": "part1_reference_profile",
+    "model": "smartcam",
+    "desc": "E54 Part 1: reference budget PA_pdr50 (B_contract=1907615220, U=18222796)",
+    "so": "variants/smartcam/ai_learner.so",
+    "startup": "variants/smartcam/cfe_es_startup.scr",
+    "vmfb": "models/smartcam.vmfb",
+    "seconds": 420,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "1907615220"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PA_ship30__b2_resnet",
+    "part": "part1_reference_profile",
+    "model": "b2_resnet",
+    "desc": "E54 Part 1: reference budget PA_ship30 (B_contract=2776436561, U=618856)",
+    "so": "variants/b2_resnet/ai_learner.so",
+    "startup": "variants/b2_resnet/cfe_es_startup.scr",
+    "vmfb": "models/b2_resnet.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "2776436561"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PA_ship30__b3_deepae",
+    "part": "part1_reference_profile",
+    "model": "b3_deepae",
+    "desc": "E54 Part 1: reference budget PA_ship30 (B_contract=2775702401, U=1069632)",
+    "so": "variants/b3_deepae/ai_learner.so",
+    "startup": "variants/b3_deepae/cfe_es_startup.scr",
+    "vmfb": "models/b3_deepae.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "2775702401"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PA_ship30__smartcam",
+    "part": "part1_reference_profile",
+    "model": "smartcam",
+    "desc": "E54 Part 1: reference budget PA_ship30 (B_contract=2766608679, U=18222796)",
+    "so": "variants/smartcam/ai_learner.so",
+    "startup": "variants/smartcam/cfe_es_startup.scr",
+    "vmfb": "models/smartcam.vmfb",
+    "seconds": 420,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "2766608679"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PB_pdr50__b2_resnet",
+    "part": "part1_reference_profile",
+    "model": "b2_resnet",
+    "desc": "E54 Part 1: reference budget PB_pdr50 (B_contract=306830366, U=618856)",
+    "so": "variants/b2_resnet/ai_learner.so",
+    "startup": "variants/b2_resnet/cfe_es_startup.scr",
+    "vmfb": "models/b2_resnet.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "306830366"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PB_pdr50__b3_deepae",
+    "part": "part1_reference_profile",
+    "model": "b3_deepae",
+    "desc": "E54 Part 1: reference budget PB_pdr50 (B_contract=306096206, U=1069632)",
+    "so": "variants/b3_deepae/ai_learner.so",
+    "startup": "variants/b3_deepae/cfe_es_startup.scr",
+    "vmfb": "models/b3_deepae.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "306096206"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PB_pdr50__smartcam",
+    "part": "part1_reference_profile",
+    "model": "smartcam",
+    "desc": "E54 Part 1: reference budget PB_pdr50 (B_contract=297002484, U=18222796)",
+    "so": "variants/smartcam/ai_learner.so",
+    "startup": "variants/smartcam/cfe_es_startup.scr",
+    "vmfb": "models/smartcam.vmfb",
+    "seconds": 420,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "297002484"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PB_ship30__b2_resnet",
+    "part": "part1_reference_profile",
+    "model": "b2_resnet",
+    "desc": "E54 Part 1: reference budget PB_ship30 (B_contract=521578730, U=618856)",
+    "so": "variants/b2_resnet/ai_learner.so",
+    "startup": "variants/b2_resnet/cfe_es_startup.scr",
+    "vmfb": "models/b2_resnet.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "521578730"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PB_ship30__b3_deepae",
+    "part": "part1_reference_profile",
+    "model": "b3_deepae",
+    "desc": "E54 Part 1: reference budget PB_ship30 (B_contract=520844570, U=1069632)",
+    "so": "variants/b3_deepae/ai_learner.so",
+    "startup": "variants/b3_deepae/cfe_es_startup.scr",
+    "vmfb": "models/b3_deepae.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "520844570"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "PB_ship30__smartcam",
+    "part": "part1_reference_profile",
+    "model": "smartcam",
+    "desc": "E54 Part 1: reference budget PB_ship30 (B_contract=511750848, U=18222796)",
+    "so": "variants/smartcam/ai_learner.so",
+    "startup": "variants/smartcam/cfe_es_startup.scr",
+    "vmfb": "models/smartcam.vmfb",
+    "seconds": 420,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "511750848"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  }
+]

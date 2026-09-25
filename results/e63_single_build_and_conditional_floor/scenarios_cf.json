@@ -1,0 +1,114 @@
+[
+ {
+  "part": "e63_single_build_and_conditional_floor",
+  "model": "b2_resnet",
+  "so": "variants/e56_b2_resnet/ai_learner.so",
+  "startup": "variants/e56_b2_resnet/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "id": "e63_b2_resnet_cond_Pm1",
+  "seconds": 120,
+  "desc": "E63 CF cell: E56 CONDITIONAL build (ALLOW_CONDITIONAL_MAP=1, same binary as E56's cells), budget M = P - 1 = 309415, no alignment offset. Neither tier fits (B_m = P > M), so expect NOT_ADMITTED before any runtime resource: no mem_init, 0 inferences, cFS operational. Plan SS3.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "309415"
+  },
+  "expect": {
+   "admission": "NOT_ADMITTED",
+   "runtime_created": false,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e63": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "budget": 309415,
+   "role": "conditional_floor",
+   "expect_so_sha256_file": "results/e56_conditional_refusal_aarch64/trees/e56_b2_resnet/so_sha256.json"
+  }
+ },
+ {
+  "part": "e63_single_build_and_conditional_floor",
+  "model": "b3_deepae",
+  "so": "variants/e56_b3_deepae/ai_learner.so",
+  "startup": "variants/e56_b3_deepae/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "id": "e63_b3_deepae_cond_Pm1",
+  "seconds": 120,
+  "desc": "E63 CF cell: E56 CONDITIONAL build (ALLOW_CONDITIONAL_MAP=1, same binary as E56's cells), budget M = P - 1 = 6207, no alignment offset. Neither tier fits (B_m = P > M), so expect NOT_ADMITTED before any runtime resource: no mem_init, 0 inferences, cFS operational. Plan SS3.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "6207"
+  },
+  "expect": {
+   "admission": "NOT_ADMITTED",
+   "runtime_created": false,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e63": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "budget": 6207,
+   "role": "conditional_floor",
+   "expect_so_sha256_file": "results/e56_conditional_refusal_aarch64/trees/e56_b3_deepae/so_sha256.json"
+  }
+ },
+ {
+  "part": "e63_single_build_and_conditional_floor",
+  "model": "smartcam",
+  "so": "variants/e56_smartcam/ai_learner.so",
+  "startup": "variants/e56_smartcam/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "id": "e63_smartcam_cond_Pm1",
+  "seconds": 120,
+  "desc": "E63 CF cell: E56 CONDITIONAL build (ALLOW_CONDITIONAL_MAP=1, same binary as E56's cells), budget M = P - 1 = 9382091, no alignment offset. Neither tier fits (B_m = P > M), so expect NOT_ADMITTED before any runtime resource: no mem_init, 0 inferences, cFS operational. Plan SS3.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "9382091"
+  },
+  "expect": {
+   "admission": "NOT_ADMITTED",
+   "runtime_created": false,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e63": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "budget": 9382091,
+   "role": "conditional_floor",
+   "expect_so_sha256_file": "results/e56_conditional_refusal_aarch64/trees/e56_smartcam/so_sha256.json"
+  }
+ },
+ {
+  "part": "e63_single_build_and_conditional_floor",
+  "model": "wgan",
+  "so": "variants/e56_wgan/ai_learner.so",
+  "startup": "variants/e56_wgan/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "id": "e63_wgan_cond_Pm1",
+  "seconds": 120,
+  "desc": "E63 CF cell: E56 CONDITIONAL build (ALLOW_CONDITIONAL_MAP=1, same binary as E56's cells), budget M = P - 1 = 131382783, no alignment offset. Neither tier fits (B_m = P > M), so expect NOT_ADMITTED before any runtime resource: no mem_init, 0 inferences, cFS operational. Plan SS3.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "131382783"
+  },
+  "expect": {
+   "admission": "NOT_ADMITTED",
+   "runtime_created": false,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e63": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "budget": 131382783,
+   "role": "conditional_floor",
+   "expect_so_sha256_file": "results/e56_conditional_refusal_aarch64/trees/e56_wgan/so_sha256.json"
+  }
+ }
+]

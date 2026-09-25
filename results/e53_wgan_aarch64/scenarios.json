@@ -1,0 +1,26 @@
+[
+  {
+    "id": "cfs_Bm1",
+    "model": "wgan",
+    "desc": "E53 step 5: budget = bounded - 1 -> NOT_ADMITTED, 0 inferences",
+    "so": "variants/wgan/ai_learner.so",
+    "startup": "variants/wgan/cfe_es_startup.scr",
+    "vmfb": "models/wgan.vmfb",
+    "seconds": 90,
+    "env": {"AI_LEARNER_BUDGET_OVERRIDE": "135666431"},
+    "expect": {"admission": "NOT_ADMITTED", "min_completed": 0}
+  },
+  {
+    "id": "cfs_B",
+    "model": "wgan",
+    "desc": "E53 step 4: budget = bounded -> ADMIT, replay 1 real sample, compare HAL peak",
+    "so": "variants/wgan/ai_learner.so",
+    "startup": "variants/wgan/cfe_es_startup.scr",
+    "vmfb": "models/wgan.vmfb",
+    "seconds": 10800,
+    "env": {"AI_LEARNER_BUDGET_OVERRIDE": "135666432"},
+    "stage": {"e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"},
+    "fetch": ["e25_outputs.bin"],
+    "expect": {"admission": "ADMIT", "min_completed": 1}
+  }
+]

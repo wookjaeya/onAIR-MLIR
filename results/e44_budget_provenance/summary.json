@@ -1,0 +1,65 @@
+{
+ "experiment": "E44",
+ "title": "Budget provenance",
+ "plan": "docs/plans/E44_budget_provenance.md (committed before measurement, 2aa93cf)",
+ "what_was_narrowed": {
+  "budget_source": "ALREADY EXISTED (cFS app since E36, pinned in 5 tests). Extended to the two paths that labelled nothing; no value renamed.",
+  "budget_scope": "NOT ADDED -- resources.scope, accounting_rules.excluded (E40) and the admission record's per_app_local_budget already carry it. A fourth name for one concept is D65's pattern.",
+  "reservation_semantics": "NOT ADDED as a contract field -- E39a pre-registered the same concept as axis A5, and a contract field would put the fact in a second place no guard re-checks. A5 is DERIVED instead.",
+  "roadmap_enum_rejected": "{mission configuration, cFS table, experiment override} -- 'cFS table' has no implementation (CFE_TBL appears only in cFS boot logs, never in source) and 'mission configuration' would promote a CMake macro into an unearned claim."
+ },
+ "paths": [
+  {
+   "path": "OnAIR plugin (budget declared)",
+   "readable": true,
+   "mechanism": "OnAIR deployment JSON",
+   "verdict": "ADMIT",
+   "budget_bytes": 18222796,
+   "budget_source": "deployment_config",
+   "detail": "/home/user/onAIR-MLIR/results/e44_budget_provenance/onair_budget_labelled/deployment.json[smartcam]",
+   "cell": "results/e44_budget_provenance/onair_budget_labelled"
+  },
+  {
+   "path": "OnAIR plugin (no budget)",
+   "readable": true,
+   "mechanism": "OnAIR deployment JSON",
+   "verdict": "NOT_EVALUATED",
+   "budget_bytes": null,
+   "budget_source": "none",
+   "detail": "this deployment declares no budget_bytes, so there is nothing to source",
+   "cell": "results/e44_budget_provenance/onair_no_budget"
+  },
+  {
+   "path": "native executor",
+   "readable": true,
+   "mechanism": "argv[2]",
+   "verdict": "ADMIT",
+   "budget_bytes": 1048576,
+   "budget_source": "argv",
+   "detail": "harness-free C executor; the budget is a command-line argument",
+   "cell": "results/e44_budget_provenance/native_admission.jsonl"
+  },
+  {
+   "path": "cFS app",
+   "readable": true,
+   "mechanism": "compile-time macro, or runtime override (E36)",
+   "verdict": "NOT_ADMITTED",
+   "budget_bytes": 9382092,
+   "budget_source": "override",
+   "detail": "cited from E38's re-run cells, not re-run here",
+   "cited_from": "e38_rerun",
+   "archived_logs_carrying_budget_source": 21,
+   "cell": "results/e38_optin_record/cells/cond_denied_without_optin.log"
+  }
+ ],
+ "all_paths_label_their_budget": true,
+ "a5_axis": {
+  "verdict": "declared",
+  "reason": "no reservation call appears in any source file, so the budget is a number compared against a contract, not a reservation of physical memory",
+  "files_scanned": 85,
+  "hits": 0,
+  "derived_in_table": true,
+  "table_cell": "**declared** — 예산은 앱에 부여한 값이며 물리 RAM을 예약하지 않는다 (예약 호출 0건 / 소스 85파일, `harness/budget_provenance.py`",
+  "never_promotes": "a hit downgrades to `unknown`; it never yields `enforced`, because a call existing is not that call reserving this budget (E28/D52)."
+ }
+}

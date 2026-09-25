@@ -1,0 +1,71 @@
+{
+ "tool": "harness/onair_integration_check.py",
+ "deployment": "e62_b3_deepae_Bu_long_fix",
+ "onair": {
+  "path": "/home/ubuntu/e57/OnAIR",
+  "head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+  "core_unmodified": true,
+  "untracked_unchanged": true,
+  "tracked_dirty_before": "",
+  "tracked_dirty_after": "",
+  "status_before": "?? csv_out_252_06_15.csv",
+  "status_after": "?? csv_out_252_06_15.csv",
+  "check_note": "OnAIR core must be untouched: no TRACKED file may be modified before or after the run. Untracked files left by OnAIR's own example runs are reported separately and are not a modification"
+ },
+ "invocation": {
+  "cmd": [
+   "/usr/bin/python3",
+   "driver.py",
+   "onair.ini"
+  ],
+  "cwd": "/home/ubuntu/e57/OnAIR",
+  "env_var": "ONAIR_MLIR_DEPLOYMENT_CONFIG",
+  "ini": "/home/ubuntu/e62/out/e62_b3_deepae_Bu_long_fix/onair.ini",
+  "deployment_config": "/home/ubuntu/e62/out/e62_b3_deepae_Bu_long_fix/deployment.json"
+ },
+ "returncode": 0,
+ "plugin_constructed": true,
+ "plugin_init": {
+  "event": "init",
+  "active": true,
+  "inactive_reason": null,
+  "input_mode": "file_replay",
+  "admission": {
+   "bounded_bytes": 1069632,
+   "per_call_bytes": 6208,
+   "constants_bytes": 1063424,
+   "budget_bytes": 1069632,
+   "bound_method": "static_from_stream_layout",
+   "scope": "per_app_local_budget",
+   "verdict": "ADMIT",
+   "admitted_budget_bytes": 1069632,
+   "conditional_available": false,
+   "reason": "bounded 1069632 <= budget 1069632",
+   "budget_source": "deployment_config",
+   "budget_source_detail": "/home/ubuntu/e62/out/e62_b3_deepae_Bu_long_fix/deployment.json[e62_b3_deepae_Bu_long_fix]"
+  },
+  "binding": {
+   "verdict": "MATCH",
+   "artifact_bytes": 1080730,
+   "artifact_sha256": "9ff64bd168e07135c196423d44408e7780984c977912b67c8240c0db522c4d7c"
+  },
+  "entry": "infer",
+  "deployment_source": "/home/ubuntu/e62/out/e62_b3_deepae_Bu_long_fix/deployment.json[e62_b3_deepae_Bu_long_fix]",
+  "runtime_created": true,
+  "output_readback": "buffer_protocol",
+  "enforce_output_release": false,
+  "hal_after_append": {
+   "available": true,
+   "device_bytes_peak": 0,
+   "device_bytes_allocated": 0,
+   "device_bytes_freed": 0,
+   "device_bytes_live": 0
+  },
+  "module_ptr_mod64": null,
+  "module_ptr_mod64_unavailable_reason": "not observable from the Python binding: VmModule.copy_buffer places its own copy of the image and does not expose the address"
+ },
+ "inferences": 450,
+ "stdout_tail": "ENT DATA: [420.0, 12.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 422 ---------------------\n\u001b[0m\nCURRENT DATA: [421.0, 13.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 423 ---------------------\n\u001b[0m\nCURRENT DATA: [422.0, 14.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 424 ---------------------\n\u001b[0m\nCURRENT DATA: [423.0, 15.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 425 ---------------------\n\u001b[0m\nCURRENT DATA: [424.0, 16.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 426 ---------------------\n\u001b[0m\nCURRENT DATA: [425.0, 17.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 427 ---------------------\n\u001b[0m\nCURRENT DATA: [426.0, 18.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 428 ---------------------\n\u001b[0m\nCURRENT DATA: [427.0, 19.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 429 ---------------------\n\u001b[0m\nCURRENT DATA: [428.0, 20.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 430 ---------------------\n\u001b[0m\nCURRENT DATA: [429.0, 21.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 431 ---------------------\n\u001b[0m\nCURRENT DATA: [430.0, 22.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 432 ---------------------\n\u001b[0m\nCURRENT DATA: [431.0, 23.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 433 ---------------------\n\u001b[0m\nCURRENT DATA: [432.0, 24.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 434 ---------------------\n\u001b[0m\nCURRENT DATA: [433.0, 25.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 435 ---------------------\n\u001b[0m\nCURRENT DATA: [434.0, 26.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 436 ---------------------\n\u001b[0m\nCURRENT DATA: [435.0, 27.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 437 ---------------------\n\u001b[0m\nCURRENT DATA: [436.0, 28.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 438 ---------------------\n\u001b[0m\nCURRENT DATA: [437.0, 29.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 439 ---------------------\n\u001b[0m\nCURRENT DATA: [438.0, 30.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 440 ---------------------\n\u001b[0m\nCURRENT DATA: [439.0, 31.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 441 ---------------------\n\u001b[0m\nCURRENT DATA: [440.0, 32.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 442 ---------------------\n\u001b[0m\nCURRENT DATA: [441.0, 33.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 443 ---------------------\n\u001b[0m\nCURRENT DATA: [442.0, 0.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 444 ---------------------\n\u001b[0m\nCURRENT DATA: [443.0, 1.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 445 ---------------------\n\u001b[0m\nCURRENT DATA: [444.0, 2.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 446 ---------------------\n\u001b[0m\nCURRENT DATA: [445.0, 3.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 447 ---------------------\n\u001b[0m\nCURRENT DATA: [446.0, 4.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 448 ---------------------\n\u001b[0m\nCURRENT DATA: [447.0, 5.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 449 ---------------------\n\u001b[0m\nCURRENT DATA: [448.0, 6.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 450 ---------------------\n\u001b[0m\nCURRENT DATA: [449.0, 7.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n",
+ "stderr_tail": "",
+ "records_file": "/home/ubuntu/e62/out/e62_b3_deepae_Bu_long_fix/plugin_records.jsonl"
+}

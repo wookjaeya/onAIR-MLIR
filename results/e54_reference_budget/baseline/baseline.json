@@ -1,0 +1,90 @@
+{
+  "experiment": "E54",
+  "measurement": "cFS baseline with NO AI_LEARNER and NO model artifact",
+  "m2": {
+    "description": "full app suite minus ai_learner",
+    "apps_emitting_evs": [
+      13
+    ],
+    "startup_apps_declared": [
+      14
+    ],
+    "core_cpu1_vmhwm_kb": {
+      "n": 3,
+      "min": 5156,
+      "max": 6364,
+      "median": 5156,
+      "values": [
+        5156,
+        6364,
+        5156
+      ]
+    },
+    "raw": [
+      "results/e54_reference_budget/baseline/raw/e54_m2_rep1.json",
+      "results/e54_reference_budget/baseline/raw/e54_m2_rep2.json",
+      "results/e54_reference_budget/baseline/raw/e54_m2_rep3.json"
+    ]
+  },
+  "m3": {
+    "description": "libs + lab infrastructure only",
+    "apps_emitting_evs": [
+      2
+    ],
+    "startup_apps_declared": [
+      3
+    ],
+    "core_cpu1_vmhwm_kb": {
+      "n": 3,
+      "min": 4112,
+      "max": 5324,
+      "median": 4112,
+      "values": [
+        4112,
+        4112,
+        5324
+      ]
+    },
+    "raw": [
+      "results/e54_reference_budget/baseline/raw/e54_m3_rep1.json",
+      "results/e54_reference_budget/baseline/raw/e54_m3_rep2.json",
+      "results/e54_reference_budget/baseline/raw/e54_m3_rep3.json"
+    ]
+  },
+  "guest_system_used_before_cfs_kb": {
+    "n": 6,
+    "min": 215096,
+    "max": 217300,
+    "median": 216436.0,
+    "values": [
+      215096,
+      215992,
+      217300,
+      216284,
+      216588,
+      217148
+    ]
+  },
+  "harness_rss_included_in_system_used_kb": {
+    "n": 6,
+    "min": 38208,
+    "max": 47168,
+    "median": 38236.0,
+    "values": [
+      38228,
+      38240,
+      47168,
+      38208,
+      38232,
+      47164
+    ]
+  },
+  "harness_note": "These measurements are taken over ssh, so sshd/bash/systemd RSS is inside system_used_before. It is NOT subtracted: leaving it in enlarges the overhead and therefore shrinks the budget, which is the safe direction and is applied uniformly rather than chosen per result.",
+  "separability_rule": "configs separate iff min(M2 VmHWM) > max(M3 VmHWM)",
+  "separable": false,
+  "r_other_apps_note": "NOT separable: min(M2)=5156 kB is not above max(M3)=5324 kB (M2 [5156, 6364, 5156], M3 [4112, 4112, 5324]). cFS loads every app as a .so into ONE process, so run-to-run variation of that single VmRSS is comparable to the mission apps' contribution. R_other_apps is therefore 0 NOT because it was measured as zero, but because R_OS_cFS is taken from M2, which already contains the mission apps -- adding it again would double-count.",
+  "r_os_cfs_bytes": 229031936,
+  "r_os_cfs_derivation": "max(guest system used before cFS, harness included) + max(M2 VmHWM)",
+  "r_other_apps_bytes": 0,
+  "scope": "process/system RAM (NOT HAL device allocation -- see budgets.json scope_note)"
+}

@@ -1,0 +1,126 @@
+[
+ {
+  "part": "e56_conditional_refusal_aarch64",
+  "model": "b2_resnet",
+  "so": "variants/e56_b2_resnet/ai_learner.so",
+  "startup": "variants/e56_b2_resnet/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "id": "e56_b2_resnet_refuse",
+  "seconds": 600,
+  "desc": "E56 R-cell: conditional tier ENABLED (ALLOW_CONDITIONAL_MAP=1) at budget M = P = 309416, with AI_LEARNER_BLOB_ALIGN_OFFSET=8 moving the module image off the 64-byte class. Expect ADMIT_CONDITIONAL_MAP, then MAP_PRECONDITION_UNMET BEFORE the runtime is created: no mem_init record, 0 inferences, cFS stays operational. Plan SS3, falsifiers F1-F3, F5.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "309416",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "runtime_created": false,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e56": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 8,
+   "role": "refusal",
+   "expect_map_branch_verdict": "MAP_PRECONDITION_UNMET",
+   "expect_module_ptr_mod64": 8
+  }
+ },
+ {
+  "part": "e56_conditional_refusal_aarch64",
+  "model": "b3_deepae",
+  "so": "variants/e56_b3_deepae/ai_learner.so",
+  "startup": "variants/e56_b3_deepae/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "id": "e56_b3_deepae_refuse",
+  "seconds": 600,
+  "desc": "E56 R-cell: conditional tier ENABLED (ALLOW_CONDITIONAL_MAP=1) at budget M = P = 6208, with AI_LEARNER_BLOB_ALIGN_OFFSET=8 moving the module image off the 64-byte class. Expect ADMIT_CONDITIONAL_MAP, then MAP_PRECONDITION_UNMET BEFORE the runtime is created: no mem_init record, 0 inferences, cFS stays operational. Plan SS3, falsifiers F1-F3, F5.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "6208",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "runtime_created": false,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e56": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 8,
+   "role": "refusal",
+   "expect_map_branch_verdict": "MAP_PRECONDITION_UNMET",
+   "expect_module_ptr_mod64": 8
+  }
+ },
+ {
+  "part": "e56_conditional_refusal_aarch64",
+  "model": "smartcam",
+  "so": "variants/e56_smartcam/ai_learner.so",
+  "startup": "variants/e56_smartcam/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "id": "e56_smartcam_refuse",
+  "seconds": 600,
+  "desc": "E56 R-cell: conditional tier ENABLED (ALLOW_CONDITIONAL_MAP=1) at budget M = P = 9382092, with AI_LEARNER_BLOB_ALIGN_OFFSET=8 moving the module image off the 64-byte class. Expect ADMIT_CONDITIONAL_MAP, then MAP_PRECONDITION_UNMET BEFORE the runtime is created: no mem_init record, 0 inferences, cFS stays operational. Plan SS3, falsifiers F1-F3, F5.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "9382092",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "runtime_created": false,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e56": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 8,
+   "role": "refusal",
+   "expect_map_branch_verdict": "MAP_PRECONDITION_UNMET",
+   "expect_module_ptr_mod64": 8
+  }
+ },
+ {
+  "part": "e56_conditional_refusal_aarch64",
+  "model": "wgan",
+  "so": "variants/e56_wgan/ai_learner.so",
+  "startup": "variants/e56_wgan/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "id": "e56_wgan_refuse",
+  "seconds": 600,
+  "desc": "E56 R-cell: conditional tier ENABLED (ALLOW_CONDITIONAL_MAP=1) at budget M = P = 131382784, with AI_LEARNER_BLOB_ALIGN_OFFSET=8 moving the module image off the 64-byte class. Expect ADMIT_CONDITIONAL_MAP, then MAP_PRECONDITION_UNMET BEFORE the runtime is created: no mem_init record, 0 inferences, cFS stays operational. Plan SS3, falsifiers F1-F3, F5.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "131382784",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "runtime_created": false,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e56": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 8,
+   "role": "refusal",
+   "expect_map_branch_verdict": "MAP_PRECONDITION_UNMET",
+   "expect_module_ptr_mod64": 8
+  }
+ }
+]

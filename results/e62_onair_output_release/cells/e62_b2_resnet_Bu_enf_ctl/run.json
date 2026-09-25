@@ -1,0 +1,71 @@
+{
+ "tool": "harness/onair_integration_check.py",
+ "deployment": "e62_b2_resnet_Bu_enf_ctl",
+ "onair": {
+  "path": "/home/ubuntu/e57/OnAIR",
+  "head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+  "core_unmodified": true,
+  "untracked_unchanged": true,
+  "tracked_dirty_before": "",
+  "tracked_dirty_after": "",
+  "status_before": "?? csv_out_252_06_15.csv",
+  "status_after": "?? csv_out_252_06_15.csv",
+  "check_note": "OnAIR core must be untouched: no TRACKED file may be modified before or after the run. Untracked files left by OnAIR's own example runs are reported separately and are not a modification"
+ },
+ "invocation": {
+  "cmd": [
+   "/usr/bin/python3",
+   "driver.py",
+   "onair.ini"
+  ],
+  "cwd": "/home/ubuntu/e57/OnAIR",
+  "env_var": "ONAIR_MLIR_DEPLOYMENT_CONFIG",
+  "ini": "/home/ubuntu/e62/out/e62_b2_resnet_Bu_enf_ctl/onair.ini",
+  "deployment_config": "/home/ubuntu/e62/out/e62_b2_resnet_Bu_enf_ctl/deployment.json"
+ },
+ "returncode": 0,
+ "plugin_constructed": true,
+ "plugin_init": {
+  "event": "init",
+  "active": true,
+  "inactive_reason": null,
+  "input_mode": "file_replay",
+  "admission": {
+   "bounded_bytes": 618856,
+   "per_call_bytes": 309416,
+   "constants_bytes": 309440,
+   "budget_bytes": 618856,
+   "bound_method": "static_from_stream_layout",
+   "scope": "per_app_local_budget",
+   "verdict": "ADMIT",
+   "admitted_budget_bytes": 618856,
+   "conditional_available": false,
+   "reason": "bounded 618856 <= budget 618856",
+   "budget_source": "deployment_config",
+   "budget_source_detail": "/home/ubuntu/e62/out/e62_b2_resnet_Bu_enf_ctl/deployment.json[e62_b2_resnet_Bu_enf_ctl]"
+  },
+  "binding": {
+   "verdict": "MATCH",
+   "artifact_bytes": 343538,
+   "artifact_sha256": "2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb"
+  },
+  "entry": "infer",
+  "deployment_source": "/home/ubuntu/e62/out/e62_b2_resnet_Bu_enf_ctl/deployment.json[e62_b2_resnet_Bu_enf_ctl]",
+  "runtime_created": true,
+  "output_readback": "asarray",
+  "enforce_output_release": true,
+  "hal_after_append": {
+   "available": true,
+   "device_bytes_peak": 0,
+   "device_bytes_allocated": 0,
+   "device_bytes_freed": 0,
+   "device_bytes_live": 0
+  },
+  "module_ptr_mod64": null,
+  "module_ptr_mod64_unavailable_reason": "not observable from the Python binding: VmModule.copy_buffer places its own copy of the image and does not expose the address"
+ },
+ "inferences": 1,
+ "stdout_tail": "--------------------- STEP 21 ---------------------\n\u001b[0m\nCURRENT DATA: [20.0, 20.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 22 ---------------------\n\u001b[0m\nCURRENT DATA: [21.0, 21.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 23 ---------------------\n\u001b[0m\nCURRENT DATA: [22.0, 22.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 24 ---------------------\n\u001b[0m\nCURRENT DATA: [23.0, 23.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 25 ---------------------\n\u001b[0m\nCURRENT DATA: [24.0, 24.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 26 ---------------------\n\u001b[0m\nCURRENT DATA: [25.0, 25.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 27 ---------------------\n\u001b[0m\nCURRENT DATA: [26.0, 26.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 28 ---------------------\n\u001b[0m\nCURRENT DATA: [27.0, 27.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 29 ---------------------\n\u001b[0m\nCURRENT DATA: [28.0, 28.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 30 ---------------------\n\u001b[0m\nCURRENT DATA: [29.0, 29.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 31 ---------------------\n\u001b[0m\nCURRENT DATA: [30.0, 30.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 32 ---------------------\n\u001b[0m\nCURRENT DATA: [31.0, 31.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 33 ---------------------\n\u001b[0m\nCURRENT DATA: [32.0, 32.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 34 ---------------------\n\u001b[0m\nCURRENT DATA: [33.0, 33.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 35 ---------------------\n\u001b[0m\nCURRENT DATA: [34.0, 0.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 36 ---------------------\n\u001b[0m\nCURRENT DATA: [35.0, 1.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 37 ---------------------\n\u001b[0m\nCURRENT DATA: [36.0, 2.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 38 ---------------------\n\u001b[0m\nCURRENT DATA: [37.0, 3.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 39 ---------------------\n\u001b[0m\nCURRENT DATA: [38.0, 4.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 40 ---------------------\n\u001b[0m\nCURRENT DATA: [39.0, 5.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 41 ---------------------\n\u001b[0m\nCURRENT DATA: [40.0, 6.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 42 ---------------------\n\u001b[0m\nCURRENT DATA: [41.0, 7.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 43 ---------------------\n\u001b[0m\nCURRENT DATA: [42.0, 8.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 44 ---------------------\n\u001b[0m\nCURRENT DATA: [43.0, 9.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 45 ---------------------\n\u001b[0m\nCURRENT DATA: [44.0, 10.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 46 ---------------------\n\u001b[0m\nCURRENT DATA: [45.0, 11.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 47 ---------------------\n\u001b[0m\nCURRENT DATA: [46.0, 12.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 48 ---------------------\n\u001b[0m\nCURRENT DATA: [47.0, 13.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 49 ---------------------\n\u001b[0m\nCURRENT DATA: [48.0, 14.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 50 ---------------------\n\u001b[0m\nCURRENT DATA: [49.0, 15.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n",
+ "stderr_tail": "nanobind: leaked 2 instances!\nnanobind: leaked 1 keep_alive records!\nnanobind: leaked 7 types!\n - leaked type \"iree._runtime_libs._runtime.ParameterIndexEntry\"\n - leaked type \"iree._runtime_libs._runtime.MappedMemory\"\n - leaked type \"iree._runtime_libs._runtime.VmModule\"\n - leaked type \"Linkage\"\n - leaked type \"iree._runtime_libs._runtime.HalBufferView\"\n - leaked type \"HalElementType\"\n - leaked type \"iree._runtime_libs._runtime.ParameterIndex\"\nnanobind: leaked 51 functions!\n - leaked function \"items\"\n - leaked function \"\"\n - leaked function \"__int__\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"add_splat\"\n - leaked function \"__repr__\"\n - leaked function \"__eq__\"\n - leaked function \"dense_byte_count\"\n - leaked function \"add_from_file_handle\"\n - leaked function \"mmap\"\n - leaked function \"create_archive_file\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"reserve\"\n - leaked function \"__len__\"\n - leaked function \"__repr__\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"is_byte_aligned\"\n - leaked function \"add_buffer\"\n - leaked function \"resolve_module_dependency\"\n - leaked function \"\"\n - leaked function \"__iree_vm_type__\"\n - leaked function \"from_buffer\"\n - leaked function \"__init__\"\n - leaked function \"__iree_vm_cast__\"\n - leaked function \"\"\n - leaked function \"copy_buffer\"\n - leaked function \"asarray\"\n - leaked function \"map_to_dtype\"\n - leaked function \"load\"\n - leaked function \"__getitem__\"\n - leaked function \"wrap_buffer\"\n - leaked function \"\"\n - leaked function \"__init__\"\n - leaked function \"__repr__\"\n - leaked function \"__repr__\"\n - leaked function \"\"\n - leaked function \"from_flatbuffer\"\n - leaked function \"\"\n - leaked function \"get_buffer\"\n - leaked function \"\"\n - leaked function \"load_from_file_handle\"\n - leaked function \"create_provider\"\n - leaked function \"map\"\n - leaked function \"\"\n - leaked function \"\"\n - leaked function \"lookup_function\"\n - leaked function \"\"\n - leaked function \"\"\nnanobind: this is likely caused by a reference counting issue in the binding code.\nSee https://nanobind.readthedocs.io/en/latest/refleaks.html",
+ "records_file": "/home/ubuntu/e62/out/e62_b2_resnet_Bu_enf_ctl/plugin_records.jsonl"
+}

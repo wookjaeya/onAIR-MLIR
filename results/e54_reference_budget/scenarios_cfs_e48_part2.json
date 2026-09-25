@@ -1,0 +1,104 @@
+[
+  {
+    "id": "sweep_b2_resnet_pow2_below",
+    "part": "part2_sensitivity_sweep",
+    "model": "b2_resnet",
+    "desc": "E54 Part 2 (NOT a mission budget): power-of-two grid point 524288 < U=618856",
+    "so": "variants/b2_resnet/ai_learner.so",
+    "startup": "variants/b2_resnet/cfe_es_startup.scr",
+    "vmfb": "models/b2_resnet.vmfb",
+    "seconds": 180,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "524288"
+    },
+    "expect": {
+      "admission": "NOT_ADMITTED",
+      "min_completed": 0
+    }
+  },
+  {
+    "id": "sweep_b2_resnet_pow2_above",
+    "part": "part2_sensitivity_sweep",
+    "model": "b2_resnet",
+    "desc": "E54 Part 2 (NOT a mission budget): power-of-two grid point 1048576 >= U=618856",
+    "so": "variants/b2_resnet/ai_learner.so",
+    "startup": "variants/b2_resnet/cfe_es_startup.scr",
+    "vmfb": "models/b2_resnet.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "1048576"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "sweep_b3_deepae_pow2_below",
+    "part": "part2_sensitivity_sweep",
+    "model": "b3_deepae",
+    "desc": "E54 Part 2 (NOT a mission budget): power-of-two grid point 1048576 < U=1069632",
+    "so": "variants/b3_deepae/ai_learner.so",
+    "startup": "variants/b3_deepae/cfe_es_startup.scr",
+    "vmfb": "models/b3_deepae.vmfb",
+    "seconds": 180,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "1048576"
+    },
+    "expect": {
+      "admission": "NOT_ADMITTED",
+      "min_completed": 0
+    }
+  },
+  {
+    "id": "sweep_b3_deepae_pow2_above",
+    "part": "part2_sensitivity_sweep",
+    "model": "b3_deepae",
+    "desc": "E54 Part 2 (NOT a mission budget): power-of-two grid point 2097152 >= U=1069632",
+    "so": "variants/b3_deepae/ai_learner.so",
+    "startup": "variants/b3_deepae/cfe_es_startup.scr",
+    "vmfb": "models/b3_deepae.vmfb",
+    "seconds": 300,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "2097152"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  },
+  {
+    "id": "sweep_smartcam_pow2_below",
+    "part": "part2_sensitivity_sweep",
+    "model": "smartcam",
+    "desc": "E54 Part 2 (NOT a mission budget): power-of-two grid point 16777216 < U=18222796",
+    "so": "variants/smartcam/ai_learner.so",
+    "startup": "variants/smartcam/cfe_es_startup.scr",
+    "vmfb": "models/smartcam.vmfb",
+    "seconds": 180,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "16777216"
+    },
+    "expect": {
+      "admission": "NOT_ADMITTED",
+      "min_completed": 0
+    }
+  },
+  {
+    "id": "sweep_smartcam_pow2_above",
+    "part": "part2_sensitivity_sweep",
+    "model": "smartcam",
+    "desc": "E54 Part 2 (NOT a mission budget): power-of-two grid point 33554432 >= U=18222796",
+    "so": "variants/smartcam/ai_learner.so",
+    "startup": "variants/smartcam/cfe_es_startup.scr",
+    "vmfb": "models/smartcam.vmfb",
+    "seconds": 420,
+    "env": {
+      "AI_LEARNER_BUDGET_OVERRIDE": "33554432"
+    },
+    "expect": {
+      "admission": "ADMIT",
+      "min_completed": 1
+    }
+  }
+]

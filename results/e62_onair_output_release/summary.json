@@ -1,0 +1,426 @@
+{
+ "experiment": "E62",
+ "plan": "docs/plans/E62_onair_output_release.md",
+ "plan_commit": "046a7af",
+ "generated_by": "harness/mk_e62_summary.py",
+ "target": "AArch64 QEMU system guest; iree-base-runtime 3.11.0 cp312-abi3 aarch64 wheel (same as E57)",
+ "criteria": {
+  "P1_mechanism": {
+   "present": true,
+   "asarray_refcount": {
+    "before": 2,
+    "while_array_or_view_alive": 3,
+    "after_array_or_view_gone": 3,
+    "delta_after": 1
+   },
+   "asarray_live_after_all_dropped": 2560,
+   "bufproto_refcount": {
+    "before": 2,
+    "while_array_or_view_alive": 3,
+    "after_array_or_view_gone": 2,
+    "delta_after": 0
+   },
+   "bufproto_live_after_all_dropped": 0,
+   "same_output": true,
+   "holds": true
+  },
+  "P2_probe_loops": {
+   "present": true,
+   "calls": [
+    20,
+    20
+   ],
+   "bufproto_all_live_0_peak_P": true,
+   "asarray_live_k_times_O": true,
+   "outputs_identical_per_call": 20,
+   "asarray_last": {
+    "call": 20,
+    "available": true,
+    "peak": 54848,
+    "live": 51200,
+    "output_sha256": "5f52d5bbecfe9dba202f99fb8ac1698446ee70693a8825767e7b1c3ee8d407ac"
+   },
+   "bufproto_last": {
+    "call": 20,
+    "available": true,
+    "peak": 6208,
+    "live": 0,
+    "output_sha256": "5f52d5bbecfe9dba202f99fb8ac1698446ee70693a8825767e7b1c3ee8d407ac"
+   },
+   "holds": true
+  },
+  "P3_fix_arm": {
+   "cells": {
+    "e62_b2_resnet_Bu_fix": {
+     "present": true,
+     "inferences": 50,
+     "post_append_live": 0,
+     "all_peak_eq_P_live_eq_post_append": true,
+     "max_peak": 309416,
+     "admitted_budget": 618856,
+     "any_call_over_admitted_budget": false,
+     "outputs_bitidentical_to_e57": 50,
+     "e57_source": "e57_b2_resnet_Bu",
+     "leaks": {
+      "instances": 0,
+      "keep_alive_records": 0,
+      "mapped_memory_type_listed": false,
+      "stderr_tail_chars": 0
+     },
+     "returncode": 0,
+     "onair_core_unmodified": true
+    },
+    "e62_b3_deepae_Bu_fix": {
+     "present": true,
+     "inferences": 100,
+     "post_append_live": 0,
+     "all_peak_eq_P_live_eq_post_append": true,
+     "max_peak": 6208,
+     "admitted_budget": 1069632,
+     "any_call_over_admitted_budget": false,
+     "outputs_bitidentical_to_e57": 100,
+     "e57_source": "e57_b3_deepae_Bu",
+     "leaks": {
+      "instances": 0,
+      "keep_alive_records": 0,
+      "mapped_memory_type_listed": false,
+      "stderr_tail_chars": 0
+     },
+     "returncode": 0,
+     "onair_core_unmodified": true
+    },
+    "e62_smartcam_Bu_fix": {
+     "present": true,
+     "inferences": 50,
+     "post_append_live": 0,
+     "all_peak_eq_P_live_eq_post_append": true,
+     "max_peak": 9382092,
+     "admitted_budget": 18222796,
+     "any_call_over_admitted_budget": false,
+     "outputs_bitidentical_to_e57": 50,
+     "e57_source": "e57_smartcam_Bu",
+     "leaks": {
+      "instances": 0,
+      "keep_alive_records": 0,
+      "mapped_memory_type_listed": false,
+      "stderr_tail_chars": 0
+     },
+     "returncode": 0,
+     "onair_core_unmodified": true
+    },
+    "e62_wgan_Bu_fix": {
+     "present": true,
+     "inferences": 3,
+     "post_append_live": 0,
+     "all_peak_eq_P_live_eq_post_append": true,
+     "max_peak": 131382784,
+     "admitted_budget": 135666432,
+     "any_call_over_admitted_budget": false,
+     "outputs_bitidentical_to_e57": 3,
+     "e57_source": "e57_wgan_Bu",
+     "leaks": {
+      "instances": 0,
+      "keep_alive_records": 0,
+      "mapped_memory_type_listed": false,
+      "stderr_tail_chars": 0
+     },
+     "returncode": 0,
+     "onair_core_unmodified": true
+    },
+    "e62_b3_deepae_Bu_long_fix": {
+     "present": true,
+     "inferences": 450,
+     "post_append_live": 0,
+     "all_peak_eq_P_live_eq_post_append": true,
+     "max_peak": 6208,
+     "admitted_budget": 1069632,
+     "any_call_over_admitted_budget": false,
+     "outputs_bitidentical_to_e57": 450,
+     "e57_source": "e57_b3_deepae_Bu_long",
+     "leaks": {
+      "instances": 0,
+      "keep_alive_records": 0,
+      "mapped_memory_type_listed": false,
+      "stderr_tail_chars": 0
+     },
+     "returncode": 0,
+     "onair_core_unmodified": true
+    }
+   },
+   "holds": true
+  },
+  "P5_control_reproduces_e57": {
+   "cells": {
+    "e62_b2_resnet_Bu_ctl": {
+     "inferences": 50,
+     "series_equal_e57": true,
+     "outputs_bitidentical_to_e57": 50,
+     "last": [
+      311376,
+      2000
+     ],
+     "leaks": {
+      "instances": 100,
+      "keep_alive_records": 50,
+      "mapped_memory_type_listed": true,
+      "stderr_tail_chars": 2122
+     },
+     "e57_leaks": {
+      "instances": 100,
+      "keep_alive_records": 50,
+      "mapped_memory_type_listed": true,
+      "stderr_tail_chars": 2122
+     }
+    },
+    "e62_b3_deepae_Bu_ctl": {
+     "inferences": 100,
+     "series_equal_e57": true,
+     "outputs_bitidentical_to_e57": 100,
+     "last": [
+      259648,
+      256000
+     ],
+     "leaks": {
+      "instances": 200,
+      "keep_alive_records": 100,
+      "mapped_memory_type_listed": true,
+      "stderr_tail_chars": 2123
+     },
+     "e57_leaks": {
+      "instances": 200,
+      "keep_alive_records": 100,
+      "mapped_memory_type_listed": true,
+      "stderr_tail_chars": 2123
+     }
+    },
+    "e62_smartcam_Bu_ctl": {
+     "inferences": 50,
+     "series_equal_e57": true,
+     "outputs_bitidentical_to_e57": 50,
+     "last": [
+      9382680,
+      600
+     ],
+     "leaks": {
+      "instances": 100,
+      "keep_alive_records": 50,
+      "mapped_memory_type_listed": true,
+      "stderr_tail_chars": 2122
+     },
+     "e57_leaks": {
+      "instances": 100,
+      "keep_alive_records": 50,
+      "mapped_memory_type_listed": true,
+      "stderr_tail_chars": 2122
+     }
+    },
+    "e62_wgan_Bu_ctl": {
+     "inferences": 3,
+     "series_equal_e57": true,
+     "outputs_bitidentical_to_e57": 3,
+     "last": [
+      132587008,
+      1806336
+     ],
+     "leaks": {
+      "instances": 6,
+      "keep_alive_records": 3,
+      "mapped_memory_type_listed": true,
+      "stderr_tail_chars": 2119
+     },
+     "e57_leaks": {
+      "instances": 6,
+      "keep_alive_records": 3,
+      "mapped_memory_type_listed": true,
+      "stderr_tail_chars": 2119
+     }
+    }
+   },
+   "holds": true
+  },
+  "P4_values_unchanged": {
+   "holds": true,
+   "default_cell_bitidentical": 50
+  },
+  "P6_shutdown_leak_report": {
+   "fix": {
+    "e62_b2_resnet_Bu_fix": {
+     "instances": 0,
+     "keep_alive_records": 0,
+     "mapped_memory_type_listed": false,
+     "stderr_tail_chars": 0
+    },
+    "e62_b3_deepae_Bu_fix": {
+     "instances": 0,
+     "keep_alive_records": 0,
+     "mapped_memory_type_listed": false,
+     "stderr_tail_chars": 0
+    },
+    "e62_smartcam_Bu_fix": {
+     "instances": 0,
+     "keep_alive_records": 0,
+     "mapped_memory_type_listed": false,
+     "stderr_tail_chars": 0
+    },
+    "e62_wgan_Bu_fix": {
+     "instances": 0,
+     "keep_alive_records": 0,
+     "mapped_memory_type_listed": false,
+     "stderr_tail_chars": 0
+    },
+    "e62_b3_deepae_Bu_long_fix": {
+     "instances": 0,
+     "keep_alive_records": 0,
+     "mapped_memory_type_listed": false,
+     "stderr_tail_chars": 0
+    }
+   },
+   "control": {
+    "e62_b2_resnet_Bu_ctl": {
+     "instances": 100,
+     "keep_alive_records": 50,
+     "mapped_memory_type_listed": true,
+     "stderr_tail_chars": 2122
+    },
+    "e62_b3_deepae_Bu_ctl": {
+     "instances": 200,
+     "keep_alive_records": 100,
+     "mapped_memory_type_listed": true,
+     "stderr_tail_chars": 2123
+    },
+    "e62_smartcam_Bu_ctl": {
+     "instances": 100,
+     "keep_alive_records": 50,
+     "mapped_memory_type_listed": true,
+     "stderr_tail_chars": 2122
+    },
+    "e62_wgan_Bu_ctl": {
+     "instances": 6,
+     "keep_alive_records": 3,
+     "mapped_memory_type_listed": true,
+     "stderr_tail_chars": 2119
+    }
+   },
+   "stderr_capture_demonstrated_by_control": true,
+   "holds": true
+  },
+  "P7_default_is_fix": {
+   "present": true,
+   "init_output_readback": "buffer_protocol",
+   "inferences": 50,
+   "all_peak_eq_P_live_0": true,
+   "holds": true
+  },
+  "P8_decision_half_and_core": {
+   "deny": {
+    "b2_resnet": {
+     "verdict": "NOT_ADMITTED",
+     "runtime_created": false,
+     "inferences": 0,
+     "active": false
+    },
+    "b3_deepae": {
+     "verdict": "NOT_ADMITTED",
+     "runtime_created": false,
+     "inferences": 0,
+     "active": false
+    },
+    "smartcam": {
+     "verdict": "NOT_ADMITTED",
+     "runtime_created": false,
+     "inferences": 0,
+     "active": false
+    },
+    "wgan": {
+     "verdict": "NOT_ADMITTED",
+     "runtime_created": false,
+     "inferences": 0,
+     "active": false
+    }
+   },
+   "onair_core_unmodified_all": true,
+   "holds": true
+  },
+  "P9_enforcement": {
+   "cells": {
+    "e62_b2_resnet_Bu_enf_ctl": {
+     "inferences": 1,
+     "violations": 1,
+     "violation_live": 40,
+     "violation_post_append": 0,
+     "max_peak": 309416,
+     "returncode": 0,
+     "holds": true
+    },
+    "e62_b2_resnet_Bu_enf_fix": {
+     "inferences": 50,
+     "violations": 0,
+     "all_peak_eq_P_live_0": true,
+     "holds": true
+    },
+    "e62_b3_deepae_Bu_enf_ctl": {
+     "inferences": 1,
+     "violations": 1,
+     "violation_live": 2560,
+     "violation_post_append": 0,
+     "max_peak": 6208,
+     "returncode": 0,
+     "holds": true
+    },
+    "e62_b3_deepae_Bu_enf_fix": {
+     "inferences": 100,
+     "violations": 0,
+     "all_peak_eq_P_live_0": true,
+     "holds": true
+    },
+    "e62_smartcam_Bu_enf_ctl": {
+     "inferences": 1,
+     "violations": 1,
+     "violation_live": 12,
+     "violation_post_append": 0,
+     "max_peak": 9382092,
+     "returncode": 0,
+     "holds": true
+    },
+    "e62_smartcam_Bu_enf_fix": {
+     "inferences": 50,
+     "violations": 0,
+     "all_peak_eq_P_live_0": true,
+     "holds": true
+    }
+   },
+   "holds": true,
+   "scope": "three models; WGAN enforcement cells not run (plan SS3)"
+  }
+ },
+ "falsifiers": {
+  "F4_mechanism_refuted": false,
+  "F1_fix_insufficient": false,
+  "F5_readback_unavailable": false,
+  "F3_control_differs_from_e57": false,
+  "F2_output_differs": false,
+  "F6_enforcement_wrong": {
+   "type_B_blocks_honest_run": false,
+   "type_A_misses_violation": false
+  }
+ },
+ "holds": {
+  "P1_mechanism": true,
+  "P2_probe_loops": true,
+  "P3_fix_arm": true,
+  "P5_control_reproduces_e57": true,
+  "P4_values_unchanged": true,
+  "P6_shutdown_leak_report": true,
+  "P7_default_is_fix": true,
+  "P8_decision_half_and_core": true,
+  "P9_enforcement": true
+ },
+ "verdict": "PASS",
+ "not_claimed": [
+  "an IREE upstream defect confirmed, reported or fixed; other wheels, revisions or drivers",
+  "results that are not host-mappable (the device-copy path also goes through asarray; the fix refuses it)",
+  "latency (the guest is FUNCTIONAL_ONLY); the cFS path (unaffected); the conditional tier",
+  "process RSS (D78): the measured quantity is the HAL allocator statistic",
+  "enforcement on WGAN (not run)"
+ ]
+}

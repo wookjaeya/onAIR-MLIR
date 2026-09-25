@@ -5,8 +5,8 @@
 
 | 셀 | 값 |
 |---|---|
-| 전체 | 21 (3모델 × 7항목) |
-| present | 21 |
+| 전체 | 24 (3모델 × 7항목) |
+| present | 24 |
 | present 아님 | 0 |
 
 ## OPS-SAT SmartCam (비행 모델) (`smartcam`)
@@ -17,7 +17,7 @@
 |---|---|---|
 | model_reality | FLIGHT-ARTIFACT | `results/p1_smartcam_feasibility/source_manifest.json`:`status_in_this_repo`; `results/p1_smartcam_feasibility/source_manifest.json`:`original_artifact.modified` |
 | weights_origin | TRAINED (원본 비행 모델에 베이킹됨) | `results/p1_smartcam_feasibility/source_manifest.json`:`source.path` |
-| input_reality | MIXED — 실이미지 3 + 합성 32 + 상수 경계 2 | `results/e31_smartcam_equivalence/fixture/manifest.json`:`counts`; `results/e31_smartcam_equivalence/fixture/manifest.json`:`source.note` |
+| input_reality | REAL+SYNTHETIC — E45 실입력 19 + 초기 fixture 실입력 3 + 합성·경계 34 | `results/e31_smartcam_equivalence/fixture/manifest.json`:`counts`; `results/e31_smartcam_equivalence/fixture/manifest.json`:`source.note`; `results/e45_real_inputs/cells/smartcam/fixture/manifest.json`:`counts` |
 | verified_property | 의미 동치(전체 출력) + 계약·admission + HAL peak ≤ 승인 예산 | `results/e31_smartcam_equivalence/summary.json`:`verdict`; `results/e36_aarch64_cfs/summary.json`:`verdicts` |
 | not_claimed | — | `results/e31_smartcam_equivalence/summary.json`:`not_claimed`; `results/e36_aarch64_cfs/summary.json`:`not_claimed` |
 
@@ -161,6 +161,25 @@
 | AArch64 cFS 게스트 셀 7개 (승인·거부·조건부·대조군·무효 예산) | `results/e36_aarch64_cfs/summary.json` | script=있음, raw=있음, git=추적, AI_LEARNER_BUDGET_OVERRIDE in ai_learner.c=예, AI_LEARNER_ALLOW_CONDITIONAL_MAP in ai_learner.c=예, ALLOW_CONDITIONAL_MAP in 51_build_cfs_aarch64.sh=예, 최종코드재판정=동일 |
 | cFS 게스트 출력 비교 | `results/e32_smartcam_aarch64/cfs/comparison.json` | script=있음, raw=있음, git=추적, 최종코드재판정=동일 |
 
+#### 8. 공개 실입력으로 같은 경로를 다시 밟은 기록 (AArch64 native·cFS, E48) — **present**
+
+| 값 | 원자료 | 키 |
+|---|---|---|
+| {"real_example": 19} | `results/e45_real_inputs/cells/smartcam/fixture/manifest.json` | `counts` |
+| 19 | `results/e48_real_inputs_aarch64/smartcam/staged_inputs.json` | `samples` |
+| ef3a3d9659dba573ad81cebce1e79a9ebcb2428193fc3d0235942fdcb957e4f9 | `results/e48_real_inputs_aarch64/smartcam/staged_inputs.json` | `sha256_inputs_bin` |
+| 19 | `results/e48_real_inputs_aarch64/smartcam/staged_inputs.json` | `manifest_hashes_verified` |
+| results/e45_real_inputs/cells/smartcam/fixture/manifest.json | `results/e48_real_inputs_aarch64/smartcam/staged_inputs.json` | `fixture_manifest_source` |
+| PASS | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.semantics_native_aarch64.verdict` |
+| 0 | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.semantics_native_aarch64.elements_failed` |
+| PASS | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.semantics_cfs_aarch64.verdict` |
+| PASS | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.x86_64_pip_runtime_E45.verdict` |
+| true | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.verdict_agrees_with_x86` |
+| ADMIT | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.cfs_admit_B.verdict` |
+| 282 | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.cfs_admit_B.inferences` |
+| NOT_ADMITTED | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.cfs_deny_B_minus_1.verdict` |
+| 0 | `results/e48_real_inputs_aarch64/summary.json` | `models.smartcam.cfs_deny_B_minus_1.inferences` |
+
 ## MLPerf Tiny ResNet (CIFAR-10 image classification) (`b2_resnet`)
 
 ### 검증 등급 (모델의 실제성 / 가중치 / 입력의 실제성 / 검증한 성질)
@@ -169,7 +188,7 @@
 |---|---|---|
 | model_reality | PUBLIC-PRETRAINED (MLPerf Tiny 참조 모델) | `results/e34_two_models/summary.json`:`originals_preserved.repo`; `results/e34_two_models/summary.json`:`originals_preserved.files[0].source_path` |
 | weights_origin | TRAINED (MLCommons가 배포한 trained_models) | `results/e34_two_models/summary.json`:`originals_preserved.files[0].source_path` |
-| input_reality | SYNTHETIC-ONLY — 합성 32 + 상수 경계 2, 실데이터 0 | `results/e34_two_models/b2_resnet/fixture/manifest.json`:`counts`; `results/e34_two_models/summary.json`:`cells.b2_resnet.semantic_grade` |
+| input_reality | REAL+SYNTHETIC — E45 실입력 200 + 합성·경계 34 | `results/e34_two_models/b2_resnet/fixture/manifest.json`:`counts`; `results/e34_two_models/summary.json`:`cells.b2_resnet.semantic_grade`; `results/e45_real_inputs/cells/b2_resnet/fixture/manifest.json`:`counts` |
 | verified_property | 의미 동치(전체 출력) + 계약·admission + HAL peak ≤ 승인 예산 | `results/e36b_aarch64_models/summary.json`:`models.b2_resnet.semantics_cfs_aarch64.verdict`; `results/e36b_aarch64_models/summary.json`:`verdicts` |
 | not_claimed | — | `results/e34_two_models/summary.json`:`not_claimed`; `results/e36b_aarch64_models/summary.json`:`not_claimed` |
 
@@ -265,6 +284,25 @@
 | AArch64 native(qemu-user) 실행 + 판정 | `results/e36b_aarch64_models/b2_resnet/comparison_aarch64.json` | script=있음, raw=있음, git=추적, 최종코드재판정=동일 |
 | AArch64 cFS 승인·거부 셀 | `results/e36b_aarch64_models/cfs/resnet_admit_B.log` | script=있음, raw=있음, git=추적, AI_LEARNER_BUDGET_OVERRIDE in ai_learner.c=예, 최종코드재판정=동일 |
 
+#### 8. 공개 실입력으로 같은 경로를 다시 밟은 기록 (AArch64 native·cFS, E48) — **present**
+
+| 값 | 원자료 | 키 |
+|---|---|---|
+| {"real_cifar10": 200} | `results/e45_real_inputs/cells/b2_resnet/fixture/manifest.json` | `counts` |
+| 200 | `results/e48_real_inputs_aarch64/b2_resnet/staged_inputs.json` | `samples` |
+| da3a6462af066c4c3a08776841ce102e94baef0006f21ed858267dcffb9db460 | `results/e48_real_inputs_aarch64/b2_resnet/staged_inputs.json` | `sha256_inputs_bin` |
+| 200 | `results/e48_real_inputs_aarch64/b2_resnet/staged_inputs.json` | `manifest_hashes_verified` |
+| results/e45_real_inputs/cells/b2_resnet/fixture/manifest.json | `results/e48_real_inputs_aarch64/b2_resnet/staged_inputs.json` | `fixture_manifest_source` |
+| PASS | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.semantics_native_aarch64.verdict` |
+| 0 | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.semantics_native_aarch64.elements_failed` |
+| PASS | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.semantics_cfs_aarch64.verdict` |
+| PASS | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.x86_64_pip_runtime_E45.verdict` |
+| true | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.verdict_agrees_with_x86` |
+| ADMIT | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.cfs_admit_B.verdict` |
+| 204 | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.cfs_admit_B.inferences` |
+| NOT_ADMITTED | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.cfs_deny_B_minus_1.verdict` |
+| 0 | `results/e48_real_inputs_aarch64/summary.json` | `models.b2_resnet.cfs_deny_B_minus_1.inferences` |
+
 ## MLPerf Tiny Deep AutoEncoder (anomaly detection) (`b3_deepae`)
 
 ### 검증 등급 (모델의 실제성 / 가중치 / 입력의 실제성 / 검증한 성질)
@@ -273,7 +311,7 @@
 |---|---|---|
 | model_reality | PUBLIC-PRETRAINED (MLPerf Tiny 참조 모델) | `results/e34_two_models/summary.json`:`originals_preserved.repo`; `results/e34_two_models/summary.json`:`originals_preserved.files[1].source_path` |
 | weights_origin | TRAINED (MLCommons가 배포한 trained_models) | `results/e34_two_models/summary.json`:`originals_preserved.files[1].source_path` |
-| input_reality | SYNTHETIC-ONLY — 합성 32 + 상수 경계 2, 실데이터 0 | `results/e34_two_models/b3_deepae/fixture/manifest.json`:`counts`; `results/e34_two_models/summary.json`:`cells.b3_deepae.semantic_grade` |
+| input_reality | REAL+SYNTHETIC — E45 실입력 34 + 합성·경계 34 | `results/e34_two_models/b3_deepae/fixture/manifest.json`:`counts`; `results/e34_two_models/summary.json`:`cells.b3_deepae.semantic_grade`; `results/e45_real_inputs/cells/b3_deepae/fixture/manifest.json`:`counts` |
 | verified_property | 의미 동치(전체 출력) + 계약·admission + HAL peak ≤ 승인 예산 | `results/e36b_aarch64_models/summary.json`:`models.b3_deepae.semantics_cfs_aarch64.verdict`; `results/e36b_aarch64_models/summary.json`:`verdicts` |
 | not_claimed | — | `results/e34_two_models/summary.json`:`not_claimed`; `results/e36b_aarch64_models/summary.json`:`not_claimed` |
 
@@ -368,4 +406,23 @@
 | 입력 fixture + 원본 TFLite oracle | `results/e34_two_models/b3_deepae/fixture/manifest.json` | script=있음, raw=있음, git=추적, 최종코드재판정=동일 |
 | AArch64 native(qemu-user) 실행 + 판정 | `results/e36b_aarch64_models/b3_deepae/comparison_aarch64.json` | script=있음, raw=있음, git=추적, 최종코드재판정=동일 |
 | AArch64 cFS 승인·거부 셀 | `results/e36b_aarch64_models/cfs/deepae_admit_B.log` | script=있음, raw=있음, git=추적, AI_LEARNER_BUDGET_OVERRIDE in ai_learner.c=예, 최종코드재판정=동일 |
+
+#### 8. 공개 실입력으로 같은 경로를 다시 밟은 기록 (AArch64 native·cFS, E48) — **present**
+
+| 값 | 원자료 | 키 |
+|---|---|---|
+| {"real_ad01": 34} | `results/e45_real_inputs/cells/b3_deepae/fixture/manifest.json` | `counts` |
+| 34 | `results/e48_real_inputs_aarch64/b3_deepae/staged_inputs.json` | `samples` |
+| d7f741654ec1d54f72b9bb5280a16a6140295a8bb737ec5d727e962a580df969 | `results/e48_real_inputs_aarch64/b3_deepae/staged_inputs.json` | `sha256_inputs_bin` |
+| 34 | `results/e48_real_inputs_aarch64/b3_deepae/staged_inputs.json` | `manifest_hashes_verified` |
+| results/e45_real_inputs/cells/b3_deepae/fixture/manifest.json | `results/e48_real_inputs_aarch64/b3_deepae/staged_inputs.json` | `fixture_manifest_source` |
+| FAIL | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.semantics_native_aarch64.verdict` |
+| 46 | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.semantics_native_aarch64.elements_failed` |
+| FAIL | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.semantics_cfs_aarch64.verdict` |
+| FAIL | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.x86_64_pip_runtime_E45.verdict` |
+| true | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.verdict_agrees_with_x86` |
+| ADMIT | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.cfs_admit_B.verdict` |
+| 148 | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.cfs_admit_B.inferences` |
+| NOT_ADMITTED | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.cfs_deny_B_minus_1.verdict` |
+| 0 | `results/e48_real_inputs_aarch64/summary.json` | `models.b3_deepae.cfs_deny_B_minus_1.inferences` |
 

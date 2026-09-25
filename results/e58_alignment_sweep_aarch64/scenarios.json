@@ -1,0 +1,866 @@
+[
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b2_resnet",
+  "id": "e58_b2_resnet_off00",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 618856 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=0 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=309440}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "0"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 0
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b2_resnet",
+  "id": "e58_b2_resnet_off08",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 618856 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=8 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=309440}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 8
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b2_resnet",
+  "id": "e58_b2_resnet_off16",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 618856 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=16 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=309440}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "16"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 16
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b2_resnet",
+  "id": "e58_b2_resnet_off24",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 618856 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=24 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=309440}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "24"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 24
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b2_resnet",
+  "id": "e58_b2_resnet_off32",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 618856 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=32 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=309440}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "32"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 32
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b2_resnet",
+  "id": "e58_b2_resnet_off40",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 618856 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=40 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=309440}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "40"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 40
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b2_resnet",
+  "id": "e58_b2_resnet_off48",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 618856 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=48 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=309440}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "48"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 48
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b2_resnet",
+  "id": "e58_b2_resnet_off56",
+  "so": "variants/e55b_b2_resnet_copy/ai_learner.so",
+  "startup": "variants/e55b_b2_resnet_copy/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 618856 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=56 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=309440}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "618856",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "56"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 309416,
+   "C": 309440,
+   "B_u": 618856,
+   "align_offset": 56
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b3_deepae",
+  "id": "e58_b3_deepae_off00",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 1069632 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=0 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=1063424}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "0"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 0
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b3_deepae",
+  "id": "e58_b3_deepae_off08",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 1069632 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=8 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=1063424}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 8
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b3_deepae",
+  "id": "e58_b3_deepae_off16",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 1069632 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=16 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=1063424}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "16"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 16
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b3_deepae",
+  "id": "e58_b3_deepae_off24",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 1069632 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=24 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=1063424}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "24"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 24
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b3_deepae",
+  "id": "e58_b3_deepae_off32",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 1069632 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=32 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=1063424}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "32"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 32
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b3_deepae",
+  "id": "e58_b3_deepae_off40",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 1069632 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=40 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=1063424}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "40"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 40
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b3_deepae",
+  "id": "e58_b3_deepae_off48",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 1069632 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=48 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=1063424}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "48"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 48
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "b3_deepae",
+  "id": "e58_b3_deepae_off56",
+  "so": "variants/e55b_b3_deepae_copy/ai_learner.so",
+  "startup": "variants/e55b_b3_deepae_copy/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 1069632 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=56 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=1063424}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "1069632",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "56"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 6208,
+   "C": 1063424,
+   "B_u": 1069632,
+   "align_offset": 56
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "smartcam",
+  "id": "e58_smartcam_off00",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 18222796 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=0 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=8840704}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "0"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 0
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "smartcam",
+  "id": "e58_smartcam_off08",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 18222796 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=8 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=8840704}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 8
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "smartcam",
+  "id": "e58_smartcam_off16",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 18222796 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=16 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=8840704}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "16"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 16
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "smartcam",
+  "id": "e58_smartcam_off24",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 18222796 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=24 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=8840704}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "24"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 24
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "smartcam",
+  "id": "e58_smartcam_off32",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 18222796 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=32 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=8840704}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "32"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 32
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "smartcam",
+  "id": "e58_smartcam_off40",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 18222796 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=40 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=8840704}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "40"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 40
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "smartcam",
+  "id": "e58_smartcam_off48",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 18222796 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=48 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=8840704}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "48"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 48
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "smartcam",
+  "id": "e58_smartcam_off56",
+  "so": "variants/e55b_smartcam_copy/ai_learner.so",
+  "startup": "variants/e55b_smartcam_copy/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 18222796 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=56 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=8840704}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "18222796",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "56"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 9382092,
+   "C": 8840704,
+   "B_u": 18222796,
+   "align_offset": 56
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "wgan",
+  "id": "e58_wgan_off00",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=0 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "0"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 0
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "wgan",
+  "id": "e58_wgan_off08",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=8 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "8"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 8
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "wgan",
+  "id": "e58_wgan_off16",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=16 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "16"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 16
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "wgan",
+  "id": "e58_wgan_off24",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=24 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "24"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 24
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "wgan",
+  "id": "e58_wgan_off32",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=32 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "32"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 32
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "wgan",
+  "id": "e58_wgan_off40",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=40 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "40"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 40
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "wgan",
+  "id": "e58_wgan_off48",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=48 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "48"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 48
+  }
+ },
+ {
+  "part": "e58_alignment_sweep_aarch64",
+  "model": "wgan",
+  "id": "e58_wgan_off56",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 90,
+  "desc": "E58 sweep cell: E55b UNCONDITIONAL build (same binary for all 8 offsets of this model), budget M = B_u = 135666432 via override, AI_LEARNER_BLOB_ALIGN_OFFSET=56 set explicitly (0 included, so every cell takes the same knob path). Judged on blob_align / admission / binding / map_branch only (plan SS3): V, D1 (append peak in {0, C=4283648}), D2 (append 0 <=> mod64 0). Window 90 s: the records land within ~1 s of app load; inference count is not judged.",
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "56"
+  },
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "no_crash": true,
+   "cfs_operational": true,
+   "mem_init_present": true
+  },
+  "e58": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 56
+  }
+ }
+]

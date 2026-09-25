@@ -1,0 +1,443 @@
+{
+ "experiment": "E64",
+ "part": "A",
+ "plan": "docs/plans/E64_aarch64_evidence_for_manuscript.md (committed before measurement, 6578481)",
+ "source_layout_ir": "results/e36b_aarch64_models/b2_resnet/b2_resnet.layout_ir.txt",
+ "source_sha256": "874f87b0e71332e99d88841edbbcd2453561f72afdec3c37c1e3988044e0958c",
+ "method": "surgical edit of the archived AArch64 layout IR, inserted before the last util.return of the entry's last print (E51's mutate), then the production make_contract.py and gen_contract_header.py",
+ "positive_control": {
+  "make_contract_rc": 0,
+  "specification_written": true,
+  "make_contract_stderr_tail": [],
+  "bound_method": "static_from_stream_layout",
+  "bounded_bytes": 618856,
+  "unresolved_sizes": [],
+  "gen_contract_header_rc": 0,
+  "header_written": true,
+  "header_bound_known": 1,
+  "extractors": {
+   "regex_parser": {
+    "unresolved": [],
+    "outputs": [
+     40
+    ],
+    "transient_slabs": [
+     297088
+    ],
+    "inputs": [
+     12288
+    ]
+   },
+   "structural_walker": {
+    "unresolved": [],
+    "outputs": [
+     40
+    ],
+    "transient_slabs": [
+     297088
+    ],
+    "inputs": [
+     12288
+    ],
+    "pre_scheduling_ops": [],
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "entry_chunk_rank_used": 0,
+    "entry_chunk_parse_failures": [],
+    "exception": null
+   },
+   "diff_against_regex": []
+  },
+  "path": "bound_issued_header_bound_known_1",
+  "ok": true
+ },
+ "cells": [
+  {
+   "id": "A1_in_family_unrecognized_op",
+   "what": "a parseable stream.resource.* op the analyzer does not recognize",
+   "predicted": "specification issued with bound_method NONE; header CONTRACT_BOUND_KNOWN 0",
+   "inject": "\n  %e64_sz0 = stream.resource.size %result : !stream.resource<external>",
+   "injected": "%e64_sz0 = stream.resource.size %result : !stream.resource<external>",
+   "extractors": {
+    "regex_parser": {
+     "unresolved": [
+      "unrecognized_op:stream.resource.size"
+     ],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ]
+    },
+    "structural_walker": {
+     "unresolved": [
+      "unrecognized_op:stream.resource.size"
+     ],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ],
+     "pre_scheduling_ops": [],
+     "unclassified_resource_ops": [],
+     "unsupported_control_ops": [],
+     "entry_chunk_rank_used": 0,
+     "entry_chunk_parse_failures": [],
+     "exception": null
+    },
+    "diff_against_regex": []
+   },
+   "path": "specification_without_bound_header_bound_known_0",
+   "make_contract_rc": 0,
+   "specification_written": true,
+   "make_contract_stderr_tail": [],
+   "bound_method": "NONE",
+   "bounded_bytes": null,
+   "unresolved_sizes": [
+    "unrecognized_op:stream.resource.size"
+   ],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_bound_known": 0
+  },
+  {
+   "id": "A2_out_of_family_resource_op",
+   "what": "a resource-carrying op outside stream.resource/stream.tensor and outside the verified non-allocating list",
+   "predicted": "no specification (walker unclassified_resource_ops, dedicated key)",
+   "inject": "\n  %e64_ob = util.optimization_barrier %result : !stream.resource<external>",
+   "injected": "%e64_ob = util.optimization_barrier %result : !stream.resource<external>",
+   "extractors": {
+    "regex_parser": {
+     "unresolved": [],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ]
+    },
+    "structural_walker": {
+     "unresolved": [],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ],
+     "pre_scheduling_ops": [],
+     "unclassified_resource_ops": [
+      "util.optimization_barrier"
+     ],
+     "unsupported_control_ops": [],
+     "entry_chunk_rank_used": 0,
+     "entry_chunk_parse_failures": [],
+     "exception": null
+    },
+    "diff_against_regex": []
+   },
+   "path": "refused_dedicated_key_unclassified_resource_ops",
+   "make_contract_rc": 1,
+   "specification_written": false,
+   "make_contract_stderr_tail": [
+    "one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):",
+    "  - structural walker: op(s) ['util.optimization_barrier'] carry a !stream.resource operand or result but are neither sized nor on the verified-non-allocating list -- the analysis domain does not cover them, so no bound can be stated for this entry (pass --allow-unclassified-resource-ops to override)"
+   ],
+   "bound_method": null,
+   "bounded_bytes": null,
+   "unresolved_sizes": null,
+   "gen_contract_header_rc": null,
+   "header_written": false,
+   "header_bound_known": null
+  },
+  {
+   "id": "A3_pre_scheduling_async_alloc",
+   "what": "a surviving pre-scheduling asynchronous allocation",
+   "predicted": "no specification (walker pre_scheduling_ops; extractors disagree)",
+   "inject": "\n  %e64_c = arith.constant 64 : index\n  %e64_async = stream.async.alloca : !stream.resource<transient>{%e64_c}",
+   "injected": "%e64_c = arith.constant 64 : index\n  %e64_async = stream.async.alloca : !stream.resource<transient>{%e64_c}",
+   "extractors": {
+    "regex_parser": {
+     "unresolved": [],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ]
+    },
+    "structural_walker": {
+     "unresolved": [
+      "pre_scheduling_alloc_op:stream.async.alloca"
+     ],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ],
+     "pre_scheduling_ops": [
+      "stream.async.alloca"
+     ],
+     "unclassified_resource_ops": [],
+     "unsupported_control_ops": [],
+     "entry_chunk_rank_used": 0,
+     "entry_chunk_parse_failures": [],
+     "exception": null
+    },
+    "diff_against_regex": [
+     "unresolved(presence)"
+    ]
+   },
+   "path": "refused_extractors_disagree",
+   "make_contract_rc": 1,
+   "specification_written": false,
+   "make_contract_stderr_tail": [
+    "one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):",
+    "  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['unresolved(presence)']; the walker reports allocating pre-scheduling op(s) ['stream.async.alloca'] in the post-layout entry, which the regex parser does not scan at all (D84) -- the allocation schedule is not final, so sizes read from this entry do not bound execution (pass --allow-structural-mismatch to override)"
+   ],
+   "bound_method": null,
+   "bounded_bytes": null,
+   "unresolved_sizes": null,
+   "gen_contract_header_rc": null,
+   "header_written": false,
+   "header_bound_known": null
+  },
+  {
+   "id": "A4_unresolvable_size",
+   "what": "a supported allocation whose size operand does not resolve to a constant",
+   "predicted": "specification issued with bound_method NONE; header CONTRACT_BOUND_KNOWN 0",
+   "inject": "\n  %e64_c = arith.constant 64 : index\n  %e64_sz = arith.addi %e64_c, %e64_c : index\n  %e64_res, %e64_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%e64_sz} => !stream.timepoint",
+   "injected": "%e64_c = arith.constant 64 : index\n  %e64_sz = arith.addi %e64_c, %e64_c : index\n  %e64_res, %e64_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%e64_sz} => !stream.timepoint",
+   "extractors": {
+    "regex_parser": {
+     "unresolved": [
+      "%e64_sz"
+     ],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ]
+    },
+    "structural_walker": {
+     "unresolved": [
+      "alloca_transient:non_constant_def:arith.addi"
+     ],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ],
+     "pre_scheduling_ops": [],
+     "unclassified_resource_ops": [],
+     "unsupported_control_ops": [],
+     "entry_chunk_rank_used": 0,
+     "entry_chunk_parse_failures": [],
+     "exception": null
+    },
+    "diff_against_regex": []
+   },
+   "path": "specification_without_bound_header_bound_known_0",
+   "make_contract_rc": 0,
+   "specification_written": true,
+   "make_contract_stderr_tail": [],
+   "bound_method": "NONE",
+   "bounded_bytes": null,
+   "unresolved_sizes": [
+    "%e64_sz"
+   ],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_bound_known": 0
+  },
+  {
+   "id": "A5_unparseable_op",
+   "what": "an op the compiler interface cannot parse (E51's line, AArch64 representation)",
+   "predicted": "no specification; cause recorded as found",
+   "inject": "\n  %e64_c = arith.constant 64 : index\n  %e64_unk = stream.resource.frobnicate %e64_c : index -> !stream.resource<transient>{%e64_c}",
+   "injected": "%e64_c = arith.constant 64 : index\n  %e64_unk = stream.resource.frobnicate %e64_c : index -> !stream.resource<transient>{%e64_c}",
+   "extractors": {
+    "regex_parser": {
+     "unresolved": [
+      "unrecognized_op:stream.resource.frobnicate"
+     ],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ]
+    },
+    "structural_walker": {
+     "unresolved": [
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.clone",
+      "pre_scheduling_alloc_op:stream.async.splat",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.splat",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.splat",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.splat",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.splat",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.splat",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.dispatch",
+      "pre_scheduling_alloc_op:stream.async.clone"
+     ],
+     "outputs": [],
+     "transient_slabs": [],
+     "inputs": [
+      12288
+     ],
+     "pre_scheduling_ops": [
+      "stream.async.clone",
+      "stream.async.dispatch",
+      "stream.async.splat"
+     ],
+     "unclassified_resource_ops": [],
+     "unsupported_control_ops": [],
+     "entry_chunk_rank_used": 1,
+     "entry_chunk_parse_failures": [
+      {
+       "entry_chunk_rank": 0,
+       "error": "Unable to parse module assembly:\nerror: \"-\":283:14: custom op 'stream.resource.frobnicate' is unknown"
+      },
+      {
+       "entry_chunk_rank": 0,
+       "error": "Unable to parse module assembly:\nerror: \"-\":254:14: custom op 'stream.resource.frobnicate' is unknown"
+      }
+     ],
+     "exception": null
+    },
+    "diff_against_regex": [
+     "outputs",
+     "transient_slabs"
+    ]
+   },
+   "path": "refused_extractors_disagree",
+   "make_contract_rc": 1,
+   "specification_written": false,
+   "make_contract_stderr_tail": [
+    "one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):",
+    "  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['outputs', 'transient_slabs']; the walker reports allocating pre-scheduling op(s) ['stream.async.clone', 'stream.async.dispatch', 'stream.async.splat'] in the post-layout entry, which the regex parser does not scan at all (D84) -- the allocation schedule is not final, so sizes read from this entry do not bound execution (pass --allow-structural-mismatch to override)"
+   ],
+   "bound_method": null,
+   "bounded_bytes": null,
+   "unresolved_sizes": null,
+   "gen_contract_header_rc": null,
+   "header_written": false,
+   "header_bound_known": null
+  },
+  {
+   "id": "A6_other_lifetime_category",
+   "what": "an allocation of a lifetime category neither extractor attributes (staging)",
+   "predicted": "no specification (extractors disagree)",
+   "inject": "\n  %e64_c = arith.constant 64 : index\n  %e64_st, %e64_st_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<staging>{%e64_c} => !stream.timepoint",
+   "injected": "%e64_c = arith.constant 64 : index\n  %e64_st, %e64_st_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<staging>{%e64_c} => !stream.timepoint",
+   "extractors": {
+    "regex_parser": {
+     "unresolved": [],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088
+     ],
+     "inputs": [
+      12288
+     ]
+    },
+    "structural_walker": {
+     "unresolved": [],
+     "outputs": [
+      40
+     ],
+     "transient_slabs": [
+      297088,
+      64
+     ],
+     "inputs": [
+      12288
+     ],
+     "pre_scheduling_ops": [],
+     "unclassified_resource_ops": [],
+     "unsupported_control_ops": [],
+     "entry_chunk_rank_used": 0,
+     "entry_chunk_parse_failures": [],
+     "exception": null
+    },
+    "diff_against_regex": [
+     "transient_slabs"
+    ]
+   },
+   "path": "refused_extractors_disagree",
+   "make_contract_rc": 1,
+   "specification_written": false,
+   "make_contract_stderr_tail": [
+    "one-invocation / provenance check FAILED (not writing a contract for mismatched inputs):",
+    "  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['transient_slabs'] (pass --allow-structural-mismatch to override)"
+   ],
+   "bound_method": null,
+   "bounded_bytes": null,
+   "unresolved_sizes": null,
+   "gen_contract_header_rc": null,
+   "header_written": false,
+   "header_bound_known": null
+  }
+ ],
+ "cells_with_deployable_header": [],
+ "control_flow_cells": "cited, not re-run: results/d105_control_flow_boundary/after.json (same AArch64 ResNet IR)",
+ "verdict": "PASS"
+}

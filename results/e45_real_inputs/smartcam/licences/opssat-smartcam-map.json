@@ -1,0 +1,11 @@
+{
+ "repo": "https://github.com/georgeslabreche/opssat-smartcam-map",
+ "commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+ "licence": {
+  "file": "LICENSE.md",
+  "sha256": "5dbccee41db349ebb9cdbaa3747370f46cfb3f51658a0a6c0a883a0bf0cf604b",
+  "text": "Copyright (c) 2021 Georges Labrèche\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n"
+ },
+ "esa_credit": "All OPS-SAT images were acquired by the spacecraft's SmartCam and credited to ESA.",
+ "gap": "The MIT grant is scoped to 'the Software and associated documentation files'. The images are DATA, and the repository itself credits them to ESA. An individual's MIT licence does not on its face convey rights in imagery the same repository credits to a space agency."
+}

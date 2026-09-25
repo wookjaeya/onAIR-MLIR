@@ -1,0 +1,145 @@
+{
+  "experiment": "E41",
+  "plan": "docs/plans/E40_E41_analysis_domain.md SS3 (pre-fixed, committed 9b7d5ba)",
+  "conditions": {
+    "1_dynamic_shapes": {
+      "form": "gate (already closed before E41)",
+      "where": "bound_method=NONE -> CONTRACT_BOUND_KNOWN=0 -> both C runners refuse before resource acquisition; admission_policy returns REFUSED_UNKNOWN_BOUND",
+      "new_gate": false
+    },
+    "2_unsupported_resource_op": {
+      "form": "gate (already closed before E41)",
+      "where": "both extractors push an unrecognized stream.* op into `unresolved`, which forces bound_method=NONE (D13). E40 published the policy as analysis_domain.derived.unknown_operation_policy",
+      "new_gate": false
+    },
+    "3_more_than_one_in_flight_call": {
+      "form": "OBSERVATION, deliberately not a gate",
+      "why": "no deployment this repository ships can reach it: neither C runner creates a thread or child task, and OnAIR calls plugins from one loop. Adding a thread to a flight app in order to assert the hazard is absent would BE the regression.",
+      "measured_load_bearing": true,
+      "cells_exceeding_bounded": [
+        {
+          "model": "b2_resnet",
+          "threads": 4,
+          "hold_outputs": false,
+          "peak": 1237664,
+          "bounded_bytes": 618856
+        },
+        {
+          "model": "b2_resnet",
+          "threads": 4,
+          "hold_outputs": true,
+          "peak": 1237664,
+          "bounded_bytes": 618856
+        },
+        {
+          "model": "smartcam",
+          "threads": 2,
+          "hold_outputs": false,
+          "peak": 18764184,
+          "bounded_bytes": 18222796
+        },
+        {
+          "model": "smartcam",
+          "threads": 4,
+          "hold_outputs": false,
+          "peak": 37528368,
+          "bounded_bytes": 18222796
+        },
+        {
+          "model": "smartcam",
+          "threads": 2,
+          "hold_outputs": true,
+          "peak": 18764184,
+          "bounded_bytes": 18222796
+        },
+        {
+          "model": "smartcam",
+          "threads": 4,
+          "hold_outputs": true,
+          "peak": 37528368,
+          "bounded_bytes": 18222796
+        }
+      ],
+      "new_gate": false
+    },
+    "4_output_held_past_next_call": {
+      "form": "OBSERVATION, deliberately not a gate",
+      "why": "enforcing it literally over-rejects: the archived b2_resnet pip cell peaks at 309,576 B under D50 retention against an unconditional budget of 618,856 B -- 50.0% of budget, contract not violated. It bites only in the conditional tier, where D59's peak_within_admitted_budget already reports it.",
+      "new_gate": false
+    },
+    "5_undeclared_hal_driver": {
+      "form": "GATE (new in E41)",
+      "where": "plugins/compiled_learner/artifact_binding.check_declared_driver() refuses before the runtime is created; gen_contract_header.py refuses to assert a driver no contract field declares, and refuses a validity/target disagreement",
+      "new_gate": true,
+      "fires_in_official_onair_path": true
+    }
+  },
+  "probe": {
+    "single_call_peak_equals_per_call": true,
+    "premise_is_load_bearing": true,
+    "cells": 18
+  },
+  "onair_cells": {
+    "legacy_mlp": {
+      "deployment": "legacy_mlp",
+      "returncode": 0,
+      "plugin_constructed": true,
+      "onair_core_unmodified": true,
+      "active": true,
+      "inactive_reason": null,
+      "admission_verdict": "NOT_EVALUATED",
+      "binding_verdict": "MATCH",
+      "inferences": 4
+    },
+    "smartcam": {
+      "deployment": "smartcam",
+      "returncode": 0,
+      "plugin_constructed": true,
+      "onair_core_unmodified": true,
+      "active": true,
+      "inactive_reason": null,
+      "admission_verdict": "ADMIT",
+      "binding_verdict": "MATCH",
+      "inferences": 5
+    },
+    "smartcam_deny": {
+      "deployment": "smartcam_deny",
+      "returncode": 0,
+      "plugin_constructed": true,
+      "onair_core_unmodified": true,
+      "active": false,
+      "inactive_reason": "ContractViolation: admission NOT_ADMITTED -- bounded 18222796 > budget 18222795 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)",
+      "admission_verdict": "NOT_ADMITTED",
+      "binding_verdict": null,
+      "inferences": 0
+    },
+    "smartcam_mismatch": {
+      "deployment": "smartcam_mismatch",
+      "returncode": 0,
+      "plugin_constructed": true,
+      "onair_core_unmodified": true,
+      "active": false,
+      "inactive_reason": "FileNotFoundError: [Errno 2] No such file or directory: '/home/user/onAIR-MLIR/results/e33_onair_official/_mismatch_artifacts/smartcam.vmfb'",
+      "admission_verdict": "ADMIT",
+      "binding_verdict": null,
+      "inferences": 0
+    },
+    "smartcam_wrong_driver": {
+      "deployment": "smartcam_wrong_driver",
+      "returncode": 0,
+      "plugin_constructed": true,
+      "onair_core_unmodified": true,
+      "active": false,
+      "inactive_reason": "ContractViolation: deployment driver 'local-task' != contract driver 'local-sync' (the bound is stated for the declared driver only)",
+      "admission_verdict": null,
+      "binding_verdict": null,
+      "inferences": 0
+    }
+  },
+  "over_rejection_zero": true,
+  "verdict": {
+    "R1_new_gate_fires": true,
+    "R3_no_over_rejection": true,
+    "R4_e33_cells_unbroken": true
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "experiment": "E54",
+  "purpose": "Provenance for every external input to the budget formula. Grades are counted, not asserted: a value is primary_fetched only if THIS session fetched bytes from the issuing organisation and found the quote in them.",
+  "grades": {
+    "primary_fetched": "bytes fetched in this session from the issuing organisation; quote verified in those bytes",
+    "mirror_adjacent_revision_fetched": "bytes fetched in this session, but from a third-party mirror (vendor host unreachable); quote verified in the fetched bytes",
+    "transcribed_from_directive_primary_blocked": "value appears in NO bytes fetched in this session; it is transcribed from the research-director directive, whose own primary source was unreachable"
+  },
+  "blocked_primary_sources": {
+    "note": "Re-probed in this session (not quoted from an earlier run). curl through the agent proxy and WebFetch were each tried; D74 requires naming the paths tried.",
+    "probes": [
+      {
+        "label": "SWE-109 Software Resource Margin",
+        "url": "https://swehb.nasa.gov/display/SWEHBVC/SWE-109+-+Software+Resource+Margin",
+        "curl_http_code": "000",
+        "curl_error": "curl: (56) CONNECT tunnel failed, response 403",
+        "webfetch": "EGRESS_BLOCKED"
+      },
+      {
+        "label": "9.12 Resource Margins",
+        "url": "https://swehb.nasa.gov/display/SWEHBVC/9.12+-+Resource+Margins",
+        "curl_http_code": "000",
+        "curl_error": "curl: (56) CONNECT tunnel failed, response 403",
+        "webfetch": "EGRESS_BLOCKED"
+      },
+      {
+        "label": "NPR 7150.2D chapter 5",
+        "url": "https://nodis3.gsfc.nasa.gov/displayDir.cfm?t=NPR&c=7150&s=2D",
+        "curl_http_code": "000",
+        "curl_error": "curl: (56) CONNECT tunnel failed, response 403",
+        "webfetch": "EGRESS_BLOCKED"
+      },
+      {
+        "label": "SWE-111 Software Resource Margin Monitoring",
+        "url": "https://swehb.nasa.gov/display/SWEHBVC/SWE-111+-+Software+Resource+Margin+Monitoring",
+        "curl_http_code": "000",
+        "curl_error": "curl: (56) CONNECT tunnel failed, response 403",
+        "webfetch": "EGRESS_BLOCKED"
+      }
+    ],
+    "consequence": "The lifecycle margin percentages (SRR 50 / PDR 50 / CDR 40 / Ship 30) appear in no bytes this session fetched. They are graded transcribed_from_directive_primary_blocked and must never be presented as a primary-source citation (plan SS8)."
+  },
+  "platform_sources": [
+    {
+      "profile": "PA",
+      "platform": "Xiphos Q8S",
+      "url": "https://satcatalog.s3.amazonaws.com/components/460/SatCatalog_-_Xiphos_Systems_Corporation_-_Q8S_-_Datasheet.pdf?lastmod=20210708061015",
+      "http_code": 200,
+      "bytes": 451851,
+      "sha256": "24f13dab3904ecc6132884b2f5bad63e1de51c2093ee98c59493311d871c1d5d",
+      "grade": "mirror_adjacent_revision_fetched",
+      "vendor_host_probe": {
+        "url": "https://xiphos.com/wp-content/uploads/2021/03/q8s-datasheet.pdf",
+        "http_code": "000",
+        "error": "curl: (56) CONNECT tunnel failed, response 403"
+      },
+      "vendor_host_probe_2": {
+        "url": "https://resources.xiphos.com/hubfs/Xiphos/Xiphos%20-%20Datasheets/Xiphos-Q8-Spec-Sheet.pdf?hsLang=en",
+        "http_code": "000",
+        "note": "also a Q8, not the Q8S"
+      },
+      "quotes_verified_in_fetched_bytes": [
+        "4GB LPDDR4 DRAM with EDAC",
+        "Quad-core ARM Cortex-A53 Application Processing Unit",
+        "Xilinx Zynq UltraScale+ XCZU7EG",
+        "Space-Qualified Software and Logic",
+        "The first flight of the Q8S is planned for Q3 2019"
+      ],
+      "quote_verification_method": "PDF text streams zlib-inflated and text-show operands concatenated; the extraction is letter-spaced, so matching is whitespace-insensitive (alphanumerics only). All five strings PRESENT.",
+      "value_used": {
+        "R_physical_bytes": 4294967296,
+        "from_quote": "4GB LPDDR4 DRAM with EDAC"
+      },
+      "not_claimed": "No flight-heritage year. The datasheet says the first flight was PLANNED for Q3 2019; whether it flew is not stated in these bytes, so it is not written."
+    },
+    {
+      "profile": "PB",
+      "platform": "OPS-SAT SEPP (RAM envelope only)",
+      "url": "https://raw.githubusercontent.com/georgeslabreche/opssat-smartcam/be09ecee41f0a5db52afe0ee929dbd339cb68672/README.md",
+      "http_code": 200,
+      "bytes": 23863,
+      "sha256": "3664da80e26345506849e5d5c17573d3412172708d580b3380196e9efea3aea0",
+      "grade": "primary_fetched",
+      "commit_source": "results/p1_smartcam_feasibility/source_manifest.json (the commit this repository already archived for the SmartCam flight model)",
+      "quotes_verified_in_fetched_bytes": [
+        "README.md:75  The SEPP is a powerful ALTERA Cyclone V with a 800 MHz CPU clock and 1GB DDR3 RAM.",
+        "README.md:97  the spacecraft's SEPP processor (ARM 32-bit)"
+      ],
+      "value_used": {
+        "R_physical_bytes": 1073741824,
+        "from_quote": "1GB DDR3 RAM"
+      },
+      "scope_limit": "ISA differs from this guest (ARM 32-bit vs AArch64). PB is used as a RAM envelope only, never as a platform reproduction (BENCHMARK_PLAN_REFERENCE_BASED.md:156)."
+    }
+  ],
+  "rejected_platform_candidates": [
+    {
+      "candidate": "NVIDIA Jetson",
+      "probes": [
+        "developer.nvidia.com 000",
+        "datasheet PDF 000"
+      ]
+    },
+    {
+      "candidate": "Raspberry Pi CM4",
+      "probes": [
+        "raspberrypi.com 000",
+        "datasheets.raspberrypi.com 000",
+        "docs API 403"
+      ]
+    },
+    {
+      "candidate": "Unibap iX5",
+      "probes": [
+        "satcatalog 403",
+        "unibap.com 000"
+      ]
+    },
+    {
+      "candidate": "MLPerf Tiny STM32L4R5ZI",
+      "probes": [
+        "st.com 000"
+      ],
+      "also": "Cortex-M4, not AArch64"
+    }
+  ],
+  "rule": "No RAM figure is cited from memory. Every R_physical here is read out of bytes fetched in this session and quoted above."
+}

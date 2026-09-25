@@ -1284,7 +1284,15 @@ IGNORE_PROVENANCE_KEYS = {
 # contract (e.g. resources.dispatches), so the whole subtree is excluded from
 # the "contract unchanged" diff by path instead, and checked separately below
 # (asserting it is actually present and agrees, not just absent from the diff).
-IGNORE_PROVENANCE_SUBTREES = {"structural_walker"}
+# E40: `analysis_domain` and `accounting_rules` are two more subtrees the 14 stored
+# (pre-E40) contracts never had. They are excluded BY SUBTREE, not by bare leaf name,
+# and the distinction is not stylistic: IGNORE_PROVENANCE_KEYS is matched against the
+# LAST path component, so putting "driver" or "entry" there to silence
+# analysis_domain.derived.driver would also silence target.driver and model.entry --
+# a fail-open in the one check that exists to catch drift. Their values are pinned
+# instead by analysis_domain_cases() below, per the E24b/D39 + E24/N2 + E24c/F3
+# precedent (exclusion from the diff must be paired with dedicated pinning).
+IGNORE_PROVENANCE_SUBTREES = {"structural_walker", "analysis_domain", "accounting_rules"}
 
 
 def flatten(d, prefix=()):
@@ -1377,6 +1385,29 @@ def regression_check(root, tmp):
             else:
                 results.append(Result("regression: %s/%s structural cross-check skipped (iree.compiler.ir unavailable in this environment)" % (tgt, model),
                                       avail is False, "available=%s" % avail))
+            # E40: the analysis_domain / accounting_rules subtrees are excluded from
+            # the diff above (the 14 stored contracts predate them), so they are pinned
+            # HERE instead -- on the production path, per model, re-checked against the
+            # regenerated contract's own source fields. Exclusion without pinning is how
+            # a new block becomes an unchecked second source of truth (D65).
+            import make_contract as _mc
+            _c = load(new_contract)
+            _drift = _mc.analysis_domain_drift(_c)
+            _ad = (_c.get("analysis_domain") or {})
+            _prem = _ad.get("required_premises") or {}
+            _pin_ok = (not _drift
+                       and _ad.get("derived", {}).get("static_shapes")
+                           == (_c["resources"]["bound_method"] != "NONE")
+                       and _prem.get("max_in_flight_calls") == 1
+                       and _prem.get("output_lifetime") == "released_before_next_call"
+                       and "max_in_flight_calls" not in (_ad.get("derived") or {})
+                       and isinstance(_c.get("accounting_rules"), dict)
+                       and _c["accounting_rules"].get("bounded_bytes"))
+            results.append(Result("regression: %s/%s analysis_domain agrees with its sources" % (tgt, model),
+                                  bool(_pin_ok),
+                                  "drift=%s static_shapes=%s premises=%s accounting=%s"
+                                  % (_drift, _ad.get("derived", {}).get("static_shapes"),
+                                     sorted(_prem), bool(_c.get("accounting_rules")))))
             if not ok:
                 continue
             new_hdr = os.path.join(tmp, "regress.%s.%s.h" % (model, tgt))
@@ -2621,10 +2652,23 @@ def e37_evidence_linkage_cases():
 
     data = load(linkage)
     t = data["totals"]
-    _ok = t["cells"] == 21 and t["not_present"] == 0
-    results.append(Result("e37: all 21 cells (3 models x 7 items) resolve", _ok,
+    # E48: the cell count used to be the literal 21 here, so adding item 8 failed a check whose
+    # NAME still said "21 cells" -- a test that pins a number the generator is supposed to
+    # derive. Pin the INVARIANT (every model covers every item, nothing unresolved) and read
+    # the shape from the table, then assert the shape separately so a silently SHRINKING table
+    # still fails.
+    n_models, n_items = len(data["models"]), len(data["items"])
+    _ok = (t["cells"] == n_models * n_items and t["not_present"] == 0 and t["present"] == t["cells"])
+    results.append(Result("e37: all %d cells (%d models x %d items) resolve"
+                          % (t["cells"], n_models, n_items), _ok,
                           "" if _ok else "not_present=%s %s" % (t["not_present"],
                                                                 data["cells_not_present"])))
+
+    _ok = n_models >= 3 and n_items >= 8
+    results.append(Result("e48: the linkage table still covers at least the three real models and "
+                          "the eight items (7 from E37 + item 8, the real-input axis) -- a table "
+                          "that quietly loses a row must fail, not just one that fails to resolve",
+                          _ok, "" if _ok else "models=%d items=%d" % (n_models, n_items)))
 
     # D55: every raw path the table cites must be in the repository AND tracked.
     cited = set()
@@ -4802,9 +4846,17 @@ def e29_conditional_contract_cases():
             ("ai_learner.c", os.path.join(root, "native", "cfs_app", "fsw", "src", "ai_learner.c"),
              "AI_LEARNER_AllocModuleImage")):
         src = open(path, encoding="utf-8", errors="replace").read()
+        # E55b widened the cFS allocation to `n + off` so a cell can move the image OFF the
+        # 64-byte class on purpose.  What E29 pinned is unchanged and is pinned here more
+        # narrowly than before: the BASE is still requested 64-byte aligned, and the offset
+        # defaults to 0, so an unset knob reproduces E29's deployment byte for byte.
+        aligned64 = re.search(r"posix_memalign\(&p, 64, n\s*(\)|\+)", src) is not None
+        default0 = (label != "ai_learner.c") or ("if (e == NULL) return 0;" in src)
         results.append(Result("e29: %s allocates the module image 64-byte aligned" % label,
-                              "posix_memalign(&p, 64, n)" in src and (fn + "((size_t)") in src,
-                              "expected posix_memalign(...,64,...) via %s() in %s" % (fn, label)))
+                              aligned64 and (fn + "((size_t)") in src and default0,
+                              "expected posix_memalign(&p, 64, n[+off]) via %s() in %s, offset "
+                              "defaulting to 0 (aligned64=%s default0=%s)"
+                              % (fn, label, aligned64, default0)))
         results.append(Result("e29: %s measures the arm actually taken after append" % label,
                               "hal_peak_after_append" in src and "iree_hal_allocator_query_statistics" in src,
                               "no post-append allocator query in %s" % label))
@@ -5434,6 +5486,1843 @@ def rodata_label_cases():
 E38_DIR = "results/e38_optin_record"
 
 
+# ----------------------------------------------------------------------------
+# E40: the analysis domain and the accounting rules, published machine-readably
+# ----------------------------------------------------------------------------
+def e40_analysis_domain_cases(tmp):
+    """The roadmap (SS5.2/SS5.3) asked for an `analysis_domain` block in the contract.
+
+    These cases pin the two things that made the literal prescription unsafe:
+      * the premises must be DERIVED, not retyped -- until E40 the first assumption
+        was the literal string "static shapes", so contract.dynamic.* declared it
+        while bound_method was NONE. Inert while nothing read it; a machine-readable
+        false assertion the moment it is published;
+      * the block must not become a second source of truth (D65), so every derived
+        value is re-checked against the field it came from and a disagreement is a
+        REFUSAL, not a note.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    import make_contract as mc
+
+    base = load(os.path.join(repo, "results", "e14_aarch64_qemu", "x86_64",
+                             "contracts", "contract.conv2d.x86_64.json"))
+
+    def with_domain(**over):
+        c = json.loads(json.dumps(base))
+        r = c["resources"]
+        d = {"static_shapes": r["bound_method"] != "NONE",
+             "driver": c["target"]["driver"],
+             "entry": c["model"]["entry"],
+             "supported_resource_ops": list(smb.SUPPORTED_RESOURCE_OPS),
+             "unknown_operation_policy": "UNKNOWN_BOUND",
+             "constant_policy": {"map_arm_bound_bytes": r["static_per_call_bytes"],
+                                 "copy_arm_bound_bytes": r["bounded_bytes"]}}
+        d.update(over)
+        c["analysis_domain"] = {"derived": d, "required_premises": {"max_in_flight_calls": 1}}
+        return c
+
+    results.append(Result("e40: a consistent analysis_domain reports no drift (over-rejection guard)",
+                          mc.analysis_domain_drift(with_domain()) == [],
+                          "%s" % mc.analysis_domain_drift(with_domain())))
+    for label, over in (("static_shapes", {"static_shapes": False}),
+                        ("driver", {"driver": "local-task"}),
+                        ("entry", {"entry": "not_infer"}),
+                        ("supported_resource_ops", {"supported_resource_ops": ["stream.resource.alloca"]}),
+                        ("constant_policy arms", {"constant_policy": {"map_arm_bound_bytes": 1,
+                                                                      "copy_arm_bound_bytes": 2}})):
+        drift = mc.analysis_domain_drift(with_domain(**over))
+        results.append(Result("e40: drift in %s is reported (D65 guard)" % label,
+                              bool(drift) and label.split()[0] in " ".join(drift),
+                              "drift=%s" % drift))
+    # the prose list and the flag must not drift apart again -- that split IS the state
+    # E40 found (bound_assumptions[0] == "static shapes" on a contract stating no bound)
+    _c = with_domain()
+    _c["resources"]["bound_assumptions"] = ["NON-static shapes: ..."] + _c["resources"]["bound_assumptions"][1:]
+    _d = mc.analysis_domain_drift(_c)
+    results.append(Result("e40: prose assumptions[0] contradicting the static_shapes flag is drift",
+                          any("bound_assumptions[0]" in x for x in _d), "drift=%s" % _d))
+    _c2 = with_domain()
+    _c2["validity"]["assumptions"] = ["static shapes (reworded)"] + _c2["validity"]["assumptions"][1:]
+    _d2 = mc.analysis_domain_drift(_c2)
+    results.append(Result("e40: validity.assumptions[0] diverging from resources.bound_assumptions[0] is drift",
+                          any("validity.assumptions[0]" in x for x in _d2), "drift=%s" % _d2))
+    results.append(Result("e40: a missing analysis_domain block is itself drift (absence is not agreement)",
+                          mc.analysis_domain_drift(base) == ["analysis_domain.derived is missing"],
+                          "%s" % mc.analysis_domain_drift(base)))
+
+    # the source no longer carries the unconditional literal
+    src = open(MAKE_CONTRACT).read()
+    results.append(Result("e40: make_contract no longer hardcodes \"static shapes\" as assumptions[0]",
+                          'assumptions = ["static shapes"' not in src
+                          and 'if all_static else' in src.split("assumptions = [")[1][:400],
+                          "literal still present" if 'assumptions = ["static shapes"' in src else ""))
+
+    # no contract anywhere may claim static shapes while stating no bound
+    liars = []
+    for f in sorted(glob.glob(os.path.join(repo, "results", "**", "*.json"), recursive=True)
+                    + glob.glob(os.path.join(repo, "contracts", "contract.*.json"))
+                    + glob.glob(os.path.join(repo, "plugins", "**", "contract.json"), recursive=True)):
+        try:
+            c = load(f)
+        except Exception:
+            continue
+        if not isinstance(c, dict) or "resources" not in c:
+            continue
+        asm = (c["resources"] or {}).get("bound_assumptions") or []
+        if asm and asm[0] == "static shapes" and (c["resources"] or {}).get("bound_method") == "NONE":
+            liars.append(os.path.relpath(f, repo))
+    results.append(Result("e40: no stored contract declares \"static shapes\" while bound_method=NONE",
+                          not liars, "%s" % liars[:3]))
+
+    # the two extractors' whitelists must still agree (E19 keeps them independent
+    # on purpose; the contract publishes only one of them)
+    try:
+        import mlir_alloc_walk as maw
+        walk_ops = set(maw.KNOWN_ENTRY_OPS)
+    except Exception as e:
+        walk_ops = None
+        results.append(Result("e40: mlir_alloc_walk whitelist readable", False, str(e)[:160]))
+    if walk_ops is not None:
+        results.append(Result("e40: published supported_resource_ops == both extractors' whitelists",
+                              set(smb.SUPPORTED_RESOURCE_OPS) == walk_ops,
+                              "published=%s walker=%s" % (sorted(smb.SUPPORTED_RESOURCE_OPS), sorted(walk_ops))))
+
+    # the corrected archived contracts
+    for tgt in ("x86_64", "aarch64"):
+        c = load(os.path.join(repo, "results", "e14_aarch64_qemu", tgt, "contracts",
+                              "contract.dynamic.%s.json" % tgt))
+        a0 = (c["resources"]["bound_assumptions"] or [""])[0]
+        v0 = (c["validity"]["assumptions"] or [""])[0]
+        results.append(Result("e40: archived %s/dynamic no longer declares static shapes (correction)" % tgt,
+                              a0.startswith("NON-static shapes") and v0 == a0,
+                              "resources=%r validity=%r" % (a0[:40], v0[:40])))
+    return results
+
+
+# ----------------------------------------------------------------------------
+# E41: the analysis domain's five conditions -- which are gates, which are not
+# ----------------------------------------------------------------------------
+def e41_analysis_domain_cases(tmp):
+    """Pre-fixed in docs/plans/E40_E41_analysis_domain.md SS3 BEFORE any of it was measured.
+
+    Two of the five conditions are deliberately NOT gates, and these cases pin the
+    reason as much as the behaviour -- a later reader must not "finish the job" by
+    turning them into refusals:
+      * 2+ in-flight calls: no shipped deployment can reach it, and building the
+        hazard into a flight app to assert it is absent would be the regression;
+      * output held past the next call: enforcing it literally rejects an honest run
+        at 50% of its budget (measured).
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e41_analysis_domain")
+    sys.path.insert(0, os.path.join(repo, "plugins", "compiled_learner"))
+    import artifact_binding as ab
+
+    # ---- the premise measurement (condition 3) -------------------------------
+    probe_path = os.path.join(root, "probe.json")
+    if not os.path.isfile(probe_path):
+        results.append(Result("e41: probe.json preserved", False, "missing %s" % probe_path))
+        return results
+    probe = load(probe_path)
+    cells = probe["cells"]
+    singles = [c for c in cells if c["threads"] == 1]
+    results.append(Result("e41: one in-flight call peaks at exactly per_call (every model, both hold modes)",
+                          bool(singles) and all(c["peak"] == c["per_call_bytes"] for c in singles),
+                          "%s" % [(c["model"], c["hold_outputs"], c["peak"], c["per_call_bytes"])
+                                  for c in singles if c["peak"] != c["per_call_bytes"]]))
+    over = probe["cells_exceeding_bounded"]
+    smart2 = [c for c in over if c["model"] == "smartcam" and c["threads"] == 2]
+    results.append(Result("e41: the single-in-flight premise is load-bearing (SmartCam exceeds bounded at N=2)",
+                          bool(smart2) and smart2[0]["peak"] == 18764184
+                          and smart2[0]["bounded_bytes"] == 18222796,
+                          "%s" % smart2))
+    # concurrency, not retention, is the mechanism (D50 separated)
+    by_key = {(c["model"], c["threads"], c["hold_outputs"]): c["peak"] for c in cells}
+    same = [(m, n) for (m, n, h) in by_key if h is False
+            and (m, n, True) in by_key and by_key[(m, n, False)] != by_key[(m, n, True)]
+            and n == 1]
+    results.append(Result("e41: at one in-flight call, holding the output does not change the peak (D50 separated)",
+                          not same, "differing: %s" % same))
+    nondet = [c for c in cells if not c["deterministic"]]
+    results.append(Result("e41: non-determinism is recorded, not averaged away (N x per_call is an upper bound)",
+                          all(len(set(c["peaks_observed"])) > 1 for c in nondet)
+                          and all(len(set(c["peaks_observed"])) == 1 for c in cells if c["deterministic"]),
+                          "%d non-deterministic cell(s)" % len(nondet)))
+
+    # ---- condition 3 is unreachable in every shipped deployment --------------
+    for rel in ("native/native_learner.c", "native/cfs_app/fsw/src/ai_learner.c"):
+        src = open(os.path.join(repo, rel)).read()
+        hits = [k for k in ("pthread_create", "CFE_ES_CreateChildTask", "OS_TaskCreate") if k in src]
+        results.append(Result("e41: %s creates no thread or child task (condition 3 unreachable)"
+                              % os.path.basename(rel), not hits, "%s" % hits))
+
+    # ---- condition 4 is not a gate, and the number says why ------------------
+    b2 = load(os.path.join(repo, "results", "e26_boundary_utility", "x86_64",
+                           "ext_b2_resnet", "b2_resnet.contract.json"))["resources"]
+    results.append(Result("e41: enforcing condition 4 literally would reject an honest run at 50% of budget",
+                          309576 <= b2["bounded_bytes"] and 309576 > b2["static_per_call_bytes"],
+                          "D50 peak 309576 vs bounded %d / per_call %d"
+                          % (b2["bounded_bytes"], b2["static_per_call_bytes"])))
+
+    # ---- condition 5: the header generator ----------------------------------
+    base = load(os.path.join(repo, "results", "e26_boundary_utility", "x86_64",
+                             "ext_b3_deepae", "b3_deepae.contract.json"))
+    for label, mutate in (
+            ("no driver declared anywhere", lambda c: (c["validity"].pop("driver", None),
+                                                       c["target"].pop("driver", None))),
+            ("validity.driver != target.driver", lambda c: c["validity"].__setitem__("driver", "local-task"))):
+        c = json.loads(json.dumps(base))
+        mutate(c)
+        src = os.path.join(tmp, "e41_drv.json")
+        hdr = os.path.join(tmp, "e41_drv.h")
+        if os.path.exists(hdr):
+            os.remove(hdr)
+        with open(src, "w") as f:
+            json.dump(c, f)
+        rc, _, err = run([PY, GEN_HEADER, src, hdr])
+        results.append(Result("e41: header generator refuses -- %s" % label,
+                              rc != 0 and not os.path.exists(hdr),
+                              "rc=%d wrote_header=%s err=%s" % (rc, os.path.exists(hdr), err.strip()[:140])))
+
+    # ---- condition 5: the OnAIR plugin's pure check --------------------------
+    legacy = load(os.path.join(repo, "plugins", "compiled_learner", "runtime", "contract.json"))
+    smart = load(os.path.join(repo, "results", "p1_smartcam_feasibility", "build",
+                              "smartcam.contract.json"))
+    def drv(contract, deployment_driver):
+        try:
+            return ab.check_declared_driver(contract, deployment_driver)
+        except ab.DeclaredDriverError as e:
+            return e
+    results.append(Result("e41: the legacy fixture (validity=null, target.driver set) is NOT rejected "
+                          "(over-rejection guard, D31 shape)",
+                          drv(legacy, "local-sync") == "local-sync", "%s" % drv(legacy, "local-sync")))
+    results.append(Result("e41: an undeclared deployment driver is refused",
+                          isinstance(drv(smart, "local-task"), ab.DeclaredDriverError),
+                          "%s" % drv(smart, "local-task")))
+    results.append(Result("e41: a contract declaring no driver is refused (absence is not agreement, D29)",
+                          isinstance(drv({"validity": None, "target": {}}, "local-sync"),
+                                     ab.DeclaredDriverError),
+                          "%s" % drv({"validity": None, "target": {}}, "local-sync")))
+
+    # ---- the official OnAIR cells -------------------------------------------
+    summ_path = os.path.join(root, "summary.json")
+    if not os.path.isfile(summ_path):
+        results.append(Result("e41: summary.json present", False, "missing %s" % summ_path))
+        return results
+    summ = load(summ_path)
+    cellmap = summ["onair_cells"]
+    e33 = {"smartcam": (True, 5), "smartcam_deny": (False, 0),
+           "smartcam_mismatch": (False, 0), "legacy_mlp": (True, 4)}
+    for name, (active, infer) in e33.items():
+        c = cellmap.get(name) or {}
+        results.append(Result("e41: OnAIR cell %s still matches its E33 values under the new gate" % name,
+                              c.get("active") is active and c.get("inferences") == infer
+                              and c.get("returncode") == 0 and c.get("plugin_constructed") is True
+                              and c.get("onair_core_unmodified") is True,
+                              "active=%s inferences=%s rc=%s" % (c.get("active"), c.get("inferences"),
+                                                                 c.get("returncode"))))
+    w = cellmap.get("smartcam_wrong_driver") or {}
+    results.append(Result("e41: the new gate fires in the official OnAIR path, before admission and binding",
+                          w.get("active") is False and w.get("inferences") == 0
+                          and w.get("admission_verdict") is None and w.get("binding_verdict") is None
+                          and "driver" in (w.get("inactive_reason") or "") and w.get("returncode") == 0,
+                          "active=%s admission=%s binding=%s reason=%s"
+                          % (w.get("active"), w.get("admission_verdict"), w.get("binding_verdict"),
+                             (w.get("inactive_reason") or "")[:90])))
+
+    # ---- the cell must say which telemetry it feeds OnAIR -------------------
+    deps = load(os.path.join(repo, "configs", "deployments", "onair_deployments.json"))["deployments"]
+    missing = [n for n, d in deps.items() if not d.get("telemetry")]
+    results.append(Result("e41: every OnAIR deployment declares its telemetry file "
+                          "(E33's p_legacy cell could not be regenerated without this)",
+                          not missing, "%s" % missing))
+    data_dir = os.path.join(repo, "configs", "onair_data")
+    absent = [n for n, d in deps.items()
+              if d.get("telemetry") and not os.path.isfile(os.path.join(data_dir, d["telemetry"] + ".csv"))]
+    results.append(Result("e41: every declared telemetry file exists in configs/onair_data",
+                          not absent, "%s" % absent))
+    return results
+
+
+# ----------------------------------------------------------------------------
+# D72 (v0.44.1): E35's "24/24 verdicts agree" is a corollary, not a measurement
+# ----------------------------------------------------------------------------
+def e35_d72_structural_agreement_cases():
+    """The number is real; its INDEPENDENCE is not, and the source says so.
+
+    e35_baseline_policy_matrix.py skips any model whose three figures disagree, and
+    feeds both levels the same three numbers AND the same bound_method. So
+    `verdicts_disagreeing: 0` cannot come out otherwise. These cases pin that fact in
+    the machine-readable place, so the 24/24 is never re-quoted as 24 independent
+    trials -- the E35 plan (SS4-2) had pre-registered that a disagreeing cell "would be
+    the core of this experiment", and the implementation cannot produce one.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    src = open(os.path.join(HERE, "e35_baseline_policy_matrix.py")).read()
+    results.append(Result("d72: the matrix still skips models whose three figures disagree "
+                          "(so 0 disagreeing cells is structural)",
+                          'if not same_numbers or b_level.get("bounded_bytes") is None:' in src
+                          and "continue" in src.split('if not same_numbers')[1][:120],
+                          "guard not found as expected"))
+    results.append(Result("d72: both levels are decided with the SAME bound_method read from the contract",
+                          src.count('method = res["bound_method"]') == 1
+                          and src.count("as_contract(") >= 3,
+                          "method=%d as_contract=%d" % (src.count('method = res["bound_method"]'),
+                                                        src.count("as_contract("))))
+    # the corollary, demonstrated rather than asserted
+    sys.path.insert(0, HERE)
+    import admission_policy as ap
+    from e35_baseline_policy_matrix import as_contract, bands
+    c = as_contract(618856, 309416, 309440, "static_from_stream_layout")
+    b = as_contract(618856, 309416, 309440, "static_from_stream_layout")
+    diffs = sum(1 for _, budget in bands(618856, 309416) for cond in (False, True)
+                if ap.decide(c, budget, allow_conditional_map=cond)["verdict"]
+                != ap.decide(b, budget, allow_conditional_map=cond)["verdict"])
+    results.append(Result("d72: with identical inputs no band/policy combination can disagree",
+                          c == b and diffs == 0, "identical=%s diffs=%d" % (c == b, diffs)))
+    # what E35 actually measured is still there and still 4/4
+    summ = load(os.path.join(repo, "results", "e35_fair_baseline", "summary.json"))["totals"]
+    results.append(Result("d72: the real measurement (three figures + kernel stack, 4/4) is unchanged",
+                          summ["models_where_three_figures_agree"] == 4
+                          and summ["models_where_kernel_stack_agrees"] == 4
+                          and summ["models_total"] == 4,
+                          "%s" % summ))
+    # the erratum must exist where a machine reader looks, not only in prose (D65)
+    ev = open(os.path.join(repo, "docs", "EVIDENCE_v0.38_E35.md"), encoding="utf-8").read()
+    results.append(Result("d72: EVIDENCE_v0.38_E35 carries the erratum narrowing the 24/24 claim",
+                          "D72" in ev and "따름정리" in ev, "erratum section missing"))
+    claude = open(os.path.join(repo, "CLAUDE.md"), encoding="utf-8").read()
+    results.append(Result("d72: CLAUDE.md no longer presents 24/24 as an independent measurement",
+                          "24/24" not in claude or "따름정리" in claude,
+                          "CLAUDE.md still quotes 24/24 without the corollary note"))
+    return results
+
+
+
+
+
+
+
+def bp_marker():
+    """The fixture marker budget_provenance.py honours (D77). Read from the module so the two
+    cannot drift -- hardcoding the string here would be the very shape this guards against."""
+    sys.path.insert(0, HERE)
+    import budget_provenance as bp                                 # noqa: PLC0415
+    return bp.FIXTURE_MARKER
+
+
+def e49_audit_matrix_cases(tmp):
+    """E49: the premise / accounting / admission matrices, and the honesty rule they follow.
+
+    The point of these checks is not that every premise is OBSERVED -- two are not, and saying
+    so is the deliverable. What is pinned:
+
+    (1) ADM-1..8 match the REAL decision function, so a policy change shows up here;
+    (2) a premise that was not observed carries `null` + `unavailable_reason`, never 0/false
+        (the guide SS11; this repository's D29 / D51 / D68);
+    (3) the count of archived contracts carrying E40's `analysis_domain` is DERIVED, so the
+        scope sentence ("the contract declares the two arms") cannot quietly become false;
+    (4) the spawn-call counts that justify `max_in_flight_calls = 1` are zero AND labelled
+        as an argument rather than an observation.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    path = os.path.join(repo, "results", "e49_research_audit", "audit_matrix.json")
+    if not os.path.exists(path):
+        results.append(Result("e49: audit matrix present", False, "missing %s" % path))
+        return results
+    m = load(path)
+
+    am = m["admission_matrix"]
+    _ok = am["all_ok"] and len(am["cells"]) == 8
+    results.append(Result("e49/ADM: all 8 policy cells match the expected verdict AND the "
+                          "expected 'did inference start' (evaluated against admission_policy.py "
+                          "itself, not a restatement)", _ok,
+                          "" if _ok else json.dumps([c for c in am["cells"] if not c["ok"]])[:260]))
+
+    ids = [c["id"] for c in am["cells"]]
+    _ok = ids == ["ADM-%d" % i for i in range(1, 9)]
+    results.append(Result("e49/ADM: the matrix covers ADM-1..8 with no cell quietly dropped",
+                          _ok, "got %r" % (ids,)))
+
+    pr = m["premises"]
+    mif = pr["max_in_flight_calls_is_1"]
+    # E55/P0-3 CHANGES what this pins, on purpose. E49 recorded ARGUED_FROM_SOURCE with
+    # observed_value null because nothing recorded a call id at invoke entry and exit --
+    # counting spawn calls in the source is an argument, and calling it an observation would
+    # be D51's shape. E55 added the counter to both C executors, so the observation now
+    # EXISTS. What this guard protects is unchanged in spirit: the status must be DERIVED from
+    # raw records, never typed (D82: a grade is counted, not written). The old entry is kept
+    # beside it as `_..._legacy` so what changed stays visible (correction, not withdrawal).
+    _ok = (mif["status"] == "OBSERVED" and mif["observed_value"] == 1
+           and mif.get("observed_values_seen") == [1]
+           and mif.get("counter_balanced_in_every_cell") is True
+           and isinstance(mif.get("records"), int) and mif["records"] > 0
+           and isinstance(mif.get("distinct_cells"), int)
+           and mif.get("scope_note")
+           and pr.get("_max_in_flight_calls_is_1_legacy", {}).get("status") == "ARGUED_FROM_SOURCE")
+    results.append(Result("e49/PRE-1: max_in_flight_calls is now OBSERVED -- the value is COUNTED out "
+                          "of the `mem` records the E55 call-lifetime counter writes, every cell's "
+                          "counter balanced, the scope limited to deployments that actually ran, and "
+                          "the pre-E55 ARGUED_FROM_SOURCE entry kept beside it so the change is visible",
+                          _ok, "" if _ok else json.dumps(mif)[:260]))
+
+    counts = mif["spawn_call_counts"]
+    _ok = all(v.get("source_present") and v.get("total") == 0 for v in counts.values())
+    results.append(Result("e49/PRE-1: and the three deployment sources really do create no tasks "
+                          "or threads (0/0/0, counted not claimed)", _ok,
+                          "" if _ok else json.dumps(counts)[:220]))
+
+    onair = pr["output_released_before_next_call"]["onair_plugin"]
+    _ok = (onair["status"] == "NOT_VERIFIED" and onair["observed_value"] is None
+           and "nanobind" in (onair.get("unavailable_reason") or ""))
+    results.append(Result("e49/PRE-2: the OnAIR output lifetime stays NOT_VERIFIED with the D60 "
+                          "reason attached -- neither 'released' nor 'leaked' may be written",
+                          _ok, "" if _ok else json.dumps(onair)[:200]))
+
+    sc = m["accounting_scope"]["same_scope_id"]
+    _ok = (isinstance(sc["archived_contracts_total"], int)
+           and isinstance(sc["archived_contracts_carrying_analysis_domain"], int)
+           and sc["archived_contracts_carrying_analysis_domain"] <= sc["archived_contracts_total"])
+    results.append(Result("e49/ACC: the number of archived contracts carrying E40's "
+                          "analysis_domain is COUNTED (%s of %s) -- the scope sentence cannot "
+                          "drift away from the artifacts"
+                          % (sc["archived_contracts_carrying_analysis_domain"],
+                             sc["archived_contracts_total"]), _ok, ""))
+
+    # the honesty rule itself: no premise may report a measured-looking 0/false where it means
+    # "not measured"
+    bad = []
+    for name, v in pr.items():
+        if isinstance(v, dict) and v.get("status") in ("NOT_VERIFIED", "ARGUED_FROM_SOURCE"):
+            if v.get("observed_value", "MISSING") is not None:
+                bad.append(name)
+    results.append(Result("e49: every premise that was not observed reports observed_value=null, "
+                          "never 0 or false (guide SS11; D29/D51/D68)", not bad,
+                          "" if not bad else ", ".join(bad)))
+    return results
+
+
+def d86_pre_scheduling_ops_cases(tmp):
+    """D86: an allocating pre-scheduling op in the post-layout entry must not be
+    skipped by BOTH extractors, and must not be over-rejected either.
+
+    The hole: mlir_alloc_walk's dispatch did `continue` on every op outside
+    stream.resource.*/stream.tensor.*, the same two-family limit D84 recorded
+    for the regex parser and did not record for this one. So a stream.async.*
+    left in the entry was invisible to both readers, they AGREED because the
+    blind spot is shared, and a contract was written whose bound omitted the
+    allocation while reporting unresolved == []. Reproduced by injecting a real
+    36 B stream.async.clone into an archived entry: rc=0, bounded unchanged at
+    786,476, i.e. "did not read it" recorded as "nothing was there".
+
+    The first fix hard-failed on it and that was a type-(B) over-rejection,
+    caught by E24's N1 guard and by the same two contracts N1 hit: `dynamic`
+    carries SIX honest stream.async.* ops in its entry, because a dynamic shape
+    means layout genuinely does not finish, and those two contracts are the
+    INPUT to the A8 negative scenario. What they already say -- all_static
+    false, bound_method NONE -- is the correct answer. So the walker reports the
+    ops (driving that existing no-bound path) and the refusal for a STATIC model
+    comes from the two extractors now disagreeing on unresolved presence.
+
+    Both directions are pinned here, and so is the measurement E49 got wrong.
+    """
+    results = []
+    root = os.path.join(os.path.dirname(HERE), "results", "e14_aarch64_qemu")
+    if not os.path.isdir(root):
+        return [Result("d86: fixture root present", False, "missing %s" % root)]
+    if not structural_available():
+        return [Result("d86: pre-scheduling op cases", None,
+                       "structural extractor unusable here (iree.compiler.ir not importable)", skip=True)]
+    import mlir_alloc_walk as _maw                                  # noqa: PLC0415
+
+    # (1) D95 (E55) CORRECTS what this used to pin. These two guards asserted that the
+    #     archived `dynamic` layout IR carries six allocating `stream.async.*` ops in its
+    #     POST-LAYOUT entry. It does not. The walker was reading a PRE-layout chunk, because
+    #     the last chunk failed to parse -- `iree-compile` appended a diagnostic remark to the
+    #     same stream, split_dumps ran the last chunk to EOF and swallowed it, and MLIR read
+    #     the remark's file path as an op name. The fallback to an earlier chunk was silent.
+    #     With the diagnostic stripped, the same file reports dispatches=2, zero async ops, and
+    #     the HONEST unresolved reasons (`non_constant_def:arith.muli` -- the dynamic shape).
+    #     The D86 MECHANISM is still under test: the synthetic injection below (3) exercises it
+    #     on a static entry, which is the case that actually matters.
+    dyn_ir = read(os.path.join(root, "aarch64", "layout_ir", "dynamic.layout_ir.txt"))
+    dyn = _maw.parse_alloc_ir_structural(dyn_ir, "infer")
+    dyn_ps = dyn.get("pre_scheduling_ops") or []
+    results.append(Result("d86/D95: the archived dynamic entry carries NO async ops once the trailing "
+                          "compiler diagnostic no longer breaks the last chunk -- the six that used to "
+                          "be pinned here came from a silent fallback to a pre-layout chunk",
+                          len(dyn_ps) == 0 and dyn.get("dispatches") == 2,
+                          "pre_scheduling_ops=%r dispatches=%r" % (sorted(set(dyn_ps)), dyn.get("dispatches"))))
+    results.append(Result("d86/D95: and its unresolved list now carries the honest reason for refusing "
+                          "this model (the dynamic shape), not a chunk-selection artefact",
+                          bool(dyn.get("unresolved"))
+                          and all("non_constant_def" in u for u in dyn.get("unresolved") or []),
+                          "unresolved=%r" % ((dyn.get("unresolved") or [])[:3],)))
+    results.append(Result("d86/D95: the walker names which entry chunk it used and why any other "
+                          "failed -- a fallback is reported, never silent",
+                          dyn.get("entry_chunk_rank_used") == 0
+                          and isinstance(dyn.get("entry_chunk_parse_failures"), list),
+                          "rank_used=%r failures=%r" % (dyn.get("entry_chunk_rank_used"),
+                                                        len(dyn.get("entry_chunk_parse_failures") or []))))
+
+    # (2) type (B): the honest dynamic contract must still be written, unchanged.
+    #     This is the A8 negative scenario's input -- refusing to write it would
+    #     delete the evidence that the tool refuses dynamic shapes.
+    stored = load(os.path.join(root, "aarch64", "contracts", "contract.dynamic.aarch64.json"))
+    results.append(Result("d86: the honest dynamic contract still states no bound rather than being "
+                          "refused (type-(B) guard -- this is the A8 scenario's input)",
+                          stored.get("resources", {}).get("bound_method") == "NONE"
+                          and stored.get("resources", {}).get("bounded_bytes") is None,
+                          "bound_method=%r bounded=%r" % (stored.get("resources", {}).get("bound_method"),
+                                                          stored.get("resources", {}).get("bounded_bytes"))))
+
+    # (3) a STATIC entry with an async op injected: the two readers must differ -- the
+    #     regex parser cannot see it, the walker now can, so unresolved presence
+    #     disagrees and make_contract hard-fails (measured separately below by
+    #     the disagreement wiring already under test).
+    base = read(os.path.join(root, "aarch64", "layout_ir", "mlp16k.layout_ir.txt"))
+    needle = ("  %0 = stream.tensor.import on(#hal.device.affinity<@__device_0>) %arg0 : "
+              "!hal.buffer_view -> tensor<1x9xf32> in !stream.resource<external>{%c36}\n")
+    if needle not in base:
+        results.append(Result("d86: injection anchor present in archived mlp16k layout IR", False,
+                              "anchor not found -- fixture changed"))
+        return results
+    i = base.rfind(needle)
+    injected = (base[:i] + needle +
+                "  %async_probe = stream.async.clone on(#hal.device.affinity<@__device_0>) %0 : "
+                "!stream.resource<external>{%c36} -> !stream.resource<external>{%c36}\n" +
+                base[i + len(needle):])
+    mut = _maw.parse_alloc_ir_structural(injected, "infer")
+    base_parsed = _maw.parse_alloc_ir_structural(base, "infer")
+    results.append(Result("d86: a static entry with an injected allocating async op is reported, while "
+                          "the same entry without it is clean (the fail-open condition, reproduced)",
+                          bool(mut.get("pre_scheduling_ops")) and not base_parsed.get("pre_scheduling_ops"),
+                          "injected=%r clean=%r" % (mut.get("pre_scheduling_ops"),
+                                                    base_parsed.get("pre_scheduling_ops"))))
+    results.append(Result("d86: and it lands in unresolved for the static entry, which the regex parser "
+                          "leaves empty -- so the mandatory cross-check disagrees and refuses",
+                          any(u.startswith("pre_scheduling_alloc_op:") for u in mut.get("unresolved") or [])
+                          and not (base_parsed.get("unresolved") or []),
+                          "mut_unresolved=%r base_unresolved=%r" % ((mut.get("unresolved") or [])[:2],
+                                                                    base_parsed.get("unresolved"))))
+
+    # (4) E49 measured "zero async inside the last entry print" over the archived
+    #     IRs and wrote it as the condition that makes the parser's narrow scan
+    #     safe. Counted with the walker that can now see them, it is 23 of 25,
+    #     not 25 of 25 -- the two exceptions are the honest dynamic pair. Pin the
+    #     real number so the claim cannot drift back.
+    import glob as _glob                                            # noqa: PLC0415
+    repo = os.path.dirname(HERE)
+    # the same set E49 counted: layout IR lives both under */layout_ir/ (E14) and
+    # loose beside an experiment's build outputs (P1, E26...). Counting only the
+    # first directory shape sees 14 of them, which is how a "zero" can be true of
+    # what was scanned and false of the archive.
+    files = sorted(set(os.path.normpath(f) for f in
+                       (_glob.glob(os.path.join(repo, "results", "**", "layout_ir", "*.layout_ir.txt"),
+                                   recursive=True)
+                        + _glob.glob(os.path.join(repo, "results", "**", "*layout_ir.txt"),
+                                     recursive=True))))
+    with_ps = []
+    for f in files:
+        try:
+            r = _maw.parse_alloc_ir_structural(read(f), "infer")
+        except Exception:
+            continue
+        if r.get("pre_scheduling_ops"):
+            with_ps.append(os.path.basename(f))
+    # E53 (v0.56) legitimately added a new archived layout IR (wgan.layout_ir.txt),
+    # so the count grows over time as new experiments commit new evidence -- pinning
+    # it to an exact number turns every future honest addition into a CI failure.
+    # The count is a floor (never fewer than the known baseline, so a glob-pattern
+    # regression that stops finding files still fails closed); the safety property
+    # that actually matters -- no file beyond the known dynamic pair carries an
+    # allocating async op in its entry -- stays an exact match.
+    # D95 (E55): this used to expect exactly the dynamic pair. That expectation was the
+    # artefact, not the measurement -- see the two guards above. E49's original "zero" was
+    # right about the post-layout IR and wrong only about which files it globbed.
+    results.append(Result("d86/D95: NO archived layout IR carries an allocating async op in its "
+                          "post-layout entry -- E49's original 'zero' was correct about the IR; what "
+                          "was wrong was the glob it measured over, and later the chunk the walker read",
+                          len(files) >= 25 and sorted(with_ps) == [],
+                          "files=%d with_async_in_entry=%r" % (len(files), sorted(with_ps))))
+    return results
+
+
+def e49_alloc_ledger_cases(tmp):
+    """E49: the allocation ledger -- every contract component traced to an IR operation.
+
+    The validation guide (SS5, SND-1/SND-2) asks for a derivation, not just the sums. Four
+    things are pinned here:
+
+    (1) for all four real models the ledger's I/O/T/C equal the contract's, and
+        I + O + T equals `static_per_call_bytes` exactly;
+    (2) no operation in the entry is left unclassified;
+    (3) **D84** -- the production parser's regex only ever looks at `stream.(resource|tensor).*`.
+        That limit is safe only while the post-layout entry contains no `stream.async.*`
+        (the allocating pre-scheduling ops). Measured: 1,020 occurrences across the archived
+        layout IR FILES, 0 inside the last entry print. Nothing was checking it; the ledger
+        now refuses when one appears, and the positive control below proves it can fire;
+    (4) constants are the MAX of the two arms, never their sum (E26's scf.if structure) --
+        summing them would double the largest component of a constant-heavy model.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e49_research_audit", "ledger")
+    MODELS = ("b2_resnet", "b3_deepae", "smartcam", "wgan")
+
+    for m in MODELS:
+        path = os.path.join(D, "%s.json" % m)
+        if not os.path.exists(path):
+            results.append(Result("e49: allocation ledger for %s present" % m, False,
+                                  "missing %s" % path))
+            continue
+        led = load(path)
+        _ok = (led["all_agree"] and led["per_call_identity"]["equal"]
+               and not led["unclassified_ops"] and not led["async_ops_in_entry"])
+        results.append(Result("e49/SND-2: %s -- ledger I/O/T/C == contract, I+O+T == per_call, "
+                              "0 unclassified ops" % m, _ok,
+                              "" if _ok else json.dumps({k: led[k] for k in
+                                  ("derived_totals", "contract_totals", "unclassified_ops",
+                                   "async_ops_in_entry")})[:260]))
+        _ok = all(r.get("bytes") is not None for r in led["rows"]) and bool(led["rows"])
+        results.append(Result("e49: %s -- every ledger row resolved a size (a row with a null "
+                              "size is an unresolved allocation wearing a number's clothes" % m,
+                              _ok, ""))
+
+    # (3) positive control: an async op inside the entry must make the ledger refuse
+    sys.path.insert(0, HERE)
+    import e49_alloc_ledger as led_mod                              # noqa: PLC0415
+    fake = ("util.func public @infer(%a: !hal.buffer_view) -> !hal.buffer_view {\n"
+            "  %c64 = arith.constant 64 : index\n"
+            "  %x = stream.async.splat %c0 : i32 -> !stream.resource<transient>{%c64}\n"
+            "}\n")
+    out = led_mod.build_ledger(fake, "infer")
+    results.append(Result("e49/D84: a `stream.async.*` op inside the entry is detected "
+                          "(positive control -- the production parser's regex never even looks "
+                          "at that family, so nothing else would notice)",
+                          out["async_in_entry"] == ["stream.async.splat"],
+                          "got %r" % (out["async_in_entry"],)))
+
+    clean = ("util.func public @infer(%a: !hal.buffer_view) -> !hal.buffer_view {\n"
+             "  %c64 = arith.constant 64 : index\n"
+             "  %t = stream.resource.alloca uninitialized : !stream.resource<transient>{%c64}\n"
+             "  %tp = stream.timepoint.join max(%a) => !stream.timepoint\n"
+             "}\n")
+    out2 = led_mod.build_ledger(clean, "infer")
+    _ok = (not out2["async_in_entry"] and not out2["unclassified"]
+           and [r["bytes"] for r in out2["rows"]] == [64])
+    results.append(Result("e49/D84: and a clean entry (alloca + timepoint.join) is NOT refused -- "
+                          "the check must not reject the honest shape (type B)", _ok,
+                          "" if _ok else json.dumps(out2)[:220]))
+
+    # (4) constants are max-of-arms, not sum
+    src = read(os.path.join(HERE, "e49_alloc_ledger.py"))
+    _ok = 'max(c_vals)' in src and "sum" not in src.split("c_vals =")[1].split("\n")[0]
+    results.append(Result("e49: the ledger takes the MAX of the two constant arms, never their "
+                          "sum (E26: try_map and constants report the same bytes twice)", _ok, ""))
+    return results
+
+
+def ci_record_discipline_cases(tmp):
+    """D34 discipline: a version that reports regression counts must also report CI.
+
+    v0.32.1 onward, each version records the three CI legs with their conditions instead of
+    guessing. v0.49 skipped it -- and the CI it did not record was RED for three commits in a
+    row (D81). The two failures hide each other: not reading CI is also not noticing that CI
+    is red, and the `full` leg plus the development container were green because they have
+    numpy, so nothing local could show it.
+
+    The condition was NARROWED by measurement, not by argument. A first version demanded a CI
+    record from every version entry and flagged six -- but several of those record CI in
+    CLAUDE.md or in their EVIDENCE file rather than in CHANGELOG, and one (v0.44.2) is a
+    documentation-only version whose test count did not move, so demanding CI of it is a
+    type-(B) over-rejection. Measured across the three places a version can record it, the
+    honest rule is: **if a version entry states a regression count (NNN/NNN), the test suite
+    changed, so a CI measurement must exist somewhere.** Under that rule exactly four versions
+    were missing (v0.43, v0.44, v0.44.1, v0.45.1) and v0.44.2 is correctly exempt.
+
+    D85 (v0.51.1): the first version of this guard asked only whether the STRING "CI 실측"
+    occurs anywhere, and it failed on the very commit that shipped it -- v0.51 passed with zero
+    CI numbers because D83's own correction prose says "D34 규율(CI 실측 기록)이 ... 빠졌다".
+    A mention is not a record. Both sides were then fixed, each narrowed by measurement:
+    the satisfy side demands both reduced-leg names plus >= 3 NNN/NNN counts within one record
+    (measured minimum across 22 versions: 3), with one named waiver for the single version whose
+    commit has no CI run at all; and the demand side reads the same three places the satisfy side
+    reads, since asking only CHANGELOG let a version state its count elsewhere and never be asked
+    (widening it newly demands v0.46 and v0.47, both of which already record CI -- over-rejection 0).
+    Reverting either direction fails: string-presence -> 1 FAIL, dropping the waiver -> 2 FAIL.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    changelog = read(os.path.join(repo, "CHANGELOG.md"))
+    claude = read(os.path.join(repo, "CLAUDE.md"))
+
+    def vkey(v):
+        return tuple(int(x) for x in v.split("."))
+
+    heads = [(m.start(), m.group(1)) for m in re.finditer(r"^## \[v([0-9.]+)\]", changelog, re.M)]
+    sections = []
+    for i, (pos, ver) in enumerate(heads):
+        end = heads[i + 1][0] if i + 1 < len(heads) else len(changelog)
+        sections.append((ver, changelog[pos:end]))
+
+    # D85: the first version of this guard asked only whether the STRING "CI 실측" occurs.
+    # That is a mention, not a record -- and it fired immediately: v0.51 (the very commit that
+    # shipped this guard) passed it without a single CI number, because D83's own correction
+    # prose contains the words "D34 규율(CI 실측 기록)이 ... 빠졌다". A rule satisfied by text
+    # ABOUT the rule is not a rule. Same family as D65 (a correction that reaches only the
+    # prose) and D77 (the code implementing a rule being scanned by it).
+    #
+    # The shape was NARROWED BY MEASUREMENT, not by argument. Scanning every 420-char window
+    # starting at "CI 실측" across all three recording sites for the 22 versions from v0.32.1
+    # on: every genuine record carries BOTH reduced-leg names and >= 3 NNN/NNN counts
+    # (measured minimum 3, at v0.49; every other genuine record has 4 or 5). Exactly one
+    # version carries no numbers -- v0.44.1, whose record states that commit fb904ff has no
+    # independent CI run at all, established by an exhaustive query over 203 runs.
+    #
+    # So absence-of-a-run is NOT matched by a regex: prose can always say "no run exists" about
+    # some other commit, which is precisely how the broken version passed (the D83 text says it
+    # about fb904ff). It is a named waiver instead, carrying its commit and its reason, and the
+    # waived version's documentation must still state that reason -- a silent waiver would be
+    # the fail-open again.
+    NO_CI_RUN = {"0.44.1": ("fb904ff", "독립 CI run이 없다 (push·pull_request run 203개 전수 조회)")}
+    LEG_NAMES = ("without-iree", "stdlib-only")
+
+    def _ci_sources(ver, body):
+        out = [body]
+        m = re.search(r"\*\*v%s(?:에서|/)" % re.escape(ver), claude)
+        if m:
+            nxt = re.search(r"\n\*\*v[0-9]", claude[m.end():])
+            out.append(claude[m.start(): m.end() + (nxt.start() if nxt else 2000)])
+        import glob as _glob                                        # noqa: PLC0415
+        for path in _glob.glob(os.path.join(repo, "docs", "EVIDENCE_v%s_*.md" % ver)):
+            out.append(read(path))
+        return out
+
+    def records_ci(ver, body):
+        for txt in _ci_sources(ver, body):
+            for m in re.finditer("CI 실측", txt):
+                w = txt[m.start(): m.start() + 420]
+                if all(leg in w for leg in LEG_NAMES) and len(re.findall(r"\d{3}/\d{3}", w)) >= 3:
+                    return True
+        if ver in NO_CI_RUN:
+            commit, reason = NO_CI_RUN[ver]
+            # the waiver is not self-certifying: the version must say it itself
+            for txt in _ci_sources(ver, body):
+                if commit in txt and "독립" in txt and "run" in txt:
+                    return True
+        return False
+
+    FIRST = vkey("0.32.1")
+    # D85 (second half): the NEWEST entry cannot record its own CI -- the run does not exist
+    # until the commit is pushed. Measured, not argued: `git log -- CHANGELOG.md` shows CI is
+    # always written by a LATER commit (six dedicated "docs: ... CI 실측 기록" commits, and
+    # v0.50's run 204 was written by d16ad73, not by 0ab7cca). Demanding it of the head entry
+    # is therefore a type-(B) over-rejection of a physically impossible record. The ratchet
+    # still closes: the next version's commit makes this one demanded, which is exactly how
+    # v0.51's missing record surfaced the moment v0.51.1 was added.
+    head_version = sections[0][0] if sections else None
+    missing, exempt = [], []
+    for ver, body in sections:
+        if vkey(ver) < FIRST:
+            continue
+        if ver == head_version and not records_ci(ver, body):
+            exempt.append("%s (head: its CI run does not exist yet)" % ver)
+            continue
+        # D85: the demand side reads the SAME three places the satisfy side does. It used to
+        # read CHANGELOG alone, so a version that stated its count only in CLAUDE.md was never
+        # asked for CI at all -- the asymmetry is itself a fail-open. Widening it was measured
+        # first: exactly two versions (v0.46, v0.47) become demanded and both already record
+        # CI, so over-rejection is 0.
+        if not any(re.search(r"\d{3}/\d{3}", txt) for txt in _ci_sources(ver, body)):
+            exempt.append(ver)                 # no test-count change claimed -> CI not demanded
+            continue
+        if not records_ci(ver, body):
+            missing.append(ver)
+    results.append(Result("d34: every version that states a regression count also records a CI "
+                          "measurement somewhere (CHANGELOG / CLAUDE.md / its EVIDENCE); "
+                          "exempt (no count stated): %s" % (", ".join(exempt) or "none"),
+                          not missing,
+                          "" if not missing else "missing: %s" % ", ".join(missing)))
+
+    # positive control: the scan must be able to see a version that states a count and records no CI
+    probe = "## [v9.99] - x\nsome text 123/123 checks\n"
+    ph = [(m.start(), m.group(1)) for m in re.finditer(r"^## \[v([0-9.]+)\]", probe, re.M)]
+    seen = [v for (pos, v) in ph
+            if vkey(v) >= FIRST and re.search(r"\d{3}/\d{3}", probe) and "CI 실측" not in probe]
+    results.append(Result("d34: the scan detects a count-stating version with no CI record "
+                          "(positive control -- a check that can never fire is not a check)",
+                          seen == ["9.99"], "got %r" % (seen,)))
+
+    # D85 positive control: this is the exact text that defeated the first version of the guard.
+    # A version whose only occurrence of the phrase is a CORRECTION ABOUT the discipline -- no
+    # leg names, no three-leg counts -- must read as missing. Without this case the narrowing
+    # above is unfalsifiable: it would pass whether or not it actually narrowed anything.
+    mention_only = ("## [v9.98] - x\n이 컨테이너 **750/750 → 768/768**.\n"
+                    "**정정: D83** — D34 규율(CI 실측 기록)이 네 버전에서 빠졌다. "
+                    "`fb904ff`는 독립 run이 없음을 run 203개 전수 조회로 확인했다.\n")
+    fired = not records_ci("9.98", mention_only)
+    results.append(Result("d85: a version that only MENTIONS the CI discipline (correction prose, "
+                          "no leg names, no three-leg counts) is recorded as missing -- the "
+                          "condition that let v0.51 ship with zero CI numbers",
+                          fired, "" if fired else "mention-only text still counted as a record"))
+
+    # and the other direction (type B): a real record must still be accepted, including the one
+    # historical version that legitimately has no run at all.
+    real = ("## [v9.97] - x\n**CI 실측**(커밋 `abc1234`, run 999, 3레그 success): `full` "
+            "**763/763 + 3 SKIP** · `without-iree` **600/600 + 33 SKIP** · `stdlib-only` "
+            "**600/600 + 33 SKIP**.\n")
+    ok_real = records_ci("9.97", real)
+    ok_hist = records_ci("0.44.1", dict(sections).get("0.44.1", ""))
+    results.append(Result("d85: a real three-leg record is accepted, and so is v0.44.1's honest "
+                          "'no independent run exists' record (no over-rejection)",
+                          ok_real and ok_hist,
+                          "real=%s v0.44.1=%s" % (ok_real, ok_hist)))
+    return results
+
+
+def result_skip_hygiene_cases(tmp):
+    """D81: a Result whose verdict is None must be marked skip=True.
+
+    `Result.__repr__` prints FAIL for ok=None unless skip is set, and main() counts it as a
+    failure. So an unmarked None is not a neutral placeholder -- it is a false FAIL, which is
+    exactly what D24/D32 taught this repository to refuse: a missing optional package must not
+    be recorded as a broken check. E47 introduced one anyway (numpy), and it turned both reduced
+    CI legs red for two commits while the full leg stayed green.
+
+    The scan is over the AST, not the text. A first version matched the source with a regex and
+    immediately flagged its OWN pattern literals -- the D77 shape, where the code that implements
+    a rule is itself scanned by it. An AST walk sees calls, so a string that merely looks like
+    one is not a call.
+    """
+    import ast as _ast                                              # noqa: PLC0415
+    results = []
+    path = os.path.join(HERE, "contract_negative_tests.py")
+    src_lines = read(path).splitlines()
+    tree = _ast.parse("\n".join(src_lines))
+
+    # This function's OWN body is excluded, because its positive control below has to BE an
+    # unmarked None to prove the scan can see one -- the D77 shape again, where the code that
+    # implements a rule gets scanned by it. The exclusion is by function, it is stated here, and
+    # every skipped call is listed verbatim in the result, so the waiver costs visibility
+    # rather than buying silence. Anything outside this one function is still checked.
+    me = next((n for n in _ast.walk(tree)
+               if isinstance(n, _ast.FunctionDef) and n.name == "result_skip_hygiene_cases"), None)
+    lo, hi = (me.lineno, me.end_lineno) if me else (0, -1)
+
+    bad, waived = [], []
+    for node in _ast.walk(tree):
+        if not isinstance(node, _ast.Call):
+            continue
+        fn = node.func
+        if not (isinstance(fn, _ast.Name) and fn.id == "Result"):
+            continue
+        if len(node.args) < 2:
+            continue
+        verdict = node.args[1]
+        if not (isinstance(verdict, _ast.Constant) and verdict.value is None):
+            continue
+        if any(kw.arg == "skip" for kw in node.keywords):
+            continue
+        entry = (node.lineno, src_lines[node.lineno - 1].strip()[:120])
+        (waived if lo <= node.lineno <= hi else bad).append(entry)
+
+    results.append(Result("d81: every Result(..., None, ...) call outside this guard is marked "
+                          "skip=True (an unmarked None prints FAIL -- 'could not look' recorded "
+                          "as 'looked and it was wrong', D24/D32); waived here: %s"
+                          % ("; ".join("line %d: %s" % w for w in waived) or "none"), not bad,
+                          "" if not bad else "; ".join("line %d: %s" % b for b in bad)))
+
+    # the flag must still do what the name says, or the scan above guards nothing
+    results.append(Result("d81: Result(skip=True) prints SKIP while Result(ok=None) without it "
+                          "prints FAIL -- the distinction the scan relies on",
+                          "SKIP" in repr(Result("x", None, "", skip=True))
+                          and "FAIL" in repr(Result("x", None, "")), ""))
+
+    # and the scan must be able to SEE such a call, or it is vacuous
+    probe = _ast.parse('Result("p", None, "why")\nResult("q", None, "why", skip=True)\n')
+    seen = [n for n in _ast.walk(probe)
+            if isinstance(n, _ast.Call) and isinstance(n.func, _ast.Name) and n.func.id == "Result"
+            and isinstance(n.args[1], _ast.Constant) and n.args[1].value is None
+            and not any(kw.arg == "skip" for kw in n.keywords)]
+    results.append(Result("d81: the scan actually detects an unmarked None (positive control -- "
+                          "a check that can never fire is not a check)", len(seen) == 1, ""))
+    return results
+
+
+def e48_real_inputs_aarch64_cases(tmp):
+    """E48: 공개 실입력을 AArch64 native·cFS 에서 다시 밟은 셀들과, 그 과정이 드러낸 D80.
+
+    고정하는 것 넷:
+
+    (1) **D80 — `runtime_created` 기대 키의 양방향 오작동.** E16 이 스택 확인을 자원 획득
+        이전으로 옮긴 뒤 모든 거부 셀이 `stack` 레코드를 남기는데, 이 키는 그 레코드를
+        "런타임이 만들어졌다"로 읽고 있었다. 정직한 NOT_ADMITTED 셀이 구조적으로 FAIL 이고
+        (유형 B), 반대로 True 를 기대하는 셀은 런타임 없이도 통과한다(유형 A). E14 이후 이
+        키를 쓴 셀이 한 번도 실행되지 않아 드러나지 않았다.
+    (2) 그 수정이 **보관된 E14 셀 세 개의 판정을 바꾸지 않는다** — 그 로그에는 `stack` 도
+        `mem_init` 도 없다.
+    (3) 실입력 셀의 판정이 x86-64(E45)와 **같다**: ResNet PASS · SmartCam PASS ·
+        DeepAE FAIL. 세 번째는 기준을 고치지 않고 그대로 보고한다(D74).
+    (4) 계약 세 수치는 **입력과 무관**하다 — 같은 AArch64 계약이 합성 셀(E36b/E32)과 실입력
+        셀에서 같은 값을 싣는다.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e48_real_inputs_aarch64")
+    sys.path.insert(0, HERE)
+
+    # --- (1)/(2) D80: the expectation key itself, exercised on synthetic records ---
+    from e14_cfs_scenarios import check_expect  # noqa: PLC0415
+
+    refused = {"admission": ["NOT_ADMITTED"], "binding": [],
+               "stack": {"kernel_stack_accounted": True}, "last_run": None,
+               "mem_init": None, "last_mem": None}
+    _ok = check_expect(refused, {"runtime_created": False}) == []
+    results.append(Result("e48/D80: a refused cell that emitted only a pre-admission `stack` "
+                          "record satisfies runtime_created=False (it used to fail -- type B)",
+                          _ok, "" if _ok else str(check_expect(refused, {"runtime_created": False}))))
+
+    _ok = check_expect(refused, {"runtime_created": True}) != []
+    results.append(Result("e48/D80: and the same record does NOT satisfy runtime_created=True -- "
+                          "the stack record alone must never witness a runtime (type A)", _ok, ""))
+
+    ran = dict(refused, admission=["ADMIT"], mem_init={"hal_peak": 1}, last_mem={"hal_peak": 1})
+    _ok = (check_expect(ran, {"runtime_created": True}) == []
+           and check_expect(ran, {"runtime_created": False}) != [])
+    results.append(Result("e48/D80: `mem_init` (emitted after the session and input buffer exist, "
+                          "before any inference) is what witnesses the runtime", _ok, ""))
+
+    src = read(os.path.join(HERE, "e14_cfs_scenarios.py"))
+    _ok = 'bool(res.get("last_run")) or bool(res.get("stack"))' not in src
+    results.append(Result("e48/D80: the old `last_run or stack` approximation is gone from the "
+                          "source, not merely shadowed", _ok, ""))
+
+    # archived E14 cells keep their stored verdicts under the fixed key
+    e14 = os.path.join(repo, "results", "e14_aarch64_qemu", "cfs", "summary.json")
+    if not os.path.exists(e14):
+        results.append(Result("e48/D80: archived E14 cfs summary present", False, "missing %s" % e14))
+    else:
+        cells = [sc for sc in load(e14).get("scenarios", [])
+                 if "runtime_created" in (sc.get("expect") or {})]
+        _ok = len(cells) == 3 and all(sc.get("pass") is True and check_expect(sc, sc["expect"]) == []
+                                      for sc in cells)
+        results.append(Result("e48/D80: the three archived E14 cells that use this key keep their "
+                              "stored PASS when re-judged by the fixed rule (no verdict moved)",
+                              _ok, "" if _ok else json.dumps([c["id"] for c in cells])))
+
+    # --- (3)/(4) the measured cells ---
+    sp = os.path.join(D, "summary.json")
+    if not os.path.exists(sp):
+        results.append(Result("e48: summary present", False, "missing %s" % sp))
+        return results
+    s = load(sp)
+    m = s["models"]
+
+    for name, want in (("b2_resnet", "PASS"), ("smartcam", "PASS"), ("b3_deepae", "FAIL")):
+        b = m[name]
+        nat = b["semantics_native_aarch64"].get("verdict")
+        cfs = b["semantics_cfs_aarch64"].get("verdict")
+        x86 = b["x86_64_pip_runtime_E45"].get("verdict")
+        _ok = nat == want and cfs == want and x86 == want
+        results.append(Result("e48: %s -- AArch64 native=%s, AArch64 cFS=%s, x86-64(E45)=%s, "
+                              "all %s" % (name, nat, cfs, x86, want), _ok,
+                              "" if _ok else json.dumps({"native": nat, "cfs": cfs, "x86": x86})))
+
+    _ok = (m["b3_deepae"]["semantics_native_aarch64"].get("verdict") == "FAIL"
+           and (m["b3_deepae"]["semantics_native_aarch64"].get("elements_failed") or 0) > 0)
+    results.append(Result("e48/D74: the DeepAE FAIL is reported as a FAIL on AArch64 too -- the "
+                          "criterion was not relaxed to make it pass", _ok, ""))
+
+    for name, cpath in (("b2_resnet", "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json"),
+                        ("b3_deepae", "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json"),
+                        ("smartcam", "results/e32_smartcam_aarch64/build/smartcam.contract.json")):
+        res = load(os.path.join(repo, cpath))["resources"]
+        c = m[name]["contract"]
+        _ok = (c["bounded_bytes"] == res["bounded_bytes"]
+               and c["bounded_bytes"] == c["static_per_call_bytes"] + c["module_resident_constant_bytes"]
+               and m[name]["cfs_admit_B"].get("budget") == res["bounded_bytes"]
+               and m[name]["cfs_admit_B"].get("admitted_budget_bytes") == res["bounded_bytes"])
+        results.append(Result("e48/Q2: %s -- the real-input cell judges on the SAME contract "
+                              "numbers as the synthetic cells (bounded=%d)"
+                              % (name, res["bounded_bytes"]), _ok,
+                              "" if _ok else json.dumps({"contract": c, "admit": m[name]["cfs_admit_B"]})[:240]))
+
+        _ok = (m[name]["cfs_admit_B"].get("verdict") == "ADMIT"
+               and (m[name]["cfs_admit_B"].get("inferences") or 0) > 0
+               and m[name]["cfs_deny_B_minus_1"].get("verdict") == "NOT_ADMITTED"
+               and m[name]["cfs_deny_B_minus_1"].get("inferences") == 0)
+        results.append(Result("e48/Q3: %s -- B admits and infers, B-1 refuses with zero inferences"
+                              % name, _ok,
+                              "" if _ok else json.dumps({"admit": m[name]["cfs_admit_B"],
+                                                         "deny": m[name]["cfs_deny_B_minus_1"]})[:240]))
+
+        _ok = m[name]["cfs_admit_B"].get("peak_within_admitted_budget") is True
+        results.append(Result("e48/Q4: %s -- the peak is checked against the budget the run was "
+                              "APPROVED on, not merely against bounded (D53/D59)" % name, _ok, ""))
+
+    # the inputs that were replayed are the ones the E45 manifest names
+    for name, n in (("b2_resnet", 200), ("b3_deepae", 34), ("smartcam", 19)):
+        st = m[name].get("staged_inputs") or {}
+        _ok = (st.get("samples") == n and st.get("manifest_hashes_verified") == n
+               and m[name].get("replay_samples") == n)
+        results.append(Result("e48: %s replayed %d real inputs and every one was hashed against "
+                              "the E45 fixture manifest first (plan SS6 P1)" % (name, n), _ok,
+                              "" if _ok else json.dumps(st)[:200]))
+
+    # the staging wiring is in code, and the wipe cannot delete what it just staged
+    rsrc = read(os.path.join(HERE, "e14_cfs_scenarios.py"))
+    _ok = ('wipe = f"rm -f' in rsrc and rsrc.index("wipe = ") < rsrc.index("scp_to(lp,")
+           and "verified_on_guest" in rsrc)
+    results.append(Result("e48: the equivalence-input wipe runs BEFORE staging and the staged file "
+                          "is read back off the guest -- the first version deleted what it staged "
+                          "and only the app's e25_mode record caught it", _ok, ""))
+
+    # the replay-file builder refuses a fixture that does not match its manifest
+    mk = read(os.path.join(HERE, "mk_e25_inputs.py"))
+    _ok = ("hashlib.sha256(arr.tobytes()).hexdigest()" in mk
+           and "refusing: %s sha256" in mk and "contract_input_elems" in mk)
+    results.append(Result("e48: mk_e25_inputs hashes the ARRAY bytes (as the manifest does) and "
+                          "refuses both a hash mismatch and a wrong element count", _ok, ""))
+
+    return results
+
+
+def e44_budget_provenance_cases(tmp):
+    """E44: every deployment path says where its budget came from, and A5 is DERIVED.
+
+    Three things are pinned, and two of them are things this experiment DID NOT do:
+
+    (1) all three deployment paths label their budget, measured from records they wrote;
+    (2) `budget_scope` was NOT added and the existing `budget_source` values were NOT
+        renamed -- renaming would have broken five pins for no gain, and a fourth name
+        for one concept is D65's pattern;
+    (3) axis A5 is computed from the source tree instead of typed, and a reservation hit
+        would downgrade it to `unknown` rather than promote it to `enforced`.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e44_budget_provenance")
+    summ = load(os.path.join(D, "summary.json"))
+    by = {r["path"]: r for r in summ["paths"]}
+
+    for label, src, mech in (
+            ("OnAIR plugin (budget declared)", "deployment_config", "OnAIR deployment JSON"),
+            ("OnAIR plugin (no budget)", "none", "OnAIR deployment JSON"),
+            ("native executor", "argv", "argv[2]"),
+            ("cFS app", "override", "compile-time macro, or runtime override (E36)")):
+        r = by.get(label, {})
+        results.append(Result("e44: %s labels its budget as %r" % (label, src),
+                              r.get("readable") is True and r.get("budget_source") == src
+                              and r.get("mechanism") == mech,
+                              "%s" % {k: r.get(k) for k in ("readable", "budget_source", "mechanism")}))
+    results.append(Result("e44: every path labels its budget (none is silent)",
+                          summ["all_paths_label_their_budget"] is True,
+                          "%s" % [(r["path"], r.get("budget_source")) for r in summ["paths"]]))
+
+    # what was deliberately NOT done
+    nar = summ["what_was_narrowed"]
+    results.append(Result("e44: budget_scope was NOT added -- three existing carriers are named",
+                          "NOT ADDED" in nar["budget_scope"] and "resources.scope" in nar["budget_scope"],
+                          "%s" % nar.get("budget_scope")))
+    results.append(Result("e44: reservation_semantics was NOT added as a contract field; A5 is "
+                          "derived instead",
+                          "NOT ADDED" in nar["reservation_semantics"]
+                          and "DERIVED" in nar["reservation_semantics"],
+                          "%s" % nar.get("reservation_semantics")))
+    results.append(Result("e44: the roadmap's enum was rejected on measured grounds (cFS table has "
+                          "no implementation; mission configuration is a CMake macro)",
+                          "CFE_TBL" in nar["roadmap_enum_rejected"]
+                          and "CMake macro" in nar["roadmap_enum_rejected"],
+                          "%s" % nar.get("roadmap_enum_rejected")))
+    # the existing values were not renamed -- the five pins still read macro/override
+    src_txt = open(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"),
+                   encoding="utf-8").read()
+    results.append(Result("e44: the cFS app's existing budget_source values are unchanged "
+                          "(macro / override) so the five pins keep reading",
+                          'g.budget_source = "macro"' in src_txt
+                          and 'g.budget_source = "override"' in src_txt,
+                          "a cFS budget_source value was renamed"))
+
+    # A5 is derived, and the scanner never promotes
+    a5 = summ["a5_axis"]
+    results.append(Result("e44/A5: derived as %r from %s source files with %d reservation hits"
+                          % (a5["verdict"], a5["files_scanned"], a5["hits"]),
+                          a5["verdict"] == "declared" and a5["hits"] == 0
+                          and a5["files_scanned"] > 50 and a5["derived_in_table"] is True,
+                          "%s" % {k: a5.get(k) for k in ("verdict", "hits", "files_scanned",
+                                                         "derived_in_table")}))
+    results.append(Result("e44/A5: the prior-art table prints the derived value AND its basis, "
+                          "not a typed string",
+                          a5["table_cell"] and "budget_provenance.py" in a5["table_cell"],
+                          "%s" % a5.get("table_cell")))
+    gen = open(os.path.join(HERE, "mk_prior_art_table.py"), encoding="utf-8").read()
+    results.append(Result("e44/A5: mk_prior_art_table.py no longer carries a literal A5 verdict",
+                          '"A5": "**declared**' not in gen and "a5_reservation" in gen,
+                          "the literal A5 string is still there"))
+    scan = open(os.path.join(HERE, "budget_provenance.py"), encoding="utf-8").read()
+    results.append(Result("e44/A5: a reservation hit downgrades to `unknown` and NEVER promotes "
+                          "to `enforced` (E28/D52's distinction)",
+                          '"unknown"' in scan and "never yields `enforced`" in scan
+                          and 'return "enforced"' not in scan,
+                          "the scanner can promote to enforced"))
+    results.append(Result("e44/A5: the scan reads sources only -- logs are not code (CFE_TBL's 15 "
+                          "hits were all in cFS boot logs)",
+                          "why_sources_only" in scan and "boot logs" in scan,
+                          "the scanner does not record why it skips logs"))
+    # and it actually behaves that way on a synthetic hit
+    sys.path.insert(0, HERE)
+    import budget_provenance as bp                                 # noqa: PLC0415
+    v_clean, _ = bp.verdict([])
+    v_hit, _ = bp.verdict([{"call": "mlock", "file": "x.c", "line": 1,  # budget-provenance: test-fixture
+                            "text": "ml" "ock(p, n);"}])
+    results.append(Result("e44/A5: verdict() is declared on zero hits and unknown on one -- "
+                          "demonstrated, not asserted",
+                          v_clean == "declared" and v_hit == "unknown",
+                          "clean=%s hit=%s" % (v_clean, v_hit)))
+
+    # the scope document carries the statement where a reader looks
+    scope = open(os.path.join(repo, "docs", "ASSUMPTIONS_AND_SCOPE.md"), encoding="utf-8").read()
+    results.append(Result("e44: ASSUMPTIONS_AND_SCOPE states that the budget is declared, not "
+                          "reserved, and says the value is derived",
+                          "선언이지 예약이 아니다" in scope and "budget_provenance.py" in scope
+                          and "unknown" in scope,
+                          "the scope document does not carry the budget semantics"))
+
+    # The generator's SECOND mistake, pinned. cfs_row() takes the first archived log
+    # carrying budget_source; sorted-first landed on results/e36_aarch64_cfs/
+    # cache_leak_bug/deny_B_minus_1.log -- a log kept BECAUSE it reproduces D61(b)
+    # (a leaked CMake cache value turned a must-deny cell into ADMIT_CONDITIONAL_MAP).
+    # The claim stayed true (that record does carry the field), but the row's `detail`
+    # said "cited from E38's re-run cells" while `cell` pointed elsewhere: two fields
+    # of one row disagreeing is D65's shape. The citation is deliberate now.
+    cfs = [by.get("cFS app")] if by.get("cFS app") else []
+    cited = cfs[0].get("cell", "") if cfs else ""
+    frm = cfs[0].get("cited_from") if cfs else None
+    results.append(Result("e44: the cFS row cites an E38 re-run cell deliberately (%s), not "
+                          "whatever log sorted first" % frm,
+                          frm == "e38_rerun" and "e38_optin_record/cells/" in cited,
+                          "cited_from=%r cell=%r" % (frm, cited)))
+    results.append(Result("e44: the cFS row never cites a defect-reproduction log as if it were "
+                          "a normal cell",
+                          "cache_leak_bug" not in cited and "prefix_bug" not in cited,
+                          "the cited cell is a reproduction of a known defect: %r" % cited))
+    results.append(Result("e44: the cFS row says HOW MANY archived logs carry budget_source "
+                          "-- \"we found one\" and \"only one exists\" differ",
+                          isinstance(cfs[0].get("archived_logs_carrying_budget_source"), int)
+                          and cfs[0]["archived_logs_carrying_budget_source"] >= 1 if cfs else False,
+                          "the count is missing from the cFS row"))
+
+    # native/contract_gen.h is a BUILD ARTIFACT (build.sh regenerates it every time, and
+    # says so). Rebuilding the native executor for E44 overwrote the tracked copy with
+    # the default example contract; that regeneration is not part of this experiment and
+    # was restored. The tracked header must stay the canonical_e25 one the rest of the
+    # repository assumes.
+    hdr = open(os.path.join(repo, "native", "contract_gen.h"), encoding="utf-8").read()
+    results.append(Result("e44: the tracked native/contract_gen.h was not overwritten by this "
+                          "experiment's rebuild (it stays canonical_e25)",
+                          'CONTRACT_MODEL_NAME "canonical_e25"' in hdr,
+                          "the tracked generated header is not the canonical_e25 one"))
+
+    # ---- D77: the guard E44 did not ship --------------------------------------------
+    # E44's whole argument was that A5 must be DERIVED rather than typed, because a fact in a
+    # place no guard re-checks is D65's shape. It then shipped the derivation WITHOUT a guard
+    # that the derivation still reproduces -- and the guard test written to demonstrate the
+    # downgrade rule (a fixture line containing a reservation call) made the live scan disagree
+    # with the committed artifact. Nothing noticed. These four checks are that missing guard.
+    live = json.loads(subprocess.run([sys.executable, os.path.join(HERE, "budget_provenance.py")],
+                                     capture_output=True, text=True).stdout.strip().splitlines()[-1])
+    arch = load(os.path.join(repo, "results", "e39_prior_art", "a5_reservation_scan.json"))
+    results.append(Result("e44/D77: a live re-run of the A5 scan agrees with the committed "
+                          "artifact (verdict %r)" % live.get("verdict"),
+                          live.get("verdict") == arch.get("verdict")
+                          and live.get("hits") == len(arch.get("hits") or []),
+                          "live=%s archived verdict=%s hits=%d"
+                          % (live, arch.get("verdict"), len(arch.get("hits") or []))))
+    results.append(Result("e44/D77: the A5 scan's coverage never shrinks below the committed run "
+                          "(%s >= %s files)" % (live.get("files_scanned"), arch.get("files_scanned")),
+                          isinstance(live.get("files_scanned"), int)
+                          and live["files_scanned"] >= arch.get("files_scanned", 0),
+                          "live scanned %s files, archived %s -- a decrease means lost coverage"
+                          % (live.get("files_scanned"), arch.get("files_scanned"))))
+    # the waiver must stay line-level and visible: every waived entry names a file:line and
+    # carries the marker. A file-level exclusion would hide a real call added to that file.
+    waived = arch.get("waived") or []
+    marker_ok = all(bp_marker() in (w.get("text") or "") for w in waived)
+    results.append(Result("e44/D77: every A5 waiver is one marked line, recorded verbatim "
+                          "(%d waived)" % len(waived),
+                          arch.get("waived_count") == len(waived) and len(waived) <= 3
+                          and marker_ok
+                          and all(w.get("file") and w.get("line") for w in waived),
+                          "waived=%s" % waived))
+    results.append(Result("e44/D77: the prior-art table prints the verdict the live scan produces",
+                          ("**%s**" % live.get("verdict")) in open(
+                              os.path.join(repo, "results", "e39_prior_art", "prior_art.md"),
+                              encoding="utf-8").read(),
+                          "the table and the live scan disagree on the A5 verdict"))
+
+    # E39a 2차 정정: the aggregate line must not pin one axis's clause to the 8-axis total.
+    pa = open(os.path.join(repo, "results", "e39_prior_art", "prior_art.md"), encoding="utf-8").read()
+    wj = load(os.path.join(repo, "results", "e39_prior_art", "works.json"))
+    a2 = sum(1 for w in wj["works"] if str(w.get("A2", "")).strip() == wj["unknown_token"])
+    results.append(Result("e39a: the 불명 aggregate names the per-axis split and A2's own count "
+                          "(A2=%d)" % a2,
+                          "A2 %d ·" % a2 in pa and "회계 경계(A2)는 **%d개**" % a2 in pa,
+                          "the aggregate line does not carry the per-axis breakdown; a reader "
+                          "would read the 8-axis total as the A2 count"))
+
+    # ---- D78: the conditional tier's gain is HAL-scope, not process RAM ---------------
+    # Two external reviews raised it and the repository's own raw data already showed it:
+    # the map arm charges the constants zero HAL bytes, but the module image that holds them
+    # is resident in process memory for the whole session. The contract's exclusion list did
+    # not name the image (it is not a "file-load temporary" -- it is handed to the runtime
+    # zero-copy and kept). These checks read the raw log rather than the prose, so the claim
+    # cannot drift back into a sentence nobody re-derives (D45/D55/D60 family).
+    mc_src = open(os.path.join(HERE, "make_contract.py"), encoding="utf-8").read()
+    results.append(Result("e47/D78: the contract names the module image as excluded, separately "
+                          "from file-load temporaries",
+                          '"excluded_module_image"' in mc_src
+                          and "iree_allocator_null" in mc_src,
+                          "the exclusion list still folds the resident module image into "
+                          "'file-load temporaries'"))
+    results.append(Result("e47/D78: constant_policy states that the map arm removes the HAL "
+                          "allocation, not the residency",
+                          '"map_arm_scope_note"' in mc_src and "NOT about process RAM" in mc_src,
+                          "the map arm is declared without saying what its smaller bound means"))
+
+    cond = os.path.join(repo, "results", "e38_optin_record", "cells", "cond_positive.log")
+    mem, adm = None, None
+    with open(cond, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            i = line.find('{"app":"AI_LEARNER"')
+            if i < 0:
+                continue
+            try:
+                rec = json.loads(line[i:].strip())
+            except ValueError:
+                continue
+            if rec.get("stage") == "mem_init":
+                mem = rec
+            elif rec.get("stage") == "admission":
+                adm = rec
+    ok = bool(mem and adm)
+    rss_b = (mem or {}).get("process_rss_kb", 0) * 1024
+    bud = (adm or {}).get("budget", 0)
+    results.append(Result("e47/D78: the cited cell really shows RSS above the admitted budget at "
+                          "zero inferences (%s B vs %s B)" % (rss_b, bud),
+                          ok and (mem.get("inferences_so_far") == 0)
+                          and mem.get("hal_peak") == 602112 and rss_b > bud > 0
+                          and adm.get("verdict") == "ADMIT_CONDITIONAL_MAP",
+                          "mem_init=%s admission_budget=%s" % (mem, bud)))
+    results.append(Result("e47/D78: the scope note quotes numbers that exist in that raw log",
+                          all(str(v) in mc_src for v in (602112, 17160, 9382092)),
+                          "make_contract's scope note cites figures that are not the cell's"))
+
+    # ---- D79: the selection cross-check must actually see order ----------------------
+    sys.path.insert(0, HERE)
+    import fetch_real_inputs as fri                                # noqa: PLC0415
+    w = [("a.bin", 1), ("b.bin", 2), ("c.bin", 3)]
+    same = fri.crosscheck_selection(w, list(w))
+    perm = fri.crosscheck_selection(w, [w[1], w[0], w[2]])
+    diff = fri.crosscheck_selection(w, [("z.bin", 9), w[1], w[2]])
+    results.append(Result("e47/D79: a permuted selection is REJECTED and named as such "
+                          "(the old multiset compare passed it)",
+                          same["ordered_ok"] and not perm["ordered_ok"]
+                          and perm["same_set_wrong_order"] and not diff["ordered_ok"]
+                          and not diff["same_set_wrong_order"],
+                          "same=%s perm=%s diff=%s" % (same, perm, diff)))
+    # and the tightening must not reject the honest archived artifact (type-B check)
+    try:
+        import numpy as _np                                        # noqa: PLC0415
+    except ImportError:
+        _np = None
+    b2 = os.path.join(repo, "results", "e45_real_inputs", "b2_resnet")
+    if _np is None:
+        # D81 (E48): this was `Result(..., None, "numpy not installed")` with no skip=True, so a
+        # missing optional package printed FAIL and turned both reduced CI legs red -- "could not
+        # look" recorded as "looked and it was wrong". That is D32's exact shape, in a guard added
+        # by the very experiment (E47) that fixed D79 for saying one thing and checking another.
+        # The `skip` flag exists for this and was not passed.
+        results.append(Result("e47/D79: the archived ResNet selection is order-correct 200/200",
+                              None, "numpy not installed", skip=True))
+    else:
+        lab = _np.load(os.path.join(b2, "inputs", "cifar10_perf200_labels.npy")).tolist()
+        import csv as _csv                                         # noqa: PLC0415
+        rows = [r for r in _csv.reader(open(os.path.join(b2, "y_labels.csv"), encoding="utf-8"))
+                if r and r[0].strip()]
+        inorder = sum(1 for r, g in zip(rows, lab) if int(r[2]) == int(g))
+        results.append(Result("e47/D79: requiring order does not reject the archived selection "
+                              "(%d/%d element-wise)" % (inorder, len(rows)),
+                              len(rows) == len(lab) == 200 and inorder == 200,
+                              "the archived artifact is NOT order-correct: %d/%d" % (inorder, len(rows))))
+    return results
+
+
+def e43_pure_onair_cases(tmp):
+    """E42/E43: the pure-OnAIR baseline, and what it is NOT allowed to say.
+
+    The roadmap asked for four cells. Two of them already existed, so this experiment
+    MEASURES two and CITES two -- and the distinction is pinned here, because re-running
+    p_admit/p_deny and then counting four new cells is exactly the duplicate-evidence
+    inflation D72 corrected.
+
+    The other half of these cases guards the FRAMING. Pure OnAIR has no contract of this
+    research's kind; its null admission means "no such step on this path", never "the step
+    passed", and never "OnAIR is deficient" (roadmap 7.1, adopted verbatim in the plan).
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e43_pure_onair")
+    summ = load(os.path.join(D, "summary.json"))
+    rows = {r["id"]: r for r in summ["rows"]}
+
+    # the four paths, exactly as measured/cited
+    for pid, adm, runtime, infers in (("O0", None, True, 5), ("O1", "NOT_EVALUATED", True, 5),
+                                      ("O2", "ADMIT", True, 5), ("O3", "NOT_ADMITTED", False, 0)):
+        r = rows[pid]
+        results.append(Result("e43: %s -- admission %s, runtime_created=%s, %d inference(s)"
+                              % (pid, adm, runtime, infers),
+                              r["admission_verdict"] == adm and r["runtime_created"] is runtime
+                              and r["inferences"] == infers
+                              and r["official_loader_constructed"] is True
+                              and r["onair_core_unmodified"] is True,
+                              "%s" % {k: r.get(k) for k in ("admission_verdict", "runtime_created",
+                                                            "inferences", "onair_core_unmodified")}))
+    results.append(Result("e43: only O3 refuses before the runtime exists -- that difference IS "
+                          "what the proposed path adds",
+                          [rows[p]["runtime_created"] for p in ("O0", "O1", "O2", "O3")]
+                          == [True, True, True, False],
+                          "%s" % {p: rows[p]["runtime_created"] for p in ("O0", "O1", "O2", "O3")}))
+
+    # measured vs cited, and the cited cells' own limitations carried forward
+    results.append(Result("e43: two cells are MEASURED here and two are CITED -- not four new cells",
+                          summ["cells_measured_here"] == 2 and summ["cells_cited"] == 2
+                          and rows["O2"]["kind"].startswith("CITED")
+                          and rows["O0"]["kind"].startswith("MEASURED"),
+                          "measured=%s cited=%s" % (summ["cells_measured_here"], summ["cells_cited"])))
+    results.append(Result("e43: citing p_admit carries D60's limitation (nanobind leak; memory "
+                          "release NOT VERIFIED) rather than laundering it",
+                          "nanobind" in (rows["O2"]["known_limitation"] or "")
+                          and "NOT VERIFIED" in (rows["O2"]["known_limitation"] or ""),
+                          "O2 limitation missing"))
+    results.append(Result("e43: citing p_deny states that 'runtime not created' rests on the "
+                          "documented order, not on a recorded signal",
+                          "not on a recorded signal" in (rows["O3"]["known_limitation"] or "")
+                          or "rests on" in (rows["O3"]["known_limitation"] or ""),
+                          "O3 limitation missing"))
+
+    # O0's absences are by construction, and the plugin says so where a machine reads it
+    o0 = rows["O0"]
+    results.append(Result("e43: O0 has no contract and no admission gate, recorded as structural "
+                          "facts rather than as passes",
+                          o0["has_contract"] is False and o0["has_admission_gate"] is False
+                          and o0["admission_verdict"] is None,
+                          "%s" % {k: o0.get(k) for k in ("has_contract", "has_admission_gate",
+                                                         "admission_verdict")}))
+    src = open(os.path.join(repo, "plugins", "litert_learner",
+                            "litert_learner_plugin.py"), encoding="utf-8").read()
+    results.append(Result("e43: the baseline plugin forbids the two framings the roadmap forbids",
+                          "not a defect" in src.lower() or "none of those absences is a defect" in src.lower(),
+                          "the plugin does not state that its absences are not OnAIR defects"))
+    results.append(Result("e43: the baseline records NO memory figure (roadmap 7.5 -- different "
+                          "accounting boundaries must not be compared)",
+                          "rss" not in src.lower().replace("process rss", "")
+                          or "records NO memory figure" in src or "no memory figure at all" in src,
+                          "the baseline appears to record a memory figure"))
+    results.append(Result("e43: O0 runs the ORIGINAL .tflite, so its NHWC tensor comes from the "
+                          "same fixture as the sibling's NCHW one -- a value, not a branch",
+                          'sample_file_pattern' in src and 'nhwc' in src.lower(),
+                          "the layout choice is not a deployment value"))
+
+    # the harness path-key defect this experiment exposed
+    h = open(os.path.join(HERE, "onair_integration_check.py"), encoding="utf-8").read()
+    results.append(Result("e43: the harness resolves model_file too, and REFUSES a config-relative "
+                          "path under a key it cannot re-root (D62's pattern, third time)",
+                          "PATH_KEYS" in h and '"model_file"' in h
+                          and "does not know how to re-root" in h,
+                          "the harness still resolves only two hardcoded keys"))
+
+    # Q3: O0 reproduces the archived TFLite oracle bit for bit (same original, same LiteRT)
+    if _np_ok():
+        import numpy as _np                                        # noqa: PLC0415
+        recs = []
+        rp = os.path.join(D, "o0_pure_onair_litert", "plugin_records.jsonl")
+        with open(rp, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        recs.append(json.loads(line))
+                    except ValueError:
+                        pass
+        inf = [r for r in recs if r.get("event") == "inference"]
+        orc = {r["sample_id"]: r["output"] for r in
+               load(os.path.join(repo, "results", "e31_smartcam_equivalence",
+                                 "oracle_tflite.json"))["results"]}
+        worst = max((float(_np.abs(_np.asarray(orc[r["sample_id"]], dtype=_np.float64)
+                                   - _np.asarray(r["output"], dtype=_np.float64)).max())
+                     for r in inf if r["sample_id"] in orc), default=None)
+        results.append(Result("e43/Q3: O0's outputs are BIT-IDENTICAL to the archived TFLite "
+                              "oracle -- same original model, same interpreter",
+                              len(inf) == 5 and worst == 0.0,
+                              "n=%d worst_abs=%s" % (len(inf), worst)))
+    else:
+        results.append(Result("e43/Q3: O0 vs oracle", True, "numpy not installed", skip=True))
+    return results
+
+
+def e46_wgan_cases(tmp):
+    """E46: the fourth real public model -- and the two defects importing it exposed.
+
+    What is pinned here:
+
+    (1) THE CONTRACT AND ITS SHAPE. The WGAN denoiser is the first transient-dominated
+        model in this repository (131 MB per-call against 4.3 MB constants) -- the exact
+        inverse of DeepAE's 171:1 constants-to-per-call. One contract format covering both
+        extremes is the claim; the figures are how it is checked.
+    (2) THE alpha GUARD, which is the whole reason the converter extension is not a
+        two-line registration. ONNX LeakyRelu defaults alpha to 0.01; this model's alpha
+        is 0.2. A converter that failed to read it would emit a graph that compiles, runs
+        and is silently wrong on the negative half of 11 activations.
+    (3) D75 -- the buffer D52 missed -- measured in BOTH directions on really compiled
+        code, not argued from source.
+    (4) The type-B over-rejection fix in the fixture loader, in all four directions.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e46_wgan")
+
+    # (1) contract
+    c = load(os.path.join(D, "build", "wgan.contract.json"))
+    r = c["resources"]
+    results.append(Result("e46: WGAN contract figures and the bounded identity",
+                          r["bounded_bytes"] == 135666432
+                          and r["static_per_call_bytes"] == 131382784
+                          and r["module_resident_constant_bytes"] == 4283648
+                          and r["bounded_bytes"] == r["static_per_call_bytes"]
+                                                    + r["module_resident_constant_bytes"],
+                          "%s" % {k: r.get(k) for k in ("bounded_bytes", "static_per_call_bytes",
+                                                        "module_resident_constant_bytes")}))
+    results.append(Result("e46: the import needed ZERO overrides and the constants were confirmed",
+                          c["provenance"]["overrides_applied"] == []
+                          and c["provenance"]["single_invocation"] is True
+                          and '"constants_confirmation_state": "confirmed"'
+                              in open(os.path.join(D, "build", "wgan.contract.json"),
+                                      encoding="utf-8").read(),
+                          "overrides=%s single_invocation=%s"
+                          % (c["provenance"]["overrides_applied"], c["provenance"]["single_invocation"])))
+    results.append(Result("e46: this model is transient-dominated -- the inverse of DeepAE, and the "
+                          "reason it is worth adding",
+                          r["static_per_call_bytes"] > 20 * r["module_resident_constant_bytes"],
+                          "per_call/constants = %.1f" % (r["static_per_call_bytes"]
+                                                         / float(r["module_resident_constant_bytes"]))))
+
+    # Q3: HAL peak, and the quantitative boundary it puts on the conditional tier
+    sm = load(os.path.join(D, "build", "smoke_pip.json"))
+    h = sm["hal_statistics"]
+    results.append(Result("e46: HAL peak equals per_call EXACTLY (map arm) and allocated == freed",
+                          h["device_bytes_peak"] == r["static_per_call_bytes"]
+                          and h["device_bytes_allocated"] == h["device_bytes_freed"],
+                          "peak=%s per_call=%s alloc=%s freed=%s"
+                          % (h["device_bytes_peak"], r["static_per_call_bytes"],
+                             h["device_bytes_allocated"], h["device_bytes_freed"])))
+    results.append(Result("e46: the conditional tier buys almost nothing on a transient-dominated "
+                          "model -- bounded/per_call is 1.03x here vs 172.30x for DeepAE",
+                          abs(r["bounded_bytes"] / float(r["static_per_call_bytes"]) - 1.0326) < 0.001,
+                          "bounded/per_call = %.4f"
+                          % (r["bounded_bytes"] / float(r["static_per_call_bytes"]))))
+
+    # (2) the alpha guard
+    src = open(os.path.join(HERE, "tflite2onnx_ext_elementwise.py"), encoding="utf-8").read()
+    sys.path.insert(0, HERE)
+    try:
+        import tflite2onnx_ext_elementwise as _ext          # noqa: PLC0415
+    except ImportError as e:
+        results.append(Result("e46: elementwise extension importable", True,
+                              "tflite/tflite2onnx not installed: %s" % e, skip=True))
+        _ext = None
+    man = load(os.path.join(D, "import", "wgan_fpn50_f.transform_manifest.json"))
+    alphas = sorted({i["alpha"] for i in man["elementwise_instances"] if i["alpha"] is not None})
+    results.append(Result("e46: the model's REAL alpha was read from the flatbuffer and it is NOT "
+                          "ONNX's default 0.01",
+                          len(alphas) == 1 and abs(alphas[0] - 0.2) < 1e-6,
+                          "alphas=%s" % alphas))
+    results.append(Result("e46: every LEAKY_RELU and TANH in the model went through the extension",
+                          sum(1 for i in man["elementwise_instances"]
+                              if i["onnx_type"] == "LeakyRelu") == 11
+                          and sum(1 for i in man["elementwise_instances"]
+                                  if i["onnx_type"] == "Tanh") == 1,
+                          "%d instances" % len(man["elementwise_instances"])))
+    if _ext is not None:
+        ok_good, _ = _ext.check_elementwise_conditions([1, 4], [1, 4], "float32", "float32", 0.2, True)
+        ok_noalpha, _ = _ext.check_elementwise_conditions([1, 4], [1, 4], "float32", "float32", None, True)
+        ok_shape, _ = _ext.check_elementwise_conditions([1, 4], [1, 5], "float32", "float32", 0.2, True)
+        ok_dtype, _ = _ext.check_elementwise_conditions([1, 4], [1, 4], "float32", "float16", 0.2, True)
+        results.append(Result("e46: the extension refuses an unread alpha rather than letting ONNX "
+                              "default it (D25/D29/D68 family)",
+                              ok_good and not ok_noalpha and not ok_shape and not ok_dtype,
+                              "good=%s no_alpha=%s shape=%s dtype=%s"
+                              % (ok_good, ok_noalpha, ok_shape, ok_dtype)))
+    results.append(Result("e46: the extension documents WHY it needs no C1-C5 (elementwise, "
+                          "shape-preserving) instead of copying E30's ceremony",
+                          "shape-preserving" in src and "C1-C5" in src and "0.01" in src,
+                          "rationale missing from the module docstring"))
+
+    # (3) semantic equivalence, and the OR rule biting again
+    cmp_ = load(os.path.join(D, "cell", "comparison.json"))
+    t = cmp_["totals"]
+    results.append(Result("e46: real noised flight inputs -- 1,655,808 elements, 0 failures",
+                          cmp_["verdict"] == "PASS" and t["samples"] == 11
+                          and t["elements"] == 1655808 and t["elements_failed"] == 0,
+                          "%s" % t))
+    results.append(Result("e46: the criterion is E25's, unchanged, and argmax is declared "
+                          "not-applicable (an image is not a class vector)",
+                          cmp_["criteria"]["abs_tol"] == 1e-4
+                          and cmp_["criteria"]["rel_tol"] == 1e-5
+                          and cmp_["criteria"]["argmax_mode"] == "not-applicable",
+                          "%s" % {k: cmp_["criteria"].get(k) for k in ("abs_tol", "rel_tol", "argmax_mode")}))
+    hr = load(os.path.join(D, "cell", "headroom.json"))
+    worst_rel = max(v["worst_rel_err"] for v in hr["per_kind"].values())
+    results.append(Result("e46: the OR rule was load-bearing AGAIN -- worst rel_err exceeds rel_tol, "
+                          "so the abs leg carried the verdict (4th model in a row)",
+                          worst_rel > 1e-5 and all(v["elements_failed"] == 0
+                                                   for v in hr["per_kind"].values()),
+                          "worst_rel=%.3e vs rel_tol 1e-5" % worst_rel))
+    results.append(Result("e46: headroom was COMPUTED, and the stored comparison's null is an "
+                          "honest null with a reason (not a 0)",
+                          all(v["headroom"] > 0.9 for v in hr["per_kind"].values())
+                          and cmp_["per_kind"]["real_example"]["headroom"] is None
+                          and cmp_["per_kind"]["real_example"]["headroom_unavailable_reason"],
+                          "%s" % {k: round(v["headroom"], 4) for k, v in hr["per_kind"].items()}))
+
+    # the first model whose OUTPUT carries a layout
+    rr = load(os.path.join(D, "cell", "raw_runs.sha256.json"))
+    results.append(Result("e46: iree_runner carries --output-layout as a VALUE and defaults it off",
+                          '"--output-layout"' in open(os.path.join(HERE, "iree_runner.py"),
+                                                      encoding="utf-8").read()
+                          and 'choices=["none", "nchw_to_nhwc"]' in open(
+                              os.path.join(HERE, "iree_runner.py"), encoding="utf-8").read(),
+                          "option missing or not defaulted to none"))
+    results.append(Result("e46: the raw 40 MB run JSONs are not vendored but their regeneration "
+                          "command and hashes are (E30/E31/E45 pattern)",
+                          "regenerate" in rr and rr["observed"]
+                          and not os.path.exists(os.path.join(D, "cell", "oracle_tflite.json"))
+                          or bool(rr.get("regenerate")),
+                          "raw_runs.sha256.json incomplete"))
+
+    # (4) D75, measured both ways on compiled code
+    app = open(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"),
+               encoding="utf-8").read()
+    results.append(Result("e46/D75: ai_learner.c's yv[] is now static, like the three buffers D52 "
+                          "moved, and the comment says which premise makes that sound",
+                          "static float yv[CONTRACT_OUTPUT_ELEMS]" in app
+                          and "D75" in app and "max_in_flight_calls" in app,
+                          "the fix or its premise note is missing"))
+    results.append(Result("e46/D75: no CONTRACT-sized automatic buffer remains in ai_learner.c",
+                          not re.search(r"^\s*float\s+\w+\[CONTRACT_(INPUT|OUTPUT)_ELEMS",
+                                        app, re.M),
+                          "a contract-sized automatic buffer is still declared"))
+    meas = open(os.path.join(D, "d75_probe", "measurement.txt"), encoding="utf-8").read()
+    results.append(Result("e46/D75: measured BOTH directions on really compiled code -- 602,136 B "
+                          "frame before, 8 B after, and the before case exceeds the gate",
+                          "602136" in meas and "0x8" in meas and "602151" in meas,
+                          "the probe measurement does not carry both frames"))
+
+    # the type-B fix, four directions
+    loader = open(os.path.join(HERE, "e32_native_aarch64.py"), encoding="utf-8").read()
+    results.append(Result("e46: the fixture loader demands a seed only when there ARE synthetic "
+                          "samples (type B fix; three harnesses import this one function)",
+                          "n_synth and len(seeds) != 1" in loader
+                          and "over-rejection" in loader,
+                          "the seed guard is still unconditional"))
+    if _np_ok():
+        sys.path.insert(0, HERE)
+        from e32_native_aarch64 import load_or_regenerate            # noqa: PLC0415
+        def _load(d):
+            return load_or_regenerate(d, load(os.path.join(d, "manifest.json")))
+        e46_fx = os.path.join(D, "cell", "fixture")
+        e31_fx = os.path.join(repo, "results", "e31_smartcam_equivalence", "fixture")
+        # real-only now loads (it did not before); mixed still loads unchanged
+        try:
+            n31 = len(_load(e31_fx)); ok31 = n31 == 37
+        except SystemExit as e:
+            n31, ok31 = str(e), False
+        results.append(Result("e46: the mixed E31 fixture (32 synthetic + 3 real + 2 edge) still "
+                              "loads unchanged -- no regression", ok31, "%s" % (n31,)))
+        # and a synthetic fixture with its seed redacted is STILL refused (no fail-open)
+        d2 = os.path.join(tmp, "e46_seedless")
+        shutil.copytree(e31_fx, d2)
+        m2 = load(os.path.join(d2, "manifest.json"))
+        for s2 in m2["samples"]:
+            if s2["kind"] == "synthetic":
+                s2["detail"]["generator"] = "redacted"
+        with open(os.path.join(d2, "manifest.json"), "w") as fh:
+            json.dump(m2, fh)
+        try:
+            _load(d2); refused = False
+        except SystemExit:
+            refused = True
+        results.append(Result("e46: a fixture WITH synthetic samples but no recorded seed is still "
+                              "refused (the fix narrows, it does not open)",
+                              refused, "a seedless synthetic fixture was accepted"))
+        results.append(Result("e46: the fixture built only from real images now loads (it was "
+                              "refused before, blocking three harnesses)",
+                              os.path.exists(os.path.join(e46_fx, "manifest.json")),
+                              "E46 fixture manifest missing"))
+    else:
+        results.append(Result("e46: fixture loader directions", True, "numpy not installed", skip=True))
+    return results
+
+
+def _np_ok():
+    try:
+        import numpy                                              # noqa: F401,PLC0415
+        return True
+    except ImportError:
+        return False
+
+
+def mlir_pass_scope_decision_cases():
+    """The 2026-09-11 decision to leave the formal MLIR pass out of this paper.
+
+    A scope decision and a measurement are different things, and this repository has
+    confused them before in the other direction (D65: a correction that lived only in
+    prose while the machine-readable places still carried the retracted statement).
+    The hazard here is the mirror image -- a later reader finding "정규 MLIR pass 제외
+    확정" and reading it as "we measured that building it changes nothing". No such
+    experiment exists, so the guardrail forbidding that sentence must SURVIVE the
+    decision, not be replaced by it. These cases pin both halves.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    scope = open(os.path.join(repo, "docs", "ASSUMPTIONS_AND_SCOPE.md"),
+                 encoding="utf-8").read()
+    claude = open(os.path.join(repo, "CLAUDE.md"), encoding="utf-8").read()
+
+    results.append(Result("mlir-pass scope: the decision is recorded in ASSUMPTIONS_AND_SCOPE "
+                          "with its date and its reason",
+                          "정규 MLIR pass" in scope and "2026-09-11" in scope
+                          and "하지 않는다" in scope,
+                          "decision section missing from ASSUMPTIONS_AND_SCOPE.md"))
+    results.append(Result("mlir-pass scope: the record states explicitly that the decision is "
+                          "NOT a measurement",
+                          "그런 실험은 없다" in scope or "실측이 아니다" in scope,
+                          "the scope document does not distinguish decision from measurement"))
+    results.append(Result("mlir-pass scope: the guardrail forbidding the unmeasured claim "
+                          "still stands in CLAUDE.md",
+                          '정규 pass를 만들어도 결과가 바뀌지 않음을 실측했다' in claude
+                          and "pass를 구현해 비교한 실험은 **없다**" in claude,
+                          "the guardrail was removed or reworded away"))
+    results.append(Result("mlir-pass scope: CLAUDE.md still names the current implementation "
+                          "correctly (post-processing verifier, not a pass)",
+                          "post-processing verifier" in claude
+                          and '"정규 pass"가 아니다' in claude,
+                          "the naming correction (F4/N6/S5) was lost"))
+    return results
+
+
+def e45_real_inputs_cases(tmp):
+    """E45: real inputs, and the things about them that must not be misread.
+
+    Four kinds of claim are pinned here.
+
+    (1) The VERDICTS as measured, including the one that failed. b3_deepae is a FAIL on
+        real inputs while its archived synthetic cell is a PASS, and the pre-fixed
+        criterion is the SAME one. A later reader must not be able to find a repository
+        where that FAIL quietly became a PASS because a tolerance moved.
+    (2) The ACQUISITION POSITION per model: the ad01 bytes are not vendored (the
+        distributor forbids redistribution in writing) and no accuracy is claimed for any
+        of the three, for reasons that differ per model and are recorded per model.
+    (3) The DEFECT INJECTOR is real and reproduces what E31/E34 reported by hand. Before
+        E45 neither experiment's negative control could be rebuilt from repository
+        contents at all -- the strongest evidence they have rested on an artifact nobody
+        could regenerate (D43).
+    (4) The SmartCam fidelity tiers stay separate. 19 lossy 614x583 thumbnails are not
+        the same evidence as 3 lossless 2048x1944 raws and must never be added into one
+        "real images: 22".
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e45_real_inputs")
+    summ = load(os.path.join(D, "summary.json"))
+
+    # (1) verdicts, exactly as measured
+    for name, verdict, samples, elements, failed in (
+            ("b2_resnet", "PASS", 200, 2000, 0),
+            ("b3_deepae", "FAIL", 34, 21760, 94),
+            ("smartcam", "PASS", 19, 57, 0)):
+        c = summ["cells"][name]["real_inputs"]
+        results.append(Result("e45: %s real-input cell is %s (%d samples, %d/%d elements failed)"
+                              % (name, verdict, samples, failed, elements),
+                              c["verdict"] == verdict and c["samples"] == samples
+                              and c["elements"] == elements and c["elements_failed"] == failed,
+                              "%s" % {k: c.get(k) for k in
+                                      ("verdict", "samples", "elements", "elements_failed")}))
+    # the criterion is the inherited one, in the stored comparisons themselves
+    for name in ("b2_resnet", "b3_deepae", "smartcam"):
+        c = summ["cells"][name]["real_inputs"]
+        results.append(Result("e45: %s was judged with the E25 criterion unchanged "
+                              "(abs 1e-4 / rel 1e-5)" % name,
+                              c["abs_tol"] == 1e-4 and c["rel_tol"] == 1e-5,
+                              "abs=%s rel=%s" % (c["abs_tol"], c["rel_tol"])))
+    # the FAIL must stay a FAIL: same inputs, same criterion, the archived synthetic cell PASSes
+    results.append(Result("e45: b3_deepae FAILs on real inputs while its archived SYNTHETIC cell "
+                          "PASSes under the same criterion",
+                          summ["cells"]["b3_deepae"]["real_inputs"]["verdict"] == "FAIL"
+                          and summ["cells"]["b3_deepae"]["archived_prior_cell"]["verdict"] == "PASS",
+                          "real=%s synthetic=%s"
+                          % (summ["cells"]["b3_deepae"]["real_inputs"]["verdict"],
+                             summ["cells"]["b3_deepae"]["archived_prior_cell"]["verdict"])))
+
+    # (2) acquisition position
+    ad = summ["acquisition"]["b3_deepae"]
+    results.append(Result("e45: the ad01 bytes are NOT vendored in-tree (the distributor forbids "
+                          "redistribution)",
+                          ad["bytes_vendored_in_tree"] is False, "%s" % ad.get("bytes_vendored_in_tree")))
+    b3m = load(os.path.join(D, "b3_deepae", "manifest.json"))
+    results.append(Result("e45: b3 manifest quotes EEMBC's own redistribution statement and the "
+                          "purge timeline read from git",
+                          "cannot redistribute" in b3m["why_not_vendored"]["statement"]
+                          and len(b3m["why_not_vendored"]["purge_timeline_read_from_git"]) == 3,
+                          "timeline=%d" % len(b3m["why_not_vendored"].get("purge_timeline_read_from_git", []))))
+    results.append(Result("e45: b3 window bytes are absent from the tree but their sha256 are "
+                          "recorded (D43 as reproducibility, not byte storage)",
+                          not os.path.exists(os.path.join(D, "b3_deepae", "inputs"))
+                          and len(b3m["samples"]) == 34
+                          and all(r.get("window_sha256") for r in b3m["samples"]),
+                          "inputs dir present or a window sha256 is missing"))
+    b2m = load(os.path.join(D, "b2_resnet", "manifest.json"))
+    results.append(Result("e45: the CIFAR-10 route is gated on the md5 torchvision records for "
+                          "the canonical file, not on a mirror URL",
+                          b2m["upstream"]["test_batch_md5"] == "40351d587109b95175f43aff81a1287e"
+                          and "torchvision" in b2m["upstream"]["md5_attested_by"]
+                          and b2m["upstream"]["mirror_is_official"] is False,
+                          "%s" % b2m["upstream"].get("test_batch_md5")))
+    results.append(Result("e45: the CIFAR-10 subset is MLPerf Tiny's own selector, not one this "
+                          "project invented",
+                          b2m["subset"]["chosen_by_this_project"] is False
+                          and b2m["subset"]["per_class"] == [20] * 10
+                          and b2m["cross_check"]["filename_and_label_matched"] == "200/200",
+                          "%s" % b2m["subset"]))
+    # no accuracy is claimed anywhere, and the reason is per-model
+    for name, key in (("b2_resnet", "scope_note"), ("smartcam", "why_no_accuracy")):
+        m = load(os.path.join(D, name, "manifest.json"))
+        results.append(Result("e45: %s manifest states why no accuracy is claimed" % name,
+                              bool(m.get(key)), "missing %s" % key))
+    scm = load(os.path.join(D, "smartcam", "manifest.json"))
+    results.append(Result("e45: the SmartCam labels are recorded as circular (the label IS the "
+                          "model's own argmax), so no accuracy can rest on them",
+                          "circular_labels" in scm["why_no_accuracy"]
+                          and "argmax" in scm["why_no_accuracy"]["circular_labels"],
+                          "circularity not recorded"))
+
+    # (3) the defect injector
+    src = open(os.path.join(HERE, "model_fixture.py"), encoding="utf-8").read()
+    results.append(Result("e45: model_fixture.py carries the layout defect injector and defaults "
+                          "it OFF",
+                          '"--layout-defect"' in src and 'default="none"' in src
+                          and 'choices=["none", "reshape"]' in src,
+                          "injector missing or not defaulted off"))
+    fx = load(os.path.join(D, "cells", "smartcam", "fixture", "manifest.json"))
+    results.append(Result("e45: a non-defective fixture records layout_defect=none at top level",
+                          fx.get("layout_defect") == "none", "%s" % fx.get("layout_defect")))
+    # the injector must actually reproduce the FAIL E31 archived by hand
+    try:
+        import numpy as _np                                   # noqa: PLC0415 - optional probe
+    except ImportError:
+        _np = None
+    if _np is not None:
+        F = os.path.join(repo, "results", "e31_smartcam_equivalence", "fixture")
+        man = load(os.path.join(F, "manifest.json"))
+        real = [s for s in man["samples"] if s["kind"] == "real_example"]
+        d = os.path.join(tmp, "e45_negctl")
+        _np.save(os.path.join(tmp, "e45_real.npy"),
+                 _np.stack([_np.load(os.path.join(F, s["nhwc"]["file"]))[0] for s in real]))
+        with open(os.path.join(tmp, "e45_ids.json"), "w") as fh:
+            json.dump([s["sample_id"] for s in real], fh)
+        rc, _, err = run([PY, os.path.join(HERE, "model_fixture.py"), "--out", d,
+                          "--tensors", os.path.join(tmp, "e45_real.npy"),
+                          "--tensor-ids", os.path.join(tmp, "e45_ids.json"),
+                          "--tensor-kind", "regen_real", "--synthetic", "32", "--seed", "31",
+                          "--edge", "--layout", "nhwc_to_nchw", "--layout-defect", "reshape",
+                          # the archived .nhwc.npy are ALREADY preprocessed, so the identity
+                          # transform is what reproduces them -- passing the image-path std
+                          # here would divide them a second time
+                          "--height", "224", "--width", "224", "--mean", "0", "--std", "1"])
+        built = rc == 0 and os.path.exists(os.path.join(d, "manifest.json"))
+        results.append(Result("e45: the injector rebuilds E31's negative-control fixture from "
+                              "repository contents", built, "rc=%d %s" % (rc, err[-200:])))
+        if built:
+            fxm = load(os.path.join(d, "manifest.json"))
+            arch = load(os.path.join(F, "manifest.json"))
+            ab = {s["sample_id"]: s for s in arch["samples"]}
+            # the INPUT side must be identical to the archived fixture; only the entry tensor differs
+            same_in = all(s["nhwc"]["sha256"] == ab[s["sample_id"]]["nhwc"]["sha256"]
+                          for s in fxm["samples"] if s["sample_id"] in ab)
+            diff_entry = any(s["nchw"]["sha256"] != ab[s["sample_id"]]["nchw"]["sha256"]
+                             for s in fxm["samples"] if s["sample_id"] in ab)
+            results.append(Result("e45: the rebuilt fixture has the SAME inputs as the archive and "
+                                  "a DIFFERENT entry tensor (that is the defect)",
+                                  same_in and diff_entry,
+                                  "same_inputs=%s entry_differs=%s" % (same_in, diff_entry)))
+            results.append(Result("e45: the defective fixture labels itself at top level and per "
+                                  "sample, so a PASS read from it cannot be mistaken for evidence",
+                                  fxm.get("layout_defect") == "reshape"
+                                  and all(s.get("layout_defect") == "reshape" for s in fxm["samples"])
+                                  and "FAIL" in fxm.get("layout_defect_note", ""),
+                                  "%s" % fxm.get("layout_defect")))
+    else:
+        results.append(Result("e45: injector rebuilds E31's negative control", True,
+                              "numpy not installed", skip=True))
+
+    # the measured contrast the negative control exists to show
+    det = {(r["cell"], r["inputs"]): r for r in summ["negative_control_detection"]}
+    for cell, real_n, synth_n in (("b2_resnet", 180, 0), ("smartcam", 18, 3)):
+        r, a = det[(cell, "real_inputs")], det[(cell, "archived_prior_cell")]
+        results.append(Result("e45: %s layout defect -- argmax caught %d/%d on real inputs vs "
+                              "%d/%d on the archived fixture"
+                              % (cell, real_n, r.get("samples", 0), synth_n, a.get("samples", 0)),
+                              r.get("argmax_failed") == real_n and a.get("argmax_failed") == synth_n,
+                              "real=%s archived=%s" % (r.get("argmax_failed"), a.get("argmax_failed"))))
+    results.append(Result("e45: on the archived b2 fixture argmax alone would have passed the "
+                          "broken layout on EVERY sample (0/34) -- the reason real inputs matter",
+                          det[("b2_resnet", "archived_prior_cell")]["argmax_failed"] == 0
+                          and summ["negative_control"]["b2_resnet"]["archived_prior_cell"]["verdict"] == "FAIL",
+                          "%s" % det[("b2_resnet", "archived_prior_cell")]))
+
+    # (4) fidelity tiers stay separate
+    results.append(Result("e45: SmartCam tiers are recorded separately (19 lossy thumbnails are "
+                          "not 3 lossless raws) and the manifest forbids merging them",
+                          scm["fidelity_tiers"]["B_thumbnail_jpeg"]["count"] == 19
+                          and scm["fidelity_tiers"]["A_raw_png"]["count"] == 3
+                          and "do_not_merge_tiers" in scm,
+                          "A=%s B=%s" % (scm["fidelity_tiers"]["A_raw_png"]["count"],
+                                         scm["fidelity_tiers"]["B_thumbnail_jpeg"]["count"])))
+    results.append(Result("e45: every ground-edited SmartCam image was excluded by BYTES, with the "
+                          "EXIF tag recorded per file",
+                          scm["counts"]["excluded_ground_edited"] == 26
+                          and all(e.get("exif_software") for e in scm["excluded"]
+                                  if e["reason"] == "ground-edited"),
+                          "%s" % scm["counts"]))
+    results.append(Result("e45: the new SmartCam images do not overlap the three already in E31",
+                          scm["disjointness"]["sha256_overlap_with_tier_A"] == []
+                          and scm["disjointness"]["sample_id_overlap_with_tier_A"] == [],
+                          "%s" % scm["disjointness"]))
+
+    # the acquisition tool refuses rather than guesses
+    fsrc = open(os.path.join(HERE, "fetch_real_inputs.py"), encoding="utf-8").read()
+    results.append(Result("e45: the fetcher distinguishes SKIP (unreachable) from FAIL (wrong "
+                          "bytes) and never writes on a digest mismatch",
+                          "EXIT_SKIP" in fsrc and "digest_mismatch" in fsrc
+                          and "def fetch_gated" in fsrc,
+                          "refusal paths missing"))
+    return results
+
+
 def e38_optin_witness_cases(tmp):
     """E38: the conditional opt-in must be recorded independently of the verdict.
 
@@ -5633,6 +7522,1558 @@ def e38_optin_witness_cases(tmp):
                           "reports, it does not decide", _ok, "" if _ok else json.dumps(n)[:240]))
     return results
 
+
+# ---------------------------------------------------------------------------
+# E51 -- the three preconditions of the central claim (external review SS5.1-5.3).
+# Each of the three stages ships its derivation AND the guard that re-runs it
+# (D77: a derived value without a re-running guard is a value nobody checks).
+# ---------------------------------------------------------------------------
+E51_DIR = os.path.join(os.path.dirname(HERE), "results", "e51_claim_preconditions")
+
+
+def e51_stage1_cases(tmp):
+    results = []
+    path = os.path.join(E51_DIR, "stage1_preconditions.json")
+    if not os.path.isfile(path):
+        return [Result("e51 stage1: stage1_preconditions.json present", False, "missing")]
+    d = load(path)
+
+    results.append(Result("e51 stage1: Q1-Q4 all PASS in the archived record",
+                          d.get("verdict") == "PASS" and all(
+                              v == "PASS" for v in (d.get("verdicts") or {}).values()),
+                          str(d.get("verdicts"))))
+
+    # Q1: every premise check was EXECUTED, and its anchor still exists in the
+    # live source. Re-located here rather than trusting the stored line number --
+    # an edit that moves or deletes a check has to make this fail.
+    q1 = d["Q1_checks_called"]
+    bad = [c["id"] for c in q1["checks"] if c.get("called") is not True or c.get("locate_error")]
+    results.append(Result("e51 stage1 Q1: all five premise checks executed on the production path",
+                          not bad and len(q1["checks"]) == 5, "problem cells: %s" % bad))
+    import e51_precondition_trace as e51t
+    missing = []
+    for c in e51t.CHECKS:
+        ln, err = e51t.anchor_line(c["file"], c["anchor"])
+        if ln is None:
+            missing.append((c["id"], err))
+    results.append(Result("e51 stage1 Q1: every check anchor still resolves in the live source",
+                          not missing, "unresolved: %s" % missing))
+
+    # Q2: the positive control had to pass BEFORE any refusal counts as evidence,
+    # and each refusal has to be attributable to what was injected.
+    q2 = d["Q2_violation_produces_no_deployable_artifact"]
+    results.append(Result("e51 stage1 Q2: positive control produces a bound-stating contract",
+                          q2["positive_control"].get("ok") is True,
+                          "rc=%s written=%s bound=%s" % (q2["positive_control"].get("make_contract_rc"),
+                                                         q2["positive_control"].get("contract_file_written"),
+                                                         q2["positive_control"].get("bound_method"))))
+    results.append(Result("e51 stage1 Q2: no injected premise violation yields a deployable artifact",
+                          all(c.get("deployable_artifact_produced") is False for c in q2["cells"]),
+                          str([(c.get("id"), c.get("refused_as")) for c in q2["cells"]])))
+    results.append(Result("e51 stage1 Q2: every refusal is attributable to the injected op",
+                          q2.get("refusals_attributable_to_injection") is True,
+                          str([(c.get("id"), c.get("seen_by_extractor")) for c in q2["cells"]])))
+    # The D86 finding itself: with the branch, the async injection disagrees; without
+    # it, the two extractors agree and a contract WOULD be written. Pinned so the
+    # branch cannot be removed as "redundant".
+    async_cell = next((c for c in q2["cells"] if c.get("id") == "pre_scheduling_async_op"), None)
+    ex = (async_cell or {}).get("extractors") or {}
+    results.append(Result("e51 stage1 Q2: D86 is load-bearing (removing the branch makes the two extractors agree)",
+                          ex.get("diff_against_regex") == ["unresolved(presence)"]
+                          and ex.get("diff_if_D86_branch_removed") == [],
+                          "with=%s without=%s" % (ex.get("diff_against_regex"),
+                                                  ex.get("diff_if_D86_branch_removed"))))
+    # Q4: the audit tool's domain and the contract path's domain must stay separate.
+    q4 = d["Q4_audit_vs_deployment_scope"]
+    results.append(Result("e51 stage1 Q4: the ledger is an audit tool, not part of contract generation",
+                          q4["audit_tool"]["invoked_by_contract_generation"] is False
+                          and q4["audit_tool"]["models_covered_count"] > 0
+                          and q4["deployment_contract_path"]["archived_contracts_in_repo"]
+                              > q4["audit_tool"]["models_covered_count"],
+                          "ledger=%d models, archived contracts=%d"
+                          % (q4["audit_tool"]["models_covered_count"],
+                             q4["deployment_contract_path"]["archived_contracts_in_repo"])))
+
+    # live re-run (D77). Q3 regenerates 14 contracts and needs the real toolchain,
+    # so the live leg skips it; the archived record above still carries Q3's result.
+    if not (iree_tools_available() and structural_available()):
+        results.append(Result("e51 stage1: derivation re-runs live (Q1/Q2/Q4)", True,
+                              "needs iree-compile and iree.compiler.ir", skip=True))
+        return results
+    out = os.path.join(tmp, "e51_s1.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e51_precondition_trace.py"), "--skip-q3",
+                      "--out", os.path.relpath(out, os.path.dirname(HERE))],
+                     cwd=os.path.dirname(HERE))
+    if rc != 0:
+        results.append(Result("e51 stage1: derivation re-runs live (Q1/Q2/Q4)", False,
+                              "rc=%d %s" % (rc, err.strip()[:200])))
+        return results
+    live = load(out)
+    same = all(live["verdicts"][k] == d["verdicts"][k] for k in ("Q1", "Q2", "Q4"))
+    results.append(Result("e51 stage1: derivation re-runs live and agrees (Q1/Q2/Q4)", same,
+                          "live=%s archived=%s" % (live["verdicts"], d["verdicts"])))
+    return results
+
+
+def e51_stage2_cases(tmp):
+    results = []
+    path = os.path.join(E51_DIR, "stage2_sequential_calls.json")
+    if not os.path.isfile(path):
+        return [Result("e51 stage2: stage2_sequential_calls.json present", False, "missing")]
+    d = load(path)
+    results.append(Result("e51 stage2: every deployment has an invoke site and creates no task or thread",
+                          d.get("verdict") == "PASS" and len(d["deployments"]) == 3
+                          and all(c["invoke_site_count"] > 0
+                                  and c["counted_thread_or_task_creation_total"] == 0
+                                  for c in d["deployments"]),
+                          str([(c["id"], c["invoke_site_count"],
+                                c["counted_thread_or_task_creation_total"]) for c in d["deployments"]])))
+    # The state must NOT have been promoted. Reading the call site is not observing it.
+    results.append(Result("e51 stage2: max_in_flight_calls stays ARGUED_FROM_SOURCE with observed_value null",
+                          d.get("state") == "ARGUED_FROM_SOURCE" and d.get("observed_value") is None,
+                          "state=%s observed=%r" % (d.get("state"), d.get("observed_value"))))
+    # The two claims the review asked to keep apart must be in separate fields.
+    dist = d.get("distinction_required_by_review_5_2_4") or {}
+    results.append(Result("e51 stage2: the two claims are recorded separately (counted vs read)",
+                          set(dist) == {"claim_A_executor_creates_no_threads",
+                                        "claim_B_external_calls_are_sequential"}
+                          and all("what_it_does_not_say" in v for v in dist.values()),
+                          str(sorted(dist))))
+    # Containment, not proximity: the cFS SB invoke is NOT inside a loop in its own
+    # function (the loop is CFE_ES_RunLoop, in AppMain). The first version of the
+    # locator reported the preceding one-line feature-fill for() here.
+    cfs = next(c for c in d["deployments"] if c["id"] == "cfs_ai_learner")
+    sb = next((s for s in cfs["invoke_sites"] if s["enclosing_function"] == "AI_LEARNER_Infer"), None)
+    init = next((s for s in cfs["invoke_sites"] if s["enclosing_function"] == "AI_LEARNER_Init"), None)
+    results.append(Result("e51 stage2: enclosing loop is computed by containment, not proximity",
+                          sb is not None and sb.get("enclosing_loop") is None
+                          and init is not None and (init.get("enclosing_loop") or {}).get("form") == "braced",
+                          "SB=%s INIT=%s" % ((sb or {}).get("enclosing_loop"), (init or {}).get("enclosing_loop"))))
+    # live re-run (D77) -- pure source reading, no toolchain needed.
+    out = os.path.join(tmp, "e51_s2.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e51_sequential_calls.py"),
+                      "--out", os.path.relpath(out, os.path.dirname(HERE))], cwd=os.path.dirname(HERE))
+    live = load(out) if rc == 0 else {}
+    # Compare the ENCLOSING-LOOP shape too, not only the counts. Without it this guard
+    # pinned the archived JSON while leaving the locator free to regress: reverting
+    # containment back to proximity left all five checks green (measured), which is
+    # exactly the shape D77 warns about -- a derived value whose guard does not re-run
+    # the derivation that produced it.
+    def shape(doc):
+        return [(c["id"], c["invoke_site_count"],
+                 [(s["enclosing_function"], (s["enclosing_loop"] or {}).get("line"),
+                   (s["enclosing_loop"] or {}).get("form")) for s in c["invoke_sites"]])
+                for c in doc.get("deployments", [])]
+    same = (rc == 0 and live.get("verdict") == d.get("verdict") and live.get("state") == d.get("state")
+            and shape(live) == shape(d))
+    results.append(Result("e51 stage2: derivation re-runs live and agrees", same,
+                          "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+def e51_stage3_cases(tmp):
+    results = []
+    path = os.path.join(E51_DIR, "stage3_accounting_map.json")
+    if not os.path.isfile(path):
+        return [Result("e51 stage3: stage3_accounting_map.json present", False, "missing")]
+    d = load(path)
+    results.append(Result("e51 stage3: every core cell resolves U and B, and no cell violates H <= admitted",
+                          d.get("verdict") == "PASS" and d["row_count"] == d["rows_with_U_and_B_resolved"]
+                          and not d["rows_violating_H_le_admitted"] and not d["problems"],
+                          "rows=%s resolved=%s violations=%s problems=%s"
+                          % (d["row_count"], d["rows_with_U_and_B_resolved"],
+                             d["rows_violating_H_le_admitted"], len(d["problems"]))))
+    # The definitions are CITED from E49's matrix, never retyped here (D65).
+    results.append(Result("e51 stage3: the U/B/H definitions are cited from E49's audit matrix",
+                          d["definitions"]["cited_from"].startswith("results/e49_research_audit/audit_matrix.json")
+                          and d["definitions"]["missing"] is False,
+                          d["definitions"]["cited_from"]))
+    # Which U the admitted budget equals is the traceable part of the mapping.
+    cond = [r for r in d["rows"] if r["admission_mode"] == "conditional_map"]
+    uncond = [r for r in d["rows"] if r["admission_mode"] == "unconditional"
+              and r["admitted_budget_equals"] is not None]
+    results.append(Result("e51 stage3: conditional cells admit on per_call, unconditional cells on bounded",
+                          bool(cond) and bool(uncond)
+                          and all(r["admitted_budget_equals"] == "static_per_call_bytes" for r in cond)
+                          and all(r["admitted_budget_equals"] == "bounded_bytes" for r in uncond),
+                          "cond=%s uncond=%s" % ([r["admitted_budget_equals"] for r in cond],
+                                                 sorted({r["admitted_budget_equals"] for r in uncond}))))
+    # A budget that is absent BY CONSTRUCTION is a resolved cell, not a gap -- and the
+    # raw data has to say so itself rather than this tool assuming it.
+    stated = [r for r in d["rows"] if r["B"]["budget_bytes"] is None]
+    results.append(Result("e51 stage3: a budget-less cell is accepted only when the raw data states why",
+                          bool(stated) and all(r["B"]["absence_is_stated"] and r["B"]["absence_reason"]
+                                               for r in stated),
+                          str([(r["cell"], r["B"]["absence_is_stated"]) for r in stated])))
+    # The same three numbers are stored under two spellings; that is recorded, not fixed
+    # by rewriting archived summaries.
+    drift = d.get("field_name_drift") or {}
+    results.append(Result("e51 stage3: the two contract-field spellings are declared, not fuzzily matched",
+                          set(drift.get("spellings_seen") or []) >= {"bounded", "bounded_bytes"},
+                          str(drift.get("spellings_seen"))))
+    out = os.path.join(tmp, "e51_s3.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e51_accounting_map.py"),
+                      "--out", os.path.relpath(out, os.path.dirname(HERE))], cwd=os.path.dirname(HERE))
+    live = load(out) if rc == 0 else {}
+    same = (rc == 0 and live.get("verdict") == d.get("verdict")
+            and live.get("row_count") == d.get("row_count")
+            and [r["admitted_budget_equals"] for r in live.get("rows", [])]
+                == [r["admitted_budget_equals"] for r in d["rows"]])
+    results.append(Result("e51 stage3: derivation re-runs live and agrees", same,
+                          "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+
+# ---------------------------------------------------------------------------
+# E52 -- DeepAE numeric divergence: first diverging layer and the named cause.
+# The archived record is read without any toolchain; the live re-run needs the
+# real inputs (network) and IREE, and SKIPs honestly when they are absent.
+# ---------------------------------------------------------------------------
+def e52_deepae_divergence_cases(tmp):
+    results = []
+    path = os.path.join(os.path.dirname(HERE), "results", "e52_deepae_divergence", "divergence.json")
+    if not os.path.isfile(path):
+        return [Result("e52: divergence.json present", False, "missing")]
+    d = load(path)
+
+    # The tolerance must still be the one inherited from E25 -- E52 explains a FAIL,
+    # it does not soften the rule that produced it (D74, plan SS5).
+    tol = d["tolerance"]
+    results.append(Result("e52: the tolerance is still E25's, unchanged",
+                          tol["abs"] == 1e-4 and tol["rel"] == 1e-5
+                          and tol["not_changed_to_pass_anything"] is True,
+                          "abs=%s rel=%s" % (tol["abs"], tol["rel"])))
+    import e52_deepae_layers as e52
+    results.append(Result("e52: the tool's own constants match the archived tolerance",
+                          e52.ABS_TOL == tol["abs"] and e52.REL_TOL == tol["rel"],
+                          "tool abs=%s rel=%s" % (e52.ABS_TOL, e52.REL_TOL)))
+
+    # Q1: the deployed artifact multiplies the ORIGINAL model's bytes.
+    q1 = d["Q1_constants_bit_identical"]
+    results.append(Result("e52 Q1: all 20 deployed constants are bit-identical to the original .tflite",
+                          q1["ok"] is True and len(q1["rows"]) == 20
+                          and all(r["matched_mlir_constant"] for r in q1["rows"]),
+                          "%d rows" % len(q1["rows"])))
+
+    # The layer decomposition is only believable because the diagnostic chain's last
+    # module reproduces the DEPLOYED vmfb output bitwise (plan SS4).
+    results.append(Result("e52: the diagnostic chain reproduces the deployed vmfb output bitwise",
+                          d["diagnostic_chain_reproduces_deployed_output"] is True))
+    prov = d["litert_intermediate_provenance"]
+    results.append(Result("e52: LiteRT intermediates come from a run whose output matches the default run",
+                          prov["preserving_run_matches_default_output_bitwise"] is True
+                          and len(prov["default_mode_unreadable"]) == 9,
+                          "default-mode unreadable=%d" % len(prov["default_mode_unreadable"])))
+
+    # Q2: where it first diverges, and the bulk failure at the last layer.
+    rows = d["layers"]
+    last = rows[-1]
+    results.append(Result("e52 Q2: first diverging layer is 6, and the last layer carries the bulk",
+                          d["first_layer_with_violation"] == 6 and len(rows) == 10
+                          and last["iree_vs_litert"]["violations"] == 94
+                          and last["has_relu"] is False,
+                          "first=%s L9 viol=%s relu=%s" % (d["first_layer_with_violation"],
+                                                           last["iree_vs_litert"]["violations"],
+                                                           last["has_relu"])))
+    # Q3/Q5: the named cause. x86-64 IREE IS the sequential float32 order, bit for bit.
+    results.append(Result("e52 Q5: x86-64 IREE output is bit-identical to a sequential float32 accumulation",
+                          last["iree_vs_sequential_f32"]["worst_abs"] == 0.0
+                          and last["iree_vs_sequential_f32"]["violations"] == 0,
+                          "worst_abs=%s" % last["iree_vs_sequential_f32"]["worst_abs"]))
+    probes = d["cause_probes"]
+    results.append(Result("e52 Q5: fused multiply-add is excluded (flags change nothing)",
+                          all(v.get("identical_to_deployed") is True
+                              for v in probes["iree_compiler_flags"].values() if "error" not in v)
+                          and len(probes["iree_compiler_flags"]) == 3,
+                          str({k: v.get("identical_to_deployed") for k, v in probes["iree_compiler_flags"].items()})))
+    # The delegate contributes but is not the whole cause -- both halves are asserted,
+    # because "it changed something" and "it explains everything" are different claims.
+    dele = probes["litert_delegate"]
+    results.append(Result("e52 Q5: LiteRT's delegate contributes yet does not account for the divergence alone",
+                          dele["default_delegate_disabled"] is True
+                          and dele["outputs_identical_with_and_without_delegate"] is False
+                          and dele["without_delegate_vs_float64"]["violations"] > 0
+                          and dele["without_delegate_vs_float64"]["violations"]
+                              < dele["with_delegate_vs_float64"]["violations"],
+                          "with=%d without=%d" % (dele["with_delegate_vs_float64"]["violations"],
+                                                  dele["without_delegate_vs_float64"]["violations"])))
+    arm = probes["aarch64_archived"]
+    results.append(Result("e52 Q4: AArch64 uses a third accumulation order (not the sequential one)",
+                          arm.get("bitwise_equals_sequential_f32") is False
+                          and arm["vs_sequential_f32"]["violations"] > 0,
+                          "vs_seq viol=%s vs_f64 viol=%s" % (arm["vs_sequential_f32"]["violations"],
+                                                             arm["vs_float64"]["violations"])))
+    # The mechanism: growth of accumulated error outruns growth of the effective threshold.
+    mech = d["mechanism"]
+    results.append(Result("e52: accumulated error grows faster than the effective threshold",
+                          mech["accumulated_error_growth_L0_to_L9"]
+                          > mech["effective_threshold_growth_L0_to_L9"] * 10,
+                          "error x%.3g vs threshold x%.3g" % (mech["accumulated_error_growth_L0_to_L9"],
+                                                              mech["effective_threshold_growth_L0_to_L9"])))
+    results.append(Result("e52: the FAIL is kept as the result, and termination condition 1 is claimed",
+                          d["termination_condition"].startswith("review §4.4-1")
+                          and "FAIL" in d["verdict_unchanged"],
+                          d["termination_condition"]))
+
+    # --- live re-run (D77, and D89: compare the SHAPE of the derivation, not a summary) ---
+    inputs = os.environ.get("E52_INPUTS", "")
+    if not (inputs and os.path.isdir(inputs) and iree_tools_available()):
+        results.append(Result("e52: derivation re-runs live", True,
+                              "needs the real ad01 inputs (network; set E52_INPUTS) and iree-compile",
+                              skip=True))
+        return results
+    out = os.path.join(tmp, "e52_live.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e52_deepae_layers.py"), "--inputs", inputs,
+                      "--out", os.path.relpath(out, os.path.dirname(HERE))], cwd=os.path.dirname(HERE))
+    live = load(out) if rc == 0 else {}
+
+    def shape(doc):
+        return {"first": doc.get("first_layer_with_violation"),
+                "q1": doc.get("Q1_constants_bit_identical", {}).get("ok"),
+                "chain": doc.get("diagnostic_chain_reproduces_deployed_output"),
+                "termination": doc.get("termination_condition"),
+                "per_layer": [(r["layer"], r["iree_vs_litert"]["violations"],
+                               r["iree_vs_sequential_f32"]["violations"]) for r in doc.get("layers", [])]}
+    results.append(Result("e52: derivation re-runs live and agrees layer by layer",
+                          rc == 0 and shape(live) == shape(d),
+                          "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+
+# ---------------------------------------------------------------------------
+# E60 -- DeepAE's layer-wise divergence re-measured on the evaluation target.
+# ---------------------------------------------------------------------------
+def e60_deepae_layers_aarch64_cases(tmp):
+    """E60: WHERE DeepAE's outputs leave the tolerance, measured on the AArch64 guest (the x86-64
+    decomposition of E52 left the manuscript under the AArch64-only directive).  The validity check
+    V is RE-DERIVED from the committed guest outputs and E48's archived AArch64 output -- neither
+    needs the input, which the repository does not carry (E45).  The layer comparison needs the
+    input, so its live re-run is gated on E52_INPUTS exactly like E52's (D77/D89)."""
+    results = []
+    repo = os.path.dirname(HERE)
+    path = os.path.join(repo, "results", "e60_deepae_layers_aarch64", "layers.json")
+    gpath = os.path.join(repo, "results", "e60_deepae_layers_aarch64", "guest", "guest_outputs.json")
+    if not (os.path.isfile(path) and os.path.isfile(gpath)):
+        return [Result("e60: layers.json and guest outputs present", False, "missing")]
+    d = load(path)
+    g = load(gpath)
+    import e52_deepae_layers as e52
+    results.append(Result("e60: the tolerance is still E25's, unchanged (the FAIL is explained, not softened)",
+                          d["tolerance"]["abs"] == 1e-4 == e52.ABS_TOL and d["tolerance"]["rel"] == 1e-5 == e52.REL_TOL,
+                          str(d["tolerance"])))
+    results.append(Result("e60: the committed layer record names the committed guest outputs by hash",
+                          d["guest_outputs"]["sha256"] == hashlib.sha256(open(gpath, "rb").read()).hexdigest(),
+                          d["guest_outputs"]["sha256"][:16]))
+    try:
+        import numpy as np                                         # noqa: PLC0415
+    except ImportError:
+        np = None
+    if np is None:
+        results.append(Result("e60 V: the chain's last module on the target equals E48's archived AArch64 output",
+                              True, "needs numpy", skip=True))
+    else:
+        arch, why = e52.archived_aarch64_output(d["sample"])
+        last = sorted(g["layers"], key=lambda r: r["index"])[-1]
+        ok = g.get("machine") == "aarch64" and arch is not None and len(g["layers"]) == 10 and \
+            np.array_equal(np.asarray(last["values"], dtype=np.float32), arch.astype(np.float32))
+        results.append(Result("e60 V: the chain's last module on the target equals E48's archived AArch64 output "
+                              "bitwise (re-derived from the raw guest outputs, not read from layers.json)",
+                              ok and d["validity"]["chain_final_equals_archived_aarch64_output"] is True,
+                              "machine=%s why=%s" % (g.get("machine"), why)))
+    viol = d["violations_per_layer_vs_reference_runtime"]
+    results.append(Result("e60 L1/L2: first layer over tolerance is 6 and the bulk is at the last layer (46 = E48's "
+                          "count for this window)",
+                          d["L1_first_layer_over_tolerance"] == 6 and d["L2_layer_with_most_violations"] == 9
+                          and viol == [0, 0, 0, 0, 0, 0, 1, 1, 0, 46] and d["layers"][-1]["has_relu"] is False,
+                          str(viol)))
+    results.append(Result("e60 L3: at no layer is the target bit-identical to sequential float32 accumulation",
+                          d["L3_bit_identical_to_sequential_f32_per_layer"] == [False] * 10
+                          and d["layers"][-1]["vs_sequential_f32"]["violations"] == 30,
+                          "final vs sequential: %s" % d["layers"][-1]["vs_sequential_f32"]["violations"]))
+    results.append(Result("e60: the reference runtime's intermediates come from a run that preserves the default "
+                          "output (E52's check, carried over)",
+                          d["reference_runtime_intermediates"].get("preserving_run_matches_default_output_bitwise") is True,
+                          ""))
+    results.append(Result("e60: growth ratios are recorded beside the verdict and marked as not part of it (plan SS3)",
+                          d["supplementary_growth"]["not_part_of_the_verdict"] is True, ""))
+    inputs = os.environ.get("E52_INPUTS", "")
+    if not (inputs and os.path.isdir(inputs) and np is not None):
+        results.append(Result("e60: comparison re-runs live from the committed guest outputs", True,
+                              "needs the real ad01 inputs (network; set E52_INPUTS)", skip=True))
+        return results
+    out = os.path.join(tmp, "e60_live.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e60_deepae_layers_aarch64.py"), "compare", "--inputs", inputs,
+                      "--guest-outputs", gpath, "--out", out], cwd=repo)
+    live = load(out) if rc == 0 else {}
+
+    def shape(doc):
+        return {"V": doc.get("validity", {}).get("chain_final_equals_archived_aarch64_output"),
+                "L1": doc.get("L1_first_layer_over_tolerance"), "L2": doc.get("L2_layer_with_most_violations"),
+                "L3": doc.get("L3_bit_identical_to_sequential_f32_per_layer"),
+                "per_layer": [(r["index"], r["vs_reference_runtime"].get("violations"),
+                               r["vs_sequential_f32"]["violations"], r["vs_float64"]["violations"])
+                              for r in doc.get("layers", [])]}
+    results.append(Result("e60: comparison re-runs live from the committed guest outputs and agrees layer by layer",
+                          rc == 0 and shape(live) == shape(d), "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+# ---------------------------------------------------------------------------
+# E61 -- the reference outputs of tab:outputs, produced on the evaluation target.
+# ---------------------------------------------------------------------------
+def e61_reference_on_target_cases(tmp):
+    """E61: every reference (original TFLite runtime output) used to be produced on the ground side;
+    E61 produces it in the AArch64 guest and re-judges the archived target outputs against it.
+    The committed guest records are the raw data; the verdict is RE-DERIVED from them into a temp
+    dir (D89) -- a guard that only read summary.json would stay green if the records were reverted."""
+    results = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e61_reference_on_target")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.isfile(sp):
+        return [Result("e61: summary.json present", False, "missing")]
+    d = load(sp)
+    M = d["models"]
+    import e61_reference_on_target as e61
+    bad = []
+    for m, r in M.items():
+        want = hashlib.sha256(open(os.path.join(repo, e61.TFLITE[m]), "rb").read()).hexdigest()
+        if not (r.get("valid") and r.get("machine") == "aarch64" and r.get("model_sha256") == want):
+            bad.append(m)
+    results.append(Result("e61/1 all four references were produced on aarch64 from the preserved original .tflite",
+                          not bad and len(M) == 4 and d["verdict"]["all_valid"] is True, "bad: %s" % bad if bad else "4/4"))
+    rows = {m: (M[m]["Q2"]["cfs"]["verdict"], M[m]["Q2"]["cfs"]["totals"]["elements_failed"]) for m in M}
+    agree = all(M[m]["Q2"]["native"]["verdict"] == M[m]["Q2"]["cfs"]["verdict"] and
+                M[m]["Q2"]["native"]["totals"] == M[m]["Q2"]["cfs"]["totals"] for m in M)
+    results.append(Result("e61/2 re-judged against the target reference: ResNet PASS 0, DeepAE FAIL 139, SmartCam PASS 0, "
+                          "WGAN PASS 0 (native and cFS rows identical)",
+                          agree and rows.get("b2_resnet") == ("PASS", 0) and rows.get("b3_deepae") == ("FAIL", 139)
+                          and rows.get("smartcam") == ("PASS", 0) and rows.get("wgan") == ("PASS", 0), str(rows)))
+    cmp = load(os.path.join(root, "comparisons", "b3_deepae_cfs.json"))
+    failing = sorted(x["sample_id"] for x in cmp["samples"] if not x["ok"])
+    results.append(Result("e61/3 DeepAE's exceedance spans four windows against the target reference (one against the ground one)",
+                          len(failing) == 4 and "normal_id_04_00000043_hist_librosa_w98" in failing, str(failing)))
+    q1 = {m: (M[m]["Q1"].get("bitwise_identical_samples"), M[m]["Q1"].get("samples")) for m in M}
+    results.append(Result("e61/4 Q1 recorded as an observation: the reference runtime's outputs differ from the ground-side "
+                          "ones at every sample of all four models",
+                          all(q1[m][0] == 0 and q1[m][1] for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan")), str(q1)))
+    L = d["e60_layers"]
+    results.append(Result("e61/5 E60's window against the target's own intermediates: no layer before the last exceeds "
+                          "tolerance, the last has 37 (it had L1=6 and 46 against the ground reference)",
+                          L["violations_per_layer_vs_guest_reference"] == [0] * 9 + [37]
+                          and L["preserving_run_matches_default_output_bitwise"] is True
+                          and L["guest_final_layer_equals_guest_oracle_for_this_window"] is True
+                          and L["violations_per_layer_vs_ground_reference_E60"] == [0, 0, 0, 0, 0, 0, 1, 1, 0, 46],
+                          str(L["violations_per_layer_vs_guest_reference"])))
+    src = open(os.path.join(HERE, "tflite_oracle.py"), encoding="utf-8").read()
+    results.append(Result("e61/6 the reference tool records the machine that produced it",
+                          '"machine": platform.machine()' in src, ""))
+    try:
+        import numpy  # noqa: F401,PLC0415
+    except ImportError:
+        results.append(Result("e61/7 re-derived from the committed guest records, the verdict equals the committed one",
+                              True, "needs numpy", skip=True))
+        return results
+    out = os.path.join(tmp, "e61_live")
+    rc, _, err = run([PY, os.path.join(HERE, "e61_reference_on_target.py"), "judge", "--guest",
+                      os.path.join(root, "guest"), "--out", out], cwd=repo)
+    live = load(os.path.join(out, "summary.json")) if rc == 0 else {}
+
+    def shape(doc):
+        mm = doc.get("models", {})
+        return {"q2": {m: {w: (mm[m]["Q2"][w]["verdict"], mm[m]["Q2"][w]["totals"]) for w in ("native", "cfs")}
+                       for m in mm if mm[m].get("valid")},
+                "e60": (doc.get("e60_layers") or {}).get("violations_per_layer_vs_guest_reference")}
+    results.append(Result("e61/7 re-derived from the committed guest records, the verdict equals the committed one",
+                          rc == 0 and shape(live) == shape(d), "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+# ---------------------------------------------------------------------------
+# E39b -- three primary documents read in full, and what that does NOT license.
+# ---------------------------------------------------------------------------
+def e39b_prior_art_fulltext_cases(tmp):
+    results = []
+    repo = os.path.dirname(HERE)
+    rec = os.path.join(repo, "results", "e39_prior_art", "fulltext", "fulltext_check.json")
+    if not os.path.isfile(rec):
+        return [Result("e39b: fulltext_check.json present", False, "missing")]
+    d = load(rec)
+
+    # Every citation must actually be in the fetched bytes, and every claim of absence
+    # must actually be absent. A fabricated or drifted quote fails here.
+    results.append(Result("e39b: every quote is found in the primary document and every absence holds",
+                          d["verdict"] == "PASS" and not d["evidence_failures"] and not d["unchecked"]
+                          and d["claims_total"] >= 13,
+                          "claims=%s failures=%s unchecked=%s" % (d["claims_total"],
+                                                                  len(d["evidence_failures"]),
+                                                                  len(d["unchecked"]))))
+    # The fail-open E47 warned about: a project doc is not a paper.
+    results.append(Result("e39b: no row is graded as a peer-reviewed full text",
+                          d["peer_reviewed_fulltext_count"] == 0
+                          and "fulltext" in d["grade_vocabulary"]
+                          and all(g in d["grade_vocabulary"] for g in
+                                  ("project_doc_fulltext", "source_fulltext")),
+                          "count=%s" % d["peer_reviewed_fulltext_count"]))
+    # Provenance is pinned to a commit, not a branch -- a branch tip moves.
+    results.append(Result("e39b: every source is pinned to a commit and carries its sha256",
+                          bool(d["sources_fetched"])
+                          and all(v.get("pinned_to_commit_not_branch") is True
+                                  and len(v.get("commit", "")) == 40 and v.get("sha256")
+                                  for v in d["sources_fetched"].values()),
+                          str(sorted(d["sources_fetched"]))))
+    results.append(Result("e39b: the documents are not vendored in-tree",
+                          d["bytes_vendored_in_tree"] is False and bool(d["why_not_vendored"])))
+
+    wj = load(os.path.join(repo, "results", "e39_prior_art", "works.json"))
+    graded = {"tvm_usmp", "executorch_memplan", "tflm_mlsys2021"}
+    rows = {w["id"]: w for w in wj["works"]}
+    # The grade is supported PER AXIS, not per row -- the row has to say which axes.
+    results.append(Result("e39b: each upgraded row records which axes the full text actually covers",
+                          all(isinstance(rows[g]["A9"].get("axes_checked_against_fulltext"), list)
+                              and rows[g]["A9"]["axes_checked_against_fulltext"]
+                              and rows[g]["A9"]["content"] != "search_summary" for g in graded),
+                          str({g: rows[g]["A9"].get("axes_checked_against_fulltext") for g in graded})))
+    # TFLM's PAPER is a different work from TFLM's docs; only the docs were read.
+    results.append(Result("e39b: TFLM's paper grade stays search_summary even though its docs were read",
+                          rows["tflm_mlsys2021"]["A9"].get("paper_grade") == "search_summary",
+                          str(rows["tflm_mlsys2021"]["A9"].get("paper_grade"))))
+    # Rows that were NOT read must not have moved.
+    others = {k: v for k, v in (d.get("e39a_other_rows_unchanged") or {}).items()}
+    results.append(Result("e39b: the eight unread rows keep their original grade",
+                          bool(others) and all(
+                              (rows[k]["A9"] == v) and rows[k]["A9"].get("content") in
+                              ("search_summary", "fulltext_partial") for k, v in others.items()),
+                          str({k: (v or {}).get("content") for k, v in others.items()})))
+
+    # The five still-blocked hosts were RE-PROBED, not assumed (E45/E47's lesson).
+    probes = d["unreachable_reprobe"]
+    results.append(Result("e39b: the still-unreachable hosts were re-probed rather than assumed",
+                          len(probes) == 5 and all(p.get("http_code") is not None for p in probes)
+                          and not any(p.get("reachable") for p in probes),
+                          str({p["host"]: p["http_code"] for p in probes})))
+
+    # E47 corrected the "every external host" line in prose; the GENERATOR kept emitting
+    # it. That is D65's shape, so the generator text is checked here.
+    gen = open(os.path.join(HERE, "mk_prior_art_table.py"), encoding="utf-8").read()
+    table = open(os.path.join(repo, "results", "e39_prior_art", "prior_art.md"), encoding="utf-8").read()
+    # The detail must agree with the verdict. The first version printed "generator still
+    # carries it" on a PASS, because the REPLACEMENT text quotes the very phrase it is
+    # retracting -- E44 fixed the same shape (a row whose detail and cell disagreed).
+    banned = ["전 외부 호스트에서 `EGRESS_BLOCKED`)", "EGRESS_BLOCKED for every external host"]
+    still = [b for b in banned if b in gen]
+    results.append(Result("e39b: the generator no longer emits the over-generalised 'every external host' line",
+                          not still,
+                          "still present: %s" % still if still else "both banned spellings absent"))
+    results.append(Result("e39b: the rendered table states the correction and still reports fulltext=0",
+                          "정정(E47·E39b)" in table and "`fulltext`(논문 원문)는 여전히 **0건**" in table))
+
+    # The mis-attribution this experiment found must reach CLAUDE.md, not only the JSON.
+    claude = open(os.path.join(repo, "CLAUDE.md"), encoding="utf-8").read()
+    results.append(Result("e39b: the TFLM mis-attribution correction reached CLAUDE.md (D65)",
+                          "micro_interpreter.h:143" in claude and "귀속이 한 줄 어긋나" in claude))
+
+    # live re-run (D77) comparing the SHAPE of the derivation, not just the verdict (D89).
+    out = os.path.join(tmp, "e39b_live.json")
+    rc, _, err = run([PY, os.path.join(HERE, "e39b_prior_art_fulltext.py"),
+                      "--out", os.path.relpath(out, repo)], cwd=repo)
+    if rc == 3 or not os.path.isfile(out):
+        results.append(Result("e39b: derivation re-runs live", True,
+                              "network required (documents are not vendored)", skip=True))
+        return results
+    live = load(out)
+
+    def shape(doc):
+        return {"verdict": doc.get("verdict"),
+                "peer": doc.get("peer_reviewed_fulltext_count"),
+                "sha": {k: v["sha256"] for k, v in (doc.get("sources_fetched") or {}).items()},
+                "claims": [(c["work"], c["axis"], c["verdict"], c.get("quote_found"),
+                            c.get("absent_confirmed")) for c in doc.get("claims", [])]}
+    results.append(Result("e39b: derivation re-runs live and agrees claim by claim",
+                          rc == 0 and shape(live) == shape(d),
+                          "rc=%d %s" % (rc, err.strip()[:150])))
+    return results
+
+
+def e54_reference_budget_cases(tmp):
+    """E54: reference-based budgets -- budgets derived from external sources and measurements,
+    NOT from any model's contract value.
+
+    Each guard pins a property the experiment can silently lose:
+      (1) the app's contract-sized static buffers are COUNTED from source, not quoted from prose
+          (the plan named three; counting finds six -- E44);
+      (2) `R_noncontract_AI` is built from the contract's own exclusion list, never from an RSS
+          delta, because an RSS delta overlaps bytes that are inside `U` (D78 at experiment level);
+      (3) `R_other_apps == 0` is only allowed with the "already inside R_OS_cFS" reason, never as
+          a measured zero (D29/D51/D68);
+      (4) the margin percentages are graded as absent-from-fetched-bytes, never as a primary
+          citation (E39b/D91);
+      (5) Part 1 (reference profiles) and Part 2 (power-of-two sweep) never share a file, so
+          nothing downstream can merge them into one deployment case (directive SS9);
+      (6) the pass judge compares an admitted cell's HAL peak with THE BUDGET IT WAS ADMITTED ON,
+          not with `bounded` (D53/D59).
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    sys.path.insert(0, HERE)
+
+    e54 = os.path.join(repo, "results", "e54_reference_budget")
+
+    # --- (1) the static-buffer census reads the source, and finds more than the prose named ---
+    try:
+        import e54_budgets as EB  # noqa: PLC0415
+        terms = EB.app_io_buffer_terms(EB.APP_SRC)
+        names = sorted(t["name"] for t in terms)
+        in_b = sum(t["bytes_per_elem"] for t in terms if t["elems_of"] == "input")
+        out_b = sum(t["bytes_per_elem"] for t in terms if t["elems_of"] == "output")
+        results.append(Result(
+            "e54/1: app static I/O buffers are COUNTED from ai_learner.c, and the census finds "
+            "more than the plan's prose named (3) -- a term present in the binary but absent "
+            "from the prose would otherwise vanish from the overhead",
+            len(terms) >= 6 and in_b >= 8 and out_b >= 28,
+            "terms=%d names=%s in_bytes_per_elem=%d out_bytes_per_elem=%d" %
+            (len(terms), names, in_b, out_b)))
+        # revert-and-confirm-fail shape: a source with none of these buffers must be refused,
+        # not silently reported as zero overhead.
+        empty = os.path.join(tmp, "no_buffers.c")
+        with open(empty, "w", encoding="utf-8") as fh:
+            fh.write("int main(void){ return 0; }\n")
+        refused = False
+        try:
+            EB.app_io_buffer_terms(os.path.relpath(empty, repo))
+        except SystemExit:
+            refused = True
+        results.append(Result(
+            "e54/2: a source with no contract-sized buffers is REFUSED rather than reported as "
+            "an overhead of zero (absence is not zero)", refused, "refused=%r" % refused))
+    except ImportError as exc:
+        results.append(Result("e54/1-2: app static I/O buffer census", True,
+                              "skipped: %s" % exc, skip=True))
+
+    # --- (3)(2) budgets.json / baseline.json invariants ---
+    bpath = os.path.join(e54, "budgets.json")
+    basepath = os.path.join(e54, "baseline", "baseline.json")
+    if os.path.exists(bpath) and os.path.exists(basepath):
+        b = json.load(open(bpath, encoding="utf-8"))
+        base = json.load(open(basepath, encoding="utf-8"))
+
+        terms_keys = set()
+        for m in b["models"].values():
+            terms_keys |= set(m["R_noncontract_AI_terms"])
+        forbidden = {k for k in terms_keys if "rss" in k.lower() or "delta" in k.lower()}
+        results.append(Result(
+            "e54/3: R_noncontract_AI is built from the contract's own exclusion list and carries "
+            "no RSS-delta term -- an RSS delta overlaps bytes inside U, which is D78 repeated at "
+            "the experiment level",
+            not forbidden and "module_image_artifact_bytes" in terms_keys
+            and "app_static_io_buffer_bytes" in terms_keys,
+            "terms=%s forbidden=%s" % (sorted(terms_keys), sorted(forbidden))))
+
+        zero_ok = (base["r_other_apps_bytes"] != 0) or (
+            base["separable"] is False and "double-count" in base["r_other_apps_note"])
+        results.append(Result(
+            "e54/4: R_other_apps == 0 is allowed only with the 'already inside R_OS_cFS, adding "
+            "it again would double-count' reason -- never as a measured zero (D29/D51/D68)",
+            zero_ok, "separable=%r r_other_apps=%d note=%.90s" %
+            (base["separable"], base["r_other_apps_bytes"], base["r_other_apps_note"])))
+
+        results.append(Result(
+            "e54/5: R_reserved is 0 and says so by declaration (E44 counted 0 reservation-capable "
+            "calls); the budget is a value GRANTED to the app, not a reservation of physical RAM",
+            all(p["R_reserved_bytes"] == 0 and "reservation" in p["R_reserved_note"]
+                for p in b["profiles"].values()),
+            "profiles=%d" % len(b["profiles"])))
+
+        grades = {m["grade"] for m in b["margins"].values()}
+        results.append(Result(
+            "e54/6: the lifecycle margin percentages are graded as absent from every byte this "
+            "session fetched, so they can never be presented as a primary-source citation "
+            "(E39b/D91: a citation is a citation only down to its source)",
+            grades == {"transcribed_from_directive_primary_blocked"},
+            "grades=%s" % sorted(grades)))
+    else:
+        results.append(Result("e54/3-6: budgets.json invariants", True,
+                              "skipped: budgets.json or baseline.json absent", skip=True))
+
+    # --- (5) Part 1 and Part 2 never share a file ---
+    scen = sorted(glob.glob(os.path.join(e54, "scenarios_*.json")))
+    if scen:
+        mixed = []
+        for p in scen:
+            parts = {c["part"] for c in json.load(open(p, encoding="utf-8"))}
+            if len(parts) != 1:
+                mixed.append((os.path.basename(p), sorted(parts)))
+        results.append(Result(
+            "e54/7: no scenario file mixes reference profiles with the sensitivity sweep -- the "
+            "directive forbids presenting them as one deployment case, so the separation is "
+            "structural rather than a promise in prose",
+            not mixed, "files=%d mixed=%s" % (len(scen), mixed)))
+    else:
+        results.append(Result("e54/7: part separation", True,
+                              "skipped: no scenario files", skip=True))
+
+    # --- (6) the judge compares against the admitted budget, not `bounded` ---
+    src = open(os.path.join(HERE, "mk_e54_summary.py"), encoding="utf-8").read()
+    judge = src[src.find("def judge("):src.find("def main(")]
+    # Read the CODE, not the prose about the code. The first version of this guard matched the
+    # bare substring and so was failed by its own docstring, which says "never with `bounded`"
+    # -- the inverse of D85, where a sentence describing a rule satisfied it. Strip the
+    # docstring and comments first, then ask what the executable lines actually compare.
+    body = judge
+    if '"""' in body:
+        a = body.find('"""')
+        b = body.find('"""', a + 3)
+        body = body[:a] + body[b + 3:]
+    body = "\n".join(ln.split("#")[0] for ln in body.splitlines())
+    compares_admitted = 'rec["hal_peak"] > rec["budget_requested_bytes"]' in body
+    results.append(Result(
+        "e54/8: the pass judge compares an admitted cell's HAL peak with the budget it was "
+        "ADMITTED on, and no executable line of it names `bounded` -- D53/D59: the number you "
+        "approved on and the number you verify against must be the same one",
+        compares_admitted and "bounded" not in body,
+        "compares_admitted_budget=%r bounded_in_code=%r" %
+        (compares_admitted, "bounded" in body)))
+
+    # --- the power-of-two bracket really brackets U for every model ---
+    try:
+        import e54_make_scenarios as EMS  # noqa: PLC0415
+        if os.path.exists(bpath):
+            b = json.load(open(bpath, encoding="utf-8"))
+            bad = []
+            for name, m in b["models"].items():
+                u = m["U_bounded_bytes"]
+                lo, hi = EMS.bracket(u)
+                if not (lo < u <= hi and lo * 2 == hi):
+                    bad.append((name, u, lo, hi))
+            results.append(Result(
+                "e54/9: the Part 2 grid points bracket U as 2^k < U <= 2^(k+1) for every model, "
+                "and the grid is fixed independently of any contract value -- which is exactly "
+                "why the directive's objection to `U-1` as evidence does not apply to it",
+                not bad, "models=%d bad=%s" % (len(b["models"]), bad)))
+    except ImportError as exc:
+        results.append(Result("e54/9: power-of-two bracket", True,
+                              "skipped: %s" % exc, skip=True))
+
+    return results
+
+def e55_budget_reproducibility_cases(tmp):
+    """E55/D94: the reference budget must REPRODUCE from repository content.
+
+    `harness/e54_budgets.py::iree_fixed_runtime_ctx` used to derive `R_noncontract_AI`'s
+    runtime-context term by globbing `results/**/*.log` -- "whatever AArch64 mem_init
+    records exist right now".  That set GROWS: E54's own 25 cell logs were written after
+    budgets.json was committed, so re-running the generator today moved observations
+    21 -> 46 and chosen_kb 368 -> 376, and the committed budget no longer reproduced.
+
+    Measured consequence (not asserted): every one of the 16 budgets shrinks by exactly
+    8,192 B -- the CONSERVATIVE direction, ADMIT gets harder -- and 16/16 verdicts are
+    unchanged, tightest cell PB_pdr50__wgan at 2.193x.  E54's judgment therefore stands;
+    what did not stand is the reproducibility, and that is what these guards pin.
+
+    The fix pins the input set WITHOUT freezing it: each pinned record is re-extracted
+    from its own raw log every run, a mismatch or a missing log refuses, and the records
+    the current scan finds but the pin does not carry are REPORTED (never absorbed).
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    gen = os.path.join(HERE, "e54_budgets.py")
+    committed = os.path.join(repo, "results/e54_reference_budget/budgets.json")
+    pin_rel = "results/e54_reference_budget/sources/runtime_ctx_observations.json"
+    pin_abs = os.path.join(repo, pin_rel)
+
+    if not (os.path.exists(gen) and os.path.exists(committed)):
+        results.append(Result("e55/1-4: budget reproducibility", True,
+                              "skipped: E54 artefacts absent", skip=True))
+        return results
+
+    # --- (1) the derivation actually re-runs and reproduces the committed bytes ---
+    out = os.path.join(tmp, "e55_budgets_rerun.json")
+    pr = subprocess.run([sys.executable, gen, "--out", out],
+                        cwd=repo, capture_output=True, text=True)
+    if pr.returncode != 0:
+        results.append(Result(
+            "e55/1: e54_budgets.py re-runs and reproduces the committed budgets.json byte for byte",
+            False, "generator rc=%d: %s" % (pr.returncode, (pr.stderr or "")[-400:])))
+    else:
+        a = open(committed, "rb").read()
+        b = open(out, "rb").read()
+        same = a == b
+        detail = "identical" if same else "differs (%d vs %d bytes)" % (len(a), len(b))
+        if not same:
+            try:
+                ja, jb = json.loads(a), json.loads(b)
+                diffs = [k for k in set(ja) | set(jb) if ja.get(k) != jb.get(k)]
+                detail += " top-level keys differing: %s" % sorted(diffs)
+            except ValueError:
+                pass
+        results.append(Result(
+            "e55/1: e54_budgets.py re-runs and reproduces the committed budgets.json byte for "
+            "byte -- D94: shipping a derived value without re-running the derivation is how "
+            "the committed budget drifted out of reach in the first place (D77's lesson)",
+            same, detail))
+
+    # --- (2) the pin manifest is real: every pinned log exists AND is tracked by git ---
+    if not os.path.exists(pin_abs):
+        results.append(Result("e55/2: pinned observation manifest exists and every pinned log "
+                              "is present and git-tracked", False, "pin manifest missing: %s" % pin_rel))
+    else:
+        pin = json.loads(open(pin_abs, encoding="utf-8").read())
+        obs = pin.get("observations") or []
+        srcs = sorted({o["source"] for o in obs})
+        missing = [s for s in srcs if not os.path.exists(os.path.join(repo, s))]
+        untracked = []
+        if srcs and not missing:
+            ls = subprocess.run(["git", "ls-files", "--error-unmatch", "--"] + srcs,
+                                cwd=repo, capture_output=True, text=True)
+            if ls.returncode != 0:
+                tracked = set(ls.stdout.split())
+                untracked = [s for s in srcs if s not in tracked]
+        ok = bool(obs) and not missing and not untracked
+        results.append(Result(
+            "e55/2: pinned observation manifest exists and every pinned log is present and "
+            "git-tracked -- a pin that names logs the repository does not carry is not a pin "
+            "(D55: cited raw logs must actually be in the tree)",
+            ok, "observations=%d sources=%d missing=%s untracked=%s"
+                % (len(obs), len(srcs), missing, untracked)))
+
+    # --- (3) a pinned value that no longer reproduces must REFUSE, not be absorbed ---
+    if os.path.exists(pin_abs):
+        tampered = os.path.join(tmp, "e55_pin_tampered.json")
+        pin = json.loads(open(pin_abs, encoding="utf-8").read())
+        if pin.get("observations"):
+            pin["observations"] = [dict(o) for o in pin["observations"]]
+            pin["observations"][0]["delta_kb"] = pin["observations"][0]["delta_kb"] + 7777
+            open(tampered, "w", encoding="utf-8").write(json.dumps(pin, ensure_ascii=False))
+            rel = os.path.relpath(tampered, repo)
+            pr2 = subprocess.run([sys.executable, gen, "--pin", rel,
+                                  "--out", os.path.join(tmp, "e55_should_not_exist.json")],
+                                 cwd=repo, capture_output=True, text=True)
+            refused = pr2.returncode != 0 and "D94" in (pr2.stderr or "")
+            results.append(Result(
+                "e55/3: a pinned observation whose raw log no longer yields that value makes the "
+                "generator REFUSE to emit a budget -- the pin re-reads evidence, it is not frozen data",
+                refused, "rc=%d stderr=%r" % (pr2.returncode, (pr2.stderr or "")[-220:])))
+        else:
+            results.append(Result("e55/3: tampered pin refuses", False, "pin carries no observations"))
+
+    # --- (4) drift is reported, never silently absorbed -- in a SIBLING file ---
+    # E55 caught D94 a second time, on its own repair: the first fix wrote the scan counts
+    # INTO budgets.json, and guard (1) then failed the moment this experiment's own cells
+    # landed, because "how many AArch64 mem_init records exist right now" is a number that
+    # grows. A moving value does not belong in a committed budget; it belongs next to it.
+    try:
+        b = json.loads(open(committed, encoding="utf-8").read())
+        ctx = b.get("iree_fixed_runtime_ctx") or {}
+        drift_rel = ctx.get("drift_report")
+        drift_abs = os.path.join(repo, drift_rel) if drift_rel else None
+        dr = json.loads(open(drift_abs, encoding="utf-8").read()) if (drift_abs and os.path.exists(drift_abs)) else {}
+        ok = (ctx.get("pin_state") == "pinned"
+              and isinstance(drift_rel, str)
+              and isinstance(dr.get("scan_observations_now"), int)
+              and isinstance(dr.get("sources_present_but_not_pinned"), list)
+              and dr.get("pinned_observations") == ctx.get("observations")
+              and dr["scan_observations_now"] >= ctx.get("observations", 0)
+              and "scan_observations_now" not in ctx)
+        results.append(Result(
+            "e55/4: budgets.json records pin_state and points at a SIBLING drift report; the "
+            "moving numbers (what the unpinned scan would find now, which sources are not pinned) "
+            "live there, so drift stays VISIBLE without making the committed budget unreproducible",
+            ok, "pin_state=%r observations=%r drift_file=%r scan_now=%r not_pinned=%s volatile_in_budget=%s"
+                % (ctx.get("pin_state"), ctx.get("observations"), drift_rel,
+                   dr.get("scan_observations_now"),
+                   len(dr.get("sources_present_but_not_pinned") or []),
+                   "scan_observations_now" in ctx)))
+    except (OSError, ValueError) as exc:
+        results.append(Result("e55/4: drift reported beside budgets.json", False, "unreadable: %s" % exc))
+
+    # --- (5) the artefact says what kind of budget it is (directive SS2 criterion 3) ---
+    try:
+        b = json.loads(open(committed, encoding="utf-8").read())
+        nat = b.get("budget_nature") or {}
+        ok = (nat.get("kind") == "constructed_reference_scenario"
+              and nat.get("is_mission_allocation") is False
+              and isinstance(nat.get("statement"), str) and len(nat["statement"]) > 80)
+        results.append(Result(
+            "e55/5: budgets.json declares, in the machine-readable artefact, that these are "
+            "CONSTRUCTED REFERENCE SCENARIOS and not any mission's allocation -- before E55 the "
+            "scoping lived only in prose and only for the Part 2 grid, so a reader of the Part 1 "
+            "artefact could not tell the two apart (E44: count whether the field already exists; "
+            "it did not)",
+            ok, "kind=%r is_mission_allocation=%r" % (nat.get("kind"), nat.get("is_mission_allocation"))))
+    except (OSError, ValueError) as exc:
+        results.append(Result("e55/5: budget nature declared", False, "unreadable: %s" % exc))
+
+    return results
+
+
+
+def e55b_copy_path_cases(tmp):
+    """E55b (directive COPY_MAP_ONAIR SS3-SS4): the copy-arm cell is judged on facts, not labels.
+
+    The app derives its own `arm` string from `hal_peak_after_append` (ai_learner.c), so a judge
+    that accepts `arm == "copy"` is reading the app's conclusion back as an observation.  The
+    directive says so in SS3.3's last line, and these cases pin it: a synthetic cell that claims
+    `copy` while its post-append allocation is NOT the contract's constant count must not be
+    counted as a copy run, and a cell whose peak exceeds `P+C` must come back WITHHELD rather
+    than FAIL -- SS3.4 asks for the raw material to be kept and the claim suspended, which is a
+    different outcome from "the cell failed".
+
+    The alignment knob itself is checked in the app source, because that is where the fail-closed
+    rules live and the built binary is not in-tree.  The archived map-arm rows of the SS4 table
+    are checked against the raw logs they cite: the table must never carry an expected value as
+    if it were measured.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    app = read(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"))
+
+    # --- e55b/1: the knob is fail-closed on every condition the plan fixed before measurement
+    body = app.split("AI_LEARNER_BlobAlignOffset(const char** why)", 1)
+    body = body[1].split("\nstatic void* AI_LEARNER_AllocModuleImage", 1)[0] if len(body) > 1 else ""
+    need = {"not an integer": "non-integer", "trailing garbage": "trailing garbage",
+            "out of range": "range", "% 8 != 0": "not a multiple of 8",
+            "% 64 == 0": "nonzero multiple of 64",
+            "AI_LEARNER_ALLOW_CONDITIONAL_MAP": "conditional build refused (plan SS2.1)"}
+    missing = [d for k, d in need.items() if k not in body]
+    results.append(Result("e55b/1: alignment knob refuses every condition the plan fixed", not missing,
+                          "missing refusal(s): %s" % missing if missing else
+                          "6/6 refusal conditions present in AI_LEARNER_BlobAlignOffset"))
+
+    # --- e55b/2: the offset pointer is handed to IREE, the BASE pointer is what gets freed
+    alloc = app.split("AI_LEARNER_AllocModuleImage(size_t n, int* out_mod64)", 1)
+    alloc = alloc[1][:900] if len(alloc) > 1 else ""
+    ok = ("g.blob_alloc = p" in alloc and "+ off" in alloc and "% 64" in alloc
+          and "free(g.blob_alloc)" in app)
+    results.append(Result("e55b/2: offset pointer is used, base pointer is freed", ok,
+                          "alloc returns base+off, stores base in g.blob_alloc, cleanup frees that"
+                          if ok else "alignment offset bookkeeping not as the plan requires"))
+
+    sys.path.insert(0, HERE)
+    try:
+        import mk_e55b_summary as _e55b                                  # noqa: PLC0415
+    except Exception as e:                                               # noqa: BLE001
+        results.append(Result("e55b/3-5: copy-cell judge", False, "cannot import mk_e55b_summary: %s" % e))
+        return results
+
+    P, C = 6208, 1063424
+    sc = {"model": "synthetic", "e55b": {"P": P, "C": C, "B_u": P + C, "align_offset": 8,
+                                         "map_arm_baseline_outputs": "results/does-not-exist.bin"}}
+
+    def cell(after_append, peak, mod64=8):
+        return {"present": True, "blob_align": {"requested_offset": 8, "state": "applied"},
+                "map_branch": {"module_ptr_mod64": mod64, "hal_peak_after_append": after_append,
+                               "arm": "copy"},
+                "admission": {"verdict": "ADMIT"}, "binding": {"verdict": "MATCH"},
+                "mem": {"hal_peak": peak, "completed": 5, "max_active_calls": 1},
+                "e25_equivalence": {"inputs": 1, "completed": 1}, "run": {"completed": 5},
+                "mem_init": {"hal_peak": C}, "runtime_load_failed": None}
+
+    # --- e55b/3: `arm: "copy"` with a post-append allocation that is NOT C is not a copy run
+    j = _e55b.judge_copy(sc, cell(C - 8, P + C), "/nonexistent")
+    ok = (j["copy_arm_confirmed_independently"] is False and j["verdict"] != "PASS"
+          and j["arm_label_agrees"] is True)
+    results.append(Result("e55b/3: arm label alone does not confirm copy", ok,
+                          "label says copy, post-append != C -> not counted as copy (verdict %s)"
+                          % j["verdict"] if ok else "judge accepted the label: %r" % j))
+
+    # --- e55b/4: the offset must have reached the image; mod64 == 0 means the knob did not apply
+    j0 = _e55b.judge_copy(sc, cell(C, P + C, mod64=0), "/nonexistent")
+    ok0 = (j0["copy_arm_confirmed_independently"] is False
+           and j0["load_setting_SS3_3"]["offset_reached_the_image"] is False)
+    results.append(Result("e55b/4: mod64 == 0 means the knob did not apply (plan SS5-1)", ok0,
+                          "offset requested 8 but image landed on 0 -> not counted"
+                          if ok0 else "judge counted a cell whose offset never reached: %r" % j0))
+
+    # --- e55b/5: H > P+C is WITHHELD (SS3.4), which is not the same outcome as FAIL
+    jw = _e55b.judge_copy(sc, cell(C, P + C + 1), "/nonexistent")
+    results.append(Result("e55b/5: H > P+C withholds the claim instead of failing",
+                          jw["verdict"] == "WITHHELD",
+                          "verdict=%s" % jw["verdict"]))
+
+    # --- e55b/6: the SS4 archived rows are read from the logs they cite, never asserted
+    bad = []
+    want = {"b2_resnet": (309416, 618856), "b3_deepae": (6208, 1069632),
+            "smartcam": (9382092, 18222796), "wgan": (131382784, 135666432)}
+    for m, rel in _e55b.ARCHIVED_MAP_BU.items():
+        f = os.path.join(repo, rel)
+        if not os.path.isfile(f):
+            bad.append("%s: missing %s" % (m, rel)); continue
+        c = _e55b.read_cell(f)
+        mb, mem = c.get("map_branch") or {}, c.get("mem") or {}
+        Pm, Bm = want[m]
+        if (mb.get("arm") != "map" or mem.get("admission_mode") != "unconditional"
+                or mem.get("admitted_budget_bytes") != Bm or mem.get("hal_peak") != Pm):
+            bad.append("%s: arm=%r mode=%r budget=%r peak=%r" % (m, mb.get("arm"),
+                       mem.get("admission_mode"), mem.get("admitted_budget_bytes"), mem.get("hal_peak")))
+    results.append(Result("e55b/6: SS4 archived map rows match the logs they cite", not bad,
+                          "; ".join(bad) if bad else
+                          "4/4 archived cells: arm=map, unconditional, M=B_u, H=P"))
+
+    _sum55b = os.path.join(repo, "results", "e55b_copy_path", "summary.json")
+    doc55b = json.loads(read(_sum55b)) if os.path.isfile(_sum55b) else None
+
+    # --- e55b/14: the OUTPUT baselines are a different set of cells from e55b/6's, and the claim
+    # that they ran on the map arm was prose in E55b's first version -- a derived statement shipped
+    # with no derivation (D77), which a D89-shaped test would have let stand.  Re-read each
+    # baseline's own map_branch record here and require the summary to carry the same facts.
+    # The map arm is recognised by mod64 == 0 AND a post-append allocation of 0 (it maps, so it
+    # allocates nothing); the app's own `arm` label is reported beside that, never in place of it.
+    bad = []
+    for m, rel in _e55b.OUTPUT_BASELINE_LOG.items():
+        f = os.path.join(repo, rel)
+        if not os.path.isfile(f):
+            bad.append("%s: missing %s" % (m, rel)); continue
+        mb = (_e55b.read_cell(f).get("map_branch") or {})
+        if mb.get("module_ptr_mod64") != 0 or mb.get("hal_peak_after_append") != 0:
+            bad.append("%s: baseline is not map-arm (mod64=%r, after_append=%r)"
+                       % (m, mb.get("module_ptr_mod64"), mb.get("hal_peak_after_append")))
+            continue
+        row = next((r for r in (doc55b.get("models") or []) if r["model"] == m), None) if doc55b else None
+        obs = ((row or {}).get("output_comparison") or {}).get("baseline_arm_observed")
+        if row is None or not (row.get("output_comparison") or {}).get("compared"):
+            continue                                     # copy cell not run yet -- not a failure
+        if not isinstance(obs, dict) or obs.get("observed") is not True:
+            bad.append("%s: the summary carries no derived baseline_arm_observed" % m)
+        elif (obs.get("module_ptr_mod64") != mb.get("module_ptr_mod64")
+              or obs.get("hal_peak_after_append") != mb.get("hal_peak_after_append")
+              or obs.get("arm_label") != mb.get("arm") or obs.get("is_map_arm") is not True):
+            bad.append("%s: summary's baseline_arm_observed disagrees with %s" % (m, rel))
+    results.append(Result("e55b/14: the output baselines' map arm is read from their logs, not asserted",
+                          not bad, "; ".join(bad) if bad else
+                          "4/4 output baselines: mod64=0, post-append allocation 0, label=map -- "
+                          "and the summary reports the same values it read"))
+
+    # --- e55b/15: D97.  E55b's first version said "the only difference between the two runs is
+    # the module image's load alignment".  That is false: each output baseline was built from the
+    # commit that archived it, and one intervening commit (330c4f3 / D75) changed `float yv[]` to
+    # `static float yv[]` inside the e25 replay loop that writes the compared outputs.  The
+    # summary now MEASURES how far the app source moved; this re-runs the same measurement.
+    # A checkout without history (shallow CI clone) SKIPs honestly instead of passing vacuously.
+    cvs = (doc55b or {}).get("changed_variable_scope")
+    if cvs is None:
+        results.append(Result("e55b/15: the app-source delta vs each baseline is measured, not asserted",
+                              False, "summary carries no changed_variable_scope block"))
+    elif ("app binary" not in (cvs.get("NOT_held_fixed") or "")
+          or not (cvs.get("held_fixed") or [])
+          or any("binary" in h for h in (cvs.get("held_fixed") or []))):
+        results.append(Result("e55b/15: the app-source delta vs each baseline is measured, not asserted",
+                              False, "the block does not name the app binary as NOT held fixed"))
+    else:
+        bad, checked = [], 0
+        for row in cvs.get("per_model") or []:
+            d = row.get("app_source_delta")
+            if d is None:
+                if not row.get("unavailable_reason"):
+                    bad.append("%s: delta is null with no reason" % row["model"])
+                continue
+            # D102: the delta has TWO endpoints.  E55b pinned only the baseline and diffed against
+            # the working tree, so the recorded number drifted the moment ai_learner.c changed
+            # again (E56 narrowed the alignment knob's conditional-tier axis) -- and this guard
+            # then demanded that a historical record be rewritten to match a source the E55b cells
+            # were never built from.  A record whose derivation moves with HEAD is not reproducible.
+            # Require the end revision to be pinned, and diff the range.
+            end = row.get("cells_built_at")
+            if not end:
+                bad.append("%s: app_source_delta pins no cells_built_at, so the recorded number "
+                           "is a diff against whatever HEAD happens to be (D102)" % row["model"])
+                continue
+            r = subprocess.run(["git", "diff", "--numstat",
+                                "%s..%s" % (row["baseline_built_at"], end), "--",
+                                _e55b.APP_SRC], cwd=repo, capture_output=True, text=True)
+            if r.returncode != 0:
+                continue                       # no history here -- handled by the skip below
+            checked += 1
+            parts = r.stdout.split()
+            ins, dele = (int(parts[0]), int(parts[1])) if len(parts) >= 2 else (0, 0)
+            if (ins, dele) != (d.get("insertions"), d.get("deletions")):
+                bad.append("%s: live %d/%d != recorded %r/%r"
+                           % (row["model"], ins, dele, d.get("insertions"), d.get("deletions")))
+        if not checked and not bad:
+            results.append(Result("e55b/15: the app-source delta vs each baseline is measured, not asserted",
+                                  None, "needs git history for the baseline commits", skip=True))
+        else:
+            results.append(Result("e55b/15: the app-source delta vs each baseline is measured, not asserted",
+                                  not bad, "; ".join(bad) if bad else
+                                  "%d/%d baselines re-measured with git diff --numstat; the summary "
+                                  "names the app binary as NOT held fixed" % (checked, len(cvs["per_model"]))))
+
+    # --- e55b/7: the regenerable input sets still rebuild to the sha256 the scenarios declare
+    manp = os.path.join(repo, "results", "e55b_copy_path", "fixtures", "manifest.json")
+    if not os.path.isfile(manp):
+        results.append(Result("e55b/7: e25 input sets regenerate to the declared hash", False,
+                              "fixtures/manifest.json absent"))
+        return results
+    man = json.loads(read(manp))
+    try:
+        import numpy  # noqa: F401,PLC0415
+    except Exception:                                                    # noqa: BLE001
+        results.append(Result("e55b/7: e25 input sets regenerate to the declared hash", None,
+                              "needs numpy (mk_e25_inputs.py reads .npy fixtures)", skip=True))
+        return results
+    bad = []
+    for s in man["sets"]:
+        if s.get("in_tree"):
+            f = os.path.join(repo, s["in_tree"])
+            got = hashlib.sha256(open(f, "rb").read()).hexdigest() if os.path.isfile(f) else None
+            if got != s["sha256"]:
+                bad.append("%s: in-tree %s != declared" % (s["model"], (got or "missing")[:16]))
+            continue
+        argv = list(s["regenerate"])
+        out = os.path.join(tmp, "%s.bin" % s["model"])
+        argv = [sys.executable, os.path.join(repo, argv[0])] + argv[1:]
+        argv[argv.index("--out-bin") + 1] = out
+        argv[argv.index("--out-order") + 1] = os.path.join(tmp, "%s.order.json" % s["model"])
+        r = subprocess.run(argv, cwd=repo, capture_output=True, text=True)
+        if r.returncode != 0 or not os.path.isfile(out):
+            bad.append("%s: regeneration rc=%d %s" % (s["model"], r.returncode, r.stderr[-120:]))
+            continue
+        got = hashlib.sha256(open(out, "rb").read()).hexdigest()
+        if got != s["sha256"]:
+            bad.append("%s: %s != %s" % (s["model"], got[:16], s["sha256"][:16]))
+    results.append(Result("e55b/7: e25 input sets regenerate to the declared hash", not bad,
+                          "; ".join(bad) if bad else
+                          "%d/%d input sets reproduce byte for byte" % (len(man["sets"]), len(man["sets"]))))
+    return results
+
+
+def e55b_onair_linkage_cases(tmp):
+    """E55b SS5: the OnAIR contribution is CONNECTED to E33, not widened.
+
+    The directive asks for no new OnAIR experiment, so the only thing that can go wrong here is a
+    claim drifting past the record.  Two shapes are pinned: the three cited conditions must come
+    back with the verdicts E33's raw JSON actually holds (including that p_mismatch is ADMITted by
+    the memory gate and refused by the artifact gate -- a row that reads "ADMIT, 0 inferences" is
+    easy to mis-summarise), and the two things E33 did NOT measure must stay null WITH a reason:
+    HAL peak on this path, and output-object release (D60 withdrew the "released" wording after
+    the raw record showed nanobind instances alive at exit).  A guard that let those become 0 or
+    false would re-commit D29/D51/D68 in the one place this directive names.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    out = os.path.join(tmp, "onair_link.json")
+    rc, _, err = run([PY, os.path.join(HERE, "mk_e55b_onair_link.py"), "--out",
+                      os.path.relpath(out, repo)], cwd=repo)
+    if rc != 0:
+        return [Result("e55b/8-9: OnAIR linkage", False, "generator rc=%d %s" % (rc, err[-160:]))]
+    d = load(out)
+    want = {"p_admit": ("ADMIT", None, True, 5), "p_deny": ("NOT_ADMITTED", "admission", False, 0),
+            "p_mismatch": ("ADMIT", "binding", False, 0)}
+    bad = []
+    for r in d.get("conditions", []):
+        w = want.get(r["cell"])
+        got = (r.get("admission_verdict"), r.get("refused_at"), r.get("active"), r.get("inferences"))
+        if w is None or got != w:
+            bad.append("%s: %r != %r" % (r["cell"], got, w))
+    if len(d.get("conditions", [])) != 3:
+        bad.append("expected the 3 conditions SS5.1 cites, got %d" % len(d.get("conditions", [])))
+    results.append(Result("e55b/8: OnAIR rows match E33's raw records, refusal stage included",
+                          not bad, "; ".join(bad) if bad else
+                          "3/3 conditions; p_mismatch is ADMIT at the memory gate, refused at binding"))
+
+    holes = []
+    for r in d.get("conditions", []):
+        if r.get("hal_peak") is not None or not r.get("hal_peak_unavailable_reason"):
+            holes.append("%s: hal_peak not null-with-reason" % r["cell"])
+        if r.get("output_object_release") is not None or not r.get("output_object_release_unavailable_reason"):
+            holes.append("%s: output release not null-with-reason" % r["cell"])
+    if d.get("new_experiment_run") is not False:
+        holes.append("new_experiment_run should be False (SS5: no new OnAIR experiment)")
+    if d.get("optional_table_SS5_2_built") is not False:
+        holes.append("SS5.2's optional table must not be built while its claim is not made")
+    if not any("AArch64 OnAIR" in x for x in d.get("not_claimed", [])):
+        holes.append("not_claimed must keep AArch64 OnAIR out (SS5.2 last paragraph)")
+    results.append(Result("e55b/9: what E33 did not measure stays null WITH a reason",
+                          not holes, "; ".join(holes) if holes else
+                          "HAL peak and output-object release null+reason in 3/3; no new experiment; "
+                          "SS5.2 optional table not built"))
+    return results
+
+
+def e55_optin_witness_cases(tmp):
+    """E55/E55b: every deployed tree's opt-in state is witnessed FROM THE BINARY, in-tree.
+
+    D69 is the rule: the setting a verdict was obtained under must be recorded independently of
+    the verdict, or the verdict becomes its own only evidence.  E38 built the witness that reads
+    `AI_LEARNER_ALLOW_CONDITIONAL_MAP` back out of the built `.so` rather than trusting the build
+    command, and these twelve trees are archived here for the same reason E38 archived its two:
+    the exe trees live outside the repository and vanish with the container, so without the
+    archived build_info + witness + `.so` hash the cells could not be re-attributed to a build.
+
+    The check is name-independent in the direction that matters: it does not accept a witness of
+    `undetermined`, because E38's witness returns that when its own positive control does not fire
+    -- a state that must never be read as "conditional is off".
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    want = {}
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        want[os.path.join("results", "e55_mandatory_followups", "trees", "e55_%s_cond0" % m)] = False
+        want[os.path.join("results", "e55_mandatory_followups", "trees", "e55_%s_cond1" % m)] = True
+        want[os.path.join("results", "e55b_copy_path", "trees", "e55b_%s_copy" % m)] = False
+    bad = []
+    for rel, expect in sorted(want.items()):
+        d = os.path.join(repo, rel)
+        wf, bf, hf = (os.path.join(d, "witness.json"), os.path.join(d, "build_info.json"),
+                      os.path.join(d, "ai_learner.so.sha256"))
+        if not all(os.path.isfile(f) for f in (wf, bf, hf)):
+            bad.append("%s: missing archived record" % os.path.basename(d)); continue
+        w, b = json.loads(read(wf)), json.loads(read(bf))
+        got = w.get("allow_conditional_map")
+        state = w.get("allow_conditional_map_state")
+        knob = (b.get("app_knobs") or {}).get("AI_LEARNER_ALLOW_CONDITIONAL_MAP")
+        h = read(hf).strip()
+        if got is not expect:
+            bad.append("%s: witness %r (state %r) != %r" % (os.path.basename(d), got, state, expect))
+        elif state == "undetermined":
+            bad.append("%s: witness undetermined -- never read that as 'off'" % os.path.basename(d))
+        elif knob != (1 if expect else 0):
+            bad.append("%s: build_info knob %r disagrees with the binary" % (os.path.basename(d), knob))
+        elif len(h) != 64:
+            bad.append("%s: archived .so sha256 is not a hash (%r)" % (os.path.basename(d), h[:16]))
+    results.append(Result("e55b/10: all 12 deployed trees witness their opt-in from the binary",
+                          not bad, "; ".join(bad) if bad else
+                          "12/12: 4 cond1 True, 4 cond0 False, 4 copy False; build_info agrees; "
+                          ".so hash archived"))
+
+    # --- e55b/11: the two records that agree are MEASURED, not derived from the contract.
+    # E55b SS5 predicted mem_init.hal_peak = C + input bytes before any copy cell existed and the
+    # first cell matched to the byte.  An exact match is the moment to suspect one's own tool
+    # (E35's rule, applied when there is NO difference): if either record were computed from
+    # CONTRACT_* the agreement would be an identity, not evidence.  Both come from
+    # iree_hal_allocator_query_statistics, at two different points in Init().
+    app = read(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"))
+    def emits_measured(stage_tag, window):
+        i = app.find(stage_tag)
+        if i < 0:
+            return False, "record %s not emitted" % stage_tag
+        pre = app[max(0, i - window):i]
+        if "iree_hal_allocator_query_statistics" not in pre:
+            return False, "%s is not preceded by an allocator query" % stage_tag
+        return True, ""
+    why = []
+    ok1, m1 = emits_measured('\\"stage\\":\\"mem_init\\"', 400)
+    ok2, m2 = emits_measured('\\"stage\\":\\"map_branch\\",\\"model\\"', 900)
+    why += [m for m in (m1, m2) if m]
+    # and neither prints a CONTRACT_ macro in the peak position
+    # The peak must be the FIRST value printed, not merely mentioned somewhere in the block:
+    # the same expression also appears in the `peak_within_bounded` ternary, so a substring test
+    # stays green while the printed number is swapped for a contract macro (measured: reverting
+    # the argument alone left the first version of this guard passing -- D89's shape).
+    if "(long)st0.device_bytes_peak, (long)st0.device_bytes_allocated," not in app:
+        why.append("mem_init does not print st0.device_bytes_peak as its hal_peak argument")
+    if "g.hal_peak_after_append = (long)s0.device_bytes_peak" not in app:
+        why.append("hal_peak_after_append is not s0.device_bytes_peak")
+    results.append(Result("e55b/11: mem_init and hal_peak_after_append are measured, not derived",
+                          not why, "; ".join(why) if why else
+                          "both read iree_hal_allocator_query_statistics at different points in "
+                          "Init(); neither substitutes a CONTRACT_ macro"))
+
+    # --- e55b/12: the SS4 table's first two rows are the whole point, so pin their relation.
+    # Same budget, same vmfb, same contract, same fixture -- and H comes out P on one row and
+    # P+C on the other, differing by EXACTLY the contract's constant count.  That is the run-time
+    # evidence for why B_u must be the max over the arms; if the two rows ever stopped differing
+    # by exactly C, either the bound's decomposition or one of the measurements would be wrong.
+    sp = os.path.join(repo, "results", "e55b_copy_path", "summary.json")
+    if not os.path.isfile(sp):
+        results.append(Result("e55b/12: same budget, two arms, difference is exactly C", False,
+                              "results/e55b_copy_path/summary.json absent"))
+        return results
+    # D89 (found by adversarial verification of E55b itself): e55b/12 and e55b/13 used to read the
+    # COMMITTED summary.json only, so reverting the raw material they are about -- the guest logs --
+    # left both green.  A guard that survives a revert of its subject is not a guard.  They now
+    # RE-DERIVE the summary from the logs into a temp file and judge that, and separately require
+    # the live derivation to agree with what is committed.
+    live_sp = os.path.join(tmp, "e55b_live_summary.json")
+    rc_live, _, err_live = run([PY, os.path.join(HERE, "mk_e55b_summary.py"),
+                                "--out", os.path.relpath(live_sp, repo)], cwd=repo)
+    if rc_live != 0:
+        results.append(Result("e55b/12: same budget, two arms, difference is exactly C", False,
+                              "live re-derivation failed rc=%d %s" % (rc_live, err_live[-160:])))
+        return results
+    live = load(live_sp)
+    committed = load(sp)
+    def _subst(doc):
+        return [{k: t.get(k) for k in ("configuration", "model", "budget_M", "H", "H_eq_P",
+                                       "H_eq_P_plus_C", "configuration_matches")}
+                for t in (doc.get("integration_table_SS4") or [])]
+    results.append(Result("e55b/12a: the SS4 table re-derives from the guest logs and agrees",
+                          _subst(live) == _subst(committed),
+                          "live re-derivation differs from the committed summary"
+                          if _subst(live) != _subst(committed) else
+                          "%d rows re-derived from raw logs, identical to committed"
+                          % len(_subst(live))))
+    tbl = live.get("integration_table_SS4") or []
+    pairs, bad = 0, []
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        mp = next((t for t in tbl if t["model"] == m and t["configuration"] == "unconditional_map_at_Bu"), None)
+        cp = next((t for t in tbl if t["model"] == m and t["configuration"] == "unconditional_copy_at_Bu"), None)
+        if not mp or not cp or cp.get("H") is None:
+            continue                                   # copy cell not run yet -- not a failure
+        pairs += 1
+        P, C, B = cp["P"], cp["C"], cp["B_u"]
+        if mp.get("budget_M") != cp.get("budget_M"):
+            bad.append("%s: budgets differ (%r vs %r)" % (m, mp.get("budget_M"), cp.get("budget_M")))
+        elif mp.get("H") != P:
+            bad.append("%s: map H %r != P %d" % (m, mp.get("H"), P))
+        elif cp.get("H") != B:
+            bad.append("%s: copy H %r != P+C %d" % (m, cp.get("H"), B))
+        elif cp["H"] - mp["H"] != C:
+            bad.append("%s: arms differ by %d, not C=%d" % (m, cp["H"] - mp["H"], C))
+    results.append(Result("e55b/12: same budget, two arms, difference is exactly C",
+                          not bad and pairs >= 1, "; ".join(bad) if bad else
+                          ("%d model(s) paired: map H = P, copy H = P+C, difference = C exactly"
+                           % pairs if pairs else "no copy cell has run yet")))
+
+    # --- e55b/13: the plan's four pre-registered falsifiers are reported per cell either way.
+    # A falsifier that is fixed before measurement and then never mentioned again reads exactly
+    # like one that was forgotten; the summary must carry all four for every cell that ran, and
+    # `fired` must agree with them (so "fired: []" cannot be written beside a true condition).
+    doc = live                                    # D89: judge the LIVE derivation, not the file
+    fz = doc.get("falsification_conditions_SS5") or {}
+    per = fz.get("per_cell")
+    keys = {"F1_offset_requested_but_mod64_zero", "F2_arm_says_copy_but_after_append_is_not_C",
+            "F3_module_append_failed", "F4_H_exceeds_P_plus_C"}
+    ran = [r["model"] for r in doc.get("models", []) if (r.get("cell") or {}).get("present")]
+    why = []
+    if per is None:
+        why.append("summary carries no falsification_conditions_SS5.per_cell")
+    else:
+        if [c["model"] for c in per] != ran:
+            why.append("per_cell covers %r but cells that ran are %r" % ([c["model"] for c in per], ran))
+        for c in per:
+            missing = keys - set(c)
+            if missing:
+                why.append("%s: missing %s" % (c["model"], sorted(missing)))
+        derived = sorted((c["model"], k) for c in per for k in keys if c.get(k) is True)
+        if sorted(tuple(x) for x in (fz.get("fired") or [])) != derived:
+            why.append("`fired` %r disagrees with the per-cell flags %r" % (fz.get("fired"), derived))
+    results.append(Result("e55b/13: the plan's four falsifiers are reported per cell, fired or not",
+                          not why, "; ".join(why) if why else
+                          "%d cell(s) x 4 conditions recorded; fired=%r agrees with the flags"
+                          % (len(per or []), fz.get("fired"))))
+    return results
+
+def e55_analysis_domain_cases(tmp):
+    """E55/P0-2 (directive SS3): every op inside the analysis domain is classified.
+
+    The domain is defined by RESOURCE FLOW, measured from the op itself -- an op is in it
+    when a result or operand is a `!stream.resource<...>`, because that is what the contract
+    bounds.  Ops outside it (arith.constant, util.return, hal.element_type ...) fall out
+    without needing a name list that can go stale.
+
+    Before E55 the walker's test was a NAME PREFIX (`stream.resource.` / `stream.tensor.`)
+    and everything else hit a bare `continue`.  Measured over the archived corpus that
+    silently skipped four resource-carrying ops -- `util.global.load`, `stream.cmd.execute`,
+    `stream.timepoint.await`, `stream.cmd.fill` -- 452 instances in all.  None of them
+    allocates, so no number was wrong; what was missing was the CHECK.
+
+    The literal reading of "unresolved everything outside the whitelist" was measured before
+    being adopted and rejected: it fails 27/27 archived IRs.  The decisive one is
+    `stream.yield`, which the MLIR API reports 99 times but which appears ZERO times in the
+    IR text (an implicit terminator the printer omits) -- so the regex parser can never see
+    it, the two extractors would disagree on unresolved presence, and make_contract would
+    hard-fail every model.  That is E50's type-(B) trap, which this experiment is the third
+    to walk up to.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    if not structural_available():
+        return [Result("e55/6-8: analysis-domain classification", None,
+                       "structural extractor unusable here (iree.compiler.ir not importable)", skip=True)]
+    import mlir_alloc_walk as _maw                                       # noqa: PLC0415
+
+    files = sorted(glob.glob(os.path.join(repo, "results", "**", "*layout_ir*.txt"), recursive=True))
+    files += sorted(glob.glob(os.path.join(repo, "results", "**", "layout_ir.txt"), recursive=True))
+    files = sorted(set(files))
+    unclassified, classified, scanned, parse_failures = {}, 0, 0, []
+    for f in files:
+        try:
+            r = _maw.parse_alloc_ir_structural(read(f))
+        except Exception as exc:                                         # noqa: BLE001
+            # v20 review follow-up: a file that fails to parse used to be skipped silently, and
+            # the count only had to reach 25 -- so the guard did not pin the corpus the
+            # manuscript cites. A failure is now reported and fails the guard.
+            parse_failures.append((os.path.relpath(f, repo), str(exc)[:80]))
+            continue
+        scanned += 1
+        classified += len(r.get("non_allocating_resource_ops") or [])
+        for op in r.get("unclassified_resource_ops") or []:
+            unclassified[op] = unclassified.get(op, 0) + 1
+
+    # `not unclassified` alone is satisfied by a walker that classifies NOTHING -- reverting
+    # the fix left this guard green, which is D89's lesson arriving on this experiment's own
+    # test. The corpus demonstrably contains in-domain non-allocating ops (452+ instances
+    # measured), so the bucket being POPULATED is part of the property.
+    results.append(Result(
+        "e55/6: across every archived layout IR, each op that carries a !stream.resource is "
+        "classified -- sized, or verified non-allocating WITH a recorded reason -- none is left "
+        "unclassified, AND the verified bucket is actually populated (an empty bucket would mean "
+        "the walker classified nothing, which this guard must not read as success)",
+        scanned == len(files) and scanned >= 26 and not parse_failures and not unclassified and classified >= 400,
+        "files=%d/%d verified_non_allocating=%d unclassified=%s parse_failures=%s"
+        % (scanned, len(files), classified, unclassified or "{}", parse_failures or "[]")))
+
+    results.append(Result(
+        "e55/6b: the verified-non-allocating list states WHY for every entry, so it cannot "
+        "decay into a second whitelist",
+        all(isinstance(v, str) and len(v) > 30 for v in _maw.NON_ALLOCATING_RESOURCE_OPS.values()),
+        "entries=%d" % len(_maw.NON_ALLOCATING_RESOURCE_OPS)))
+
+    # (7) in-process: an in-domain op that is NOT on the verified list must be REPORTED,
+    #     and must land in its own bucket rather than in `unresolved` (see the docstring).
+    victim = "stream.cmd.fill"
+    base = [f for f in files if "conv2d.layout_ir" in f or "multibranch.layout_ir" in f]
+    probe = None
+    for f in files:
+        r = _maw.parse_alloc_ir_structural(read(f))
+        if victim in (r.get("non_allocating_resource_ops") or []):
+            probe = f
+            break
+    if probe is None:
+        # NOT a skip: the archived corpus is known to contain this op (72 instances over 6
+        # files, measured). If no file exercises it, the classifier stopped classifying --
+        # which is exactly the state the reverted code is in.
+        results.append(Result("e55/7: an in-domain op that is not on the verified-non-allocating list "
+                              "is reported under its own key", False,
+                              "no archived IR reports %s as verified-non-allocating -- the classifier "
+                              "is not running" % victim))
+    else:
+        saved = dict(_maw.NON_ALLOCATING_RESOURCE_OPS)
+        try:
+            _maw.NON_ALLOCATING_RESOURCE_OPS.pop(victim, None)
+            r = _maw.parse_alloc_ir_structural(read(probe))
+            moved = victim in (r.get("unclassified_resource_ops") or [])
+            not_in_unresolved = not any(victim in u for u in r.get("unresolved") or [])
+        finally:
+            _maw.NON_ALLOCATING_RESOURCE_OPS.clear()
+            _maw.NON_ALLOCATING_RESOURCE_OPS.update(saved)
+        results.append(Result(
+            "e55/7: an in-domain op that is not on the verified-non-allocating list is reported "
+            "under `unclassified_resource_ops` and NOT folded into `unresolved` -- folding it in "
+            "would make the structural and regex readers disagree for every model, which is the "
+            "type-(B) failure E50 shipped and had to withdraw",
+            moved and not_in_unresolved,
+            "moved=%s kept_out_of_unresolved=%s probe=%s" % (moved, not_in_unresolved, os.path.basename(probe))))
+
+    # (8) the refusal is actually wired into the production path, and is overridable only
+    #     through a flag that gets recorded (D39).
+    src = read(os.path.join(HERE, "make_contract.py"))
+    wired = ("unclassified_resource_ops" in src
+             and 'waive("--allow-unclassified-resource-ops"' in src
+             and "hard_fail_errors.append(unclassified_note" in src)
+    results.append(Result(
+        "e55/8: make_contract.py refuses to state a bound when the walker could not classify an "
+        "in-domain op, and the only way past it is a flag the provenance records",
+        wired, "wired=%s" % wired))
+    return results
+
+
+def e53_wgan_aarch64_cases(tmp):
+    """E53: WGAN AArch64 end-to-end verification, and D93's regression pin.
+
+    D93: `AI_LEARNER_Json`'s fixed console line buffer (`char line[768]`, native/cfs_app/
+    fsw/src/ai_learner.c) truncates the `"stage":"run"` JSON record when the model's
+    per-call output is large enough (WGAN: 150,528 f32 elements) -- the same mechanism
+    D68 already found for DeepAE (640 elements, truncates at 766 chars), but D68's fix
+    only reached the downstream summary reader (mk_e36b_summary.py::stages()), never the
+    runtime gate that actually decides a cell's "pass" (e14_cfs_scenarios.py::check_expect).
+    This is the first cell to put `min_completed` on a model large enough to hit it.
+    """
+    results = []
+    repo = os.path.dirname(HERE)
+    sys.path.insert(0, HERE)
+    from e14_cfs_scenarios import check_expect, parse_log  # noqa: PLC0415
+
+    # --- (1) synthetic reproduction: a truncated `run` next to an intact `mem` ---
+    truncated = {"admission": ["ADMIT"], "binding": ["MATCH"],
+                 "last_run": None, "last_mem": {"completed": 4, "hal_peak": 131382784}}
+    old_formula_completed = (truncated.get("last_run") or {}).get("completed", 0)
+    new_result = check_expect(truncated, {"admission": "ADMIT", "min_completed": 1})
+    results.append(Result("e53/D93: a truncated `run` record (last_run=None) next to an intact "
+                          "`mem` record (same g.n_infer value) satisfies min_completed via "
+                          "fallback -- the OLD formula alone reads 0 completions from a real 4/4 run",
+                          old_formula_completed == 0 and new_result == [],
+                          "old_formula_completed=%d new_check_expect=%r" %
+                          (old_formula_completed, new_result)))
+
+    # --- (2) the fallback must not turn genuine absence into a pass (type A guard) ---
+    none_at_all = {"admission": ["ADMIT"], "binding": ["MATCH"], "last_run": None, "last_mem": None}
+    _ok = check_expect(none_at_all, {"admission": "ADMIT", "min_completed": 1}) != []
+    results.append(Result("e53/D93: and when BOTH run and mem are absent, min_completed still "
+                          "correctly refuses -- the fallback rescues a truncated-but-present mem "
+                          "record, it does not manufacture a pass out of nothing (type A)", _ok, ""))
+
+    # --- (3) source-level confirmation the fallback is really there, and the app untouched ---
+    scsrc = read(os.path.join(HERE, "e14_cfs_scenarios.py"))
+    _ok = 'res.get("last_run") or res.get("last_mem")' in scsrc
+    results.append(Result("e53/D93: check_expect's min_completed reads last_run with a last_mem "
+                          "fallback (source-level, not just behavioural)", _ok, ""))
+    _ok = "--reparse" in scsrc and "no prior summary.json entry to reparse" in scsrc
+    results.append(Result("e53: the offline --reparse mode exists (re-judge an already-collected "
+                          "guest log without re-running the guest)", _ok, ""))
+    ai_learner_src = read(os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c"))
+    _ok = "char line[768]" in ai_learner_src
+    results.append(Result("e53/D93: ai_learner.c's console buffer is untouched (plan forbade "
+                          "editing the app -- the root cause stays open for a larger model)", _ok, ""))
+
+    # --- (4) the real archived guest log genuinely truncates, and is judged correctly ---
+    log_path = os.path.join(repo, "results", "e53_wgan_aarch64", "cfs", "logs", "cfs_B.log")
+    if not os.path.isfile(log_path):
+        results.append(Result("e53/D93: archived cfs_B.log present", False, "missing %s" % log_path))
+    else:
+        txt = read(log_path)
+        res = parse_log(txt)
+        _ok = res.get("last_run") is None and (res.get("last_mem") or {}).get("completed") == 4
+        results.append(Result("e53/D93: the real archived cfs_B.log genuinely truncates the `run` "
+                              "stage (last_run is None) while `mem` correctly carries completed=4",
+                              _ok, "last_run=%r last_mem.completed=%r" %
+                              (res.get("last_run"), (res.get("last_mem") or {}).get("completed"))))
+        exp = {"admission": "ADMIT", "min_completed": 1}
+        fails = check_expect(res, exp)
+        results.append(Result("e53/D93: check_expect judges this real archived log as satisfying "
+                              "ADMIT+min_completed=1 (revert-and-confirm-fail: reverting the "
+                              "fallback reproduces ['completed 0 < 1'] on this exact file)",
+                              fails == [], str(fails)))
+
+    # --- (5) the recorded verdicts reflect the fix and the full Q1-Q6 connection ---
+    sp = os.path.join(repo, "results", "e53_wgan_aarch64", "cfs", "summary.json")
+    if os.path.isfile(sp):
+        d = load(sp)
+        cfs_b = next((sc for sc in d.get("scenarios", []) if sc.get("id") == "cfs_B"), None)
+        _ok = bool(cfs_b) and cfs_b.get("pass") is True and cfs_b.get("expect_failures") == []
+        results.append(Result("e53: the archived cfs_B scenario is recorded PASS after the fix "
+                              "(not silently left FAIL)",
+                              _ok, str(cfs_b.get("pass") if cfs_b else "missing cfs_B entry")))
+    esp = os.path.join(repo, "results", "e53_wgan_aarch64", "summary.json")
+    if not os.path.isfile(esp):
+        results.append(Result("e53: summary.json present", False, "missing %s" % esp))
+        return results
+    s = load(esp)
+    v = s.get("verdicts", {})
+    qs = ("Q1_contract_generation", "Q2_ledger_agreement", "Q3_native_semantics",
+          "Q4_budget_boundary", "Q5_hal_vs_bounded", "Q6_composition_recorded")
+    _ok = v.get("e53_complete") is True and all(v.get(q) == "PASS" for q in qs)
+    results.append(Result("e53: Q1-Q6 all PASS and e53_complete=true in the connected summary",
+                          _ok, str(v)))
+
+    # --- (6) contract identity across ISAs, and native/cFS output bit-identity ---
+    cc = s.get("contract_comparison", {})
+    results.append(Result("e53: the three contract figures are identical between x86-64 and AArch64",
+                          cc.get("identical") is True, str(cc.get("aarch64"))))
+    native_bin = os.path.join(repo, "results", "e53_wgan_aarch64", "native", "e25_outputs_1sample.bin")
+    cfs_bin = os.path.join(repo, "results", "e53_wgan_aarch64", "cfs", "logs", "cfs_B.e25_outputs.bin")
+    if os.path.isfile(native_bin) and os.path.isfile(cfs_bin):
+        a = open(native_bin, "rb").read()
+        b = open(cfs_bin, "rb").read()
+        results.append(Result("e53: native (qemu-user) and cFS (qemu-system-aarch64) outputs are "
+                              "byte-identical for the same vmfb and input",
+                              a == b and len(a) == 602112,
+                              "native_bytes=%d cfs_bytes=%d" % (len(a), len(b))))
+    return results
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default="results/e14_aarch64_qemu")
@@ -5685,6 +9126,46 @@ def main():
         all_results += e37_guest_rerun_cases()
         all_results += e37_peak_vs_budget_cases()
         all_results += e38_optin_witness_cases(tmp)
+        all_results += e40_analysis_domain_cases(tmp)
+        all_results += e41_analysis_domain_cases(tmp)
+        all_results += e35_d72_structural_agreement_cases()
+        all_results += e45_real_inputs_cases(tmp)
+        all_results += mlir_pass_scope_decision_cases()
+        all_results += e46_wgan_cases(tmp)
+        all_results += e43_pure_onair_cases(tmp)
+        all_results += e44_budget_provenance_cases(tmp)
+        all_results += e48_real_inputs_aarch64_cases(tmp)
+        all_results += result_skip_hygiene_cases(tmp)
+        all_results += ci_record_discipline_cases(tmp)
+        all_results += d86_pre_scheduling_ops_cases(tmp)
+        all_results += e49_alloc_ledger_cases(tmp)
+        all_results += e49_audit_matrix_cases(tmp)
+        all_results += e51_stage1_cases(tmp)
+        all_results += e51_stage2_cases(tmp)
+        all_results += e51_stage3_cases(tmp)
+        all_results += e52_deepae_divergence_cases(tmp)
+        all_results += e60_deepae_layers_aarch64_cases(tmp)
+        all_results += e61_reference_on_target_cases(tmp)
+        all_results += e39b_prior_art_fulltext_cases(tmp)
+        all_results += e53_wgan_aarch64_cases(tmp)
+        all_results += e54_reference_budget_cases(tmp)
+        all_results += e55_budget_reproducibility_cases(tmp)
+        all_results += e55_analysis_domain_cases(tmp)
+        all_results += e55b_copy_path_cases(tmp)
+        all_results += e55b_onair_linkage_cases(tmp)
+        all_results += e55_optin_witness_cases(tmp)
+        all_results += e41b_driver_peak_cases(tmp)
+        all_results += e52_evidence_pointer_cases(tmp)
+        all_results += e56_conditional_refusal_aarch64_cases(tmp)
+        all_results += e59_info_levels_aarch64_cases(tmp)
+        all_results += e58_alignment_sweep_aarch64_cases(tmp)
+        all_results += e57_onair_aarch64_cases(tmp)
+        all_results += e63_single_build_and_conditional_floor_cases(tmp)
+        all_results += e62_onair_output_release_cases(tmp)
+        all_results += d105_control_flow_boundary_cases(tmp)
+        all_results += d106_e51_header_leg_cases(tmp)
+        all_results += e64_aarch64_evidence_cases(tmp)
+        all_results += d108_initializer_control_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -5711,6 +9192,943 @@ def main():
               " (%d skipped: %s)" % (n_skip, "; ".join(reasons)) if n_skip else ""))
         return 1 if n_fail else 0
 
+
+def e41b_driver_peak_cases(tmp):
+    """D100 -- E41's prose asserted a cross-driver HAL peak with no archived cell.
+
+    E41b measured it. These guards hold the measurement, and they hold the two
+    things it does NOT establish, because the previous failure was exactly that a
+    number travelled from a pre-start investigation into a verdict sentence.
+    """
+    results = []
+    root = os.path.join(os.path.dirname(HERE), "results", "e41b_driver_peak")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.isfile(sp):
+        return [Result("e41b/1: summary.json present", False, "missing %s" % sp)]
+    s = load(sp)
+
+    results.append(Result("e41b/1: both driver legs archived, N=1, 3 repeats",
+                          sorted(s["drivers"]) == ["local-sync", "local-task"]
+                          and s["threads"] == 1 and s["repeats"] == 3,
+                          "drivers=%s threads=%s repeats=%s"
+                          % (s["drivers"], s["threads"], s["repeats"])))
+
+    # the claim itself, read from the cells rather than from the summary flags
+    cells = s["cells"]
+    ident = [c for c in cells if c["peak_local_sync"] == c["peak_local_task"]]
+    results.append(Result("e41b/2: every cell byte-identical across the two drivers",
+                          len(ident) == len(cells) and len(cells) == 6,
+                          "%d/%d" % (len(ident), len(cells))))
+    results.append(Result("e41b/3: b2_resnet is the 309,416 the prose named",
+                          any(c["model"] == "b2_resnet"
+                              and c["peak_local_sync"] == 309416
+                              and c["peak_local_task"] == 309416 for c in cells),
+                          "the number E41 asserted without a cell"))
+    results.append(Result("e41b/4: every peak equals per_call and every repeat agreed",
+                          all(c["peak_equals_per_call"] for c in cells)
+                          and all(c["deterministic_local_sync"]
+                                  and c["deterministic_local_task"] for c in cells)))
+
+    # D100's actual lesson: the scope limits must be carried, not just the number
+    scope = " ".join(s["scope_this_does_NOT_establish"])
+    results.append(Result("e41b/5: the summary states it does not establish the arm across drivers",
+                          "arm" in scope and "copy_buffer" in scope))
+    results.append(Result("e41b/6: the summary states the C deployments have no local-task",
+                          "IREE_ENABLE_THREADING=OFF" in scope
+                          and "LOCAL_SYNC=ON" in scope))
+
+    # the prose that used to assert this must now point at the cells
+    for rel, needle in (
+            ("plugins/compiled_learner/artifact_binding.py", "e41b_driver_peak"),
+            ("configs/deployments/onair_deployments.json", "e41b_driver_peak"),
+            ("CLAUDE.md", "e41b_driver_peak")):
+        p = os.path.join(os.path.dirname(HERE), rel)
+        txt = open(p, encoding="utf-8").read() if os.path.isfile(p) else ""
+        results.append(Result("e41b/7 %s cites the measurement" % rel,
+                              needle in txt))
+
+    # and no surviving place may still say E41 measured it
+    bad = []
+    for rel in ("plugins/compiled_learner/artifact_binding.py",
+                "configs/deployments/onair_deployments.json"):
+        p = os.path.join(os.path.dirname(HERE), rel)
+        if os.path.isfile(p):
+            t = open(p, encoding="utf-8").read()
+            if "E41 measured" in t:
+                bad.append(rel)
+    results.append(Result("e41b/8: no source still attributes the measurement to E41",
+                          not bad, "still attributing: %s" % bad if bad else ""))
+    return results
+
+
+
+def e57_onair_aarch64_cases(tmp):
+    """E57/E57b/E57c: the OnAIR plugin path on the evaluation target.  Pins (a) decision equivalence
+    with the flight application at eight budget cells, (b) the OBSERVED failure of the output-release
+    premise on this path (F4) and the admitted budget being exceeded at call 417 (F5, E57c), and
+    (c) where the retention sits (E57b).  Everything is re-derived from the plugin's own records;
+    the committed summary is compared with the re-derivation, never trusted alone (D89)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e57_onair_aarch64")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e57/0 summary.json present", False, "missing %s" % sp)]
+    s = json.load(open(sp))
+    A = s.get("experiment_A", [])
+    ok = len(A) == 8 and all(c.get("present") and c.get("verdicts_agree") and c.get("artifact_sha256_matches_cfs_cell")
+                             and c.get("onair_core_unmodified") for c in A)
+    out.append(Result("e57/1 eight budget cells: OnAIR verdict == flight-app verdict on the same artifact, "
+                      "official loader, OnAIR core unmodified", ok,
+                      "%d cells" % len(A) if ok else json.dumps([(c.get("deployment"), c.get("onair_verdict"),
+                                                                 c.get("cfs_verdict")) for c in A])[:300]))
+    den = [c for c in A if c.get("deployment", "").endswith("_Bum1")]
+    ok = len(den) == 4 and all(c.get("runtime_created") is False and c.get("inferences") == 0 for c in den)
+    out.append(Result("e57/2 B_u-1: NOT_ADMITTED with runtime_created=false (direct record) and 0 inferences",
+                      ok, "4/4" if ok else str([(c.get("deployment"), c.get("runtime_created")) for c in den])))
+    B = {b["deployment"]: b for b in s.get("experiment_B", [])}
+    bad = []
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        b = B.get("e57_%s_Bu" % m) or {}
+        if not (b.get("peak_after_append") == 0 and b.get("live_increment_per_call") == [b.get("O")]
+                and b.get("peak_1") == b.get("P") and b.get("peak_N") == b.get("P", 0) + (b.get("N", 1) - 1) * (b.get("O") or 0)):
+            bad.append(m)
+    out.append(Result("e57/3 premise A observed NOT to hold on this path: +O live bytes per call, peak = P+(n-1)O "
+                      "(F4, as the plan anticipated)", not bad, "bad: %s" % bad if bad else "4/4"))
+    L = B.get("e57_b3_deepae_Bu_long") or {}
+    out.append(Result("e57/4 E57c: DeepAE's admitted budget is first exceeded at call 417 (F5 observed, predicted 417)",
+                      L.get("N") == 450 and L.get("first_call_with_peak_over_admitted_budget") == 417,
+                      "N=%s first=%s" % (L.get("N"), L.get("first_call_with_peak_over_admitted_budget"))))
+    probe = {}
+    for m in ("R0", "R1", "R2", "R3"):
+        pth = os.path.join(root, "e57b_retention", "e57b_%s.json" % m)
+        probe[m] = json.load(open(pth))["rows"] if os.path.exists(pth) else None
+    ok = all(probe.values()) and all(r["live"] == 0 and r["peak"] in (0, 6208) for r in probe["R0"]) and \
+        all(probe[m][-1]["live"] == 20 * 2560 for m in ("R1", "R2", "R3"))
+    out.append(Result("e57/5 E57b: discarding the result releases (live 0, peak P); np.array / to_host readback "
+                      "retain O per call and gc.collect does not release", ok,
+                      "ok" if ok else json.dumps({k: (v[-1] if v else None) for k, v in probe.items()})))
+    src = open(os.path.join(repo, "plugins", "compiled_learner", "compiled_learner_plugin.py"), encoding="utf-8").read()
+    ok = 'bool(d.get("record_hal_statistics", False))' in src and '"runtime_created": self._ctx is not None' in src
+    out.append(Result("e57/6 plugin: HAL statistics are opt-in (default off -- existing deployments unchanged) and "
+                      "the init record carries a direct runtime_created", ok, "" if ok else "changed"))
+    try:
+        import numpy                                              # noqa: F401,PLC0415
+        have_np = True
+    except ImportError:
+        have_np = False
+    if not have_np:
+        out.append(Result("e57/7 re-derived from the plugin's own records, the verdict equals the committed one",
+                          True, "needs numpy", skip=True))
+    else:
+        live = os.path.join(tmp, "e57_summary_live.json")
+        r = subprocess.run([sys.executable, os.path.join(HERE, "mk_e57_summary.py"), "--out", live],
+                           capture_output=True, text=True)
+        ok = r.returncode == 0 and json.load(open(live)).get("verdict") == s.get("verdict") and \
+            json.load(open(live)).get("falsifiers") == s.get("falsifiers")
+        out.append(Result("e57/7 re-derived from the plugin's own records, the verdict equals the committed one", ok,
+                          "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def e58_alignment_sweep_aarch64_cases(tmp):
+    """E58: the constant-loading arm's determinant, measured in the flight application on the
+    evaluation target at all eight 8-byte alignment classes (replaces the x86-64 E29 probe as
+    the manuscript's determinant evidence).  The verdict is RE-DERIVED from the guest raw logs
+    into a temp file and compared with the committed summary -- a guard that only read the
+    committed JSON would stay green if the logs were reverted (D89)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e58_alignment_sweep_aarch64")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e58/0 summary.json present", False, "missing %s" % sp)]
+    s = json.load(open(sp))
+    t = s.get("totals", {})
+    out.append(Result("e58/1 32 valid cells: 4 map + 28 copy, no third value, PASS",
+                      t == {"cells": 32, "valid": 32, "map": 4, "copy": 28, "third_value": 0}
+                      and s.get("verdict", {}).get("PASS") is True, json.dumps(t)))
+    pm = s.get("per_model", {})
+    bad = [m for m, v in pm.items() if v.get("map_at") != [0] or v.get("copy_at") != [8, 16, 24, 32, 40, 48, 56]]
+    out.append(Result("e58/2 every model: map exactly at offset 0, copy at all seven others",
+                      not bad and len(pm) == 4, "bad: %s" % bad if bad else "4/4"))
+    bad = [(c["model"], c["offset"]) for c in s.get("cells", [])
+           if c.get("valid") and c.get("hal_peak_after_append") not in (0, c.get("C"))]
+    out.append(Result("e58/3 D1 re-checked per cell: append peak in {0, C}", not bad, str(bad) if bad else "32/32"))
+    # one binary per model: the plan's point is that alignment is the ONLY varied setting
+    bad = []
+    for m in pm:
+        shas = set()
+        for c in s["cells"]:
+            if c["model"] != m:
+                continue
+            txt = open(os.path.join(repo, c["log"]), encoding="utf-8", errors="ignore").read()
+            mm = re.search(r'"stage":"build_config"[^}]*"contract_artifact_sha256":"([0-9a-f]+)"', txt)
+            shas.add(mm.group(1) if mm else None)
+        if len(shas) != 1 or None in shas:
+            bad.append((m, sorted(str(x) for x in shas)))
+    out.append(Result("e58/4 the eight cells of a model bound one artifact (build_config read from each raw log)",
+                      not bad, str(bad) if bad else "4/4"))
+    # and ran one application binary: the scenario file names the deployed .so per cell
+    scen = json.load(open(os.path.join(root, "scenarios.json")))
+    so = {}
+    for c in scen:
+        so.setdefault(c["model"], set()).add(c["so"])
+    bad = {m: sorted(v) for m, v in so.items() if len(v) != 1}
+    out.append(Result("e58/4b the eight cells of a model ran one application binary (scenario file)",
+                      not bad and len(so) == 4 and all(len([c for c in scen if c["model"] == m]) == 8 for m in so),
+                      str(bad) if bad else "4 models x 1 binary"))
+    live = os.path.join(tmp, "e58_summary_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "mk_e58_summary.py"), "--out", live],
+                       capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live) and \
+        json.load(open(live)).get("totals") == t and json.load(open(live)).get("verdict") == s.get("verdict")
+    out.append(Result("e58/5 re-derived from the raw guest logs, the verdict equals the committed one", ok,
+                      "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def d105_control_flow_boundary_cases(tmp):
+    """D105 (v20 review SS4): a call or a control-flow op in a post-layout entry is REFUSED.
+
+    Before the fix the walker had no rule for them: it does not follow a callee and it counts an
+    allocation op once, so a hand-edited entry with a same-chunk callee allocation, or with an
+    allocation inside a loop, was issued a bound (before_32f5102.json). No archived entry contains
+    such ops, so nothing reported changes; what changes is that the boundary is a refusal."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "d105_control_flow_boundary")
+    bp, ap = os.path.join(root, "before_32f5102.json"), os.path.join(root, "after.json")
+    if not (os.path.exists(bp) and os.path.exists(ap)):
+        return [Result("d105/0 before/after records present", False, "missing under %s" % root)]
+    before, after = load(bp)["cells"], load(ap)["cells"]
+    ok = (before["util_call_callee_in_same_chunk"].get("bounded_bytes") == 618856
+          and before["func_call_callee_in_same_chunk"].get("bounded_bytes") == 618856
+          and before["scf_for_alloca_no_dealloca"].get("bounded_bytes") == 618856 + 4096)
+    out.append(Result("d105/1 the defect is on record: before the fix a same-chunk callee's allocation was omitted "
+                      "(618,856 issued) and a loop allocation was counted once (622,952 issued)", ok,
+                      "" if ok else json.dumps({k: before[k].get("bounded_bytes") for k in before})[:300]))
+    ctrl = after.get("control_unedited", {})
+    bad = [k for k, v in after.items() if k != "control_unedited"
+           and (v.get("make_contract_rc") == 0 or v.get("contract_written"))]
+    out.append(Result("d105/2 after the fix: the unedited IR still issues 618,856; every call / loop / branch "
+                      "variant ends with no specification", ctrl.get("bounded_bytes") == 618856 and not bad
+                      and len(after) == 13, "bad: %s" % bad if bad else "12/12 refused"))
+    src = read(os.path.join(HERE, "make_contract.py"))
+    ok = ('structural.get("unsupported_control_ops")' in src and "hard_fail_errors.append(ctl_note)" in src
+          and 'waive("--allow-unsupported' not in src)
+    out.append(Result("d105/3 make_contract.py refuses unsupported_control_ops and offers no override", ok,
+                      "" if ok else "changed"))
+    if not structural_available():
+        out.append(Result("d105/4 no archived layout IR contains a call or control-flow op in its entry", True,
+                          "needs iree.compiler.ir", skip=True))
+        out.append(Result("d105/5 the probe re-runs live and equals after.json", True,
+                          "needs iree-compile and iree.compiler.ir", skip=True))
+        return out
+    import gzip                                                          # noqa: PLC0415
+    import mlir_alloc_walk as _maw                                       # noqa: PLC0415
+    files = sorted(set(glob.glob(os.path.join(repo, "results", "**", "*layout_ir*.txt"), recursive=True)))
+    files += sorted(glob.glob(os.path.join(repo, "results", "**", "*layout_ir*.txt.gz"), recursive=True))
+    hits, fails = {}, []
+    for f in files:
+        try:
+            text = gzip.open(f, "rt").read() if f.endswith(".gz") else read(f)
+            r = _maw.parse_alloc_ir_structural(text)
+        except Exception as exc:                                         # noqa: BLE001
+            fails.append(os.path.relpath(f, repo) + ": " + str(exc)[:60])
+            continue
+        if r.get("unsupported_control_ops"):
+            hits[os.path.relpath(f, repo)] = sorted(set(r["unsupported_control_ops"]))
+    out.append(Result("d105/4 no archived layout IR contains a call or control-flow op in its entry "
+                      "(over-refusal 0 on the whole corpus, compressed drift IRs included)",
+                      len(files) >= 30 and not hits and not fails,
+                      "files=%d hits=%s fails=%s" % (len(files), hits or "{}", fails or "[]")))
+    if not iree_tools_available():
+        out.append(Result("d105/5 the probe re-runs live and equals after.json", True,
+                          "needs iree-compile and iree-dump-module", skip=True))
+        return out
+    live = os.path.join(tmp, "d105_after_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "d105_control_flow_probe.py"), "--out", live],
+                       capture_output=True, text=True, cwd=repo)
+    ok = r.returncode == 0 and os.path.exists(live) and load(live)["cells"] == after
+    out.append(Result("d105/5 the probe re-runs live against the production path and equals after.json", ok,
+                      "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def d106_e51_header_leg_cases(tmp):
+    """D106: E51 invoked gen_contract_header.py with --contract/--out; the generator takes two
+    positional arguments, so the positive control and the unresolved-size cell both got the
+    usage error (rc 2) and E51 recorded "no header". Corrected: the positive control must yield a
+    header with CONTRACT_BOUND_KNOWN 1, and an unresolved size yields a header with
+    CONTRACT_BOUND_KNOWN 0, which the flight application refuses at Init (UNKNOWN_BOUND)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    d = os.path.join(repo, "results", "e51_claim_preconditions")
+    new, old = os.path.join(d, "stage1_preconditions.json"), os.path.join(d, "stage1_preconditions.pre_d106.json")
+    if not (os.path.exists(new) and os.path.exists(old)):
+        return [Result("d106/0 corrected and pre-D106 records present", False, "missing under %s" % d)]
+    q2o = load(old)["Q2_violation_produces_no_deployable_artifact"]
+    q2 = load(new)["Q2_violation_produces_no_deployable_artifact"]
+    out.append(Result("d106/1 the defect is on record: the pre-D106 positive control's header leg returned the "
+                      "usage error (rc 2)", q2o["positive_control"].get("gen_contract_header_rc") == 2,
+                      "rc=%s" % q2o["positive_control"].get("gen_contract_header_rc")))
+    pc = q2["positive_control"]
+    out.append(Result("d106/2 corrected: the positive control writes a header with CONTRACT_BOUND_KNOWN 1",
+                      pc.get("ok") is True and pc.get("gen_contract_header_rc") == 0 and pc.get("header_bound_known") == 1,
+                      json.dumps({k: pc.get(k) for k in ("gen_contract_header_rc", "header_bound_known")})))
+    cell = next((c for c in q2["cells"] if c.get("id") == "unresolvable_alloca_size"), {})
+    out.append(Result("d106/3 corrected: an unresolved size yields a header with CONTRACT_BOUND_KNOWN 0, classified "
+                      "as refused at Init, not as deployable",
+                      cell.get("header_bound_known") == 0
+                      and cell.get("refused_as") == "contract_states_no_bound_header_bound_known_0_refused_at_init"
+                      and cell.get("deployable_artifact_produced") is False,
+                      json.dumps({k: cell.get(k) for k in ("header_bound_known", "refused_as")})))
+    src = read(os.path.join(HERE, "e51_precondition_trace.py"))
+    out.append(Result("d106/4 the harness calls the generator with positional arguments",
+                      '"--contract", os.path.relpath(con_path' not in src
+                      and 'os.path.relpath(con_path, ROOT), os.path.relpath(hdr_path, ROOT)]' in src, ""))
+    a8 = os.path.join(repo, "results", "e14_aarch64_qemu", "cfs", "logs", "A8_dynamic_unknown.log")
+    txt = read(a8) if os.path.exists(a8) else ""
+    out.append(Result("d106/5 the refusal at Init is observed on the guest (E14 A8: UNKNOWN_BOUND, no mem_init)",
+                      '"verdict":"UNKNOWN_BOUND"' in txt and '"stage":"mem_init"' not in txt,
+                      "log present" if txt else "A8 log missing"))
+    return out
+
+
+def e62_onair_output_release_cases(tmp):
+    """E62: the OnAIR output-buffer retention (D103) -- its mechanism measured, the fix (buffer-protocol
+    readback) and the enforcement check (per-call live bytes vs the post-append baseline) run on the
+    evaluation target.  The committed verdict is re-derived from the plugin's own records, the probe's
+    JSON and the archived E57 cells (D89); the source guards pin the defaults so that an existing
+    deployment's readback and an E57 reproduction cannot change silently."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e62_onair_output_release")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e62/0 summary.json present", False, "missing %s" % sp)]
+    s = json.load(open(sp))
+    c = s.get("criteria", {})
+    out.append(Result("e62/1 verdict PASS (P1-P9 all hold)", s.get("verdict") == "PASS" and all((s.get("holds") or {0: 0}).values()),
+                      json.dumps(s.get("holds"))))
+    p1 = c.get("P1_mechanism", {})
+    ok = ((p1.get("asarray_refcount") or {}).get("delta_after") == 1 and p1.get("asarray_live_after_all_dropped") == 2560
+          and (p1.get("bufproto_refcount") or {}).get("delta_after") == 0 and p1.get("bufproto_live_after_all_dropped") == 0
+          and p1.get("same_output") is True)
+    out.append(Result("e62/2 mechanism: asarray leaves +1 reference on the mapping and O live bytes after every "
+                      "reference is dropped; the buffer-protocol read leaves 0 and 0, same output", ok,
+                      json.dumps({k: p1.get(k) for k in ("asarray_refcount", "bufproto_refcount")})))
+    fx = (c.get("P3_fix_arm") or {}).get("cells", {})
+    bad = [d for d, r in fx.items() if not (r.get("present") and r.get("all_peak_eq_P_live_eq_post_append")
+                                            and r.get("any_call_over_admitted_budget") is False)]
+    lg = fx.get("e62_b3_deepae_Bu_long_fix", {})
+    out.append(Result("e62/3 fix arm (4 models + DeepAE 450 calls): every call peaks at exactly P and returns live "
+                      "bytes to the post-append level; no call over the admitted budget", len(fx) == 5 and not bad
+                      and lg.get("inferences") == 450, "bad: %s" % bad if bad else "5/5, long=%s" % lg.get("inferences")))
+    ctl = (c.get("P5_control_reproduces_e57") or {}).get("cells", {})
+    out.append(Result("e62/4 control arm (asarray) reproduces the archived E57 peak/live series exactly (4 models)",
+                      len(ctl) == 4 and all(r.get("series_equal_e57") for r in ctl.values()),
+                      json.dumps({d: r.get("series_equal_e57") for d, r in ctl.items()})))
+    out.append(Result("e62/5 outputs unchanged: fix, control and default cells bit-identical to E57, call for call",
+                      (c.get("P4_values_unchanged") or {}).get("holds") is True,
+                      json.dumps(c.get("P4_values_unchanged"))))
+    p6 = c.get("P6_shutdown_leak_report", {})
+    out.append(Result("e62/6 nanobind's shutdown report: fix cells leak 0 instances, control cells 2N instances and "
+                      "N keep_alive records", p6.get("holds") is True, "" if p6.get("holds") else json.dumps(p6)[:300]))
+    p8 = c.get("P8_decision_half_and_core", {})
+    out.append(Result("e62/7 decision half unchanged: B_u - 1 NOT_ADMITTED, runtime_created false, 0 inferences "
+                      "(4 models); OnAIR core unmodified in every cell", p8.get("holds") is True,
+                      json.dumps(p8.get("deny"))[:300]))
+    enf = (c.get("P9_enforcement") or {}).get("cells", {})
+    ok = len(enf) == 6 and all(r and r.get("holds") for r in enf.values())
+    out.append(Result("e62/8 enforcement: the asarray readback is stopped after call 1 with live = O over a baseline "
+                      "of 0; the buffer-protocol readback runs its planned calls without a stop (3 models)", ok,
+                      json.dumps({d: (r or {}).get("violations") for d, r in enf.items()})))
+    src = open(os.path.join(repo, "plugins", "compiled_learner", "compiled_learner_plugin.py"), encoding="utf-8").read()
+    rb = open(os.path.join(repo, "plugins", "compiled_learner", "readback.py"), encoding="utf-8").read()
+    ok = ('DEFAULT_READBACK = "buffer_protocol"' in rb and 'd.get("output_readback", DEFAULT_READBACK)' in src
+          and 'bool(d.get("enforce_output_release", False))' in src)
+    out.append(Result("e62/9 plugin defaults: readback buffer_protocol, enforcement opt-in (default off)", ok,
+                      "" if ok else "changed"))
+    e57cfg = json.load(open(os.path.join(repo, "configs", "deployments", "onair_deployments_e57_aarch64.json")))
+    deps = e57cfg.get("deployments", {})
+    bad = [k for k, v in deps.items() if v.get("output_readback") != "asarray"]
+    out.append(Result("e62/10 every E57 deployment pins the asarray readback, so E57 stays reproducible from "
+                      "repository content", deps and not bad, "bad: %s" % bad if bad else "%d/%d" % (len(deps), len(deps))))
+    live = os.path.join(tmp, "e62_summary_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "mk_e62_summary.py"), "--out", live],
+                       capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live)
+    if ok:
+        L = json.load(open(live))
+        ok = L.get("verdict") == s.get("verdict") and L.get("criteria") == s.get("criteria")
+    out.append(Result("e62/11 re-derived from the plugin records, probe JSON and archived E57 cells, the criteria "
+                      "equal the committed ones", ok, "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def d108_initializer_control_cases(tmp):
+    """D108: the module initializer may hold only the map attempt's branch; any other control flow or
+    call there is refused (D105 checked the entry only). Pins the before/after records and re-runs the
+    probe and the corpus scan live when the tools are present (D77)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "d108_initializer_control")
+    ap, bp = os.path.join(root, "after.json"), os.path.join(root, "before_3147684.json")
+    if not (os.path.exists(ap) and os.path.exists(bp)):
+        return [Result("d108/0 before/after records present", False, "missing under %s" % root)]
+    A, B = json.load(open(ap))["cells"], json.load(open(bp))["cells"]
+    edits = ("loop_zero_alloc", "branch_zero_alloc", "loop_4096_alloc")
+    ok = (A["control_unedited"].get("bounded_bytes") == 618856
+          and all(not A[e].get("contract_written") and A[e].get("refused_for_initializer_control_flow") for e in edits))
+    out.append(Result("d108/1 after the fix: control issues 618,856; loop, branch and loop-with-4096-B edits of the "
+                      "initializer are refused for initializer control flow", ok,
+                      json.dumps({e: A[e].get("refused_for_initializer_control_flow") for e in edits})))
+    ok = (B["loop_zero_alloc"].get("bounded_bytes") == 618856 and B["branch_zero_alloc"].get("bounded_bytes") == 618856
+          and not B["loop_4096_alloc"].get("contract_written") and B["loop_4096_alloc"].get("refused_for_extractor_disagreement"))
+    out.append(Result("d108/2 before the fix the structure itself passed: zero-size edits issued 618,856; only a "
+                      "change of the constant total was refused (by disagreement)", ok, ""))
+    if not (iree_tools_available() and structural_available()):
+        out.append(Result("d108/3 probe and corpus re-run live", True, "needs iree-compile tools and iree.compiler.ir",
+                          skip=True))
+        return out
+    live = os.path.join(tmp, "d108_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "d108_initializer_control_probe.py"), "--out", live],
+                       cwd=repo, capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live)
+    if ok:
+        L = json.load(open(live))["cells"]
+        keys = ("contract_written", "bounded_bytes", "refused_for_initializer_control_flow")
+        ok = all({k: L[c].get(k) for k in keys} == {k: A[c].get(k) for k in keys} for c in A)
+    out.append(Result("d108/3 probe re-run live: every cell ends as committed", ok,
+                      "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    import gzip
+    import mlir_alloc_walk as maw
+    files = [f for f in subprocess.run(["git", "ls-files", "results"], cwd=repo, capture_output=True,
+                                       text=True).stdout.split()
+             if "layout_ir" in os.path.basename(f) and (f.endswith(".txt") or f.endswith(".txt.gz"))]
+    flagged = []
+    for f in files:
+        fp = os.path.join(repo, f)
+        t = (gzip.open(fp, "rt") if f.endswith(".gz") else open(fp, encoding="utf-8", errors="replace")).read()
+        try:
+            w = maw.parse_alloc_ir_structural(t, "infer")
+            if w.get("initializer_control_ops"):
+                flagged.append(f)
+        except Exception as exc:                                  # pragma: no cover
+            flagged.append("%s: %s" % (f, exc))
+    out.append(Result("d108/4 no over-refusal: every archived layout IR's initializer holds only the map-attempt "
+                      "branch (%d files)" % len(files), len(files) >= 30 and not flagged,
+                      "flagged: %s" % flagged if flagged else "%d/%d clean" % (len(files), len(files))))
+    return out
+
+
+def e64_aarch64_evidence_cases(tmp):
+    """E64: four manuscript sentences whose evidence was out of scope (x86-64 products, or references computed by
+    the development host) re-established on AArch64.  The statistics equalities and the guest computations are
+    RE-DERIVED here from the stored raw files, not read from the summary's booleans (D89); the probe cells are
+    re-run live when the compiler tools are present, comparing the path each cell ended by (D77)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e64_aarch64_evidence")
+    need = ["probes.json", "corpus.json", "compiler_statistics.json", "guest_computations.json", "guest_environment.json"]
+    missing = [f for f in need if not os.path.exists(os.path.join(root, f))]
+    if missing:
+        return [Result("e64/0 E64 records present", False, "missing %s" % missing)]
+    pr, co, gc, ge = (json.load(open(os.path.join(root, f))) for f in
+                      ("probes.json", "corpus.json", "guest_computations.json", "guest_environment.json"))
+    expected = {"A1_in_family_unrecognized_op": "specification_without_bound_header_bound_known_0",
+                "A2_out_of_family_resource_op": "refused_dedicated_key_unclassified_resource_ops",
+                "A3_pre_scheduling_async_alloc": "refused_extractors_disagree",
+                "A4_unresolvable_size": "specification_without_bound_header_bound_known_0",
+                "A5_unparseable_op": "refused_extractors_disagree",
+                "A6_other_lifetime_category": "refused_extractors_disagree"}
+    paths = {c["id"]: c.get("path") for c in pr.get("cells", [])}
+    ctl = pr.get("positive_control", {})
+    ok = (pr.get("verdict") == "PASS" and ctl.get("header_bound_known") == 1 and ctl.get("bounded_bytes") == 618856
+          and not pr.get("cells_with_deployable_header") and paths == expected
+          and pr.get("source_layout_ir") == "results/e36b_aarch64_models/b2_resnet/b2_resnet.layout_ir.txt")
+    out.append(Result("e64/1 edits of the AArch64 ResNet layout: control issues 618,856 with BOUND_KNOWN 1, no edited "
+                      "cell yields a deployable header, each cell's refusal path recorded", ok, json.dumps(paths)))
+    b1, b2 = co.get("B1_aarch64_corpus", {}), co.get("B2_evaluated_regeneration", {})
+    inscope = b1.get("aarch64_evaluated_revision_unedited", [])
+    dirs = ("results/e14_aarch64_qemu/aarch64/", "results/e32_smartcam_aarch64/", "results/e36b_aarch64_models/",
+            "results/e53_wgan_aarch64/build/aarch64/")
+    ok = (len(inscope) == 11 and all(p.startswith(dirs) for p in inscope) and b1.get("aarch64_unclassified_total") == 0
+          and b2.get("figures_unchanged") is True and b2.get("headers_byte_identical") is True
+          and sorted(b2.get("models", {})) == ["b2_resnet", "b3_deepae", "smartcam", "wgan"])
+    out.append(Result("e64/2 AArch64 corpus: 11 representations from AArch64 compiles, 0 unclassified; the four "
+                      "evaluated specifications regenerate with unchanged figures and byte-identical headers", ok,
+                      "%d in scope" % len(inscope)))
+    sd = os.path.join(root, "compiler_statistics")
+    bad = []
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        try:
+            st = json.load(open(os.path.join(sd, m + ".stats.json")))["stream-aggregate"]
+            r = json.load(open(os.path.join(sd, m + ".contract.json")))["resources"]
+            if not (st["global"]["constant-size"] == r["module_resident_constant_bytes"]
+                    and st["execution"]["transient-memory-size"]
+                    == r["static_transient_bytes"] + r["static_external_output_bytes"]
+                    and r["bound_method"] == "static_from_stream_layout"):
+                bad.append(m)
+        except Exception as exc:                                  # pragma: no cover
+            bad.append("%s: %s" % (m, exc))
+    try:
+        dj = json.load(open(os.path.join(sd, "dynamic.stats.json")))["stream-aggregate"]["execution"]["transient-memory-size"]
+        csv_lines = [l for l in open(os.path.join(sd, "dynamic.stats.csv")).read().splitlines()
+                     if l and not l.startswith(";")]
+        hi = next(i for i, l in enumerate(csv_lines) if "Transient Size" in l)
+        cols = [c.strip('"') for c in csv_lines[hi].split(",")]
+        dc = int(csv_lines[hi + 1].split(",")[cols.index("Transient Size")])
+        dr = json.load(open(os.path.join(sd, "dynamic.contract.json")))["resources"]
+        dyn_ok = dj == 0 and dc == 0 and dr["bound_method"] == "NONE" and len(dr["unresolved_sizes"]) == 3
+    except Exception as exc:                                      # pragma: no cover
+        dyn_ok, bad = False, bad + ["dynamic: %s" % exc]
+    out.append(Result("e64/3 compiler statistics, re-derived from the stored files of ONE invocation per model: "
+                      "constant-size = C and transient = T + O (4/4); dynamic model JSON and CSV both 0 while its "
+                      "specification states no bound", not bad and dyn_ok, "bad: %s" % bad if bad else "4/4 + dynamic"))
+    d1, d2 = gc.get("D1_e60_window_references", {}), gc.get("D2_anomaly_scores", {})
+    same = d1.get("same_as_E60_host_computation", {})
+    ok = (gc.get("machine") == "aarch64" and d1.get("violations_vs_sequential_f32", [None])[-1] == 30
+          and d1.get("violations_vs_float64", [None])[-1] == 19 and not any(d1.get("bit_identical_to_sequential_f32", [True]))
+          and all(same.get(k) for k in ("violations_vs_sequential_f32", "violations_vs_float64",
+                                        "bit_identical_to_sequential_f32")))
+    out.append(Result("e64/4 auxiliary references computed in the AArch64 guest: final layer 30 (sequential f32) and "
+                      "19 (float64), no layer bit-identical, equal to the earlier host computation", ok,
+                      json.dumps({k: d1.get(k) for k in ("violations_vs_sequential_f32", "violations_vs_float64")})))
+    si, sl = d2.get("scores_iree") or [], d2.get("scores_litert") or []
+    order_i = sorted(range(len(si)), key=lambda i: si[i])
+    order_l = sorted(range(len(sl)), key=lambda i: sl[i])
+    rel = max((abs(a - b) / abs(b) for a, b in zip(si, sl) if b), default=None)
+    ok = (len(si) == len(sl) == 34 and order_i == order_l and d2.get("discordant_pairs") == 0
+          and rel is not None and abs(rel - d2.get("max_rel_score_difference", -1)) < 1e-12)
+    out.append(Result("e64/5 DeepAE anomaly scores (34 windows, both paths, computed in the guest): ordering "
+                      "identical, re-derived from the stored scores", ok, "max rel %.3e" % (rel or -1)))
+    ok = (ge.get("machine") == "aarch64" and ge.get("nproc") == 1 and ge.get("mem_total_kb")
+          and ge.get("ai_edge_litert") == "2.2.0" and ge.get("iree_base_runtime") == "3.11.0"
+          and str(ge.get("os_release", "")).startswith("Ubuntu 24.04"))
+    out.append(Result("e64/6 guest environment recorded for this boot (versions the manuscript's Table 4 cites)", ok,
+                      json.dumps({k: ge.get(k) for k in ("os_release", "python", "ai_edge_litert", "iree_base_runtime",
+                                                         "nproc", "mem_total_kb")})))
+    if not (iree_tools_available() and structural_available()):
+        out.append(Result("e64/7 probes re-run live", True, "needs iree-compile tools and iree.compiler.ir", skip=True))
+        return out
+    live = os.path.join(tmp, "e64_probes_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "e64_aarch64_evidence.py"), "probes", "--out", live],
+                       cwd=repo, capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live)
+    if ok:
+        L = json.load(open(live))
+        ok = ({c["id"]: c.get("path") for c in L.get("cells", [])} == paths
+              and L.get("positive_control", {}).get("path") == ctl.get("path")
+              and L.get("cells_with_deployable_header") == [])
+    out.append(Result("e64/7 probes re-run live: every cell ends by the same path as the committed record", ok,
+                      "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def e63_single_build_and_conditional_floor_cases(tmp):
+    """E63: Table 7 of the manuscript on ONE application build per model (metareview A, M2) and the conditional
+    policy's floor M = P - 1 (metareview B, SS4).  Both are re-derived from the flight app's own guest logs into a
+    temp file and compared with the committed summary (D89); the binary identity is the guest-side sha256 checked
+    against the archived tree records, not the scenario file alone."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e63_single_build_and_conditional_floor")
+    sp = os.path.join(root, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e63/0 summary.json present", False, "missing %s" % sp)]
+    s = json.load(open(sp))
+    out.append(Result("e63/1 verdict Q1 PASS and Q2 PASS", s.get("verdict") == {"Q1": "PASS", "Q2": "PASS"},
+                      json.dumps(s.get("verdict"))))
+    cf = s.get("Q2_conditional_floor", {}).get("cells", {})
+    bad = [m for m, r in cf.items() if not (r.get("verdict") == "NOT_ADMITTED" and r.get("allow_conditional_map") == 1
+                                            and r.get("budget_is_P_minus_1") and r.get("mem_init_records") == 0
+                                            and r.get("map_branch_records") == 0 and r.get("run_records") == 0
+                                            and r.get("cfs_operational") is True)]
+    out.append(Result("e63/2 conditional build at M = P - 1: NOT_ADMITTED, no module append, no runtime init, "
+                      "no inference, cFS operational (4 models)", len(cf) == 4 and not bad,
+                      "bad: %s" % bad if bad else "4/4"))
+    t7 = s.get("Q1_table7_single_build", {}).get("cell", {})
+    ok = (t7.get("verdict") == "ADMIT" and t7.get("binding") == "MATCH"
+          and (t7.get("blob_align") or {}).get("module_ptr_mod64") == 0 and t7.get("hal_peak_after_append") == 0
+          and (t7.get("completed") or 0) >= 1 and t7.get("final_hal_peak") == 131382784)
+    out.append(Result("e63/3 WGAN on the E55b build with the image aligned: map arm (mod64 0, append 0), "
+                      ">=1 inference, final peak exactly P = 131,382,784", ok,
+                      json.dumps({k: t7.get(k) for k in ("verdict", "binding", "hal_peak_after_append",
+                                                         "completed", "final_hal_peak")})))
+    rows = s.get("table7_one_build_per_model", {}).get("rows", {})
+    bad = [m for m, r in rows.items() if not (r.get("same_binary") and r.get("map_eq_P") and r.get("copy_eq_P_plus_C"))]
+    out.append(Result("e63/4 Table 7: each model's map and copy cells ran one binary (guest sha256 == archived "
+                      "E55b tree), map peak = P, copy peak = P + C", len(rows) == 4 and not bad,
+                      "bad: %s" % bad if bad else "4/4"))
+    hashes = [r.get("so_guest_sha256") for r in cf.values()] + [t7.get("so_guest_sha256")]
+    out.append(Result("e63/5 V: every binary the cells loaded matches its archived record (5/5)",
+                      all(r.get("V_so_matches") for r in cf.values()) and t7.get("V_so_matches") is True
+                      and None not in hashes, "%d hashes" % len(hashes)))
+    live = os.path.join(tmp, "e63_summary_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "mk_e63_summary.py"), "--out", live],
+                       capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live)
+    if ok:
+        L = json.load(open(live))
+        ok = (L.get("verdict") == s.get("verdict") and L.get("table7_one_build_per_model") == s.get("table7_one_build_per_model")
+              and L.get("Q2_conditional_floor") == s.get("Q2_conditional_floor"))
+    out.append(Result("e63/6 re-derived from the raw guest logs, verdict, Table 7 rows and floor cells equal the "
+                      "committed ones", ok, "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def e59_info_levels_aarch64_cases(tmp):
+    """E59: the information-level comparison (E35/E27) redone on the EVALUATION TARGET's artifacts.
+
+    Until E59 three of E35's four configurations and E27's drift artifact were x86-64; the
+    standing directive excludes x86-64 as a target and a validation platform.  These guards pin
+    what E59 measured and -- the part a stored JSON cannot prove -- that it was measured on
+    AArch64 artifacts with a compiler revision that really differs.
+    """
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e59_info_levels_aarch64")
+    pa_p, pb_p = os.path.join(root, "part_a.json"), os.path.join(root, "part_b.json")
+    if not (os.path.exists(pa_p) and os.path.exists(pb_p)):
+        return [Result("e59/0 part_a.json and part_b.json present", False, "missing under %s" % root)]
+    pa, pb = json.load(open(pa_p)), json.load(open(pb_p))
+
+    t = pa.get("totals", {})
+    ok = (t.get("models_total") == 4 and t.get("models_where_three_figures_agree") == 4
+          and t.get("models_where_kernel_stack_agrees") == 4 and t.get("artifacts_matching_contract") == 4)
+    out.append(Result("e59/1 Part A: artifact-only level matches three figures and kernel stack 4/4, "
+                      "each on the very artifact its contract names", ok, json.dumps(t)))
+    vm = [m.get("vmfb", "") for m in pa.get("models", {}).values()]
+    triples = []
+    for m in pa.get("models", {}).values():
+        try:
+            triples.append(json.load(open(os.path.join(repo, m["contract"])))["target"]["triple"])
+        except Exception as exc:                                  # pragma: no cover
+            triples.append("unreadable: %s" % exc)
+    ok = len(vm) == 4 and all(x == "aarch64-unknown-linux-gnu" for x in triples) \
+        and not any("x86" in v for v in vm)
+    out.append(Result("e59/2 Part A reads AArch64 contracts only (no x86-64 artifact in the set)",
+                      ok, "triples=%s" % triples))
+
+    pl = pb.get("per_level", {})
+    ok = (pl.get("c", {}).get("value") == 4 and pl.get("b", {}).get("impossible_value") == 4
+          and pl.get("b_prime", {}).get("explicit_refusal") == 4 and pb.get("collection_clean") is True
+          and pb.get("controls_reproducing") == 4)
+    out.append(Result("e59/3 Part B: under drift (c) value 4, (b) impossible 4, (b') refusal 4; "
+                      "clean collection; 3.11 controls reproduce the archived figures 4/4",
+                      ok, json.dumps({"per_level": pl, "controls": pb.get("controls_reproducing")})))
+
+    # recompute the impossibility floor from the contracts instead of trusting the stored one
+    bad = []
+    for c in pb.get("drift_cells", []):
+        if c.get("level") != "b":
+            continue
+        mp = next((m for m in pa["models"] if m == c["model"]), None)
+        con = json.load(open(os.path.join(repo, pa["models"][mp]["contract"]))) if mp else None
+        floor = 0
+        for d in (con["interface"]["inputs"] + con["interface"]["outputs"]) if con else []:
+            n = 1
+            for x in d["shape"]:
+                n *= int(x)
+            floor += 4 * n
+        if not (c.get("per_call") is not None and c["per_call"] < floor):
+            bad.append((c["model"], c.get("per_call"), floor))
+    out.append(Result("e59/4 each (b) drift figure is below I+O recomputed from its contract "
+                      "(impossible for any compile of that interface)", not bad and bool(pb.get("drift_cells")),
+                      "violations: %s" % bad if bad else "4/4 below the floor"))
+
+    bad = []
+    for name, m in pb.get("per_model", {}).items():
+        c = m.get("drift_310", {}).get("levels", {}).get("c", {})
+        notes = " ".join(c.get("notes") or [])
+        if c.get("differs_from_311_reference") is not False or "bytecode version mismatch" not in notes:
+            bad.append(name)
+    out.append(Result("e59/5 (c) under drift issues the 3.11 figures AND names the failed read in a note",
+                      not bad, "models lacking value+note: %s" % bad if bad else "4/4"))
+
+    bad = []
+    for name, m in pb.get("per_model", {}).items():
+        dv = m.get("drift_310", {}).get("compile", {}).get("compiler_version", "")
+        cv = m.get("control_311", {}).get("compile", {}).get("compiler_version", "")
+        if "3.10.0rc20260107" not in dv or "3.11.0rc20260316" not in cv:
+            bad.append((name, dv[-60:], cv[-60:]))
+        stored = os.path.join(root, "drift_310", name, name + ".vmfb")
+        want = m.get("drift_310", {}).get("compile", {}).get("vmfb_sha256")
+        if not os.path.exists(stored) or hashlib.sha256(open(stored, "rb").read()).hexdigest() != want:
+            bad.append((name, "stored drift vmfb does not match the recorded sha256"))
+    out.append(Result("e59/6 the drift variable is real (3.10 vs 3.11 recorded per compile) and the "
+                      "stored drift artifacts are the ones the cells read", not bad, str(bad) if bad else "4/4"))
+
+    if shutil.which("iree-dump-module") is None:
+        out.append(Result("e59/7 live re-run of Part A equals the committed record", True,
+                          "needs iree-dump-module", skip=True))
+        out.append(Result("e59/8 live: the hardened analyzer refuses each stored drift artifact", True,
+                          "needs iree-dump-module", skip=True))
+    else:
+        # The kernel-stack half reads AArch64 ELF with aarch64-linux-gnu-objdump. Without it the
+        # live run reports the stack as not produced, which is an environment gap, not a changed
+        # result -- the first version of this guard FAILED in the CI full leg for exactly that
+        # reason (run 364) and printed the success text as its detail. SKIP, and say why.
+        if shutil.which("aarch64-linux-gnu-objdump") is None:
+            out.append(Result("e59/7 live re-run of Part A equals the committed record", True,
+                              "needs aarch64-linux-gnu-objdump (kernel stack of AArch64 ELF)", skip=True))
+        else:
+            live_p = os.path.join(tmp, "e59_part_a_live.json")
+            r = subprocess.run([sys.executable, os.path.join(HERE, "e59_info_levels_aarch64.py"), "--part", "A",
+                                "--out", live_p], capture_output=True, text=True)
+            live = json.load(open(live_p)) if r.returncode == 0 else None
+            ok = live is not None and live.get("totals") == pa.get("totals") and \
+                {k: (v.get("three_figures_agree"), v.get("kernel_stack_agrees")) for k, v in live["models"].items()} == \
+                {k: (v.get("three_figures_agree"), v.get("kernel_stack_agrees")) for k, v in pa["models"].items()}
+            if r.returncode:
+                det = "rc=%d" % r.returncode
+            elif ok:
+                det = "identical totals and per-model agreement"
+            else:
+                det = "live totals %s != recorded %s" % (json.dumps((live or {}).get("totals")), json.dumps(pa.get("totals")))
+            out.append(Result("e59/7 live re-run of Part A equals the committed record", ok, det))
+        bad = []
+        for name in pb.get("per_model", {}):
+            v = os.path.join(root, "drift_310", name, name + ".vmfb")
+            rr = subprocess.run([sys.executable, os.path.join(HERE, "e27_baseline_vmfb_only_hardened.py"), v],
+                                capture_output=True, text=True)
+            try:
+                code = json.loads(rr.stdout).get("refusal_code")
+            except ValueError:
+                code = None
+            if code != "C4_DISASM":
+                bad.append((name, code))
+        out.append(Result("e59/8 live: the hardened analyzer still refuses each stored drift artifact "
+                          "with C4_DISASM", not bad, str(bad) if bad else "4/4"))
+    return out
+
+
+def e56_conditional_refusal_aarch64_cases(tmp):
+    """E56: the conditional tier's precondition-failure refusal, on the EVALUATION TARGET.
+
+    Until E56 the only cells exercising that refusal ran cFS on the x86-64 development host
+    (results/e29_conditional_contract/cfs/..., results/e29b_conditional_verify/cfs/...), on a
+    synthetic model, and needed a shim that defeats the app's own 64-byte alignment.  The
+    standing research directive is that x86-64 is neither a target nor a validation platform,
+    so those cells could not carry the claim.  E56 reproduces the refusal in the AArch64 guest
+    on all four real models using the app's own AI_LEARNER_BLOB_ALIGN_OFFSET knob.
+
+    Reaching that combination required NARROWING one axis of that knob (E56 plan SS1.1): E55b
+    refused every non-zero offset on a conditional build, which made the refusal path
+    unobservable on the target.  These guards pin both halves -- the narrowing stayed narrow,
+    and the cells it enabled say what the pre-registered plan said they would.
+    """
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e56_conditional_refusal_aarch64")
+    src = os.path.join(repo, "native", "cfs_app", "fsw", "src", "ai_learner.c")
+
+    # --- 1. the narrowing stayed narrow: every other fail-closed axis is still there -------
+    try:
+        text = open(src, encoding="utf-8").read()
+        fn = text[text.index("static long AI_LEARNER_BlobAlignOffset"):]
+        fn = fn[:fn.index("\n}\n")]
+        # D85/E54-guard-8: strip C comments first.  The narrowing's own explanatory comment
+        # names AI_LEARNER_ALLOW_CONDITIONAL_MAP, so a guard that greps the raw text reports
+        # the sentence that documents the rule as a violation of it.  Read executable lines.
+        fn = re.sub(r"/\*.*?\*/", " ", fn, flags=re.S)
+        fn = re.sub(r"//[^\n]*", " ", fn)
+        axes = {
+            "set but empty": "empty string",
+            "not an integer": "non-integer",
+            "trailing garbage": "trailing garbage",
+            "out of range": "range",
+            "multiple of 8": "8-byte multiple (E29 module verification)",
+            "changes no alignment class": "non-zero multiple of 64",
+        }
+        missing = [d for k, d in axes.items() if k not in fn]
+        out.append(Result("e56/1 blob-align knob keeps its six fail-closed axes",
+                          not missing,
+                          "missing: " + ", ".join(missing) if missing else "all six present"))
+        # the ONLY axis that may be gone is the conditional-tier one
+        has_cond_axis = "AI_LEARNER_ALLOW_CONDITIONAL_MAP" in fn
+        out.append(Result("e56/2 conditional-tier axis removed from the knob (the narrowing)",
+                          not has_cond_axis,
+                          "the axis is back: a conditional build would refuse the offset again, "
+                          "and the refusal path becomes unobservable on the target"
+                          if has_cond_axis else "absent, as E56 plan SS1.1 requires"))
+    except Exception as exc:                                     # pragma: no cover
+        out.append(Result("e56/1-2 blob-align knob axes", False, "could not read %s: %s" % (src, exc)))
+
+    # --- 2. both conditional-tier defences survive the narrowing ---------------------------
+    try:
+        text = open(src, encoding="utf-8").read()
+        both = ("MAP_PRECONDITION_UNMET" in text) and ("MAP_PRECONDITION_FAILED" in text)
+        out.append(Result("e56/3 conditional tier keeps pre-append AND post-append defences",
+                          both,
+                          "pre-append=%s post-append=%s" % ("MAP_PRECONDITION_UNMET" in text,
+                                                            "MAP_PRECONDITION_FAILED" in text)))
+    except Exception as exc:                                     # pragma: no cover
+        out.append(Result("e56/3 conditional tier defences", False, str(exc)))
+
+    # --- 3. the four refusal cells, read from the guest raw logs ---------------------------
+    MODELS = {"b2_resnet": 309416, "b3_deepae": 6208,
+              "smartcam": 9382092, "wgan": 131382784}
+    for model, per_call in sorted(MODELS.items()):
+        log = os.path.join(root, "cells", "logs", "e56_%s_refuse.log" % model)
+        if not os.path.exists(log):
+            out.append(Result("e56/4 %s refusal cell log present" % model, False,
+                              "missing %s" % log))
+            continue
+        blob = open(log, encoding="utf-8", errors="ignore").read()
+        recs = [json.loads(m.group(0))
+                for m in re.finditer(r'\{"app":"AI_LEARNER"[^}]*\}', blob)]
+        by = {}
+        for r in recs:
+            by.setdefault(r.get("stage"), []).append(r)
+        align = (by.get("blob_align") or [{}])[0]
+        adm = (by.get("admission") or [{}])[0]
+        mb = [r for r in by.get("map_branch", []) if "verdict" in r]
+        checks = {
+            # F3: the offset actually applied -- otherwise the cell does not test what it claims
+            "blob_align.state == applied": align.get("state") == "applied",
+            "module_ptr_mod64 == 8": align.get("module_ptr_mod64") == 8,
+            # the cell was admitted on the conditional tier, on P, from the runtime override
+            "admission == ADMIT_CONDITIONAL_MAP": adm.get("verdict") == "ADMIT_CONDITIONAL_MAP",
+            "budget == per_call": adm.get("budget") == per_call,
+            "budget_source == override": adm.get("budget_source") == "override",
+            "target is aarch64": str(adm.get("target", "")).startswith("aarch64"),
+            # the refusal itself
+            "map_branch == MAP_PRECONDITION_UNMET":
+                bool(mb) and mb[0].get("verdict") == "MAP_PRECONDITION_UNMET",
+            # F1: refused BEFORE runtime creation.  D80: the repository infers this from the
+            # ABSENCE of mem_init, there is still no direct signal, and this guard inherits
+            # that limitation rather than hiding it.
+            "no mem_init record (F1)": not by.get("mem_init"),
+            # F2
+            "zero inferences (F2)": not by.get("run"),
+            # the setting is recorded before the verdict (E38/D69)
+            "build_config records allow_conditional_map=1":
+                bool(by.get("build_config")) and by["build_config"][0].get("allow_conditional_map") == 1,
+        }
+        bad = [k for k, v in checks.items() if not v]
+        out.append(Result("e56/5 %s refused before runtime creation on AArch64" % model,
+                          not bad,
+                          "failed: " + "; ".join(bad) if bad else
+                          "mod64=8, ADMIT_CONDITIONAL_MAP on P=%d, MAP_PRECONDITION_UNMET, "
+                          "no mem_init, 0 inferences" % per_call))
+
+    # --- 4. the positive controls: the narrowing did not break the passing path (F4) -------
+    for model, per_call in sorted(MODELS.items()):
+        log = os.path.join(root, "cells", "logs", "e56_%s_admit.log" % model)
+        if not os.path.exists(log):
+            # wgan's window is long; a missing positive cell is reported, never assumed to pass
+            out.append(Result("e56/6 %s positive control present" % model, False,
+                              "missing %s -- the refusal cells are only attributable to the gate "
+                              "if the same binary still passes when the precondition holds (D97)"
+                              % log))
+            continue
+        blob = open(log, encoding="utf-8", errors="ignore").read()
+        recs = [json.loads(m.group(0))
+                for m in re.finditer(r'\{"app":"AI_LEARNER"[^}]*\}', blob)]
+        by = {}
+        for r in recs:
+            by.setdefault(r.get("stage"), []).append(r)
+        align = (by.get("blob_align") or [{}])[0]
+        adm = (by.get("admission") or [{}])[0]
+        arms = [r for r in by.get("map_branch", []) if "arm" in r]
+        peaks = re.findall(r"hal_peak=(\d+)", blob)
+        checks = {
+            "offset unset": align.get("requested_offset") in (0, None),
+            "module_ptr_mod64 == 0": align.get("module_ptr_mod64") == 0,
+            "admission == ADMIT_CONDITIONAL_MAP": adm.get("verdict") == "ADMIT_CONDITIONAL_MAP",
+            "budget == per_call": adm.get("budget") == per_call,
+            "arm == map": bool(arms) and arms[0].get("arm") == "map",
+            "hal_peak_after_append == 0": bool(arms) and arms[0].get("hal_peak_after_append") == 0,
+            "at least one inference": bool(by.get("run")),
+            "mem_init present": bool(by.get("mem_init")),
+            # F4: the conditional bound is attained exactly, not merely respected
+            "final peak == P exactly (F4)": bool(peaks) and int(peaks[-1]) == per_call,
+        }
+        bad = [k for k, v in checks.items() if not v]
+        out.append(Result("e56/6 %s positive control: peak is exactly P (F4)" % model,
+                          not bad,
+                          "failed: " + "; ".join(bad) if bad else
+                          "arm=map, append peak 0, %d inference records, final peak %d == P"
+                          % (len(by.get("run", [])), per_call)))
+
+    # --- 5. the cells were built with the opt-in, read back from the BINARY ----------------
+    for model in sorted(MODELS):
+        w = os.path.join(root, "trees", "e56_%s" % model, "optin_witness.json")
+        if not os.path.exists(w):
+            out.append(Result("e56/7 %s opt-in witness archived" % model, False, "missing %s" % w))
+            continue
+        try:
+            d = json.load(open(w, encoding="utf-8"))
+        except Exception as exc:                                 # pragma: no cover
+            out.append(Result("e56/7 %s opt-in witness archived" % model, False, str(exc)))
+            continue
+        # E38: the witness says false only after a positive control matched; anything else is
+        # "undetermined", and an undetermined witness must not be read as a confirmed opt-in.
+        ok = d.get("allow_conditional_map") is True and d.get("elf_machine") == "AArch64"
+        out.append(Result("e56/7 %s opt-in read back from the AArch64 binary" % model, ok,
+                          "allow_conditional_map=%r elf_machine=%r"
+                          % (d.get("allow_conditional_map"), d.get("elf_machine"))))
+
+    # --- 6. the plan was committed before the measurement ---------------------------------
+    plan = os.path.join(repo, "docs", "plans", "E56_conditional_refusal_aarch64.md")
+    out.append(Result("e56/8 pre-registered plan present", os.path.exists(plan),
+                      plan if os.path.exists(plan) else "missing"))
+    return out
+
+
+def e52_evidence_pointer_cases(tmp):
+    """D101 -- the preprocessing evidence is E45 SS2.3, not SS2.4.
+
+    The string was hardcoded in the generator, so a guard that reads only the
+    emitted JSON would go green again after the next regeneration (D91's lesson).
+    These read the generator, the emitted JSON, and E45 itself.
+    """
+    results = []
+    base = os.path.dirname(HERE)
+    e45 = os.path.join(base, "docs", "EVIDENCE_v0.45_E45.md")
+    gen = os.path.join(base, "harness", "e52_deepae_layers.py")
+    div = os.path.join(base, "results", "e52_deepae_divergence", "divergence.json")
+    for p in (e45, gen, div):
+        if not os.path.isfile(p):
+            return [Result("e52-ptr: inputs present", False, "missing %s" % p)]
+
+    # derive, do not assume: which subsection actually holds the preprocessing table
+    lines = open(e45, encoding="utf-8").read().split("\n")
+    heads = [(i + 1, l) for i, l in enumerate(lines) if re.match(r"^#{2,4} ", l)]
+
+    def section_of(pred):
+        for i, l in enumerate(lines):
+            if pred(l):
+                cur = None
+                for n, h in heads:
+                    if n <= i + 1:
+                        cur = h
+                return cur
+        return None
+
+    pre = section_of(lambda l: "--mean 0 --std 1" in l and "normalisation" in l)
+    third = section_of(lambda l: "제3의 기준값이 없다" in l)
+    results.append(Result("e52-ptr/1: preprocessing identity lives in E45 SS2.3",
+                          pre is not None and "§2.3" in pre, str(pre)))
+    results.append(Result("e52-ptr/2: the other SS2.4 citation is still correct",
+                          third is not None and "§2.4" in third, str(third)))
+
+    gen_txt = open(gen, encoding="utf-8").read()
+    div_txt = open(div, encoding="utf-8").read()
+    needle = "두 경로가 같은 한 파일을 읽고 전처리가 항등"
+    results.append(Result("e52-ptr/3: the GENERATOR cites SS2.3 (fixing the JSON alone regresses)",
+                          ("E45 §2.3 — " + needle) in gen_txt
+                          and ("E45 §2.4 — " + needle) not in gen_txt))
+    results.append(Result("e52-ptr/4: the emitted divergence.json cites SS2.3",
+                          ("E45 §2.3 — " + needle) in div_txt
+                          and ("E45 §2.4 — " + needle) not in div_txt))
+    results.append(Result("e52-ptr/5: generator and emitted record agree on the pointer",
+                          ("E45 §2.3" in gen_txt) == ("E45 §2.3" in div_txt)))
+    return results
 
 if __name__ == "__main__":
     sys.exit(main())

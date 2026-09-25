@@ -1,0 +1,33 @@
+{
+ "note": "large LLVM intermediates dropped from the stored dump/ (E30 precedent). The contract and elf.json regenerate from the reduced dump/ with identical figures; the regression test re-derives them.",
+ "dropped": {
+  "module_wgan_linked_embedded_elf_x86_64.codegen.bc": {
+   "bytes": 37992,
+   "sha256": "29f9a3403ddbb3e074cce135c6ebcbe36569b1d4c4c6c32cb0b9cb9ef0e8bd77"
+  },
+  "module_wgan_linked_embedded_elf_x86_64.codegen.ll": {
+   "bytes": 177069,
+   "sha256": "c3fcca3bee3e93a825057171857b73a223158b02c5a7752c37acc7584b467e50"
+  },
+  "module_wgan_linked_embedded_elf_x86_64.linked.bc": {
+   "bytes": 48620,
+   "sha256": "abf15875a9b19d189fa34ace57b099a810acc9bbabbede510fd5704ff99ff047"
+  },
+  "module_wgan_linked_embedded_elf_x86_64.linked.ll": {
+   "bytes": 229232,
+   "sha256": "716527d29a0042cd973962b600768dacf3b8fb43737f5d62770572f644b350b8"
+  },
+  "module_wgan_linked_embedded_elf_x86_64.o": {
+   "bytes": 65848,
+   "sha256": "8982597bd23e0da478dde4a9875985494d0a34e9dd65c509d13dbba7388edc14"
+  },
+  "module_wgan_linked_embedded_elf_x86_64.optimized.bc": {
+   "bytes": 47268,
+   "sha256": "70aec899ba05933ccad0f90d9228d7718595ebd2cabfc47b57826be1a3dc5751"
+  },
+  "module_wgan_linked_embedded_elf_x86_64.optimized.ll": {
+   "bytes": 223488,
+   "sha256": "beefb90a393b0db64b98f9c4c10d2a6e144e4915fe6cddd4ee46eeeb55cdf863"
+  }
+ }
+}

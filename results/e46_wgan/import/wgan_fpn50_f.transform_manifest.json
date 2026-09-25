@@ -1,0 +1,365 @@
+{
+ "tool": "harness/p1_tflite_to_onnx.py",
+ "tflite2onnx_version": "0.4.1",
+ "onnx_version": "1.22.0",
+ "emit_mode": "squeeze",
+ "input_tflite": {
+  "path": "results/e46_wgan/original/wgan_fpn50_f.tflite",
+  "bytes": 4299472,
+  "sha256": "c865589f4b5e28f17524266fedd7e3db245c5301ffd317c3756842f6a4ae1ebe"
+ },
+ "output_onnx": {
+  "path": "results/e46_wgan/import/wgan_fpn50_f.onnx",
+  "bytes": 4313292,
+  "sha256": "8edc6f5ee2cc9e3d69c2a1faa4e628bd18be06add3943c714355cbbb2dba03f6",
+  "ir_version": 6,
+  "opset": [
+   [
+    "",
+    11
+   ]
+  ],
+  "graph_name": "infer"
+ },
+ "signature_onnx": {
+  "inputs": [
+   {
+    "name": "serving_default_input_1:0",
+    "dtype": 1,
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "StatefulPartitionedCall:0",
+    "dtype": 1,
+    "shape": [
+     1,
+     3,
+     224,
+     224
+    ]
+   }
+  ]
+ },
+ "onnx_node_histogram": {
+  "Conv": 12,
+  "LeakyRelu": 11,
+  "Add": 4,
+  "Resize": 2,
+  "Mul": 1,
+  "Tanh": 1
+ },
+ "onnx_node_count": 31,
+ "squeeze_instances": [],
+ "elementwise_instances": [
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    32
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    32
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential/leaky_re_lu/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    64
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    64
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_1/leaky_re_lu_1/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_2/leaky_re_lu_2/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_3/leaky_re_lu_3/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_4/leaky_re_lu_4/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_5/leaky_re_lu_5/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_6/leaky_re_lu_6/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_7/leaky_re_lu_7/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    128
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_8/leaky_re_lu_8/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    112,
+    112,
+    64
+   ],
+   "output_shape": [
+    1,
+    112,
+    112,
+    64
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_9/leaky_re_lu_9/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    32
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    32
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": 0.20000000298023224,
+   "alpha_required": true,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 98,
+   "onnx_type": "LeakyRelu",
+   "onnx_node_name": "generator_net/sequential_10/leaky_re_lu_10/LeakyRelu"
+  },
+  {
+   "input_shape": [
+    1,
+    224,
+    224,
+    3
+   ],
+   "output_shape": [
+    1,
+    224,
+    224,
+    3
+   ],
+   "input_dtype": 1,
+   "output_dtype": 1,
+   "alpha": null,
+   "alpha_required": false,
+   "E1_single_in_single_out": true,
+   "E2_shape_preserved": true,
+   "E3_dtype_preserved": true,
+   "E4_alpha_read_from_flatbuffer": true,
+   "tflite_opcode": 28,
+   "onnx_type": "Tanh",
+   "onnx_node_name": "generator_net/sequential_11/activation/Tanh"
+  }
+ ],
+ "original_modified": false,
+ "canonical_order": "initializer and value_info sorted by name (tflite2onnx emits them from sets)",
+ "graph_name_set_to": "infer"
+}

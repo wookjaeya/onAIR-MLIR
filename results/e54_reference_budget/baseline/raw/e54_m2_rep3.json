@@ -1,0 +1,19 @@
+{
+  "tag": "m2",
+  "rep": 3,
+  "startup_apps_declared": 14,
+  "startup_libs_declared": 2,
+  "apps_emitting_evs": 13,
+  "apps_emitting_evs_list": "CF,CI_LAB,CS,DS,FM,HK,HS,LC,MD,MM,SAMPLE_APP,SC,TO_LAB",
+  "ai_learner_present_in_cf": false,
+  "vmfb_present_in_cf": false,
+  "sample_count": 9,
+  "sample_window_s": 90,
+  "core_cpu1_rss_peak_kb": 5156,
+  "core_cpu1_vmhwm_kb": 5156,
+  "mem_total_kb": 1487348,
+  "mem_available_before_kb": 1270048,
+  "mem_available_during_kb": 1270196,
+  "system_used_before_kb": 217300,
+  "harness_sshd_bash_systemd_rss_before_kb": 47168
+}

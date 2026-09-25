@@ -1,0 +1,20 @@
+{
+ "subsystems": {
+  "NONE": {
+   "TIME": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "frame counter"
+   },
+   "SAMPLE_INDEX": {
+    "conversion": "",
+    "tests": {
+     "NOOP": "[]"
+    },
+    "description": "index into the deployment config's ordered sample_ids; numeric because NASA's csv parser floatifies every field"
+   }
+  }
+ }
+}
