@@ -9164,6 +9164,7 @@ def main():
         all_results += e62_onair_output_release_cases(tmp)
         all_results += d105_control_flow_boundary_cases(tmp)
         all_results += d106_e51_header_leg_cases(tmp)
+        all_results += e64_aarch64_evidence_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9563,6 +9564,110 @@ def e62_onair_output_release_cases(tmp):
         ok = L.get("verdict") == s.get("verdict") and L.get("criteria") == s.get("criteria")
     out.append(Result("e62/11 re-derived from the plugin records, probe JSON and archived E57 cells, the criteria "
                       "equal the committed ones", ok, "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def e64_aarch64_evidence_cases(tmp):
+    """E64: four manuscript sentences whose evidence was out of scope (x86-64 products, or references computed by
+    the development host) re-established on AArch64.  The statistics equalities and the guest computations are
+    RE-DERIVED here from the stored raw files, not read from the summary's booleans (D89); the probe cells are
+    re-run live when the compiler tools are present, comparing the path each cell ended by (D77)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "e64_aarch64_evidence")
+    need = ["probes.json", "corpus.json", "compiler_statistics.json", "guest_computations.json", "guest_environment.json"]
+    missing = [f for f in need if not os.path.exists(os.path.join(root, f))]
+    if missing:
+        return [Result("e64/0 E64 records present", False, "missing %s" % missing)]
+    pr, co, gc, ge = (json.load(open(os.path.join(root, f))) for f in
+                      ("probes.json", "corpus.json", "guest_computations.json", "guest_environment.json"))
+    expected = {"A1_in_family_unrecognized_op": "specification_without_bound_header_bound_known_0",
+                "A2_out_of_family_resource_op": "refused_dedicated_key_unclassified_resource_ops",
+                "A3_pre_scheduling_async_alloc": "refused_extractors_disagree",
+                "A4_unresolvable_size": "specification_without_bound_header_bound_known_0",
+                "A5_unparseable_op": "refused_extractors_disagree",
+                "A6_other_lifetime_category": "refused_extractors_disagree"}
+    paths = {c["id"]: c.get("path") for c in pr.get("cells", [])}
+    ctl = pr.get("positive_control", {})
+    ok = (pr.get("verdict") == "PASS" and ctl.get("header_bound_known") == 1 and ctl.get("bounded_bytes") == 618856
+          and not pr.get("cells_with_deployable_header") and paths == expected
+          and pr.get("source_layout_ir") == "results/e36b_aarch64_models/b2_resnet/b2_resnet.layout_ir.txt")
+    out.append(Result("e64/1 edits of the AArch64 ResNet layout: control issues 618,856 with BOUND_KNOWN 1, no edited "
+                      "cell yields a deployable header, each cell's refusal path recorded", ok, json.dumps(paths)))
+    b1, b2 = co.get("B1_aarch64_corpus", {}), co.get("B2_evaluated_regeneration", {})
+    inscope = b1.get("aarch64_evaluated_revision_unedited", [])
+    dirs = ("results/e14_aarch64_qemu/aarch64/", "results/e32_smartcam_aarch64/", "results/e36b_aarch64_models/",
+            "results/e53_wgan_aarch64/build/aarch64/")
+    ok = (len(inscope) == 11 and all(p.startswith(dirs) for p in inscope) and b1.get("aarch64_unclassified_total") == 0
+          and b2.get("figures_unchanged") is True and b2.get("headers_byte_identical") is True
+          and sorted(b2.get("models", {})) == ["b2_resnet", "b3_deepae", "smartcam", "wgan"])
+    out.append(Result("e64/2 AArch64 corpus: 11 representations from AArch64 compiles, 0 unclassified; the four "
+                      "evaluated specifications regenerate with unchanged figures and byte-identical headers", ok,
+                      "%d in scope" % len(inscope)))
+    sd = os.path.join(root, "compiler_statistics")
+    bad = []
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        try:
+            st = json.load(open(os.path.join(sd, m + ".stats.json")))["stream-aggregate"]
+            r = json.load(open(os.path.join(sd, m + ".contract.json")))["resources"]
+            if not (st["global"]["constant-size"] == r["module_resident_constant_bytes"]
+                    and st["execution"]["transient-memory-size"]
+                    == r["static_transient_bytes"] + r["static_external_output_bytes"]
+                    and r["bound_method"] == "static_from_stream_layout"):
+                bad.append(m)
+        except Exception as exc:                                  # pragma: no cover
+            bad.append("%s: %s" % (m, exc))
+    try:
+        dj = json.load(open(os.path.join(sd, "dynamic.stats.json")))["stream-aggregate"]["execution"]["transient-memory-size"]
+        csv_lines = [l for l in open(os.path.join(sd, "dynamic.stats.csv")).read().splitlines()
+                     if l and not l.startswith(";")]
+        hi = next(i for i, l in enumerate(csv_lines) if "Transient Size" in l)
+        cols = [c.strip('"') for c in csv_lines[hi].split(",")]
+        dc = int(csv_lines[hi + 1].split(",")[cols.index("Transient Size")])
+        dr = json.load(open(os.path.join(sd, "dynamic.contract.json")))["resources"]
+        dyn_ok = dj == 0 and dc == 0 and dr["bound_method"] == "NONE" and len(dr["unresolved_sizes"]) == 3
+    except Exception as exc:                                      # pragma: no cover
+        dyn_ok, bad = False, bad + ["dynamic: %s" % exc]
+    out.append(Result("e64/3 compiler statistics, re-derived from the stored files of ONE invocation per model: "
+                      "constant-size = C and transient = T + O (4/4); dynamic model JSON and CSV both 0 while its "
+                      "specification states no bound", not bad and dyn_ok, "bad: %s" % bad if bad else "4/4 + dynamic"))
+    d1, d2 = gc.get("D1_e60_window_references", {}), gc.get("D2_anomaly_scores", {})
+    same = d1.get("same_as_E60_host_computation", {})
+    ok = (gc.get("machine") == "aarch64" and d1.get("violations_vs_sequential_f32", [None])[-1] == 30
+          and d1.get("violations_vs_float64", [None])[-1] == 19 and not any(d1.get("bit_identical_to_sequential_f32", [True]))
+          and all(same.get(k) for k in ("violations_vs_sequential_f32", "violations_vs_float64",
+                                        "bit_identical_to_sequential_f32")))
+    out.append(Result("e64/4 auxiliary references computed in the AArch64 guest: final layer 30 (sequential f32) and "
+                      "19 (float64), no layer bit-identical, equal to the earlier host computation", ok,
+                      json.dumps({k: d1.get(k) for k in ("violations_vs_sequential_f32", "violations_vs_float64")})))
+    si, sl = d2.get("scores_iree") or [], d2.get("scores_litert") or []
+    order_i = sorted(range(len(si)), key=lambda i: si[i])
+    order_l = sorted(range(len(sl)), key=lambda i: sl[i])
+    rel = max((abs(a - b) / abs(b) for a, b in zip(si, sl) if b), default=None)
+    ok = (len(si) == len(sl) == 34 and order_i == order_l and d2.get("discordant_pairs") == 0
+          and rel is not None and abs(rel - d2.get("max_rel_score_difference", -1)) < 1e-12)
+    out.append(Result("e64/5 DeepAE anomaly scores (34 windows, both paths, computed in the guest): ordering "
+                      "identical, re-derived from the stored scores", ok, "max rel %.3e" % (rel or -1)))
+    ok = (ge.get("machine") == "aarch64" and ge.get("nproc") == 1 and ge.get("mem_total_kb")
+          and ge.get("ai_edge_litert") == "2.2.0" and ge.get("iree_base_runtime") == "3.11.0"
+          and str(ge.get("os_release", "")).startswith("Ubuntu 24.04"))
+    out.append(Result("e64/6 guest environment recorded for this boot (versions the manuscript's Table 4 cites)", ok,
+                      json.dumps({k: ge.get(k) for k in ("os_release", "python", "ai_edge_litert", "iree_base_runtime",
+                                                         "nproc", "mem_total_kb")})))
+    if not (iree_tools_available() and structural_available()):
+        out.append(Result("e64/7 probes re-run live", True, "needs iree-compile tools and iree.compiler.ir", skip=True))
+        return out
+    live = os.path.join(tmp, "e64_probes_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "e64_aarch64_evidence.py"), "probes", "--out", live],
+                       cwd=repo, capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live)
+    if ok:
+        L = json.load(open(live))
+        ok = ({c["id"]: c.get("path") for c in L.get("cells", [])} == paths
+              and L.get("positive_control", {}).get("path") == ctl.get("path")
+              and L.get("cells_with_deployable_header") == [])
+    out.append(Result("e64/7 probes re-run live: every cell ends by the same path as the committed record", ok,
+                      "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
     return out
 
 

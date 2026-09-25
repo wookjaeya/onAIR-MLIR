@@ -1,0 +1,24 @@
+{
+"stream-aggregate": {
+  "global": {
+    "constant-count": 1,
+    "constant-size": 1063424,
+    "variable-count": 0,
+    "variable-size": 0
+  },
+  "synchronization": {
+    "await-count": 2
+  },
+  "execution": {
+    "submission-count": 1,
+    "transient-memory-size": 3648,
+    "fill-count": 0,
+    "copy-count": 0,
+    "dispatch-count": 10,
+    "call-count": 0
+  },
+  "executable": {
+    "executable-count": 5
+  }
+}
+}
