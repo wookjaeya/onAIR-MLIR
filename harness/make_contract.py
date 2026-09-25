@@ -642,6 +642,17 @@ def build_contract(a, extra_args):
         notes.append(ctl_note)
         hard_fail_errors.append(ctl_note)
 
+    # D108: the same boundary for the module initializer. The only structure allowed there is the
+    # map attempt's branch (scf.if on did_map) -- the two loading arms, counted once. Anything else
+    # (a loop, another branch, a call) would make "counted once" wrong for both extractors alike.
+    init_ctl = sorted(set(structural.get("initializer_control_ops") or [])) if structural is not None else []
+    if init_ctl:
+        init_note = ("structural walker: the module initializer contains call or control-flow op(s) %s other "
+                     "than the map attempt's branch; constant allocations are counted once per appearance, "
+                     "so no bound can be stated" % init_ctl)
+        notes.append(init_note)
+        hard_fail_errors.append(init_note)
+
     if structural_available and (structural is None or structural_diffs):
         notes.append(structural_note)
         if not waive("--allow-structural-mismatch", a.allow_structural_mismatch):

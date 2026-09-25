@@ -9165,6 +9165,7 @@ def main():
         all_results += d105_control_flow_boundary_cases(tmp)
         all_results += d106_e51_header_leg_cases(tmp)
         all_results += e64_aarch64_evidence_cases(tmp)
+        all_results += d108_initializer_control_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9564,6 +9565,62 @@ def e62_onair_output_release_cases(tmp):
         ok = L.get("verdict") == s.get("verdict") and L.get("criteria") == s.get("criteria")
     out.append(Result("e62/11 re-derived from the plugin records, probe JSON and archived E57 cells, the criteria "
                       "equal the committed ones", ok, "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    return out
+
+
+def d108_initializer_control_cases(tmp):
+    """D108: the module initializer may hold only the map attempt's branch; any other control flow or
+    call there is refused (D105 checked the entry only). Pins the before/after records and re-runs the
+    probe and the corpus scan live when the tools are present (D77)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    root = os.path.join(repo, "results", "d108_initializer_control")
+    ap, bp = os.path.join(root, "after.json"), os.path.join(root, "before_3147684.json")
+    if not (os.path.exists(ap) and os.path.exists(bp)):
+        return [Result("d108/0 before/after records present", False, "missing under %s" % root)]
+    A, B = json.load(open(ap))["cells"], json.load(open(bp))["cells"]
+    edits = ("loop_zero_alloc", "branch_zero_alloc", "loop_4096_alloc")
+    ok = (A["control_unedited"].get("bounded_bytes") == 618856
+          and all(not A[e].get("contract_written") and A[e].get("refused_for_initializer_control_flow") for e in edits))
+    out.append(Result("d108/1 after the fix: control issues 618,856; loop, branch and loop-with-4096-B edits of the "
+                      "initializer are refused for initializer control flow", ok,
+                      json.dumps({e: A[e].get("refused_for_initializer_control_flow") for e in edits})))
+    ok = (B["loop_zero_alloc"].get("bounded_bytes") == 618856 and B["branch_zero_alloc"].get("bounded_bytes") == 618856
+          and not B["loop_4096_alloc"].get("contract_written") and B["loop_4096_alloc"].get("refused_for_extractor_disagreement"))
+    out.append(Result("d108/2 before the fix the structure itself passed: zero-size edits issued 618,856; only a "
+                      "change of the constant total was refused (by disagreement)", ok, ""))
+    if not (iree_tools_available() and structural_available()):
+        out.append(Result("d108/3 probe and corpus re-run live", True, "needs iree-compile tools and iree.compiler.ir",
+                          skip=True))
+        return out
+    live = os.path.join(tmp, "d108_live.json")
+    r = subprocess.run([sys.executable, os.path.join(HERE, "d108_initializer_control_probe.py"), "--out", live],
+                       cwd=repo, capture_output=True, text=True)
+    ok = r.returncode == 0 and os.path.exists(live)
+    if ok:
+        L = json.load(open(live))["cells"]
+        keys = ("contract_written", "bounded_bytes", "refused_for_initializer_control_flow")
+        ok = all({k: L[c].get(k) for k in keys} == {k: A[c].get(k) for k in keys} for c in A)
+    out.append(Result("d108/3 probe re-run live: every cell ends as committed", ok,
+                      "rc=%d" % r.returncode if r.returncode else ("identical" if ok else "differs")))
+    import gzip
+    import mlir_alloc_walk as maw
+    files = [f for f in subprocess.run(["git", "ls-files", "results"], cwd=repo, capture_output=True,
+                                       text=True).stdout.split()
+             if "layout_ir" in os.path.basename(f) and (f.endswith(".txt") or f.endswith(".txt.gz"))]
+    flagged = []
+    for f in files:
+        fp = os.path.join(repo, f)
+        t = (gzip.open(fp, "rt") if f.endswith(".gz") else open(fp, encoding="utf-8", errors="replace")).read()
+        try:
+            w = maw.parse_alloc_ir_structural(t, "infer")
+            if w.get("initializer_control_ops"):
+                flagged.append(f)
+        except Exception as exc:                                  # pragma: no cover
+            flagged.append("%s: %s" % (f, exc))
+    out.append(Result("d108/4 no over-refusal: every archived layout IR's initializer holds only the map-attempt "
+                      "branch (%d files)" % len(files), len(files) >= 30 and not flagged,
+                      "flagged: %s" % flagged if flagged else "%d/%d clean" % (len(files), len(files))))
     return out
 
 

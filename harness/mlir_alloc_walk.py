@@ -311,6 +311,54 @@ def _touches_resource(op):
     return False
 
 
+def _opname(op):
+    """The registered op name. `OpView.name` is shadowed by an attribute accessor on ops that carry a
+    `name` attribute (util.buffer.constant in the initializer does, and it is optional there, so the
+    accessor returns None); `Operation.name` is not."""
+    return getattr(op, "operation", op).name
+
+
+def _is_map_attempt_branch(op):
+    """The one branch the initialization region is allowed to hold: `scf.if` whose condition is
+    the first result of `stream.resource.try_map` (the `did_map` flag). Its then-arm yields the
+    mapped resource, its else-arm allocates the copy -- the two loading arms."""
+    try:
+        cond = op.operands[0]
+        owner = cond.owner
+        return owner is not None and _opname(owner) == "stream.resource.try_map"
+    except Exception:                                     # noqa: BLE001 -- unknown shape: not allowed
+        return False
+
+
+def _initializer_control_ops(module_op):
+    """D108: control flow and calls in the module INITIALIZER, other than the map-attempt branch.
+
+    D105 refused calls, loops and branches in the entry only. The initializer was never checked:
+    `_extract_constants` sums `stream.resource.alloc` once per appearance and the regex path reads
+    the packed composite size once, so a constant allocation inside a loop (or behind a call) would
+    be counted once by BOTH extractors -- they would agree, and the figure would be issued. No
+    archived initializer contains such a structure (each holds exactly one `scf.if` on `did_map`
+    and its two `scf.yield`), so no figure changes; the boundary becomes a refusal, as in D105."""
+    found = []
+    for region in module_op.regions:
+        for block in region.blocks:
+            for top in block.operations:
+                if _opname(top) != "util.initializer":
+                    continue
+                for o in _walk(top):
+                    n = _opname(o)
+                    if not _is_unsupported_control(n):
+                        continue
+                    if n == "scf.if" and _is_map_attempt_branch(o):
+                        continue
+                    if n == "scf.yield":
+                        par = getattr(o.operation, "parent", None)
+                        if par is not None and _opname(par) == "scf.if" and _is_map_attempt_branch(par):
+                            continue
+                    found.append(n)
+    return found
+
+
 def _extract_constants(module_op):
     """module_resident_constant_bytes: sum of stream.resource.alloc(constant)
     sizes anywhere in the module (these live in util.initializer, outside the
@@ -369,6 +417,7 @@ def parse_alloc_ir_structural(ir_text, entry="infer"):
                 continue
             extracted = _extract_from_entry(entries[0])
             extracted["constants"] = _extract_constants(mod.operation)
+            extracted["initializer_control_ops"] = _initializer_control_ops(mod.operation)
             score = (extracted["dispatches"], len(extracted["outputs"]) + len(extracted["transient_slabs"]),
                      -len(extracted["unresolved"]))
             if best is None or score > best[0]:
