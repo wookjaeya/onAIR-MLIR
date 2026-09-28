@@ -9199,6 +9199,7 @@ def main():
         all_results += e64_aarch64_evidence_cases(tmp)
         all_results += d108_initializer_control_cases(tmp)
         all_results += e65_producer_check_cases(tmp)
+        all_results += e66_plugin_document_rules_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9654,6 +9655,121 @@ def d108_initializer_control_cases(tmp):
     out.append(Result("d108/4 no over-refusal: every archived layout IR's initializer holds only the map-attempt "
                       "branch (%d files)" % len(files), len(files) >= 30 and not flagged,
                       "flagged: %s" % flagged if flagged else "%d/%d clean" % (len(files), len(files))))
+    return out
+
+
+def e66_plugin_document_rules_cases(tmp):
+    """E66 (plan docs/plans/E66_plugin_document_rules.md, ae115f3).
+    D111: the OnAIR plugin applies the header generator's default document rules before the runtime exists;
+    D112: it validates the budget as the flight application does. Guards re-run the rule functions and
+    re-derive from the guest's raw records -- none reads only the summary (D89)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e66_plugin_document_rules")
+    if not os.path.exists(os.path.join(D, "summary.json")):
+        return [Result("e66/0 summary present", False, "missing %s" % D)]
+    sys.path.insert(0, os.path.join(repo, "plugins", "compiled_learner"))
+    import artifact_binding as _ab
+    import e66_plugin_document_rules as _e66
+    committed = load(os.path.join(D, "ground.json"))
+
+    # e66/1 -- parity, re-run live: the generator's default verdict and the plugin's agree on every document
+    q1 = _e66.q1_parity()
+    out.append(Result("e66/1 D111 parity: header generator default and plugin document rules agree on all %d "
+                      "documents (re-run)" % q1["n"],
+                      q1["pass"] and q1["disagreements"] == [] and q1["accepted"] == committed["Q1_parity"]["accepted"],
+                      "disagreements=%s accepted=%s" % (q1["disagreements"], q1["accepted"])))
+
+    # e66/2 -- the parity test is not vacuous: a plugin that accepts everything disagrees (revert-and-confirm-fail)
+    real = _ab.check_document_acceptance
+    try:
+        _ab.check_document_acceptance = lambda c, allow=False: {"verdict": "accepted", "waived": []}
+        vac = _e66.q1_parity()
+    finally:
+        _ab.check_document_acceptance = real
+    out.append(Result("e66/2 with the document rules removed, the parity check fails (the pre-E66 plugin)",
+                      not vac["pass"] and len(vac["disagreements"]) >= 9,
+                      "disagreements=%d" % len(vac["disagreements"])))
+
+    # e66/3 -- budget: the cases, and every committed deployment still accepted (no over-refusal)
+    q2 = _e66.q2_budget()
+    docs = _e66.committed_documents()
+    bad_docs = [d["deployment"] for d in docs if not d["as_expected"]]
+    out.append(Result("e66/3 D112 budget: 0, negative, bool, string, float and list refused; absent -> not evaluated; "
+                      "all %d committed deployments get the verdict they declare (accepted unless marked)"
+                      % q2["committed_deployments_checked"],
+                      q2["pass"] and not bad_docs
+                      and q2["committed_deployments_expected_refused"] == ["e66_b2_resnet_R4_budget_zero"],
+                      json.dumps([r["case"] for r in q2["cases"] if not r["ok"]] + q2["committed_deployments_mismatched"]
+                                 + bad_docs)))
+
+    # e66/4 -- the plugin wiring, on executed lines: both checks sit inside the guard, the document check comes
+    # after the contract is read and before the budget comparison and the artifact load; no int() coercion is left
+    src = open(os.path.join(repo, "plugins", "compiled_learner", "compiled_learner_plugin.py"), encoding="utf-8").read()
+    code = "\n".join(l.split("#", 1)[0] for l in src.splitlines())
+    i_budget = code.find("self.budget_bytes = ab.check_budget_option(d)")
+    i_load = code.find("self.contract = self._load_contract()")
+    i_doc = code.find("ab.check_document_acceptance(self.contract")
+    i_adm = code.find("self._decide_admission()")
+    i_art = code.find("self._load_artifact()", i_adm)
+    ok = (0 < i_budget < i_load < i_doc < i_adm < i_art and "int(self.budget_bytes)" not in code
+          and "ab.check_unchecked_producer_option(d)" in code)
+    out.append(Result("e66/4 plugin: budget checked, document checked after reading and before admission and artifact",
+                      ok, "positions=%s" % [i_budget, i_load, i_doc, i_adm, i_art]))
+
+    # e66/5 -- the waiver is used only where the document predates the producer check, and in E66 only by C1
+    pinned_bad = [d for d in docs if d.get("waived") and not d.get("pinned")
+                  and not d["deployment"].endswith("_C1_waived")]
+    e66cfg = load(os.path.join(repo, "configs", "deployments", "onair_deployments_e66_aarch64.json"))["deployments"]
+    waivers = sorted(k for k, v in e66cfg.items() if v.get(_ab.UNCHECKED_PRODUCER_KEY))
+    out.append(Result("e66/5 the waiver appears only on pinned historical deployments and on E66's C1",
+                      not pinned_bad and waivers == ["e66_b2_resnet_C1_waived"],
+                      "unpinned waivers=%s e66 waivers=%s" % ([d["deployment"] for d in pinned_bad], waivers)))
+
+    # e66/6 -- guest cells re-derived from the plugin's own records
+    live = os.path.join(tmp, "e66_summary.json")
+    rc, _o, err = run([PY, os.path.join(HERE, "mk_e66_summary.py"), "--out", live])
+    s = load(live) if rc == 0 and os.path.exists(live) else {}
+    c = load(os.path.join(D, "summary.json"))
+    ok = (s.get("verdict") == c.get("verdict") == "PASS"
+          and s["Q3_reissued_documents"]["verdict_agreement_with_cfs"] == "8/8"
+          and s["Q3_reissued_documents"]["cells"] == c["Q3_reissued_documents"]["cells"]
+          and s["Q4_refusals_and_waiver"]["cells"] == c["Q4_refusals_and_waiver"]["cells"])
+    out.append(Result("e66/6 Q3/Q4 re-derived from the guest records: re-issued documents 8/8 with cFS, refusals R1-R4, "
+                      "waiver C1", ok, "rc=%s %s" % (rc, (err or "")[-160:])))
+
+    # e66/7 -- the staged documents: byte copies of the E65 re-issue, links resolving to the bound artifact
+    man = load(os.path.join(D, "docs", "manifest.json"))["entries"]
+    bad = []
+    for k, e in man.items():
+        link = os.path.join(repo, e["dir"], e["artifact_link"])
+        doc = load(os.path.join(repo, e["dir"], e["document"]))
+        if not os.path.islink(link) or _e66.sha256_file(link) != doc["artifact"]["sha256"]:
+            bad.append(k)
+        if e.get("document_source") and _e66.sha256_file(os.path.join(repo, e["dir"], e["document"])) != \
+                _e66.sha256_file(os.path.join(repo, e["document_source"])):
+            bad.append(k + ":copy")
+    out.append(Result("e66/7 staged documents are byte copies and their artifact links resolve to the bound artifact",
+                      not bad and len(man) == 6, "bad=%s" % bad))
+
+    # e66/8 -- the twelfth AArch64 representation (E65's two-output model) has no unclassified resource op
+    try:
+        import mlir_alloc_walk as _maw                               # noqa: F401
+        from iree.compiler import ir as _ir                          # noqa: F401
+        q5 = _e66.q5_corpus()
+        out.append(Result("e66/8 two-output AArch64 representation: 0 unclassified resource operations (12 in all)",
+                          q5["pass"] and q5["total_representations"] == 12, "uncls=%s" % q5["unclassified_resource_ops"]))
+    except ImportError:
+        out.append(Result("e66/8 two-output representation corpus", True, "needs iree.compiler.ir", skip=True))
+
+    # e66/9 -- the manuscript's cell inventory, recounted from the raw logs
+    q7, _cells = _e66.q7_inventory()
+    keys = ("execution_cells_total", "refusal_cells_total", "alignment_cells_total", "alignment_cells_with_final_peak",
+            "execution_cells_peak_within_admitted_budget", "refusal_cells_without_runtime_or_inference")
+    ok = all(q7[k] == committed["Q7_inventory_record"][k] for k in keys) and q7["execution_cells_total"] == 37 \
+        and q7["refusal_cells_total"] == 20 and q7["alignment_cells_with_final_peak"] == 22
+    out.append(Result("e66/9 inventory recount: 37 execution, 20 refusal, 32 alignment (22 with a final peak)",
+                      ok, json.dumps({k: q7[k] for k in keys})))
     return out
 
 

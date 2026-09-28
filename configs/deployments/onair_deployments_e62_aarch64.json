@@ -54,7 +54,9 @@
    "budget_bytes": 618856,
    "output_readback": "buffer_protocol",
    "_e62_role": "fix arm (plan SS3 cell O-fix)",
-   "_e62_source_deployment": "e57_b2_resnet_Bu"
+   "_e62_source_deployment": "e57_b2_resnet_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b3_deepae_Bu_fix": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -108,7 +110,9 @@
    "budget_bytes": 1069632,
    "output_readback": "buffer_protocol",
    "_e62_role": "fix arm (plan SS3 cell O-fix)",
-   "_e62_source_deployment": "e57_b3_deepae_Bu"
+   "_e62_source_deployment": "e57_b3_deepae_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_smartcam_Bu_fix": {
    "artifact_dir": "../../results/e32_smartcam_aarch64/build",
@@ -133,7 +137,9 @@
    "budget_bytes": 18222796,
    "output_readback": "buffer_protocol",
    "_e62_role": "fix arm (plan SS3 cell O-fix)",
-   "_e62_source_deployment": "e57_smartcam_Bu"
+   "_e62_source_deployment": "e57_smartcam_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_wgan_Bu_fix": {
    "artifact_dir": "../../results/e53_wgan_aarch64/build/aarch64",
@@ -164,7 +170,9 @@
    "budget_bytes": 135666432,
    "output_readback": "buffer_protocol",
    "_e62_role": "fix arm (plan SS3 cell O-fix)",
-   "_e62_source_deployment": "e57_wgan_Bu"
+   "_e62_source_deployment": "e57_wgan_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b3_deepae_Bu_long_fix": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -218,7 +226,9 @@
    "budget_bytes": 1069632,
    "output_readback": "buffer_protocol",
    "_e62_role": "fix arm, 450 calls (plan SS3 cell O-long; E57c exceeded the admitted budget at call 417 with asarray)",
-   "_e62_source_deployment": "e57_b3_deepae_Bu_long"
+   "_e62_source_deployment": "e57_b3_deepae_Bu_long",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b2_resnet_Bu_ctl": {
    "artifact_dir": "../../results/e36b_aarch64_models/b2_resnet",
@@ -272,7 +282,9 @@
    "budget_bytes": 618856,
    "output_readback": "asarray",
    "_e62_role": "control arm on the E62 build (plan SS3 cell O-ctl)",
-   "_e62_source_deployment": "e57_b2_resnet_Bu"
+   "_e62_source_deployment": "e57_b2_resnet_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b3_deepae_Bu_ctl": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -326,7 +338,9 @@
    "budget_bytes": 1069632,
    "output_readback": "asarray",
    "_e62_role": "control arm on the E62 build (plan SS3 cell O-ctl)",
-   "_e62_source_deployment": "e57_b3_deepae_Bu"
+   "_e62_source_deployment": "e57_b3_deepae_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_smartcam_Bu_ctl": {
    "artifact_dir": "../../results/e32_smartcam_aarch64/build",
@@ -351,7 +365,9 @@
    "budget_bytes": 18222796,
    "output_readback": "asarray",
    "_e62_role": "control arm on the E62 build (plan SS3 cell O-ctl)",
-   "_e62_source_deployment": "e57_smartcam_Bu"
+   "_e62_source_deployment": "e57_smartcam_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_wgan_Bu_ctl": {
    "artifact_dir": "../../results/e53_wgan_aarch64/build/aarch64",
@@ -382,7 +398,9 @@
    "budget_bytes": 135666432,
    "output_readback": "asarray",
    "_e62_role": "control arm on the E62 build (plan SS3 cell O-ctl)",
-   "_e62_source_deployment": "e57_wgan_Bu"
+   "_e62_source_deployment": "e57_wgan_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b2_resnet_Bu_default": {
    "artifact_dir": "../../results/e36b_aarch64_models/b2_resnet",
@@ -435,7 +453,9 @@
    "record_hal_statistics": true,
    "budget_bytes": 618856,
    "_e62_role": "no output_readback key: the default must be the fix path (plan SS3 cell O-default)",
-   "_e62_source_deployment": "e57_b2_resnet_Bu"
+   "_e62_source_deployment": "e57_b2_resnet_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b2_resnet_Bu_enf_ctl": {
    "artifact_dir": "../../results/e36b_aarch64_models/b2_resnet",
@@ -490,7 +510,9 @@
    "output_readback": "asarray",
    "enforce_output_release": true,
    "_e62_role": "enforcement control arm (plan SS3 cell O-enf-ctl; v19 metareview M1)",
-   "_e62_source_deployment": "e57_b2_resnet_Bu"
+   "_e62_source_deployment": "e57_b2_resnet_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b2_resnet_Bu_enf_fix": {
    "artifact_dir": "../../results/e36b_aarch64_models/b2_resnet",
@@ -545,7 +567,9 @@
    "output_readback": "buffer_protocol",
    "enforce_output_release": true,
    "_e62_role": "enforcement fix arm (plan SS3 cell O-enf-fix; v19 metareview M1)",
-   "_e62_source_deployment": "e57_b2_resnet_Bu"
+   "_e62_source_deployment": "e57_b2_resnet_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b3_deepae_Bu_enf_ctl": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -600,7 +624,9 @@
    "output_readback": "asarray",
    "enforce_output_release": true,
    "_e62_role": "enforcement control arm (plan SS3 cell O-enf-ctl; v19 metareview M1)",
-   "_e62_source_deployment": "e57_b3_deepae_Bu"
+   "_e62_source_deployment": "e57_b3_deepae_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b3_deepae_Bu_enf_fix": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -655,7 +681,9 @@
    "output_readback": "buffer_protocol",
    "enforce_output_release": true,
    "_e62_role": "enforcement fix arm (plan SS3 cell O-enf-fix; v19 metareview M1)",
-   "_e62_source_deployment": "e57_b3_deepae_Bu"
+   "_e62_source_deployment": "e57_b3_deepae_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_smartcam_Bu_enf_ctl": {
    "artifact_dir": "../../results/e32_smartcam_aarch64/build",
@@ -681,7 +709,9 @@
    "output_readback": "asarray",
    "enforce_output_release": true,
    "_e62_role": "enforcement control arm (plan SS3 cell O-enf-ctl; v19 metareview M1)",
-   "_e62_source_deployment": "e57_smartcam_Bu"
+   "_e62_source_deployment": "e57_smartcam_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_smartcam_Bu_enf_fix": {
    "artifact_dir": "../../results/e32_smartcam_aarch64/build",
@@ -707,7 +737,9 @@
    "output_readback": "buffer_protocol",
    "enforce_output_release": true,
    "_e62_role": "enforcement fix arm (plan SS3 cell O-enf-fix; v19 metareview M1)",
-   "_e62_source_deployment": "e57_smartcam_Bu"
+   "_e62_source_deployment": "e57_smartcam_Bu",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b2_resnet_Bum1": {
    "artifact_dir": "../../results/e36b_aarch64_models/b2_resnet",
@@ -760,7 +792,9 @@
    "record_hal_statistics": true,
    "budget_bytes": 618855,
    "_e62_role": "B_u - 1, default readback: the verdict half must not move (plan SS3 cell O-deny)",
-   "_e62_source_deployment": "e57_b2_resnet_Bum1"
+   "_e62_source_deployment": "e57_b2_resnet_Bum1",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_b3_deepae_Bum1": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -813,7 +847,9 @@
    "record_hal_statistics": true,
    "budget_bytes": 1069631,
    "_e62_role": "B_u - 1, default readback: the verdict half must not move (plan SS3 cell O-deny)",
-   "_e62_source_deployment": "e57_b3_deepae_Bum1"
+   "_e62_source_deployment": "e57_b3_deepae_Bum1",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_smartcam_Bum1": {
    "artifact_dir": "../../results/e32_smartcam_aarch64/build",
@@ -837,7 +873,9 @@
    "record_hal_statistics": true,
    "budget_bytes": 18222795,
    "_e62_role": "B_u - 1, default readback: the verdict half must not move (plan SS3 cell O-deny)",
-   "_e62_source_deployment": "e57_smartcam_Bum1"
+   "_e62_source_deployment": "e57_smartcam_Bum1",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e62_wgan_Bum1": {
    "artifact_dir": "../../results/e53_wgan_aarch64/build/aarch64",
@@ -867,7 +905,9 @@
    "record_hal_statistics": true,
    "budget_bytes": 135666431,
    "_e62_role": "B_u - 1, default readback: the verdict half must not move (plan SS3 cell O-deny)",
-   "_e62_source_deployment": "e57_wgan_Bum1"
+   "_e62_source_deployment": "e57_wgan_Bum1",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   }
  }
 }

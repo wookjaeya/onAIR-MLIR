@@ -40,6 +40,12 @@ Design points carried over and the reasons they exist:
   which is the same decision the C gate makes. A refusal leaves the plugin inactive
   with a stated reason instead of raising through the OnAIR process (SS6.1).
 
+* The document is held to the rules the header generator applies on the cFS path
+  before the budget is compared (E66/D111): a document issued under an override, one
+  whose producer check is not a match, and one that states a bound without any
+  producer check are refused as configuration errors. The budget is validated as the
+  flight application validates it -- a positive integer or nothing (E66/D112).
+
 * The verdict carries the budget it was decided ON, and the peak is compared with
   THAT number -- E32/D59 measured a conditional deployment running at 106.4% of its
   approved budget while reporting `peak_within_bounded: true`.
@@ -114,7 +120,13 @@ class Plugin(AIPlugin):
         # for the conditional policy refused as a configuration error) first thing inside the
         # guard below; what reaches the admission policy is this constant.
         self.allow_conditional_map = False
-        self.budget_bytes = d.get("budget_bytes")
+        # E66/D112: validated inside the guard below (ab.check_budget_option), as the flight
+        # application validates it; until then no budget is in force.
+        self.budget_bytes = None
+        # E66/D111: whether the deployment waives the missing producer comparison (the plugin's
+        # counterpart of gen_contract_header.py --allow-unchecked-producer); read inside the guard.
+        self.allow_unchecked_producer = False
+        self.document_acceptance = None
         # E57: opt-in HAL allocator statistics. Off by default so every existing deployment
         # records exactly what it recorded before; on, the plugin reads the allocator of ITS
         # OWN context after module append and after each inference (post `del out`), which is
@@ -182,10 +194,16 @@ class Plugin(AIPlugin):
         # guard and killed the OnAIR run on a missing file -- measured, then fixed.
         try:
             ab.check_conditional_map_option(d)
+            self.budget_bytes = ab.check_budget_option(d)
+            self.allow_unchecked_producer = ab.check_unchecked_producer_option(d)
             if self.output_readback not in READBACK_MODES:
                 raise ContractViolation("unknown output_readback %r (one of %s)"
                                         % (self.output_readback, READBACK_MODES))
             self.contract = self._load_contract()
+            # E66/D111: the document rules the header generator applies at build time, applied here
+            # before anything else reads the document -- and before the runtime exists.
+            self.document_acceptance = ab.check_document_acceptance(self.contract,
+                                                                    self.allow_unchecked_producer)
             self.entry = self.contract["interface"].get("entry", "infer")
             self.in_shape = tuple(int(v) for v in self.contract["interface"]["input"]["shape"])
             self.in_elems = int(np.prod(self.in_shape))
@@ -222,6 +240,10 @@ class Plugin(AIPlugin):
                     "runtime_created": self._ctx is not None,
                     # E65/M2: the conditional option as the deployment wrote it (absent -> None)
                     "allow_conditional_map_requested": d.get("allow_conditional_map"),
+                    # E66/D111-D112: the document verdict (and any waiver) and the validated budget
+                    "document_acceptance": self.document_acceptance,
+                    "allow_unchecked_producer_requested": d.get(ab.UNCHECKED_PRODUCER_KEY),
+                    "budget_bytes_configured": d.get(ab.BUDGET_KEY),
                     "output_readback": self.output_readback,
                     "enforce_output_release": self.enforce_output_release}
         if self.record_hal_statistics or self.enforce_output_release:
@@ -358,7 +380,7 @@ class Plugin(AIPlugin):
                                                     "so there is nothing to source",
                               "reason": "no budget_bytes configured for this deployment"}
             return
-        self.admission = ap.decide(self.contract, int(self.budget_bytes),
+        self.admission = ap.decide(self.contract, self.budget_bytes,
                                    allow_conditional_map=self.allow_conditional_map)
         self.admission["budget_source"] = "deployment_config"
         self.admission["budget_source_detail"] = self.deployment.get("source")

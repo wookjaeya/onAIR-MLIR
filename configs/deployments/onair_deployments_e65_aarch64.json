@@ -54,7 +54,9 @@
    "budget_bytes": 618856,
    "output_readback": "buffer_protocol",
    "_e65_role": "Q3 refusal cell: identical to the control except allow_conditional_map=true",
-   "_e65_source_deployment": "e62_b2_resnet_Bu_fix (configs/deployments/onair_deployments_e62_aarch64.json)"
+   "_e65_source_deployment": "e62_b2_resnet_Bu_fix (configs/deployments/onair_deployments_e62_aarch64.json)",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e65_b2_resnet_conditional_false_control": {
    "artifact_dir": "../../results/e36b_aarch64_models/b2_resnet",
@@ -108,7 +110,9 @@
    "budget_bytes": 618856,
    "output_readback": "buffer_protocol",
    "_e65_role": "Q3 control: identical to the refusal cell except allow_conditional_map=false (over-refusal check)",
-   "_e65_source_deployment": "e62_b2_resnet_Bu_fix (configs/deployments/onair_deployments_e62_aarch64.json)"
+   "_e65_source_deployment": "e62_b2_resnet_Bu_fix (configs/deployments/onair_deployments_e62_aarch64.json)",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   }
  }
 }

@@ -56,7 +56,9 @@
    "_e57_role": "experiment A at B_u + experiment B (N=50)",
    "_e57_cfs_cell": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e57_b2_resnet_Bum1": {
    "artifact_dir": "../../results/e36b_aarch64_models/b2_resnet",
@@ -112,7 +114,9 @@
    "_e57_role": "experiment A at B_u - 1",
    "_e57_cfs_cell": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_deny_Bm1_real.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e57_b3_deepae_Bu": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -168,7 +172,9 @@
    "_e57_role": "experiment A at B_u + experiment B (N=100)",
    "_e57_cfs_cell": "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e57_b3_deepae_Bum1": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -224,7 +230,9 @@
    "_e57_role": "experiment A at B_u - 1",
    "_e57_cfs_cell": "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_deny_Bm1_real.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e57_smartcam_Bu": {
    "artifact_dir": "../../results/e32_smartcam_aarch64/build",
@@ -251,7 +259,9 @@
    "_e57_role": "experiment A at B_u + experiment B (N=50)",
    "_e57_cfs_cell": "results/e48_real_inputs_aarch64/cfs/logs/smartcam_admit_B_real.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e57_smartcam_Bum1": {
    "artifact_dir": "../../results/e32_smartcam_aarch64/build",
@@ -278,7 +288,9 @@
    "_e57_role": "experiment A at B_u - 1",
    "_e57_cfs_cell": "results/e48_real_inputs_aarch64/cfs/logs/smartcam_deny_Bm1_real.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e57_wgan_Bu": {
    "artifact_dir": "../../results/e53_wgan_aarch64/build/aarch64",
@@ -311,7 +323,9 @@
    "_e57_role": "experiment A at B_u + experiment B (N=3)",
    "_e57_cfs_cell": "results/e53_wgan_aarch64/cfs/logs/cfs_B.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e57_wgan_Bum1": {
    "artifact_dir": "../../results/e53_wgan_aarch64/build/aarch64",
@@ -344,7 +358,9 @@
    "_e57_role": "experiment A at B_u - 1",
    "_e57_cfs_cell": "results/e53_wgan_aarch64/cfs/logs/cfs_Bm1.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   },
   "e57_b3_deepae_Bu_long": {
    "artifact_dir": "../../results/e36b_aarch64_models/b3_deepae",
@@ -400,7 +416,9 @@
    "_e57_role": "E57c: experiment B-2 extended to N=450 (plan docs/plans/E57c_deepae_long_run.md)",
    "_e57_cfs_cell": "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log",
    "output_readback": "asarray",
-   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2)."
+   "_e62_pin": "E57 ran before E62 introduced output_readback; its readback was np.array(out), which readback.py keeps verbatim as 'asarray'. Pinned so E57 reproduces from this file after E62 changed the default (docs/plans/E62_onair_output_release.md SS2).",
+   "allow_unchecked_producer": true,
+   "_e66_pin": "E66 (docs/plans/E66_plugin_document_rules.md): this deployment ran before the plugin applied the header generator's document rules, and its document states a bound with no producer_check (issued before E65). Pinned so the recorded cell reproduces from this file; the plugin records the waiver. New deployments use the re-issued documents and do not carry this key."
   }
  }
 }
