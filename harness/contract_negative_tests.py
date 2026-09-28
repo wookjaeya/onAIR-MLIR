@@ -9200,6 +9200,7 @@ def main():
         all_results += d108_initializer_control_cases(tmp)
         all_results += e65_producer_check_cases(tmp)
         all_results += e66_plugin_document_rules_cases(tmp)
+        all_results += d113_manuscript_evidence_records_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9773,6 +9774,62 @@ def e66_plugin_document_rules_cases(tmp):
     return out
 
 
+
+def d113_manuscript_evidence_records_cases(tmp):
+    """D113 (v0.73.1): the repository record of facts the manuscript relies on.
+    Author confirmations are recorded without a digest (no bytes are held here); the E54 grades are kept,
+    not upgraded; the DeepAE constant comparison is linked to the AArch64 evaluated specification by the
+    MLIR's sha256, re-derived on every run (D77). D114: tracked vmfb links resolve to tracked artifacts."""
+    out = []
+    repo = os.path.dirname(HERE)
+    rec_path = os.path.join(repo, "results", "manuscript_evidence_records", "records.json")
+    if not os.path.exists(rec_path):
+        return [Result("d113/0 records present", False, "missing %s" % rec_path)]
+    import manuscript_evidence_records as _mer
+    committed = load(rec_path)
+    live = _mer.derive()
+    link = live["deepae_constants_link"]
+
+    # d113/1 -- the committed record is what the repository files give now
+    out.append(Result("d113/1 DeepAE constant comparison linked to the AArch64 evaluated specification (same MLIR "
+                      "sha256), re-derived", committed == live and link["same_mlir"] and link["comparison_ok"]
+                      and link["constants_compared"] == 20,
+                      "same_mlir=%s ok=%s n=%s sha=%s" % (link["same_mlir"], link["comparison_ok"],
+                                                          link["constants_compared"],
+                                                          link["compared_mlir"]["sha256"][:16])))
+
+    # d113/2 -- no fabricated digest: an author confirmation carries no bytes, so no sha256, and says why
+    ac = committed["author_confirmations"]
+    bad = [a["id"] for a in ac if a.get("bytes_in_repository") is not False or a.get("sha256") is not None
+           or not a.get("sha256_unavailable_reason")]
+    out.append(Result("d113/2 author confirmations carry no digest (no bytes held) and state why",
+                      len(ac) == 3 and not bad, "ids=%s bad=%s" % ([a["id"] for a in ac], bad)))
+
+    # d113/3 -- the E54 grades describe what this environment fetched; the record sits beside them
+    b = load(os.path.join(repo, "results", "e54_reference_budget", "budgets.json"))
+    kept = (b["margins"]["pdr50"]["grade"] == b["margins"]["ship30"]["grade"]
+            == "transcribed_from_directive_primary_blocked"
+            and b["platforms"]["PA"]["source_grade"] == "mirror_adjacent_revision_fetched")
+    out.append(Result("d113/3 E54 source grades kept, not upgraded by the confirmation record",
+                      kept and committed["repository_grades_observed"] == live["repository_grades_observed"],
+                      str(live["repository_grades_observed"])))
+
+    # d113/4 -- the guardrail that said the margins are not primary-cited now names the record
+    lines = [l for l in open(os.path.join(repo, "CLAUDE.md"), encoding="utf-8")
+             if "NASA 마진 수치가 1차 출처에서 확인됐다" in l]
+    out.append(Result("d113/4 CLAUDE.md margin guardrail points to the D113 record",
+                      len(lines) == 1 and "D113" in lines[0], "lines=%d" % len(lines)))
+
+    # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
+    r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)
+    tracked = {l.split("\t", 1)[1]: l.split()[0] for l in r.stdout.splitlines() if "\t" in l}
+    links = [f for f, mode in tracked.items() if mode == "120000"]
+    unresolved = [f for f in links
+                  if os.path.relpath(os.path.realpath(os.path.join(repo, f)), repo) not in tracked]
+    out.append(Result("d114/1 tracked vmfb links resolve to tracked artifacts",
+                      bool(tracked) and not unresolved, "links=%d unresolved=%s" % (len(links), unresolved)))
+    return out
+
 def e65_producer_check_cases(tmp):
     """E65 (plan docs/plans/E65_producer_revision_and_plugin_option.md, 7b67d89).
     M1: the artifact's bytecode version is read and a mismatch withholds the bound and makes the header
@@ -9796,14 +9853,20 @@ def e65_producer_check_cases(tmp):
             vers[f] = tuple(_vmi.read_module_info(os.path.join(repo, f))["bytecode_version"])
         except (_vmi.ModuleInfoError, OSError) as e:
             errs.append((f, str(e)))
-    old = sorted(f for f, v in vers.items() if v != (17, 0))
+    # D114: count distinct artifacts, not tracked paths. E66 stages each document beside a symbolic
+    # link to the artifact it binds; a link is the same artifact, and counting it as a sixth 16.0
+    # artifact failed on CI (the local run preceded the commit, so `git ls-files` did not list it).
+    real = {f: os.path.relpath(os.path.realpath(os.path.join(repo, f)), repo) for f in vers}
+    old = sorted({real[f] for f, v in vers.items() if v != (17, 0)})
+    old_links = sorted(f for f, v in vers.items() if v != (17, 0) and real[f] != f)
     expect_old = sorted(["results/e27_baselines/iree310_mlp16k/mlp16k.vmfb"] + [
         "results/e59_info_levels_aarch64/drift_310/%s/%s.vmfb" % (m, m)
         for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan")])
     out.append(Result("e65/1 bytecode version read from every tracked artifact; exactly the five earlier-revision "
-                      "artifacts are 16.0", bool(files) and not errs and old == expect_old
-                      and all(vers[f] == (16, 0) for f in old),
-                      "files=%d errors=%s non17=%s" % (len(files), errs[:2], old)))
+                      "artifacts are 16.0 (links counted as the artifact they name)",
+                      bool(files) and not errs and old == expect_old
+                      and all(vers[f] == (16, 0) for f in vers if real[f] in old),
+                      "files=%d errors=%s non17=%s links=%s" % (len(files), errs[:2], old, old_links)))
 
     # e65/2 -- the reader refuses what it cannot read (never a default version)
     bad = os.path.join(tmp, "e65_trunc.vmfb")
