@@ -1,0 +1,45 @@
+[
+ {
+  "part": "e65_producer_check",
+  "model": "b2_resnet",
+  "vmfb": "models/b2_resnet_drift.vmfb",
+  "seconds": 90,
+  "id": "e65_drift_nobound",
+  "so": "variants/e65_drift_nobound/ai_learner.so",
+  "startup": "variants/e65_drift_nobound/cfe_es_startup.scr",
+  "desc": "E65 Q2(a): earlier-revision ResNet artifact (bytecode 16.0) with the header of the document the CURRENT analyzer issues for it (producer check mismatch, no bound; header written with --allow-producer-mismatch, BOUND_KNOWN 0). Expect UNKNOWN_BOUND at Init, no runtime, cFS operational.",
+  "expect": {
+   "admission": "UNKNOWN_BOUND",
+   "mem_init_present": false,
+   "runtime_created": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e65": {
+   "role": "Q2a",
+   "header": "results/e65_producer_check/drift_310_reanalyzed/b2_resnet/contract_gen.b2_resnet.h"
+  }
+ },
+ {
+  "part": "e65_producer_check",
+  "model": "b2_resnet",
+  "vmfb": "models/b2_resnet_drift.vmfb",
+  "seconds": 90,
+  "id": "e65_drift_legacy",
+  "so": "variants/e65_drift_legacy/ai_learner.so",
+  "startup": "variants/e65_drift_legacy/cfe_es_startup.scr",
+  "desc": "E65 Q2(b): the same artifact with the header of the document E59 issued (bound 618856, grade verified, no producer check; header written with --allow-unchecked-producer). Budget B_u. Expect ADMIT, MATCH, then the runtime rejects the module at append (bytecode version mismatch), no inference, cFS operational.",
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "runtime_load_failed": true,
+   "mem_init_present": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "e65": {
+   "role": "Q2b",
+   "header": "results/e65_producer_check/guest/legacy_e59_header/contract_gen.b2_resnet.h"
+  }
+ }
+]

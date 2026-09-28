@@ -74,6 +74,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import static_mem_bound as smb  # noqa: E402  (parse_alloc_ir, entry_arg_shapes, artifact_rodata_segments)
+import vmfb_module_info as vmi  # noqa: E402  E65/M1: producer bytecode version read from the artifact
 try:
     import elf_stack_frame as esf  # noqa: E402  optional: locate ELFs inside the vmfb
 except Exception:  # pragma: no cover
@@ -89,6 +90,24 @@ BOUND_METHOD_NONE = "NONE"
 BINDING_RULE = ("the gate must hash the exact bytes handed to the IREE session and compare "
                 "with artifact.sha256 before any runtime allocation")
 DUMP_HEADER_RE = re.compile(r"^// -----// IR Dump After [^\n]*\n", re.M)
+
+# E65/M1: the compiler revision over which the allocation correspondence K was checked, and the
+# bytecode version that revision emits (IREE_VM_BYTECODE_VERSION_MAJOR/_MINOR 17.0 at
+# runtime/src/iree/vm/bytecode/utils/isa.h:26,32 of that revision). Until E65 the contract recorded
+# only the ANALYSIS HOST's compiler (validity.compiler, from `iree-compile --version` at generation
+# time), and four artifacts built by an earlier revision were issued with a bound and grade
+# "verified" -- the disagreement lived only in a free-text note that no consumer reads.
+CHECKED_PRODUCER = {
+    "compiler": "IREE 3.11.0rc20260316",
+    "compiler_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+    "bytecode_version": [17, 0],
+}
+PRODUCER_CHECK_STATES = ("match", "mismatch", "not_observed")
+PRODUCER_CHECK_GRANULARITY = (
+    "the artifact carries no compiler revision string (empty module attrs; the embedded ELF "
+    ".comment reads 'IREE'), so the check compares the bytecode version the artifact declares. "
+    "Two compiler revisions that emit the same bytecode version are NOT distinguished; 'match' "
+    "means 'same bytecode version as the checked revision', not 'same revision'.")
 TENSOR_RE = re.compile(r"tensor<((?:[0-9?]+x)*)([a-z]+[0-9]*)>")
 
 
@@ -332,6 +351,37 @@ def compiler_version():
     return "IREE %s %s" % (m.group(1), m.group(2)[:7]), raw.strip(), m.group(2)
 
 
+def producer_check(vmfb_path):
+    """E65/M1: compare the bytecode version the artifact declares with CHECKED_PRODUCER.
+
+    Three states, never two: an artifact whose version could not be read is `not_observed`, and
+    that is not a match (D25/D29/D68). Only `match` lets a bound be stated."""
+    rec = {
+        "state": None,
+        "artifact_bytecode_version": None,
+        "checked_bytecode_version": list(CHECKED_PRODUCER["bytecode_version"]),
+        "checked_compiler": CHECKED_PRODUCER["compiler"],
+        "checked_compiler_commit": CHECKED_PRODUCER["compiler_commit"],
+        "source": None,
+        "granularity": PRODUCER_CHECK_GRANULARITY,
+        "consequence": None,
+    }
+    try:
+        info = vmi.read_module_info(vmfb_path)
+    except (vmi.ModuleInfoError, OSError, UnicodeDecodeError) as e:
+        rec["state"] = "not_observed"
+        rec["source"] = "unreadable: %s" % e
+    else:
+        rec["artifact_bytecode_version"] = info["bytecode_version"]
+        rec["source"] = info["source"]
+        rec["state"] = ("match" if info["bytecode_version"] == CHECKED_PRODUCER["bytecode_version"]
+                        else "mismatch")
+    rec["consequence"] = ("bound may be stated" if rec["state"] == "match" else
+                          "no bound is stated: K was checked for %s only (see "
+                          "resources.diagnostic_figures_when_bound_withheld)" % CHECKED_PRODUCER["compiler"])
+    return rec
+
+
 def tensor_json(t):
     return {"shape": list(t["shape"]), "dtype": t["dtype"]}
 
@@ -467,6 +517,16 @@ def build_contract(a, extra_args):
 
     unresolved = list(p["unresolved"])
     all_static = p["entry_found"] and not unresolved
+    # E65/M1: a static schedule is necessary but no longer sufficient for stating a bound -- the
+    # artifact must also declare the bytecode version of the revision K was checked over. The
+    # figures are still computed and published, as diagnostics beside a document without a bound
+    # (the same shape as the unknown-bound document for dynamic shapes), never as the bound.
+    producer = producer_check(a.vmfb)
+    bound_stated = bool(all_static) and producer["state"] == "match"
+    if all_static and not bound_stated:
+        notes.append("producer check %s (artifact bytecode %s, checked %s): no bound is stated"
+                     % (producer["state"], producer["artifact_bytecode_version"],
+                        producer["checked_bytecode_version"]))
     inputs_b = sum(p["inputs"])
     outputs_b = sum(p["outputs"])
     transient_b = sum(p["transient_slabs"])
@@ -1010,7 +1070,14 @@ def build_contract(a, extra_args):
     # was non-empty. Nothing read the list, so it was an inert prose inaccuracy --
     # but the moment it is published as a machine-readable premise it becomes a
     # false assertion on exactly the contract this repo built to be refused.
-    assumptions = [("static shapes" if all_static else
+    # E65/M1: shapes static, bound withheld -> the first entry says why there is no bound, as the
+    # dynamic case does; a bare "static shapes" on a document that states no bound is what E40/D70
+    # removed.
+    assumptions = [("static shapes" if bound_stated else
+                    "static shapes, but no bound is stated: producer bytecode version %s is not that "
+                    "of the checked revision %s (see validity.producer_check)"
+                    % (producer["artifact_bytecode_version"], producer["checked_bytecode_version"])
+                    if all_static else
                     "NON-static shapes: no bound is stated (see resources.unresolved_sizes)"),
                    "single in-flight call (no concurrency)",
                    "%s driver" % a.driver, "entry function @%s only" % a.entry]
@@ -1027,11 +1094,12 @@ def build_contract(a, extra_args):
     #                         about the model and this tool cannot check them; publishing
     #                         them as "derived" would be the exact fail-open this block
     #                         exists to remove.
-    _per_call = (io_b + transient_b) if all_static else None
-    _bounded = (io_b + transient_b + const_b) if all_static else None
+    _per_call = (io_b + transient_b) if bound_stated else None
+    _bounded = (io_b + transient_b + const_b) if bound_stated else None
     analysis_domain = {
         "derived": {
             "static_shapes": bool(all_static),
+            "producer_check_state": producer["state"],
             "driver": a.driver,
             "entry": a.entry,
             "supported_resource_ops": list(smb.SUPPORTED_RESOURCE_OPS),
@@ -1103,25 +1171,34 @@ def build_contract(a, extra_args):
 
     resources = {
         "memory_boundary": MEMORY_BOUNDARY,
-        "static_external_input_bytes": inputs_b if all_static else None,
-        "static_external_output_bytes": outputs_b if all_static else None,
-        "static_io_bytes": io_b if all_static else None,
-        "static_transient_bytes": transient_b if all_static else None,
+        "static_external_input_bytes": inputs_b if bound_stated else None,
+        "static_external_output_bytes": outputs_b if bound_stated else None,
+        "static_io_bytes": io_b if bound_stated else None,
+        "static_transient_bytes": transient_b if bound_stated else None,
         "transient_slabs_post_layout": list(p["transient_slabs"]),
         "transient_slice_sum_diagnostic": sum(p["transient_slices"]),
-        "static_per_call_bytes": (io_b + transient_b) if all_static else None,
+        "static_per_call_bytes": (io_b + transient_b) if bound_stated else None,
         "module_resident_constant_bytes": const_b,
         "module_resident_constant_method": const_method,
         "module_resident_constant_dense_sum_bytes": dense_sum,
         "module_resident_constant_buffers_packed": packed,
         "module_resident_constant_packing_padding_bytes": padding,
-        "bounded_bytes": (io_b + transient_b + const_b) if all_static else None,
-        "bound_method": BOUND_METHOD_STATIC if all_static else BOUND_METHOD_NONE,
+        "bounded_bytes": (io_b + transient_b + const_b) if bound_stated else None,
+        "bound_method": BOUND_METHOD_STATIC if bound_stated else BOUND_METHOD_NONE,
         "bound_source": "post-layout stream.resource.alloca sizes of the entry function after iree-stream-layout-slices "
                         "(alignment and lifetime reuse resolved by the compiler) + packed module constants",
         "unresolved_sizes": unresolved,
         "resolved_partial_sums_when_unbounded": (None if all_static else
                                                  {"inputs": inputs_b, "outputs": outputs_b, "transient": transient_b}),
+        # E65/M1: the figures of a static schedule whose producer check did not match. Named so
+        # that no reader can mistake them for the bound: nothing downstream reads this key, and
+        # gen_contract_header.py refuses any document whose producer check is not `match`.
+        "diagnostic_figures_when_bound_withheld": (None if (bound_stated or not all_static) else {
+            "reason": "producer check %s" % producer["state"],
+            "static_io_bytes": io_b, "static_transient_bytes": transient_b,
+            "static_per_call_bytes": io_b + transient_b,
+            "module_resident_constant_bytes": const_b,
+            "bounded_bytes": io_b + transient_b + const_b}),
         "bound_assumptions": assumptions,
         "entry_function_found": p["entry_found"],
         "dispatches": p["dispatches"],
@@ -1220,6 +1297,11 @@ def build_contract(a, extra_args):
             "compiler": comp_short,
             "compiler_version_raw": comp_raw,
             "compiler_commit": comp_sha,
+            # D107/E65: `compiler*` above is the ANALYSIS HOST's compiler (read by running
+            # `iree-compile --version` when this document is generated), not the artifact's
+            # producer. The producer identity the artifact itself declares is below.
+            "compiler_fields_describe": "analysis_host",
+            "producer_check": producer,
             "runtime_commit": runtime_commit,
             "assumptions": assumptions,
             "binding_rule": BINDING_RULE,
@@ -1285,9 +1367,23 @@ def analysis_domain_drift(contract):
         return ["analysis_domain.derived is missing"]
     res = contract.get("resources") or {}
     drift = []
-    if d.get("static_shapes") != (res.get("bound_method") != BOUND_METHOD_NONE):
-        drift.append("analysis_domain.derived.static_shapes=%r vs resources.bound_method=%r"
-                     % (d.get("static_shapes"), res.get("bound_method")))
+    # E65/M1: a bound is stated iff the shapes are static AND the producer check matched. A
+    # document written before E65 carries no producer check; for it the pre-E65 identity holds.
+    _pc = (contract.get("validity") or {}).get("producer_check")
+    if isinstance(_pc, dict):
+        _expect_bound = bool(d.get("static_shapes")) and _pc.get("state") == "match"
+        if d.get("producer_check_state") != _pc.get("state"):
+            drift.append("analysis_domain.derived.producer_check_state=%r vs validity.producer_check.state=%r"
+                         % (d.get("producer_check_state"), _pc.get("state")))
+        if _pc.get("state") not in PRODUCER_CHECK_STATES:
+            drift.append("validity.producer_check.state=%r is not one of %s"
+                         % (_pc.get("state"), PRODUCER_CHECK_STATES))
+    else:
+        _expect_bound = bool(d.get("static_shapes"))
+    if _expect_bound != (res.get("bound_method") != BOUND_METHOD_NONE):
+        drift.append("analysis_domain.derived.static_shapes=%r producer_check=%r vs resources.bound_method=%r"
+                     % (d.get("static_shapes"), (_pc or {}).get("state") if isinstance(_pc, dict) else None,
+                        res.get("bound_method")))
     tgt_drv = (contract.get("target") or {}).get("driver")
     val_drv = (contract.get("validity") or {}).get("driver")
     if d.get("driver") != tgt_drv or d.get("driver") != val_drv:

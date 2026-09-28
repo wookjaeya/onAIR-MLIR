@@ -1,0 +1,919 @@
+== 51_build_cfs_aarch64: tag=e65_drift_legacy budget=618856 stack_base=262144 kernel=1232 startup_stack=263376
+   cfs=/root/onair-mlir-bench/ext/cFS iree_b=/root/onair-mlir-bench/ext/iree-src/build-rt-aarch64 (AArch64) header=/home/user/onAIR-MLIR/results/e65_producer_check/guest/legacy_e59_header/contract_gen.b2_resnet.h jobs=4
+rm -f "build-aarch64_std/stamp.prep"
+env  make --no-print-directory -f /root/onair-mlir-bench/ext/cFS/target-rules.mk \
+	CFG=aarch64_std GOAL=aarch64_std.prep STAMPFILE=build-aarch64_std/stamp.prep all
+mkdir -p "build-aarch64_std"
+cmake -DENABLE_UNIT_TESTS=FALSE -DSIMULATION=aarch64-linux-gnu -DCFE_EDS_ENABLED=OFF -DMISSIONCONFIG=aarch64 -DCMAKE_BUILD_TYPE=debug -DCFS_APP_PATH=/root/onair-mlir-bench/ext/cFS/apps_aarch64 -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DCMAKE_BUILD_TYPE=debug -S "/root/onair-mlir-bench/ext/cFS/cfe" -DCMAKE_INSTALL_PREFIX=/exe -B "build-aarch64_std" 
+-- OMIT_DEPRECATED=false: Deprecated elements included in build
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Search path for modules: /root/onair-mlir-bench/ext/cFS/apps_aarch64;apps;libs;psp/fsw/modules;cfe/modules
+-- Module 'core_api' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/core_api
+-- Module 'core_private' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/core_private
+-- Module 'ci_lab' found at /root/onair-mlir-bench/ext/cFS/apps/ci_lab
+-- Module 'to_lab' found at /root/onair-mlir-bench/ext/cFS/apps/to_lab
+-- Module 'sch_lab' found at /root/onair-mlir-bench/ext/cFS/apps/sch_lab
+-- Module 'cfe_assert' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_assert
+-- Module 'cfe_testcase' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase
+-- Module 'sample_app' found at /root/onair-mlir-bench/ext/cFS/apps/sample_app
+-- Module 'sample_lib' found at /root/onair-mlir-bench/ext/cFS/libs/sample_lib
+-- Module 'ai_learner' found at /root/onair-mlir-bench/ext/cFS/apps_aarch64/ai_learner
+-- Module 'cf' found at /root/onair-mlir-bench/ext/cFS/apps/cf
+-- Module 'hs' found at /root/onair-mlir-bench/ext/cFS/apps/hs
+-- Module 'md' found at /root/onair-mlir-bench/ext/cFS/apps/md
+-- Module 'mm' found at /root/onair-mlir-bench/ext/cFS/apps/mm
+-- Module 'cs' found at /root/onair-mlir-bench/ext/cFS/apps/cs
+-- Module 'fm' found at /root/onair-mlir-bench/ext/cFS/apps/fm
+-- Module 'lc' found at /root/onair-mlir-bench/ext/cFS/apps/lc
+-- Module 'sc' found at /root/onair-mlir-bench/ext/cFS/apps/sc
+-- Module 'ds' found at /root/onair-mlir-bench/ext/cFS/apps/ds
+-- Module 'hk' found at /root/onair-mlir-bench/ext/cFS/apps/hk
+-- Module 'config' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/config
+-- Module 'es' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/es
+-- Module 'evs' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/evs
+-- Module 'fs' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/fs
+-- Module 'sb' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/sb
+-- Module 'tbl' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl
+-- Module 'time' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/time
+-- Module 'osal' found at /root/onair-mlir-bench/ext/cFS/osal
+-- Module 'psp' found at /root/onair-mlir-bench/ext/cFS/psp
+-- Module 'msg' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/msg
+-- Module 'sbr' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/sbr
+-- Module 'resourceid' found at /root/onair-mlir-bench/ext/cFS/cfe/modules/resourceid
+-- OSAL_SYSTEM_BSPTYPE not defined, no OSAL implementation will be compiled
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_api/config/default_cfe_core_api_interface_cfg_values.h for cfe_core_api_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_api/config/default_cfe_core_api_msgid_mapping.h for cfe_core_api_msgid_mapping.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_api/config/default_cfe_mission_cfg.h for cfe_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/cfe_perfids.h for cfe_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_fcncode_values.h for ci_lab_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_interface_cfg_values.h for ci_lab_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_mission_cfg.h for ci_lab_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_perfids.h for ci_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_msg.h for ci_lab_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_msgdefs.h for ci_lab_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_msgstruct.h for ci_lab_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_topicid_values.h for ci_lab_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_fcncode_values.h for to_lab_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_interface_cfg_values.h for to_lab_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_mission_cfg.h for to_lab_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_perfids.h for to_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_msg.h for to_lab_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_msgdefs.h for to_lab_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_msgstruct.h for to_lab_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_tbl.h for to_lab_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_tbldefs.h for to_lab_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_tblstruct.h for to_lab_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_topicid_values.h for to_lab_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_interface_cfg_values.h for sch_lab_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_mission_cfg.h for sch_lab_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_perfids.h for sch_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_tbl.h for sch_lab_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_tbldefs.h for sch_lab_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_tblstruct.h for sch_lab_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msg.h for cfe_test_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msgdefs.h for cfe_test_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msgstruct.h for cfe_test_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msgids.h for cfe_test_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msgid_values.h for cfe_test_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_tbl.h for cfe_test_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_tblstruct.h for cfe_test_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_topicid_values.h for cfe_test_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_fcncode_values.h for sample_app_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_interface_cfg_values.h for sample_app_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_mission_cfg.h for sample_app_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_perfids.h for sample_app_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_msg.h for sample_app_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_msgdefs.h for sample_app_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_msgstruct.h for sample_app_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_tbl.h for sample_app_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_tbldefs.h for sample_app_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_tblstruct.h for sample_app_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_topicid_values.h for sample_app_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_extern_typedefs.h for cf_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_fcncode_values.h for cf_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_interface_cfg_values.h for cf_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_mission_cfg.h for cf_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_msgdefs.h for cf_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_msg.h for cf_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_msgstruct.h for cf_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_tbldefs.h for cf_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_tbl.h for cf_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_tblstruct.h for cf_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_topicid_values.h for cf_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_fcncode_values.h for hs_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_interface_cfg_values.h for hs_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_mission_cfg.h for hs_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_msgdefs.h for hs_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_msg.h for hs_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_msgstruct.h for hs_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_tbldefs.h for hs_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_tbl.h for hs_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_tblstruct.h for hs_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_topicid_values.h for hs_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_fcncode_values.h for md_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_interface_cfg_values.h for md_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_mission_cfg.h for md_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_perfids.h for md_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_msg.h for md_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_msgdefs.h for md_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_msgstruct.h for md_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_tbldefs.h for md_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_tblstruct.h for md_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_topicid_values.h for md_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_extern_typedefs.h for md_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_extern_typedefs.h for mm_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_filedefs.h for mm_filedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_fcncode_values.h for mm_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_interface_cfg_values.h for mm_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_mission_cfg.h for mm_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_msgdefs.h for mm_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_msg.h for mm_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_msgstruct.h for mm_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_perfids.h for mm_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_topicid_values.h for mm_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_extern_typedefs.h for cs_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_fcncode_values.h for cs_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_interface_cfg_values.h for cs_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_mission_cfg.h for cs_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_msgdefs.h for cs_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_msg.h for cs_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_msgstruct.h for cs_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_tbldefs.h for cs_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_tbl.h for cs_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_topicid_values.h for cs_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_fcncode_values.h for fm_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_interface_cfg_values.h for fm_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_mission_cfg.h for fm_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_msg.h for fm_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_msgdefs.h for fm_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_msgstruct.h for fm_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_perfids.h for fm_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_tbl.h for fm_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_tbldefs.h for fm_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_tblstruct.h for fm_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_topicid_values.h for fm_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_extern_typedefs.h for fm_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_fcncode_values.h for lc_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_interface_cfg_values.h for lc_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_mission_cfg.h for lc_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_msgstruct.h for lc_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_msgdefs.h for lc_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_msg.h for lc_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_tblstruct.h for lc_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_tbldefs.h for lc_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_tbl.h for lc_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_topicid_values.h for lc_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_extern_typedefs.h for sc_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_fcncode_values.h for sc_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_interface_cfg_values.h for sc_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_mission_cfg.h for sc_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_msgdefs.h for sc_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_msg.h for sc_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_msgstruct.h for sc_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_tbldefs.h for sc_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_tbl.h for sc_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_tblstruct.h for sc_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_topicid_values.h for sc_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_fcncode_values.h for ds_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_interface_cfg_values.h for ds_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_mission_cfg.h for ds_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_msgdefs.h for ds_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_msgstruct.h for ds_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_msg.h for ds_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_tbldefs.h for ds_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_tblstruct.h for ds_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_tbl.h for ds_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_topicid_values.h for ds_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_fcncode_values.h for hk_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_interface_cfg_values.h for hk_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_mission_cfg.h for hk_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_msgdefs.h for hk_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_msg.h for hk_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_msgstruct.h for hk_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_tbldefs.h for hk_tbldefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_tbl.h for hk_tbl.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_tblstruct.h for hk_tblstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_topicid_values.h for hk_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_mission_cfg.h for cfe_es_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_interface_cfg_values.h for cfe_es_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_memaddress.h for cfe_es_memaddress.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_extern_typedefs.h for cfe_es_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_fcncode_values.h for cfe_es_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_msgdefs.h for cfe_es_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_msg.h for cfe_es_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_msgstruct.h for cfe_es_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_topicid_values.h for cfe_es_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_mission_cfg.h for cfe_evs_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_interface_cfg_values.h for cfe_evs_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_extern_typedefs.h for cfe_evs_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_fcncode_values.h for cfe_evs_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_msgdefs.h for cfe_evs_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_msg.h for cfe_evs_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_msgstruct.h for cfe_evs_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_topicid_values.h for cfe_evs_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/fs/config/default_cfe_fs_mission_cfg.h for cfe_fs_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/fs/config/default_cfe_fs_interface_cfg_values.h for cfe_fs_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/fs/config/default_cfe_fs_filedef.h for cfe_fs_filedef.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/fs/config/default_cfe_fs_extern_typedefs.h for cfe_fs_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_mission_cfg.h for cfe_sb_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_interface_cfg_values.h for cfe_sb_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_extern_typedefs.h for cfe_sb_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_fcncode_values.h for cfe_sb_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_msgdefs.h for cfe_sb_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_msg.h for cfe_sb_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_msgstruct.h for cfe_sb_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_topicid_values.h for cfe_sb_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_mission_cfg.h for cfe_tbl_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_interface_cfg_values.h for cfe_tbl_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_extern_typedefs.h for cfe_tbl_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_fcncode_values.h for cfe_tbl_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_msgdefs.h for cfe_tbl_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_msg.h for cfe_tbl_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_msgstruct.h for cfe_tbl_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_topicid_values.h for cfe_tbl_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_mission_cfg.h for cfe_time_mission_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_interface_cfg_values.h for cfe_time_interface_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_extern_typedefs.h for cfe_time_extern_typedefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_fcncode_values.h for cfe_time_fcncode_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_msgdefs.h for cfe_time_msgdefs.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_msg.h for cfe_time_msg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_msgstruct.h for cfe_time_msgstruct.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_topicid_values.h for cfe_time_topicid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/msg/option_inc/default_cfe_msg_hdr_pri.h for cfe_msg_hdr.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/msg/option_inc/default_cfe_msg_sechdr.h for cfe_msg_sechdr.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/resourceid/option_inc/cfe_resourceid_simple.h for cfe_resourceid_typedef.h
+-- Configuring for system arch: aarch64-linux-gnu/default_cpu1
+-- OMIT_DEPRECATED=false: Deprecated elements included in build
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/cpu1/cfe_core_api_base_msgid_values.h for cfe_core_api_base_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_api/config/default_cfe_msgids.h for cfe_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_private/config/default_cfe_platform_cfg.h for platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_private/config/default_cfe_core_private_internal_cfg.h for cfe_core_private_internal_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_internal_cfg_values.h for ci_lab_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_platform_cfg.h for ci_lab_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_perfids.h for ci_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_msgids.h for ci_lab_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_msgid_values.h for ci_lab_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_internal_cfg_values.h for to_lab_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_platform_cfg.h for to_lab_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_perfids.h for to_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_msgids.h for to_lab_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_msgid_values.h for to_lab_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_internal_cfg_values.h for sch_lab_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_platform_cfg.h for sch_lab_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_perfids.h for sch_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msgids.h for cfe_test_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msgid_values.h for cfe_test_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_internal_cfg_values.h for sample_app_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_platform_cfg.h for sample_app_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_perfids.h for sample_app_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_msgids.h for sample_app_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_msgid_values.h for sample_app_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_internal_cfg_values.h for cf_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_msgid_values.h for cf_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_msgids.h for cf_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_platform_cfg.h for cf_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_internal_cfg_values.h for hs_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_msgid_values.h for hs_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_msgids.h for hs_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_platform_cfg.h for hs_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_internal_cfg_values.h for md_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_platform_cfg.h for md_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_perfids.h for md_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_msgids.h for md_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_msgid_values.h for md_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_internal_cfg_values.h for mm_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_platform_cfg.h for mm_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_msgids.h for mm_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_msgid_values.h for mm_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_internal_cfg_values.h for cs_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_msgid_values.h for cs_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_msgids.h for cs_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_platform_cfg.h for cs_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_internal_cfg_values.h for fm_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_platform_cfg.h for fm_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_msgid_values.h for fm_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_msgids.h for fm_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_internal_cfg_values.h for lc_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_platform_cfg.h for lc_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_msgid_values.h for lc_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_msgids.h for lc_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_internal_cfg_values.h for sc_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_platform_cfg.h for sc_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_perfids.h for sc_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_msgids.h for sc_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_msgid_values.h for sc_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_internal_cfg_values.h for ds_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_msgid_values.h for ds_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_msgids.h for ds_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_platform_cfg.h for ds_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_internal_cfg_values.h for hk_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_msgids.h for hk_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_msgid_values.h for hk_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_platform_cfg.h for hk_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_internal_cfg_values.h for cfe_es_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_msgid_values.h for cfe_es_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_msgids.h for cfe_es_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_platform_cfg.h for cfe_es_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_internal_cfg_values.h for cfe_evs_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_msgid_values.h for cfe_evs_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_msgids.h for cfe_evs_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_platform_cfg.h for cfe_evs_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_internal_cfg_values.h for cfe_sb_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_msgid_values.h for cfe_sb_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_msgids.h for cfe_sb_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_platform_cfg.h for cfe_sb_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_internal_cfg_values.h for cfe_tbl_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_msgid_values.h for cfe_tbl_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_msgids.h for cfe_tbl_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_platform_cfg.h for cfe_tbl_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_internal_cfg_values.h for cfe_time_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_msgid_values.h for cfe_time_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_msgids.h for cfe_time_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_platform_cfg.h for cfe_time_platform_cfg.h
+-- BSP Selection: generic-linux at /root/onair-mlir-bench/ext/cFS/osal/src/bsp/generic-linux
+-- OSAL Selection: posix at /root/onair-mlir-bench/ext/cFS/osal/src/os/posix
+-- OSAL Compile Definitions: _XOPEN_SOURCE=600;_POSIX_OS_
+-- PSP Selection: pc-linux
+-- Building Core Module: core_api
+-- Building Core Module: core_private
+-- Building Core Module: config
+-- Building Core Module: es
+-- Building Core Module: evs
+-- Building Core Module: fs
+-- Building Core Module: sb
+-- Building Core Module: tbl
+-- Building Core Module: time
+-- Building Core Module: psp
+-- Building Core Module: msg
+-- CCSDS primary header included in message header (not including CCSDS extended header)
+-- Message Id version 1 in use (MsgId V1)
+-- Building Core Module: sbr
+-- Using hashed map software bus routing implementation
+-- Building Core Module: resourceid
+-- Building Dynamic App: ci_lab targets=cpu1
+-- Building Dynamic App: to_lab targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/to_lab_sub.c for to_lab_sub.c
+-- Building Dynamic App: sch_lab targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/sch_lab_table.c for sch_lab_table.c
+-- Building Dynamic App: cfe_assert targets=cpu1
+-- Building Dynamic App: cfe_testcase targets=cpu1
+NOTE: "cfeTestAppTable" passed to add_cfe_tables is not a previously-defined application target
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/tables/cfe_test_tbl.c for cfe_test_tbl.c
+-- Building Dynamic App: sample_app targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/fsw/tables/sample_app_tbl.c for sample_app_tbl.c
+-- Building Dynamic App: sample_lib targets=cpu1
+-- Building Dynamic App: ai_learner targets=cpu1
+-- Building Dynamic App: cf targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/fsw/tables/cf_def_config.c for cf_def_config.c
+-- Building Dynamic App: hs targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/fsw/tables/hs_mat.c for hs_mat.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/fsw/tables/hs_xct.c for hs_xct.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/fsw/tables/hs_amt.c for hs_amt.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/fsw/tables/hs_emt.c for hs_emt.c
+-- Building Dynamic App: md targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/fsw/tables/md_dw02.c for md_dw02.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/fsw/tables/md_dw03.c for md_dw03.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/fsw/tables/md_dw04.c for md_dw04.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/fsw/tables/md_dw01.c for md_dw01.c
+-- Building Dynamic App: mm targets=cpu1
+-- Building Dynamic App: cs targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/fsw/tables/cs_apptbl.c for cs_apptbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/fsw/tables/cs_eepromtbl.c for cs_eepromtbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/fsw/tables/cs_memorytbl.c for cs_memorytbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/cs_tablestbl.c for cs_tablestbl.c
+-- Building Dynamic App: fm targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/fsw/tables/fm_monitor.c for fm_monitor.c
+-- Building Dynamic App: lc targets=cpu1
+-- Adding math library dependency to LC App...
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/fsw/tables/lc_def_wdt.c for lc_def_wdt.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/fsw/tables/lc_def_adt.c for lc_def_adt.c
+-- Building Dynamic App: sc targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_ats1.c for sc_ats1.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_rts001.c for sc_rts001.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_rts002.c for sc_rts002.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_rts003.c for sc_rts003.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_rts004.c for sc_rts004.c
+-- Building Dynamic App: ds targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/fsw/tables/ds_filter_tbl.c for ds_filter_tbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/fsw/tables/ds_file_tbl.c for ds_file_tbl.c
+-- Building Dynamic App: hk targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/fsw/tables/hk_cpy_tbl.c for hk_cpy_tbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/sample_app_alt1.c for sample_app_alt1.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/to_lab_sub_alt.c for to_lab_sub_alt.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/to_lab_sub_bad.c for to_lab_sub_bad.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/lc_def_adt-test.c for lc_def_adt-test.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/sc_ats2_test.c for sc_ats2_test.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/sc_append_test.c for sc_append_test.c
+-- Configuring done (1.0s)
+-- Generating done (0.2s)
+-- Build files have been written to: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/aarch64-linux-gnu/default_cpu1
+-- Configuring done (1.9s)
+-- Generating done (0.0s)
+-- Build files have been written to: /root/onair-mlir-bench/ext/cFS/build-aarch64_std
+echo '-DENABLE_UNIT_TESTS=FALSE -DSIMULATION=aarch64-linux-gnu -DCFE_EDS_ENABLED=OFF -DMISSIONCONFIG=aarch64 -DCMAKE_BUILD_TYPE=debug -DCFS_APP_PATH=/root/onair-mlir-bench/ext/cFS/apps_aarch64 -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DCMAKE_BUILD_TYPE=debug -S "/root/onair-mlir-bench/ext/cFS/cfe" -DCMAKE_INSTALL_PREFIX=/exe' > "build-aarch64_std/stamp.prep"
+aarch64_std.prep successfully completed
+-- OMIT_DEPRECATED=false: Deprecated elements included in build
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Performing Test IS_OPTION_SUPPORTED
+-- Performing Test IS_OPTION_SUPPORTED - Success
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/cpu1/cfe_core_api_base_msgid_values.h for cfe_core_api_base_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_api/config/default_cfe_msgids.h for cfe_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_private/config/default_cfe_platform_cfg.h for platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/core_private/config/default_cfe_core_private_internal_cfg.h for cfe_core_private_internal_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_internal_cfg_values.h for ci_lab_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_platform_cfg.h for ci_lab_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_perfids.h for ci_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_msgids.h for ci_lab_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ci_lab/config/default_ci_lab_msgid_values.h for ci_lab_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_internal_cfg_values.h for to_lab_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_platform_cfg.h for to_lab_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_perfids.h for to_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_msgids.h for to_lab_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/to_lab/config/default_to_lab_msgid_values.h for to_lab_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_internal_cfg_values.h for sch_lab_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_platform_cfg.h for sch_lab_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sch_lab/config/default_sch_lab_perfids.h for sch_lab_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msgids.h for cfe_test_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/config/default_cfe_test_msgid_values.h for cfe_test_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_internal_cfg_values.h for sample_app_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_platform_cfg.h for sample_app_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_perfids.h for sample_app_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_msgids.h for sample_app_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/config/default_sample_app_msgid_values.h for sample_app_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_internal_cfg_values.h for cf_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_msgid_values.h for cf_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_msgids.h for cf_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/config/default_cf_platform_cfg.h for cf_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_internal_cfg_values.h for hs_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_msgid_values.h for hs_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_msgids.h for hs_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/config/default_hs_platform_cfg.h for hs_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_internal_cfg_values.h for md_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_platform_cfg.h for md_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_perfids.h for md_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_msgids.h for md_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/config/default_md_msgid_values.h for md_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_internal_cfg_values.h for mm_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_platform_cfg.h for mm_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_msgids.h for mm_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/mm/config/default_mm_msgid_values.h for mm_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_internal_cfg_values.h for cs_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_msgid_values.h for cs_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_msgids.h for cs_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/config/default_cs_platform_cfg.h for cs_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_internal_cfg_values.h for fm_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_platform_cfg.h for fm_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_msgid_values.h for fm_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/config/default_fm_msgids.h for fm_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_internal_cfg_values.h for lc_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_platform_cfg.h for lc_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_msgid_values.h for lc_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/config/default_lc_msgids.h for lc_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_internal_cfg_values.h for sc_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_platform_cfg.h for sc_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_perfids.h for sc_perfids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_msgids.h for sc_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/config/default_sc_msgid_values.h for sc_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_internal_cfg_values.h for ds_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_msgid_values.h for ds_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_msgids.h for ds_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/config/default_ds_platform_cfg.h for ds_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_internal_cfg_values.h for hk_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_msgids.h for hk_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_msgid_values.h for hk_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/config/default_hk_platform_cfg.h for hk_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_internal_cfg_values.h for cfe_es_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_msgid_values.h for cfe_es_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_msgids.h for cfe_es_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/es/config/default_cfe_es_platform_cfg.h for cfe_es_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_internal_cfg_values.h for cfe_evs_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_msgid_values.h for cfe_evs_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_msgids.h for cfe_evs_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/evs/config/default_cfe_evs_platform_cfg.h for cfe_evs_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_internal_cfg_values.h for cfe_sb_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_msgid_values.h for cfe_sb_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_msgids.h for cfe_sb_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/sb/config/default_cfe_sb_platform_cfg.h for cfe_sb_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_internal_cfg_values.h for cfe_tbl_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_msgid_values.h for cfe_tbl_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_msgids.h for cfe_tbl_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/tbl/config/default_cfe_tbl_platform_cfg.h for cfe_tbl_platform_cfg.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_internal_cfg_values.h for cfe_time_internal_cfg_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_msgid_values.h for cfe_time_msgid_values.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_msgids.h for cfe_time_msgids.h
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/time/config/default_cfe_time_platform_cfg.h for cfe_time_platform_cfg.h
+-- BSP Selection: generic-linux at /root/onair-mlir-bench/ext/cFS/osal/src/bsp/generic-linux
+-- OSAL Selection: posix at /root/onair-mlir-bench/ext/cFS/osal/src/os/posix
+-- OSAL Compile Definitions: _XOPEN_SOURCE=600;_POSIX_OS_
+-- PSP Selection: pc-linux
+-- Building Core Module: core_api
+-- Building Core Module: core_private
+-- Building Core Module: config
+-- Building Core Module: es
+-- Building Core Module: evs
+-- Building Core Module: fs
+-- Building Core Module: sb
+-- Building Core Module: tbl
+-- Building Core Module: time
+-- Building Core Module: psp
+-- Building Core Module: msg
+-- CCSDS primary header included in message header (not including CCSDS extended header)
+-- Message Id version 1 in use (MsgId V1)
+-- Building Core Module: sbr
+-- Using hashed map software bus routing implementation
+-- Building Core Module: resourceid
+-- Building Dynamic App: ci_lab targets=cpu1
+-- Building Dynamic App: to_lab targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/to_lab_sub.c for to_lab_sub.c
+-- Building Dynamic App: sch_lab targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/sch_lab_table.c for sch_lab_table.c
+-- Building Dynamic App: cfe_assert targets=cpu1
+-- Building Dynamic App: cfe_testcase targets=cpu1
+NOTE: "cfeTestAppTable" passed to add_cfe_tables is not a previously-defined application target
+-- Using file: /root/onair-mlir-bench/ext/cFS/cfe/modules/cfe_testcase/tables/cfe_test_tbl.c for cfe_test_tbl.c
+-- Building Dynamic App: sample_app targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sample_app/fsw/tables/sample_app_tbl.c for sample_app_tbl.c
+-- Building Dynamic App: sample_lib targets=cpu1
+-- Building Dynamic App: ai_learner targets=cpu1
+-- Building Dynamic App: cf targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cf/fsw/tables/cf_def_config.c for cf_def_config.c
+-- Building Dynamic App: hs targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/fsw/tables/hs_mat.c for hs_mat.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/fsw/tables/hs_xct.c for hs_xct.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/fsw/tables/hs_amt.c for hs_amt.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hs/fsw/tables/hs_emt.c for hs_emt.c
+-- Building Dynamic App: md targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/fsw/tables/md_dw02.c for md_dw02.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/fsw/tables/md_dw03.c for md_dw03.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/fsw/tables/md_dw04.c for md_dw04.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/md/fsw/tables/md_dw01.c for md_dw01.c
+-- Building Dynamic App: mm targets=cpu1
+-- Building Dynamic App: cs targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/fsw/tables/cs_apptbl.c for cs_apptbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/fsw/tables/cs_eepromtbl.c for cs_eepromtbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/cs/fsw/tables/cs_memorytbl.c for cs_memorytbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/cs_tablestbl.c for cs_tablestbl.c
+-- Building Dynamic App: fm targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/fm/fsw/tables/fm_monitor.c for fm_monitor.c
+-- Building Dynamic App: lc targets=cpu1
+-- Adding math library dependency to LC App...
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/fsw/tables/lc_def_wdt.c for lc_def_wdt.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/lc/fsw/tables/lc_def_adt.c for lc_def_adt.c
+-- Building Dynamic App: sc targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_ats1.c for sc_ats1.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_rts001.c for sc_rts001.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_rts002.c for sc_rts002.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_rts003.c for sc_rts003.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/sc/fsw/tables/sc_rts004.c for sc_rts004.c
+-- Building Dynamic App: ds targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/fsw/tables/ds_filter_tbl.c for ds_filter_tbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/ds/fsw/tables/ds_file_tbl.c for ds_file_tbl.c
+-- Building Dynamic App: hk targets=cpu1
+-- Using file: /root/onair-mlir-bench/ext/cFS/apps/hk/fsw/tables/hk_cpy_tbl.c for hk_cpy_tbl.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/sample_app_alt1.c for sample_app_alt1.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/to_lab_sub_alt.c for to_lab_sub_alt.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/to_lab_sub_bad.c for to_lab_sub_bad.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/lc_def_adt-test.c for lc_def_adt-test.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/sc_ats2_test.c for sc_ats2_test.c
+-- Using file: /root/onair-mlir-bench/ext/cFS/aarch64_defs/tables/sc_append_test.c for sc_append_test.c
+-- Configuring done (0.9s)
+-- Generating done (0.2s)
+-- Build files have been written to: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/aarch64-linux-gnu/default_cpu1
+rm -f "build-aarch64_std/stamp.install"
+env  make --no-print-directory -f /root/onair-mlir-bench/ext/cFS/target-rules.mk \
+	CFG=aarch64_std GOAL=aarch64_std.install STAMPFILE=build-aarch64_std/stamp.install all
+make --no-print-directory -C "build-aarch64_std" DESTDIR="/root/onair-mlir-bench/ext/cFS/build-aarch64_std" mission-install
+[ 11%] Built target cfeconfig_platformdata_aarch64_linux_gnu_default_cpu1
+[ 33%] Built target elf2cfetbl
+[ 77%] Built target cfeconfig_platformdata_tool
+[ 66%] Built target cfe-build-env
+[100%] Built target cfgtool-execute-aarch64_linux_gnu_default_cpu1
+[100%] Built target cfe-module-version
+[100%] Built target mission-version
+[100%] Built target mission-prebuild
+[  0%] Built target osal_generic-linux_impl
+[  6%] Built target config
+[ 46%] Built target osal_posix_impl
+[ 46%] Built target tblobj_cpu1_hk.tbl59f4756e649fdeee13974ad1e7464fcfa39b1c06
+[ 53%] Built target fs
+[ 60%] Built target evs
+[ 60%] Built target tblobj_cpu1_sample_app.tbl3228f5ad19fd72532b85c8c429dd97bda372c439
+[ 60%] Built target tblobj_cpu1_to_lab.tbleb970da69315fb436e4567b821e55f0b14650689
+[ 80%] Built target es
+[ 80%] Built target tblobj_cpu1_lc.tbl50daf5f86ed079bf89b52f03ccbb61fd62c6b0fb
+[ 86%] Built target tblobj_cpu1_to_lab.tbl080ca30b15096cc42dcb4458eb338c5afac51c41
+[100%] Built target sb
+[113%] Built target time
+[133%] Built target tbl
+[140%] Built target ram_notimpl
+[146%] Built target tblobj_cpu1_sc.tbl439633271c64b7432042137f9fbe6fd3d124d50a
+[153%] Built target psp-pc-linux-shared
+[160%] Built target psp-pc-linux-impl
+[160%] Built target soft_timebase
+[160%] Built target tblobj_cpu1_sc.tbl467aa4aa3f258f6ec66d06ec44fb8e49f67820bb
+[160%] Built target tblobj_cpu1_to_lab.tbl8c60fab61de88b1583f952085a2e84642f313fcc
+[160%] Built target timebase_posix_clock
+[160%] Built target eeprom_mmap_file
+[160%] Built target tblobj_cpu1_sch_lab.tbl29424a9dfad176ca923e860092e4a2c6345ed0ee
+[160%] Built target port_notimpl
+[160%] Built target iodriver
+[160%] Built target tblobj_cpu1_cfeTestAppTable.tbl65632fe8857c62704c57e69b6431e0dbe9d44adf
+[166%] Built target linux_sysmon
+[173%] Built target endian_api
+[180%] Built target tblobj_cpu1_cf.tbl9c96ef3790928a12d84431f71b3cd27ee53cd761
+[180%] Built target tblobj_cpu1_sample_app.tbl12fa82d2e13f4cfca593ee753ed4a6436c37d319
+[186%] Built target sbr
+[193%] Built target msg
+[193%] Built target resourceid
+[200%] Built target tblobj_cpu1_hs.tbl35b52b257ef56fa99d2270dcbf9eb445f151f71d
+[206%] Built target tblobj_cpu1_md.tbl1a6f0f8292adb8943559cee15e1308610d167a30
+[213%] Built target to_lab
+[220%] Built target ci_lab
+[226%] Built target tblobj_cpu1_cs.tblee5ed1f85fa3ac7c3ed2ad68f82312444a76c5d3
+[233%] Built target sch_lab
+[240%] Built target tblobj_cpu1_fm.tbl0b730cfe1d9b98b7c1f358074614a531735b08fd
+[246%] Built target tblobj_cpu1_lc.tbl64e53e3b6a58b626ea1953b00c27dcbb92fbcbfd
+[246%] Built target tblobj_cpu1_ds.tblf894c561a99d21b39c1696cee7f2ed75cc94ff30
+[246%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_hk.tbl59f4756e649fdeee13974ad1e7464fcfa39b1c06.hk_cpy_tbl.d
+[253%] Built target ut_assert_pic
+[260%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sample_app.tbl3228f5ad19fd72532b85c8c429dd97bda372c439.sample_app_alt1.d
+[260%] Built target generate_table_cpu1_hk_hk_cpy_tbl
+[260%] Built target generate_table_cpu1_sample_app_sample_app_alt1
+[260%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_to_lab.tbleb970da69315fb436e4567b821e55f0b14650689.to_lab_sub_alt.d
+[266%] Built target tblobj_cpu1_sc.tbl533c3045d5bb7c39b2d24b22f9135c87cf4c4b2e
+[306%] Built target cfe_testcase
+[306%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_lc.tbl50daf5f86ed079bf89b52f03ccbb61fd62c6b0fb.lc_def_adt-test.d
+[313%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_to_lab.tbl080ca30b15096cc42dcb4458eb338c5afac51c41.to_lab_sub_bad.d
+[313%] Built target generate_table_cpu1_to_lab_to_lab_sub_alt
+[320%] Built target sample_app
+[320%] Built target generate_table_cpu1_lc_lc_def_adt-test
+[320%] Built target generate_table_cpu1_to_lab_to_lab_sub_bad
+[320%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sc.tbl439633271c64b7432042137f9fbe6fd3d124d50a.sc_ats2_test.d
+[320%] Built target generate_table_cpu1_sc_sc_ats2_test
+[320%] Built target sample_lib
+[320%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_to_lab.tbl8c60fab61de88b1583f952085a2e84642f313fcc.to_lab_sub.d
+[320%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sc.tbl467aa4aa3f258f6ec66d06ec44fb8e49f67820bb.sc_append_test.d
+[320%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sch_lab.tbl29424a9dfad176ca923e860092e4a2c6345ed0ee.sch_lab_table.d
+[320%] Building C object apps/ai_learner/CMakeFiles/ai_learner.dir/fsw/src/ai_learner.c.o
+[320%] Built target generate_table_cpu1_to_lab_to_lab_sub
+[320%] Built target generate_table_cpu1_sc_sc_append_test
+[320%] Built target generate_table_cpu1_sch_lab_sch_lab_table
+[320%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sample_app.tbl12fa82d2e13f4cfca593ee753ed4a6436c37d319.sample_app_tbl.d
+In file included from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/base/api.h:82,
+                 from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/runtime/api.h:11,
+                 from /root/onair-mlir-bench/ext/cFS/apps_aarch64/ai_learner/fsw/src/ai_learner.c:50:
+/root/onair-mlir-bench/ext/iree-src/runtime/src/iree/base/allocator.h:60:32: warning: function declaration isn't a prototype [-Wstrict-prototypes]
+   60 | static inline iree_byte_span_t iree_byte_span_empty() {
+      |                                ^~~~~~~~~~~~~~~~~~~~
+/root/onair-mlir-bench/ext/iree-src/runtime/src/iree/base/allocator.h:81:38: warning: function declaration isn't a prototype [-Wstrict-prototypes]
+   81 | static inline iree_const_byte_span_t iree_const_byte_span_empty() {
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/base/api.h:88:
+/root/onair-mlir-bench/ext/iree-src/runtime/src/iree/base/loop.h:117:27: warning: function declaration isn't a prototype [-Wstrict-prototypes]
+  117 | static inline iree_loop_t iree_loop_null() {
+      |                           ^~~~~~~~~~~~~~
+[320%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_cfeTestAppTable.tbl65632fe8857c62704c57e69b6431e0dbe9d44adf.cfe_test_tbl.d
+In file included from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/hal/device.h:18,
+                 from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/hal/buffer_transfer.h:12,
+                 from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/hal/api.h:14,
+                 from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/runtime/api.h:12:
+/root/onair-mlir-bench/ext/iree-src/runtime/src/iree/hal/command_buffer.h:602:38: warning: function declaration isn't a prototype [-Wstrict-prototypes]
+  602 | static inline iree_hal_label_color_t iree_hal_label_color_unspecified() {
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/vm/type_def.h:13,
+                 from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/vm/list.h:15,
+                 from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/vm/invocation.h:14,
+                 from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/vm/api.h:14,
+                 from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/runtime/api.h:13:
+/root/onair-mlir-bench/ext/iree-src/runtime/src/iree/vm/value.h:64:31: warning: function declaration isn't a prototype [-Wstrict-prototypes]
+   64 | static inline iree_vm_value_t iree_vm_value_make_none() {
+      |                               ^~~~~~~~~~~~~~~~~~~~~~~
+[320%] Built target generate_table_cpu1_sample_app_sample_app_tbl
+[333%] Built target cf
+[333%] Built target generate_table_cpu1_cfeTestAppTable_cfe_test_tbl
+In file included from /root/onair-mlir-bench/ext/iree-src/runtime/src/iree/base/api.h:95:
+/root/onair-mlir-bench/ext/iree-src/runtime/src/iree/base/tracing.h:318:14: warning: 'iree_tracing_obscure_ptr' defined but not used [-Wunused-function]
+  318 | static void* iree_tracing_obscure_ptr(void* ptr) { return ptr; }
+      |              ^~~~~~~~~~~~~~~~~~~~~~~~
+[333%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_cf.tbl9c96ef3790928a12d84431f71b3cd27ee53cd761.cf_def_config.d
+[333%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_hs.tbl35b52b257ef56fa99d2270dcbf9eb445f151f71d.hs_mat.d
+[333%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_hs.tbl35b52b257ef56fa99d2270dcbf9eb445f151f71d.hs_xct.d
+[333%] Built target generate_table_cpu1_cf_cf_def_config
+[333%] Built target generate_table_cpu1_hs_hs_mat
+[333%] Built target generate_table_cpu1_hs_hs_xct
+[340%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_hs.tbl35b52b257ef56fa99d2270dcbf9eb445f151f71d.hs_amt.d
+[340%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_hs.tbl35b52b257ef56fa99d2270dcbf9eb445f151f71d.hs_emt.d
+[340%] Built target generate_table_cpu1_hs_hs_amt
+[340%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_md.tbl1a6f0f8292adb8943559cee15e1308610d167a30.md_dw02.d
+[340%] Linking C shared module ai_learner.so
+[340%] Built target generate_table_cpu1_hs_hs_emt
+[353%] Built target hs
+[353%] Built target generate_table_cpu1_md_md_dw02
+[353%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_md.tbl1a6f0f8292adb8943559cee15e1308610d167a30.md_dw03.d
+[360%] Built target md
+[373%] Built target mm
+[373%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_md.tbl1a6f0f8292adb8943559cee15e1308610d167a30.md_dw04.d
+[373%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_md.tbl1a6f0f8292adb8943559cee15e1308610d167a30.md_dw01.d
+[373%] Built target generate_table_cpu1_md_md_dw04
+[373%] Built target generate_table_cpu1_md_md_dw03
+[373%] Built target generate_table_cpu1_md_md_dw01
+[373%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_cs.tblee5ed1f85fa3ac7c3ed2ad68f82312444a76c5d3.cs_apptbl.d
+[373%] Built target ai_learner
+[373%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_cs.tblee5ed1f85fa3ac7c3ed2ad68f82312444a76c5d3.cs_eepromtbl.d
+[373%] Built target generate_table_cpu1_cs_cs_apptbl
+[386%] Built target cs
+[393%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_cs.tblee5ed1f85fa3ac7c3ed2ad68f82312444a76c5d3.cs_memorytbl.d
+[393%] Built target generate_table_cpu1_cs_cs_eepromtbl
+[400%] Built target fm
+[400%] Built target generate_table_cpu1_cs_cs_memorytbl
+[400%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_cs.tblee5ed1f85fa3ac7c3ed2ad68f82312444a76c5d3.cs_tablestbl.d
+[406%] Built target lc
+[406%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_fm.tbl0b730cfe1d9b98b7c1f358074614a531735b08fd.fm_monitor.d
+[406%] Built target generate_table_cpu1_cs_cs_tablestbl
+[413%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_lc.tbl64e53e3b6a58b626ea1953b00c27dcbb92fbcbfd.lc_def_wdt.d
+[413%] Built target generate_table_cpu1_fm_fm_monitor
+[420%] Built target sc
+[426%] Built target ds
+[426%] Built target generate_table_cpu1_lc_lc_def_wdt
+[426%] Built target hk
+[426%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_lc.tbl64e53e3b6a58b626ea1953b00c27dcbb92fbcbfd.lc_def_adt.d
+[433%] Built target osal_bsp
+[433%] Built target psp-pc-linux
+[433%] Built target generate_table_cpu1_lc_lc_def_adt
+[440%] Built target cfe_assert
+[440%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sc.tbl533c3045d5bb7c39b2d24b22f9135c87cf4c4b2e.sc_ats1.d
+[473%] Built target osal
+[473%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sc.tbl533c3045d5bb7c39b2d24b22f9135c87cf4c4b2e.sc_rts001.d
+[473%] Built target generate_table_cpu1_sc_sc_ats1
+[480%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sc.tbl533c3045d5bb7c39b2d24b22f9135c87cf4c4b2e.sc_rts002.d
+[480%] Built target generate_table_cpu1_sc_sc_rts001
+[480%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sc.tbl533c3045d5bb7c39b2d24b22f9135c87cf4c4b2e.sc_rts003.d
+[480%] Built target generate_table_cpu1_sc_sc_rts002
+[486%] Built target generate_table_cpu1_sc_sc_rts003
+[500%] Built target core-cpu1
+[500%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_sc.tbl533c3045d5bb7c39b2d24b22f9135c87cf4c4b2e.sc_rts004.d
+[486%] Built target ut_assert
+[500%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_ds.tblf894c561a99d21b39c1696cee7f2ed75cc94ff30.ds_filter_tbl.d
+[500%] Generating /root/onair-mlir-bench/ext/cFS/build-aarch64_std/tables/cpu1_ds.tblf894c561a99d21b39c1696cee7f2ed75cc94ff30.ds_file_tbl.d
+[500%] Built target generate_table_cpu1_sc_sc_rts004
+[500%] Built target generate_table_cpu1_ds_ds_filter_tbl
+[500%] Built target generate_table_cpu1_ds_ds_file_tbl
+[500%] Built target cfetables
+[560%] Built target ut_osapi_stubs
+[100%] Built target aarch64_linux_gnu_default_cpu1-cfetables
+Install the project...
+-- Install configuration: "debug"
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/ci_lab.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/to_lab.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/sch_lab.so
+[100%] Built target mission-cfetables
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/cfe_assert.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/cfe_testcase.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/sample_app.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/sample_lib.so
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/ai_learner.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/cf.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/hs.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/md.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/mm.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/cs.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/fm.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/lc.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/sc.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/ds.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/cf/hk.so
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/cpu1/core-cpu1
+[100%] Built target aarch64_linux_gnu_default_cpu1-install
+mkdir: created directory 'elf'
+mkdir: created directory 'elf/cpu1/'
+mkdir: created directory 'staging/cpu1'
+mkdir: created directory 'staging/cpu1/cf/'
+Table build completed
+[100%] Built target tabletool-execute
+[  5%] Built target cfeconfig_platformdata_aarch64_linux_gnu_default_cpu1
+[ 16%] Built target cfe_ts_crc
+[ 38%] Built target tlm_recv
+[ 66%] Built target cmd_send
+[ 88%] Built target cfeconfig_platformdata_tool
+[100%] Built target elf2cfetbl
+Install the project...
+-- Install configuration: "debug"
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/host/cfe_ts_crc
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/host/cmd_send
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/host/tlm_recv
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/.
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/lc_def_adt.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/to_lab_sub_alt.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/hs_emt.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/md_dw02.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sample_app_tbl.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/hs_amt.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/to_lab_sub_bad.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sc_ats2_test.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/md_dw01.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/cf_def_config.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/md_dw03.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/fm_monitor.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/to_lab_sub.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/cs_eepromtbl.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/lc_def_wdt.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sc_append_test.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/hs_xct.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/cs_apptbl.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sc_rts001.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sc_rts002.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sample_app_alt1.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/cs_tablestbl.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/hk_cpy_tbl.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/cs_memorytbl.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sc_ats1.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sc_rts004.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/lc_def_adt-test.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sc_rts003.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/hs_mat.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/cfe_test_tbl.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/sch_lab_table.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/md_dw04.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/ds_filter_tbl.tbl
+-- Installing: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/./cpu1/cf/ds_file_tbl.tbl
+-- Up-to-date: /root/onair-mlir-bench/ext/cFS/build-aarch64_std/exe/host/elf2cfetbl
+Built target mission-install
+touch "build-aarch64_std/stamp.install"
+aarch64_std.install successfully completed
+== build time: prep 2 s, install 2 s, total 5 s
+== file(1)
+build-aarch64_std/exe/cpu1/core-cpu1: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=839339b7713605ad54b657be2f0b338f40fe03f3, for GNU/Linux 3.7.0, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/ai_learner.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=13cc39a13eae4684b9d5aa07749bc47a026201d9, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/cf.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=89ded02c422c06906cde679c7d57a80ec47e862d, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/cfe_assert.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=59a704909b07c59373af1879698516e37a22c53f, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/cfe_testcase.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=6dd04a32a044109244ce2c5791f28275884e8541, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/ci_lab.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=9df221a0b317880e1b8a58d00e865208e667b8df, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/cs.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=559cf5a8eb9fcfdc4ae33a8b204a461c80e9693b, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/ds.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=d5ae0851bca8d8c41a01719c915e566a90b422cf, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/fm.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=f7bf59e479870e5ab63d4180e2ab49e380fe6578, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/hk.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=a0a31cc674466e7dd51e5e3f56f273553091cd18, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/hs.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=af20821a01981c5d156f872324ff5c3695bf54e1, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/lc.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=b1c1d9bcdf65607286fb92d65896350f20b4949b, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/md.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=a3c31851b234b63ed9b861506f6baeefaf5c2562, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/mm.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=82285ddbb236182fb0cd61c8bfc7581c97deec51, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/sample_app.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=345903387d338feddb6323c526edada4610daa47, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/sample_lib.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=87a648a0a0a21899ee05b6bee4b1cbc883ef1f7e, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/sc.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=406222d87328ab0518961dc970b6f0bc3afb2988, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/sch_lab.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=1c785b02d4099f2f30d6f9c3a78f98ef1c9282e3, with debug_info, not stripped
+build-aarch64_std/exe/cpu1/cf/to_lab.so: ELF 64-bit LSB shared object, ARM aarch64, version 1 (SYSV), dynamically linked, BuildID[sha1]=12382a8d0588e7987d59f7ffcabafd89d0722d52, with debug_info, not stripped
+== NEEDED core-cpu1
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-aarch64.so.1]
+== NEEDED cf/ai_learner.so
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-aarch64.so.1]
+== startup script
+6:CFE_APP, sample_app,  SAMPLE_APP_Main,    SAMPLE_APP,   50,   32768, 0x0, 0;
+7:CFE_APP, ai_learner,  AI_LEARNER_AppMain, AI_LEARNER,   55,   263376, 0x0, 0;
+sbn*.so absent (native-only) -- OK
+== compile evidence: 480/480 compile commands carry -mcpu=cortex-a53; ai_learner.so has 1377 iree_* text symbols and the header sha256 (1 occurrence)
+== optin witness: ai_learner.so shows AI_LEARNER_ALLOW_CONDITIONAL_MAP=0 (/root/onair-mlir-bench/ext/cfs-aarch64-exe/e65_drift_legacy/optin_witness.json)
+wrote /root/onair-mlir-bench/ext/cfs-aarch64-exe/e65_drift_legacy/build_info.json
+== DONE: exe tree /root/onair-mlir-bench/ext/cfs-aarch64-exe/e65_drift_legacy/cpu1  core-cpu1 1620984 B  cf/ai_learner.so 863800 B  (build 5 s)
+   deploy: scp -r /root/onair-mlir-bench/ext/cfs-aarch64-exe/e65_drift_legacy/cpu1 into the guest; needs /proc/sys/fs/mqueue/msg_max >= 512 there (scripts/00_env.sh)

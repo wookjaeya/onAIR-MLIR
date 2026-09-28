@@ -237,11 +237,22 @@ def unit_tests(root):
 # ----------------------------------------------------------------------------
 # gen_contract_header.py negative cases (D13 R3/R3b)
 # ----------------------------------------------------------------------------
+def with_producer_check(contract, vmfb_path):
+    """E65/M1: turn a stored pre-E65 document into the document the current analyzer writes for the
+    same artifact, by adding the producer check READ FROM THAT ARTIFACT (not a literal `match`).
+    Without it gen_contract_header.py refuses the fixture for the pre-E65 reason, and every
+    negative header case built on it would be refused for that reason instead of its own."""
+    import make_contract as _mc
+    c = copy.deepcopy(contract)
+    c.setdefault("validity", {})["producer_check"] = _mc.producer_check(vmfb_path)
+    return c
+
+
 def header_negative_cases(root, tmp):
     base_path = os.path.join(root, "aarch64", "contracts", "contract.mlp16k.aarch64.json")
     if not os.path.isfile(base_path):
         return [Result("header: fixture contract present", False, "missing %s" % base_path)]
-    base = load(base_path)
+    base = with_producer_check(load(base_path), os.path.join(root, "aarch64", "vmfb", "mlp16k.vmfb"))
     results = []
 
     def try_mutation(name, mutate):
@@ -1277,6 +1288,9 @@ IGNORE_PROVENANCE_KEYS = {
     # (Despite the constant's name this set is matched against the LAST path
     # component, so it covers resources.* as well as provenance.*.)
     "constants_confirmation_state",
+    # E65/M1: a label saying the validity.compiler* fields describe the analysis host (D107).
+    # A constant string; pinned by e65 cases.
+    "compiler_fields_describe",
 }
 # E19: provenance.structural_walker is a field the 14 stored (pre-E19) contracts
 # never had -- comparing it leaf-by-leaf against IGNORE_PROVENANCE_KEYS by bare
@@ -1292,7 +1306,10 @@ IGNORE_PROVENANCE_KEYS = {
 # a fail-open in the one check that exists to catch drift. Their values are pinned
 # instead by analysis_domain_cases() below, per the E24b/D39 + E24/N2 + E24c/F3
 # precedent (exclusion from the diff must be paired with dedicated pinning).
-IGNORE_PROVENANCE_SUBTREES = {"structural_walker", "analysis_domain", "accounting_rules"}
+IGNORE_PROVENANCE_SUBTREES = {"structural_walker", "analysis_domain", "accounting_rules",
+                              # E65/M1: validity.producer_check is new on every regenerated document;
+                              # pinned per model in regression_check() below, not silenced.
+                              "producer_check"}
 
 
 def flatten(d, prefix=()):
@@ -1408,6 +1425,15 @@ def regression_check(root, tmp):
                                   "drift=%s static_shapes=%s premises=%s accounting=%s"
                                   % (_drift, _ad.get("derived", {}).get("static_shapes"),
                                      sorted(_prem), bool(_c.get("accounting_rules")))))
+            # E65/M1: the producer_check subtree is excluded from the diff above, so it is pinned
+            # here: every one of the 14 artifacts was built by the checked revision, the reader
+            # must say so from the artifact, and the diagnostic block must stay empty.
+            _pc = (_c.get("validity") or {}).get("producer_check") or {}
+            results.append(Result("regression: %s/%s producer check reads bytecode 17.0 = checked (E65)" % (tgt, model),
+                                  _pc.get("state") == "match" and _pc.get("artifact_bytecode_version") == [17, 0]
+                                  and _c["resources"].get("diagnostic_figures_when_bound_withheld") is None
+                                  and (_c.get("validity") or {}).get("compiler_fields_describe") == "analysis_host",
+                                  "state=%s artifact=%s" % (_pc.get("state"), _pc.get("artifact_bytecode_version"))))
             if not ok:
                 continue
             new_hdr = os.path.join(tmp, "regress.%s.%s.h" % (model, tgt))
@@ -2413,8 +2439,11 @@ def call_resolution_cases(tmp):
                                                        inv.get(sm[0][0]) if sm else None,
                                                        sm[0][1] if sm else None)))
         # and it must reach a deployable header, with no override
+        # E65: this fixture keeps no vmfb (E26a stored the embedded ELF only), so its producer
+        # cannot be read; the pre-E65 document is accepted by the explicit flag, which changes no
+        # header byte. The claim here is the stack path, not the producer.
         rc, so, se = run([PY, GEN_HEADER, os.path.join(fx, "resnet.contract.json"),
-                          os.path.join(tmp, "resnet_check.h")])
+                          os.path.join(tmp, "resnet_check.h"), "--allow-unchecked-producer"])
         hdr = open(os.path.join(tmp, "resnet_check.h")).read() if rc == 0 else ""
         results.append(Result("call-res: ResNet contract yields a deployable header with no override",
                               bool(rc == 0 and "#define CONTRACT_KERNEL_STACK_BYTES_KNOWN 1" in hdr
@@ -3381,7 +3410,10 @@ def p1_smartcam_feasibility_cases(tmp):
                           _ok,
                           "" if _ok else "header macro missing"))
     out_h = os.path.join(tmp, "p1_regen.h")
-    rc, _, err = run([PY, GEN_HEADER, os.path.join(P1_DIR, "build", "smartcam.contract.json"), out_h])
+    # E65: the stored document predates the producer check; the flag accepts it without changing
+    # a header byte (the pinned claim is byte-identity of a historical document's header).
+    rc, _, err = run([PY, GEN_HEADER, os.path.join(P1_DIR, "build", "smartcam.contract.json"), out_h,
+                      "--allow-unchecked-producer"])
     results.append(Result("p1-smartcam: header regenerates byte-identical from the stored contract",
                           rc == 0 and os.path.exists(out_h) and open(out_h, "rb").read() == open(os.path.join(P1_DIR, "build", "contract_gen.smartcam.h"), "rb").read(),
                           "rc=%d %s" % (rc, err.strip()[-200:])))
@@ -9166,6 +9198,7 @@ def main():
         all_results += d106_e51_header_leg_cases(tmp)
         all_results += e64_aarch64_evidence_cases(tmp)
         all_results += d108_initializer_control_cases(tmp)
+        all_results += e65_producer_check_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9621,6 +9654,234 @@ def d108_initializer_control_cases(tmp):
     out.append(Result("d108/4 no over-refusal: every archived layout IR's initializer holds only the map-attempt "
                       "branch (%d files)" % len(files), len(files) >= 30 and not flagged,
                       "flagged: %s" % flagged if flagged else "%d/%d clean" % (len(files), len(files))))
+    return out
+
+
+def e65_producer_check_cases(tmp):
+    """E65 (plan docs/plans/E65_producer_revision_and_plugin_option.md, 7b67d89).
+    M1: the artifact's bytecode version is read and a mismatch withholds the bound and makes the header
+    generator refuse; M2: the OnAIR plugin refuses the conditional option as a configuration error.
+    Every guard reads raw records or re-runs the tool; none reads only the summary (D89)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e65_producer_check")
+    if not os.path.exists(os.path.join(D, "summary.json")):
+        return [Result("e65/0 summary present", False, "missing %s" % D)]
+    import vmfb_module_info as _vmi
+    import make_contract as _mc
+
+    # e65/1 -- the reader over every tracked artifact: exactly the five earlier-revision artifacts
+    # (E27's x86-64 one and E59's four AArch64 ones) declare 16.0; everything else 17.0
+    r = subprocess.run(["git", "ls-files", "*.vmfb"], cwd=repo, capture_output=True, text=True)
+    files = sorted(f for f in r.stdout.split() if f)
+    vers, errs = {}, []
+    for f in files:
+        try:
+            vers[f] = tuple(_vmi.read_module_info(os.path.join(repo, f))["bytecode_version"])
+        except (_vmi.ModuleInfoError, OSError) as e:
+            errs.append((f, str(e)))
+    old = sorted(f for f, v in vers.items() if v != (17, 0))
+    expect_old = sorted(["results/e27_baselines/iree310_mlp16k/mlp16k.vmfb"] + [
+        "results/e59_info_levels_aarch64/drift_310/%s/%s.vmfb" % (m, m)
+        for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan")])
+    out.append(Result("e65/1 bytecode version read from every tracked artifact; exactly the five earlier-revision "
+                      "artifacts are 16.0", bool(files) and not errs and old == expect_old
+                      and all(vers[f] == (16, 0) for f in old),
+                      "files=%d errors=%s non17=%s" % (len(files), errs[:2], old)))
+
+    # e65/2 -- the reader refuses what it cannot read (never a default version)
+    bad = os.path.join(tmp, "e65_trunc.vmfb")
+    with open(os.path.join(repo, expect_old[1]), "rb") as f:
+        data = f.read()
+    with open(bad, "wb") as f:
+        f.write(data[:200])
+    try:
+        _vmi.read_module_info(bad)
+        refused = False
+    except _vmi.ModuleInfoError:
+        refused = True
+    pc = _mc.producer_check(bad)
+    out.append(Result("e65/2 a truncated artifact is not_observed (refused by the reader), not a version",
+                      refused and pc["state"] == "not_observed" and pc["artifact_bytecode_version"] is None,
+                      "state=%s" % pc["state"]))
+
+    # e65/3 -- header generator: the re-analyzed earlier-revision documents are refused; with the escape
+    # hatch the header states no bound
+    ok, det = True, {}
+    for m in ("b2_resnet", "b3_deepae", "smartcam", "wgan"):
+        con = os.path.join(D, "drift_310_reanalyzed", m, m + ".contract.json")
+        c = load(con)
+        h = os.path.join(tmp, "e65_%s.h" % m)
+        if os.path.exists(h):
+            os.remove(h)
+        rc1, _o, e1 = run([PY, GEN_HEADER, con, h])
+        w1 = os.path.exists(h)
+        rc2, _o, _e = run([PY, GEN_HEADER, con, h, "--allow-producer-mismatch"])
+        bk = re.search(r"#define CONTRACT_BOUND_KNOWN (\d)", open(h).read()).group(1) if rc2 == 0 else None
+        cell = (c["validity"]["producer_check"]["state"] == "mismatch" and c["resources"]["bound_method"] == "NONE"
+                and c["resources"]["bounded_bytes"] is None and rc1 != 0 and not w1
+                and "producer_check" in e1 and bk == "0")
+        det[m] = cell
+        ok = ok and cell
+    out.append(Result("e65/3 re-analyzed earlier-revision documents: no bound; header refused, and with "
+                      "--allow-producer-mismatch BOUND_KNOWN 0", ok, json.dumps(det)))
+
+    # e65/4 -- a pre-E65 document that states a bound is refused unless the flag is passed; the flag
+    # changes no header byte (the committed legacy header is reproduced)
+    legacy = os.path.join(repo, "results", "e59_info_levels_aarch64", "drift_310", "b2_resnet", "b2_resnet.contract.json")
+    h = os.path.join(tmp, "e65_legacy.h")
+    if os.path.exists(h):
+        os.remove(h)
+    rc1, _o, e1 = run([PY, GEN_HEADER, legacy, h])
+    w1 = os.path.exists(h)
+    rc2, _o, _e = run([PY, GEN_HEADER, legacy, h, "--allow-unchecked-producer"])
+    same = rc2 == 0 and open(h, "rb").read() == open(os.path.join(
+        D, "guest", "legacy_e59_header", "contract_gen.b2_resnet.h"), "rb").read()
+    out.append(Result("e65/4 a pre-E65 document with a bound is refused by default; the flag reproduces the "
+                      "committed Q2(b) header byte for byte", rc1 != 0 and not w1 and "written before E65" in e1 and same,
+                      "rc1=%d wrote=%s same=%s" % (rc1, w1, same)))
+
+    # e65/5 -- the drift guard ties bound and producer state together (a hand-edited document that keeps a
+    # bound beside a mismatch is caught, and so is a withheld bound beside a match)
+    c = load(os.path.join(D, "reissued", "b2_resnet", "b2_resnet.contract.json"))
+    t1 = copy.deepcopy(c)
+    t1["validity"]["producer_check"]["state"] = "mismatch"
+    t1["analysis_domain"]["derived"]["producer_check_state"] = "mismatch"
+    t2 = copy.deepcopy(load(os.path.join(D, "drift_310_reanalyzed", "b2_resnet", "b2_resnet.contract.json")))
+    t2["validity"]["producer_check"]["state"] = "match"
+    t2["analysis_domain"]["derived"]["producer_check_state"] = "match"
+    out.append(Result("e65/5 analysis_domain_drift: a bound beside a mismatch, and no bound beside a match, are "
+                      "both drift; the committed documents have none",
+                      bool(_mc.analysis_domain_drift(t1)) and bool(_mc.analysis_domain_drift(t2))
+                      and not _mc.analysis_domain_drift(c)
+                      and not _mc.analysis_domain_drift(load(os.path.join(D, "drift_310_reanalyzed", "b2_resnet",
+                                                                         "b2_resnet.contract.json"))), ""))
+
+    # e65/6 -- Q4: the four re-issued documents: figures equal to the archived ones, producer match,
+    # output-lifetime and alignment premises present, headers byte-identical to the archived headers
+    import e64_aarch64_evidence as _e64
+    ok, det = True, {}
+    for m, (_src, adir, con_name, hdr_name) in _e64.EVALUATED.items():
+        new = load(os.path.join(D, "reissued", m, con_name))
+        arch = load(os.path.join(repo, adir, con_name))
+        f = ("bounded_bytes", "static_per_call_bytes", "module_resident_constant_bytes", "bound_method")
+        prem = new["analysis_domain"]["required_premises"]
+        cell = (all(new["resources"][k] == arch["resources"][k] for k in f)
+                and new["validity"]["producer_check"]["state"] == "match"
+                and prem.get("output_lifetime") == "released_before_next_call" and prem.get("max_in_flight_calls") == 1
+                and "64-byte aligned" in new["analysis_domain"]["derived"]["constant_policy"]["map_arm_precondition"]
+                and open(os.path.join(D, "reissued", m, hdr_name), "rb").read()
+                == open(os.path.join(repo, adir, hdr_name), "rb").read())
+        det[m] = cell
+        ok = ok and cell
+    out.append(Result("e65/6 the four evaluated documents re-issued: figures unchanged, producer match, both "
+                      "recorded premises present, headers byte-identical", ok, json.dumps(det)))
+
+    # e65/7 -- Q2 re-derived from the raw guest logs (not the runner summary)
+    import mk_e36_summary as _m36
+    L = os.path.join(D, "guest", "cells", "logs")
+    a = _m36.stages(os.path.join(L, "e65_drift_nobound.log"))
+    b = _m36.stages(os.path.join(L, "e65_drift_legacy.log"))
+    msg = ((b.get("runtime_load_failed") or [{}])[0]).get("status") or ""
+    ok = ([r.get("verdict") for r in a.get("admission", [])] == ["UNKNOWN_BOUND"] and not a.get("mem_init")
+          and not a.get("binding")
+          and [r.get("verdict") for r in b.get("admission", [])] == ["ADMIT"]
+          and [r.get("verdict") for r in b.get("binding", [])] == ["MATCH"]
+          and "module has 16.0" in msg and "supports 17.0" in msg and not b.get("mem_init") and not b.get("run")
+          and not b["__unparsed__"].get("run"))
+    out.append(Result("e65/7 guest logs: the new document -> UNKNOWN_BOUND at Init; the pre-E65 document -> ADMIT, "
+                      "MATCH, then the runtime refuses the module at append (16.0 vs 17.0), no inference", ok,
+                      msg[:120]))
+
+    # e65/8 -- M2 pure check, and no repository deployment is refused by it except the one cell built to be
+    import sys as _sys
+    _sys.path.insert(0, os.path.join(repo, "plugins", "compiled_learner"))
+    import artifact_binding as _ab
+    verdicts = {}
+    for label, dep in (("absent", {}), ("false", {"allow_conditional_map": False}),
+                       ("true", {"allow_conditional_map": True}), ("'false'", {"allow_conditional_map": "false"}),
+                       ("0", {"allow_conditional_map": 0}), ("null", {"allow_conditional_map": None})):
+        try:
+            verdicts[label] = _ab.check_conditional_map_option(dep)
+        except _ab.ConfigurationError:
+            verdicts[label] = "refused"
+    refused_cfg = []
+    for cf in sorted(glob.glob(os.path.join(repo, "configs", "deployments", "*.json"))):
+        for name, dep in (load(cf).get("deployments") or {}).items():
+            try:
+                _ab.check_conditional_map_option(dep)
+            except _ab.ConfigurationError:
+                refused_cfg.append(name)
+    out.append(Result("e65/8 conditional option: absent/false accepted; true and every non-boolean refused; of all "
+                      "repository deployments only the E65 refusal cell is refused",
+                      verdicts == {"absent": False, "false": False, "true": "refused", "'false'": "refused",
+                                   "0": "refused", "null": "refused"}
+                      and refused_cfg == ["e65_b2_resnet_conditional_requested"],
+                      "%s refused=%s" % (verdicts, refused_cfg)))
+
+    # e65/9 -- Q3 re-derived from the plugin's own init records
+    ok, det = True, {}
+    for dep, want_active in (("e65_b2_resnet_conditional_requested", False),
+                             ("e65_b2_resnet_conditional_false_control", True)):
+        recs = [json.loads(l) for l in open(os.path.join(D, "guest", "onair", dep, "plugin_records.jsonl"))
+                if l.strip()]
+        init = [x for x in recs if x.get("event") == "init"]
+        n_out = sum(1 for x in recs if x.get("event") != "init" and "output" in x)
+        i0 = init[0] if len(init) == 1 else {}
+        if want_active:
+            cell = i0.get("active") is True and i0.get("runtime_created") is True and n_out >= 1
+        else:
+            cell = (i0.get("active") is False and i0.get("runtime_created") is False and i0.get("admission") is None
+                    and (i0.get("inactive_reason") or "").startswith("ConfigurationError:") and n_out == 0)
+        det[dep] = [i0.get("active"), i0.get("runtime_created"), n_out]
+        ok = ok and cell
+    out.append(Result("e65/9 OnAIR plugin on the guest: option true -> configuration error, no runtime, no "
+                      "inference; same deployment with false -> active, inferences", ok, json.dumps(det)))
+
+    # e65/10 -- Q6: the guest's IREE Python runtime records the compiler's revision
+    env = open(os.path.join(D, "guest", "onair", "guest_env.txt"), encoding="utf-8").read()
+    m = re.search(r'"IREE": "([0-9a-f]{40})"', env)
+    out.append(Result("e65/10 the guest's IREE Python runtime records revision = the checked compiler revision",
+                      bool(m) and m.group(1) == _mc.CHECKED_PRODUCER["compiler_commit"]
+                      and 'VERSION = "3.11.0rc20260316"' in env, m.group(1) if m else "no REVISIONS line"))
+
+    # e65/11 -- Q5 records: the two layout edits are summed and the extractors agree; the two-output
+    # model's slab covers both outputs
+    an = load(os.path.join(D, "analyzer.json"))["Q5a_layout_edits"]["cells"]
+    mo = load(os.path.join(D, "multiout.json"))["Q5b_multiout"]
+    ok = (an["second_transient_slab"].get("static_transient_bytes") == 297088 + 256
+          and an["second_output_allocation"].get("static_external_output_bytes") == 80
+          and all(an[k].get("structural_agrees") is True for k in an)
+          and mo.get("static_external_output_bytes") == 128 and mo.get("output_tensor_bytes") == 48
+          and mo.get("overrides_applied") == [] and mo.get("producer_check_state") == "match")
+    out.append(Result("e65/11 multi-slab and multi-output: sums 297,344 and 80; two-output model slab 128 >= 48; "
+                      "extractors agree", ok, ""))
+
+    # e65/12 -- live: the current analyzer on one earlier-revision artifact withholds the bound (D77)
+    if not (iree_tools_available() and structural_available()):
+        out.append(Result("e65/12 live re-analysis of an earlier-revision artifact", True,
+                          "needs iree-compile tools and iree.compiler.ir", skip=True))
+        return out
+    w = os.path.join(tmp, "e65_live")
+    os.makedirs(w, exist_ok=True)
+    dd = os.path.join(repo, "results", "e59_info_levels_aarch64", "drift_310", "b2_resnet")
+    import gzip as _gz
+    lay = os.path.join(w, "b2_resnet.layout_ir.txt")
+    with _gz.open(os.path.join(dd, "b2_resnet.layout_ir.txt.gz"), "rb") as f, open(lay, "wb") as g:
+        g.write(f.read())
+    mlir = os.path.join(w, "b2_resnet.mlir")
+    shutil.copyfile(os.path.join(repo, "results", "e36b_aarch64_models", "b2_resnet", "b2_resnet.mlir"), mlir)
+    con = os.path.join(w, "live.contract.json")
+    rc, _o, err = run([PY, MAKE_CONTRACT, "--mlir", mlir, "--vmfb", os.path.join(dd, "b2_resnet.vmfb"),
+                       "--layout-ir", lay, "--dump-dir", os.path.join(dd, "dump"), "--triple",
+                       "aarch64-unknown-linux-gnu", "--cpu", "cortex-a53", "--model-name", "b2_resnet",
+                       "--elf-analysis", os.path.join(dd, "b2_resnet.elf.json"), "--out", con])
+    c = load(con) if rc == 0 and os.path.exists(con) else {}
+    res = c.get("resources") or {}
+    ok = (rc == 0 and c["validity"]["producer_check"]["state"] == "mismatch" and res.get("bound_method") == "NONE"
+          and (res.get("diagnostic_figures_when_bound_withheld") or {}).get("bounded_bytes") == 618856)
+    out.append(Result("e65/12 live: the current analyzer withholds the bound for an earlier-revision artifact and "
+                      "keeps 618,856 as a diagnostic only", ok, "rc=%d %s" % (rc, err.strip()[-160:])))
     return out
 
 

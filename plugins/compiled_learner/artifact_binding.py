@@ -96,3 +96,39 @@ def check_declared_driver(contract, deployment_driver):
             "deployment driver %r != contract driver %r (the bound is stated for the "
             "declared driver only)" % (deployment_driver, declared[0]))
     return declared[0]
+
+
+class ConfigurationError(Exception):
+    """E65/M2: the deployment asks for something this path cannot honour."""
+
+
+CONDITIONAL_MAP_KEY = "allow_conditional_map"
+
+
+def check_conditional_map_option(deployment):
+    """E65/M2: the conditional policy is not available on the OnAIR plugin path.
+
+    Admitting on the map-arm figure (B_m = static_per_call_bytes) is sound only once the
+    map-arm premise has been MEASURED before the runtime is created (module image 64-byte
+    aligned) and confirmed after append (no constant allocation). The two C executors do
+    both (E29b/D54); this plugin does neither -- the Python binding places its own copy of
+    the image and does not expose the address -- so passing the option through to the
+    admission policy would admit on B_m without the check (the D53 shape). Until E65 that
+    was prevented only procedurally: every deployment wrote `false`.
+
+    Accepted: the key absent, or the boolean `false`. Everything else is a configuration
+    error -- including `true`, and including non-boolean values such as the string
+    "false", which the previous `bool(...)` read as True.
+
+    Returns False on success; raises ConfigurationError otherwise.
+    """
+    if CONDITIONAL_MAP_KEY not in deployment:
+        return False
+    value = deployment[CONDITIONAL_MAP_KEY]
+    if value is False:
+        return False
+    if value is True:
+        raise ConfigurationError(
+            "%s=true: the conditional policy is not available on this path, which does not "
+            "verify the map-arm premise before creating the runtime" % CONDITIONAL_MAP_KEY)
+    raise ConfigurationError("%s=%r is not a boolean" % (CONDITIONAL_MAP_KEY, value))

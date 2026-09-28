@@ -1,0 +1,384 @@
+{
+ "Q1_earlier_revision": {
+  "cells": {
+   "b2_resnet": {
+    "artifact": "results/e59_info_levels_aarch64/drift_310/b2_resnet/b2_resnet.vmfb",
+    "artifact_bytecode_version": [
+     16,
+     0
+    ],
+    "bound_method": "NONE",
+    "bounded_bytes": null,
+    "diagnostic_equals_e59_c_value": true,
+    "diagnostic_figures_when_bound_withheld": {
+     "bounded_bytes": 618856,
+     "module_resident_constant_bytes": 309440,
+     "reason": "producer check mismatch",
+     "static_io_bytes": 12328,
+     "static_per_call_bytes": 309416,
+     "static_transient_bytes": 297088
+    },
+    "document_written": true,
+    "e59_archived_document_bound": 618856,
+    "header_default": {
+     "BOUNDED_BYTES": null,
+     "BOUND_KNOWN": null,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]). The analysis was checked for IREE 3.11.0rc20260316 only; pass --allow-producer-mismatch to write a header that states NO bound."
+     ],
+     "written": false
+    },
+    "header_with_allow_producer_mismatch": {
+     "BOUNDED_BYTES": "-1L",
+     "BOUND_KNOWN": "0",
+     "rc": 0,
+     "stderr_tail": [],
+     "written": true
+    },
+    "make_contract_rc": 0,
+    "producer_check_state": "mismatch",
+    "static_per_call_bytes": null,
+    "verification_grade": "verified"
+   },
+   "b3_deepae": {
+    "artifact": "results/e59_info_levels_aarch64/drift_310/b3_deepae/b3_deepae.vmfb",
+    "artifact_bytecode_version": [
+     16,
+     0
+    ],
+    "bound_method": "NONE",
+    "bounded_bytes": null,
+    "diagnostic_equals_e59_c_value": true,
+    "diagnostic_figures_when_bound_withheld": {
+     "bounded_bytes": 1069632,
+     "module_resident_constant_bytes": 1063424,
+     "reason": "producer check mismatch",
+     "static_io_bytes": 5120,
+     "static_per_call_bytes": 6208,
+     "static_transient_bytes": 1088
+    },
+    "document_written": true,
+    "e59_archived_document_bound": 1069632,
+    "header_default": {
+     "BOUNDED_BYTES": null,
+     "BOUND_KNOWN": null,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]). The analysis was checked for IREE 3.11.0rc20260316 only; pass --allow-producer-mismatch to write a header that states NO bound."
+     ],
+     "written": false
+    },
+    "header_with_allow_producer_mismatch": {
+     "BOUNDED_BYTES": "-1L",
+     "BOUND_KNOWN": "0",
+     "rc": 0,
+     "stderr_tail": [],
+     "written": true
+    },
+    "make_contract_rc": 0,
+    "producer_check_state": "mismatch",
+    "static_per_call_bytes": null,
+    "verification_grade": "verified"
+   },
+   "smartcam": {
+    "artifact": "results/e59_info_levels_aarch64/drift_310/smartcam/smartcam.vmfb",
+    "artifact_bytecode_version": [
+     16,
+     0
+    ],
+    "bound_method": "NONE",
+    "bounded_bytes": null,
+    "diagnostic_equals_e59_c_value": true,
+    "diagnostic_figures_when_bound_withheld": {
+     "bounded_bytes": 18222796,
+     "module_resident_constant_bytes": 8840704,
+     "reason": "producer check mismatch",
+     "static_io_bytes": 602124,
+     "static_per_call_bytes": 9382092,
+     "static_transient_bytes": 8779968
+    },
+    "document_written": true,
+    "e59_archived_document_bound": 18222796,
+    "header_default": {
+     "BOUNDED_BYTES": null,
+     "BOUND_KNOWN": null,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]). The analysis was checked for IREE 3.11.0rc20260316 only; pass --allow-producer-mismatch to write a header that states NO bound."
+     ],
+     "written": false
+    },
+    "header_with_allow_producer_mismatch": {
+     "BOUNDED_BYTES": "-1L",
+     "BOUND_KNOWN": "0",
+     "rc": 0,
+     "stderr_tail": [],
+     "written": true
+    },
+    "make_contract_rc": 0,
+    "producer_check_state": "mismatch",
+    "static_per_call_bytes": null,
+    "verification_grade": "verified"
+   },
+   "wgan": {
+    "artifact": "results/e59_info_levels_aarch64/drift_310/wgan/wgan.vmfb",
+    "artifact_bytecode_version": [
+     16,
+     0
+    ],
+    "bound_method": "NONE",
+    "bounded_bytes": null,
+    "diagnostic_equals_e59_c_value": true,
+    "diagnostic_figures_when_bound_withheld": {
+     "bounded_bytes": 135666432,
+     "module_resident_constant_bytes": 4283648,
+     "reason": "producer check mismatch",
+     "static_io_bytes": 1204224,
+     "static_per_call_bytes": 131382784,
+     "static_transient_bytes": 130178560
+    },
+    "document_written": true,
+    "e59_archived_document_bound": 135666432,
+    "header_default": {
+     "BOUNDED_BYTES": null,
+     "BOUND_KNOWN": null,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]). The analysis was checked for IREE 3.11.0rc20260316 only; pass --allow-producer-mismatch to write a header that states NO bound."
+     ],
+     "written": false
+    },
+    "header_with_allow_producer_mismatch": {
+     "BOUNDED_BYTES": "-1L",
+     "BOUND_KNOWN": "0",
+     "rc": 0,
+     "stderr_tail": [],
+     "written": true
+    },
+    "make_contract_rc": 0,
+    "producer_check_state": "mismatch",
+    "static_per_call_bytes": null,
+    "verification_grade": "verified"
+   }
+  },
+  "pass": true
+ },
+ "Q4_reissue": {
+  "archived_documents_with_analysis_domain": [
+   "wgan"
+  ],
+  "cells": {
+   "b2_resnet": {
+    "archived_document": "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
+    "archived_has_analysis_domain": false,
+    "archived_has_output_lifetime": false,
+    "figures_archived": {
+     "bound_method": "static_from_stream_layout",
+     "bounded_bytes": 618856,
+     "module_resident_constant_bytes": 309440,
+     "static_per_call_bytes": 309416
+    },
+    "figures_reissued": {
+     "bound_method": "static_from_stream_layout",
+     "bounded_bytes": 618856,
+     "module_resident_constant_bytes": 309440,
+     "static_per_call_bytes": 309416
+    },
+    "figures_unchanged": true,
+    "header": {
+     "BOUNDED_BYTES": "618856L",
+     "BOUND_KNOWN": "1",
+     "rc": 0,
+     "stderr_tail": [],
+     "written": true
+    },
+    "header_byte_identical": true,
+    "leaf_differences_outside_ignored_keys": [
+     "('provenance', 'dump_dir_files')"
+    ],
+    "make_contract_rc": 0,
+    "producer_check_state": "match",
+    "reissued_max_in_flight_calls": 1,
+    "reissued_output_lifetime": "released_before_next_call",
+    "reissued_states_alignment_premise": true
+   },
+   "b3_deepae": {
+    "archived_document": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
+    "archived_has_analysis_domain": false,
+    "archived_has_output_lifetime": false,
+    "figures_archived": {
+     "bound_method": "static_from_stream_layout",
+     "bounded_bytes": 1069632,
+     "module_resident_constant_bytes": 1063424,
+     "static_per_call_bytes": 6208
+    },
+    "figures_reissued": {
+     "bound_method": "static_from_stream_layout",
+     "bounded_bytes": 1069632,
+     "module_resident_constant_bytes": 1063424,
+     "static_per_call_bytes": 6208
+    },
+    "figures_unchanged": true,
+    "header": {
+     "BOUNDED_BYTES": "1069632L",
+     "BOUND_KNOWN": "1",
+     "rc": 0,
+     "stderr_tail": [],
+     "written": true
+    },
+    "header_byte_identical": true,
+    "leaf_differences_outside_ignored_keys": [
+     "('provenance', 'dump_dir_files')"
+    ],
+    "make_contract_rc": 0,
+    "producer_check_state": "match",
+    "reissued_max_in_flight_calls": 1,
+    "reissued_output_lifetime": "released_before_next_call",
+    "reissued_states_alignment_premise": true
+   },
+   "smartcam": {
+    "archived_document": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+    "archived_has_analysis_domain": false,
+    "archived_has_output_lifetime": false,
+    "figures_archived": {
+     "bound_method": "static_from_stream_layout",
+     "bounded_bytes": 18222796,
+     "module_resident_constant_bytes": 8840704,
+     "static_per_call_bytes": 9382092
+    },
+    "figures_reissued": {
+     "bound_method": "static_from_stream_layout",
+     "bounded_bytes": 18222796,
+     "module_resident_constant_bytes": 8840704,
+     "static_per_call_bytes": 9382092
+    },
+    "figures_unchanged": true,
+    "header": {
+     "BOUNDED_BYTES": "18222796L",
+     "BOUND_KNOWN": "1",
+     "rc": 0,
+     "stderr_tail": [],
+     "written": true
+    },
+    "header_byte_identical": true,
+    "leaf_differences_outside_ignored_keys": [],
+    "make_contract_rc": 0,
+    "producer_check_state": "match",
+    "reissued_max_in_flight_calls": 1,
+    "reissued_output_lifetime": "released_before_next_call",
+    "reissued_states_alignment_premise": true
+   },
+   "wgan": {
+    "archived_document": "results/e53_wgan_aarch64/build/aarch64/wgan.contract.json",
+    "archived_has_analysis_domain": true,
+    "archived_has_output_lifetime": true,
+    "figures_archived": {
+     "bound_method": "static_from_stream_layout",
+     "bounded_bytes": 135666432,
+     "module_resident_constant_bytes": 4283648,
+     "static_per_call_bytes": 131382784
+    },
+    "figures_reissued": {
+     "bound_method": "static_from_stream_layout",
+     "bounded_bytes": 135666432,
+     "module_resident_constant_bytes": 4283648,
+     "static_per_call_bytes": 131382784
+    },
+    "figures_unchanged": true,
+    "header": {
+     "BOUNDED_BYTES": "135666432L",
+     "BOUND_KNOWN": "1",
+     "rc": 0,
+     "stderr_tail": [],
+     "written": true
+    },
+    "header_byte_identical": true,
+    "leaf_differences_outside_ignored_keys": [],
+    "make_contract_rc": 0,
+    "producer_check_state": "match",
+    "reissued_max_in_flight_calls": 1,
+    "reissued_output_lifetime": "released_before_next_call",
+    "reissued_states_alignment_premise": true
+   }
+  },
+  "pass": true
+ },
+ "Q5a_layout_edits": {
+  "artifact": "results/e36b_aarch64_models/b2_resnet/b2_resnet.vmfb",
+  "cells": {
+   "control_unedited": {
+    "bound_method": "static_from_stream_layout",
+    "bounded_bytes": 618856,
+    "document_written": true,
+    "inject": null,
+    "make_contract_rc": 0,
+    "static_external_output_bytes": 40,
+    "static_per_call_bytes": 309416,
+    "static_transient_bytes": 297088,
+    "stderr_tail": [],
+    "structural_agrees": true,
+    "transient_slabs_post_layout": [
+     297088
+    ]
+   },
+   "second_output_allocation": {
+    "bound_method": "static_from_stream_layout",
+    "bounded_bytes": 618896,
+    "document_written": true,
+    "expected": {
+     "static_external_output_bytes": 80,
+     "static_per_call_bytes": 309456,
+     "static_transient_bytes": 297088
+    },
+    "inject": "\n  %e65_o2, %e65_o2_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<external>{%c40} => !stream.timepoint",
+    "make_contract_rc": 0,
+    "static_external_output_bytes": 80,
+    "static_per_call_bytes": 309456,
+    "static_transient_bytes": 297088,
+    "stderr_tail": [],
+    "structural_agrees": true,
+    "summed_as_expected": true,
+    "transient_slabs_post_layout": [
+     297088
+    ]
+   },
+   "second_transient_slab": {
+    "bound_method": "static_from_stream_layout",
+    "bounded_bytes": 619112,
+    "document_written": true,
+    "expected": {
+     "static_external_output_bytes": 40,
+     "static_per_call_bytes": 309672,
+     "static_transient_bytes": 297344
+    },
+    "inject": "\n  %e65_t2, %e65_t2_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<transient>{%c256} => !stream.timepoint",
+    "make_contract_rc": 0,
+    "static_external_output_bytes": 40,
+    "static_per_call_bytes": 309672,
+    "static_transient_bytes": 297344,
+    "stderr_tail": [],
+    "structural_agrees": true,
+    "summed_as_expected": true,
+    "transient_slabs_post_layout": [
+     297088,
+     256
+    ]
+   }
+  },
+  "method": "one line inserted before the terminator of the entry's last print (E51's mutate); no recompile; production make_contract.py",
+  "pass": true
+ },
+ "checked_producer": {
+  "bytecode_version": [
+   17,
+   0
+  ],
+  "compiler": "IREE 3.11.0rc20260316",
+  "compiler_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25"
+ },
+ "cpu": "cortex-a53",
+ "experiment": "E65",
+ "plan": "docs/plans/E65_producer_revision_and_plugin_option.md (committed before any cell, 7b67d89)",
+ "target": "aarch64-unknown-linux-gnu"
+}

@@ -110,7 +110,10 @@ class Plugin(AIPlugin):
             raise ContractViolation("unknown input_mode %r (telemetry | file_replay)"
                                     % self.input_mode)
         self.verify_artifact_hash = bool(d.get("verify_artifact_hash", True))
-        self.allow_conditional_map = bool(d.get("allow_conditional_map", False))
+        # E65/M2: never enabled on this path. The deployment value is checked (and a request
+        # for the conditional policy refused as a configuration error) first thing inside the
+        # guard below; what reaches the admission policy is this constant.
+        self.allow_conditional_map = False
         self.budget_bytes = d.get("budget_bytes")
         # E57: opt-in HAL allocator statistics. Off by default so every existing deployment
         # records exactly what it recorded before; on, the plugin reads the allocator of ITS
@@ -178,6 +181,7 @@ class Plugin(AIPlugin):
         # down (plan SS4-3). The first version of this file loaded the contract above the
         # guard and killed the OnAIR run on a missing file -- measured, then fixed.
         try:
+            ab.check_conditional_map_option(d)
             if self.output_readback not in READBACK_MODES:
                 raise ContractViolation("unknown output_readback %r (one of %s)"
                                         % (self.output_readback, READBACK_MODES))
@@ -202,7 +206,8 @@ class Plugin(AIPlugin):
                     "enforce_output_release requested but allocator statistics are unavailable (%s)"
                     % (self.hal_after_append or {}).get("unavailable_reason"))
             self.active = True
-        except (ContractViolation, ap.AdmissionInputError, OSError, KeyError, ValueError) as e:
+        except (ContractViolation, ab.ConfigurationError, ap.AdmissionInputError, OSError, KeyError,
+                ValueError) as e:
             # Never take the OnAIR process down with us: stay inactive and say why.
             self.inactive_reason = "%s: %s" % (type(e).__name__, e)
             print("[%s] INACTIVE -- %s" % (self.component_name, self.inactive_reason))
@@ -215,6 +220,8 @@ class Plugin(AIPlugin):
                     # E57: a DIRECT signal, not an inference from a missing record (D80): the
                     # IREE context exists only if _load_artifact() got past every gate
                     "runtime_created": self._ctx is not None,
+                    # E65/M2: the conditional option as the deployment wrote it (absent -> None)
+                    "allow_conditional_map_requested": d.get("allow_conditional_map"),
                     "output_readback": self.output_readback,
                     "enforce_output_release": self.enforce_output_release}
         if self.record_hal_statistics or self.enforce_output_release:

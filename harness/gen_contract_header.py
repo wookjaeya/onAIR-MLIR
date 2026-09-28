@@ -48,6 +48,11 @@ exit, no file written) when any of those hold, unless the caller passes the
 matching --allow-* flag as an explicit, logged override:
   --allow-unknown-stack   write CONTRACT_KERNEL_STACK_BYTES_KNOWN=0 with a
                           bound-known contract instead of refusing
+  --allow-producer-mismatch   (E65) write a header for a document whose
+                          validity.producer_check is not `match`; the header
+                          states NO bound (BOUND_KNOWN 0) whatever the document says
+  --allow-unchecked-producer  (E65) accept a pre-E65 document that states a
+                          bound but carries no producer check
 """
 import json
 import math
@@ -137,9 +142,12 @@ def main():
     flags = {x for x in sys.argv[1:] if x.startswith("--allow-")}
     allow_unknown_stack = "--allow-unknown-stack" in flags
     allow_override_contract = "--allow-override-contract" in flags
+    allow_producer_mismatch = "--allow-producer-mismatch" in flags
+    allow_unchecked_producer = "--allow-unchecked-producer" in flags
     if len(argv) != 2:
         print("usage: gen_contract_header.py contract.json out.h "
-              "[--allow-unknown-stack] [--allow-override-contract]", file=sys.stderr)
+              "[--allow-unknown-stack] [--allow-override-contract] "
+              "[--allow-producer-mismatch] [--allow-unchecked-producer]", file=sys.stderr)
         return 2
     c = json.load(open(argv[0]))
     out = argv[1]
@@ -278,6 +286,37 @@ def main():
                 "--allow-* escape hatch(es), or pass --allow-override-contract to override."
                 % "; ".join(prov_bad))
     provenance_verified = bool(bound_known and isinstance(prov, dict) and not prov_bad)
+
+    # E65/M1: make_contract.py now records the bytecode version the ARTIFACT declares and compares
+    # it with the revision K was checked over (validity.producer_check). A document whose check is
+    # not `match` states no bound; this generator refuses it outright rather than emitting
+    # BOUND_KNOWN 0, because the module would not be the one the analysis describes. The escape
+    # hatch writes a header that can never carry a bound (the flight application then refuses at
+    # Init with UNKNOWN_BOUND) -- it exists to observe that layer, not to deploy.
+    #
+    # A document produced by make_contract.py (it has a provenance block) but WITHOUT the check
+    # predates E65. The four earlier-revision documents that motivated M1 are exactly such
+    # documents, with a bound and grade "verified", so absence cannot be read as `match` (D29).
+    # Documents without a provenance block (contracts/*.json, the OnAIR fixture) are outside this
+    # rule for the reason the E24b provenance gate states above.
+    _pc = v.get("producer_check")
+    if isinstance(_pc, dict):
+        if _pc.get("state") != "match":
+            if not allow_producer_mismatch:
+                raise SystemExit(
+                    "gen_contract_header: refusing: validity.producer_check.state=%r (artifact bytecode %r, "
+                    "checked %r). The analysis was checked for %s only; pass --allow-producer-mismatch "
+                    "to write a header that states NO bound." % (
+                        _pc.get("state"), _pc.get("artifact_bytecode_version"),
+                        _pc.get("checked_bytecode_version"), _pc.get("checked_compiler")))
+            bound_known = False
+            provenance_verified = False
+    elif isinstance(prov, dict) and bound_known and not allow_unchecked_producer:
+        raise SystemExit(
+            "gen_contract_header: refusing: the document states a bound but carries no "
+            "validity.producer_check (written before E65), so the bytecode version of the artifact "
+            "was never compared with the revision the analysis was checked for. Re-issue it with "
+            "harness/make_contract.py, or pass --allow-unchecked-producer.")
 
     if not bound_known:
         bounded = None

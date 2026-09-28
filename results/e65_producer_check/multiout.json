@@ -1,0 +1,53 @@
+{
+ "Q5b_multiout": {
+  "bound_method": "static_from_stream_layout",
+  "bounded_bytes": 704,
+  "compile_argv": [
+   "iree-compile",
+   "multiout.mlir",
+   "--iree-hal-target-backends=llvm-cpu",
+   "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+   "--iree-llvmcpu-target-cpu=cortex-a53",
+   "--mlir-print-ir-after=iree-stream-layout-slices",
+   "--mlir-elide-elementsattrs-if-larger=16",
+   "--iree-hal-dump-executable-files-to=dump",
+   "-o",
+   "multiout.vmfb"
+  ],
+  "compile_rc": 0,
+  "elf_rc": 0,
+  "header": {
+   "BOUNDED_BYTES": null,
+   "BOUND_KNOWN": null,
+   "rc": 1,
+   "stderr_tail": [
+    "gen_contract_header: bound_method=static_from_stream_layout but interface is not the single-f32-input/single-f32-output shape native_learner.c/ai_learner.c hardcode (inputs=1 outputs=2 dtypes=['f32'])"
+   ],
+   "written": false
+  },
+  "make_contract_rc": 0,
+  "module_resident_constant_bytes": 512,
+  "output_tensor_bytes": 48,
+  "outputs_declared": [
+   [
+    1,
+    8
+   ],
+   [
+    1,
+    4
+   ]
+  ],
+  "overrides_applied": [],
+  "pass": true,
+  "producer_check_state": "match",
+  "static_external_output_bytes": 128,
+  "static_per_call_bytes": 192,
+  "structural_agrees": true,
+  "subviews_in_layout_ir": 3
+ },
+ "cpu": "cortex-a53",
+ "experiment": "E65",
+ "plan": "docs/plans/E65_producer_revision_and_plugin_option.md (committed before any cell, 7b67d89)",
+ "target": "aarch64-unknown-linux-gnu"
+}
