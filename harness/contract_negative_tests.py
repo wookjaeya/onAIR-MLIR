@@ -9776,7 +9776,7 @@ def e66_plugin_document_rules_cases(tmp):
 
 
 def d113_manuscript_evidence_records_cases(tmp):
-    """D113 (v0.73.1): the repository record of facts the manuscript relies on.
+    """D113 (v0.73.1, extended v0.73.2): the repository record of facts the manuscript relies on.
     Author confirmations are recorded without a digest (no bytes are held here); the E54 grades are kept,
     not upgraded; the DeepAE constant comparison is linked to the AArch64 evaluated specification by the
     MLIR's sha256, re-derived on every run (D77). D114: tracked vmfb links resolve to tracked artifacts."""
@@ -9819,6 +9819,31 @@ def d113_manuscript_evidence_records_cases(tmp):
              if "NASA 마진 수치가 1차 출처에서 확인됐다" in l]
     out.append(Result("d113/4 CLAUDE.md margin guardrail points to the D113 record",
                       len(lines) == 1 and "D113" in lines[0], "lines=%d" % len(lines)))
+
+    # d113/5 (v0.73.2) -- the revision-I confirmation came from a review, not from this environment: no digest,
+    # a reason, the parts it does not cover named, and the H record no longer says the table was not examined
+    rc = committed.get("review_confirmations", [])
+    rbad = [a["id"] for a in rc if a.get("bytes_in_repository") is not False or a.get("sha256") is not None
+            or not a.get("sha256_unavailable_reason") or not a.get("not_confirmed_here")]
+    h = [a for a in ac if a["id"] == "gsfc_std_1000h"]
+    stale = [u for a in h for u in a["manuscript_uses"] if "not examined" in u]
+    out.append(Result("d113/5 GSFC-STD-1000I review confirmation carries no digest, names what it does not cover; "
+                      "H record no longer says 'not examined'",
+                      [a["id"] for a in rc] == ["gsfc_std_1000i"] and not rbad and len(h) == 1 and not stale,
+                      "ids=%s bad=%s stale=%s" % ([a["id"] for a in rc], rbad, stale)))
+
+    # d113/6 (v0.73.2) -- the manuscript's artifact-only agreement is policy evaluations at B_u, P, P-1 under both
+    # policies, not executed cells; the composition is re-derived from E59 Part A and its documents
+    ao = live["artifact_only_policy_evaluations"]
+    out.append(Result("d113/6 artifact-only agreement = 24 policy evaluations (4 models x 2 policies x B_u,P,P-1), "
+                      "no model run",
+                      committed.get("artifact_only_policy_evaluations") == ao and ao["evaluations"] == 24
+                      and len(ao["models"]) == 4 and ao["policies"] == ["conditional_map", "unconditional"]
+                      and ao["budgets_are_B_u_P_P_minus_1"] and ao["models_run"] == 0
+                      and ao["verdicts_disagreeing"] == 0 and ao["corollary_note_present"],
+                      "n=%s models=%d policies=%s rule=%s run=%s" % (ao["evaluations"], len(ao["models"]),
+                                                                     ao["policies"], ao["budgets_are_B_u_P_P_minus_1"],
+                                                                     ao["models_run"])))
 
     # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
     r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)

@@ -12,7 +12,7 @@
         "bulk data storage is excluded from the RAM row",
         "mu = 0.5 (preliminary design review) and 0.3 (ship/flight) from the RAM row; margin = (allocated - used) / allocated",
         "the values are levels at which a shortfall is taken up with the rule's owner, not hard limits",
-        "the cited revision H is superseded by revision I, whose table was not examined"
+        "the cited revision H is superseded by revision I (v31: revision I retains both values, the margin definition and the not-hard-limits statement; see review_confirmations.gsfc_std_1000i)"
       ],
       "confirmed_by": "author, from the original document, during manuscript revision (v27)",
       "bytes_in_repository": false,
@@ -77,6 +77,39 @@
       "repository_grades_kept": null
     }
   ],
+  "review_confirmations": [
+    {
+      "id": "gsfc_std_1000i",
+      "document": "GSFC-STD-1000I, Goddard Space Flight Center Rules for the Design, Development, Verification, and Operation of Flight Systems (approved 19 August 2025; supersedes H)",
+      "url": "https://standards.nasa.gov/system/files/tmp/GSFC-STD-1000RevI_Approved_0.pdf",
+      "locator": "Rule 3.07; Table 3.07-1, printed pages 54-55",
+      "manuscript_uses": [
+        "revision I retains the RAM margins used: 50% at preliminary design review, 30% at ship/flight",
+        "revision I retains the margin definition, (allocated - used) / allocated",
+        "revision I retains the statement that the table values are not uniform hard limits"
+      ],
+      "not_confirmed_here": "the phase methods of Rule 3.07 and the RAM row's bulk-storage exclusion are still cited from revision H only",
+      "confirmed_by": "the v30 manuscript review supplied by the author (2026-09-28), from the official PDF",
+      "bytes_in_repository": false,
+      "sha256": null,
+      "sha256_unavailable_reason": "the document was read by the reviewer outside this environment; no copy was supplied, so no digest can be computed here",
+      "reprobe": {
+        "on": "2026-09-28",
+        "url": "same as above",
+        "http_code": "000",
+        "webfetch": "EGRESS_BLOCKED",
+        "meaning": "host not reachable through this container's proxy (E55/P0-1); not a statement about the document"
+      },
+      "repository_grades_kept": {
+        "file": "results/e54_reference_budget/budgets.json",
+        "fields": [
+          "margins.pdr50.grade",
+          "margins.ship30.grade"
+        ],
+        "value": "transcribed_from_directive_primary_blocked"
+      }
+    }
+  ],
   "repository_grades_observed": {
     "margins.pdr50.grade": "transcribed_from_directive_primary_blocked",
     "margins.ship30.grade": "transcribed_from_directive_primary_blocked",
@@ -102,5 +135,25 @@
     },
     "same_mlir": true,
     "why_target_independent": "the comparison reads the imported MLIR and the .tflite; no compiled artifact or target code is involved, and the MLIR is the one the AArch64 evaluated specification names as its model"
+  },
+  "artifact_only_policy_evaluations": {
+    "claim": "the artifact-only and layout analyses give identical verdicts as policy evaluations at B_u, P and P-1 under both policies, not executed cells; a corollary, not independent evidence",
+    "source": "results/e59_info_levels_aarch64/part_a.json",
+    "evaluations": 24,
+    "models": [
+      "b2_resnet",
+      "b3_deepae",
+      "smartcam",
+      "wgan"
+    ],
+    "policies": [
+      "conditional_map",
+      "unconditional"
+    ],
+    "budgets_are_B_u_P_P_minus_1": true,
+    "models_run": 0,
+    "recompiled": 0,
+    "verdicts_disagreeing": 0,
+    "corollary_note_present": true
   }
 }

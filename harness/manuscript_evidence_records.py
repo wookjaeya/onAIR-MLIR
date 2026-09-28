@@ -17,6 +17,16 @@ labelled with the wrong target.
    AArch64 evaluated specification names as its model (same sha256). This script re-derives that
    link from the repository every time it runs, so the record cannot drift from the files.
 
+3. GSFC-STD-1000I (v0.73.2). The manuscript (v31) states that revision I, which superseded the cited
+   revision H, retains the two RAM margin values, the margin definition and the statement that the
+   values are not hard limits. That was confirmed from the official PDF by the v30 manuscript review
+   (2026-09-28), not by this environment (the host is still unreachable), so it is recorded like the
+   author confirmations: without bytes or a digest, with the reason.
+
+4. The artifact-only comparison. The manuscript (v31) describes the agreeing verdicts as policy
+   evaluations at B_u, P and P-1 under both policies, not executed cells. The composition is
+   re-derived from the E59 Part A record and the four AArch64 documents every time this runs.
+
 Usage: python3 harness/manuscript_evidence_records.py [--check]
   default: write results/manuscript_evidence_records/records.json
   --check: re-derive and compare with the committed file (rc 1 on any difference)
@@ -30,6 +40,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(REPO, "results", "manuscript_evidence_records", "records.json")
 
 E52_DIVERGENCE = "results/e52_deepae_divergence/divergence.json"
+E59_PART_A = "results/e59_info_levels_aarch64/part_a.json"
 E52_MLIR = "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae_infer.mlir"
 AARCH64_MLIR = "results/e36b_aarch64_models/b3_deepae/b3_deepae.mlir"
 AARCH64_DOC = "results/e65_producer_check/reissued/b3_deepae/b3_deepae.contract.json"
@@ -52,7 +63,8 @@ AUTHOR_CONFIRMATIONS = [
             "mu = 0.5 (preliminary design review) and 0.3 (ship/flight) from the RAM row; margin = "
             "(allocated - used) / allocated",
             "the values are levels at which a shortfall is taken up with the rule's owner, not hard limits",
-            "the cited revision H is superseded by revision I, whose table was not examined",
+            "the cited revision H is superseded by revision I (v31: revision I retains both values, the margin "
+            "definition and the not-hard-limits statement; see review_confirmations.gsfc_std_1000i)",
         ],
         "confirmed_by": "author, from the original document, during manuscript revision (v27)",
         "bytes_in_repository": False,
@@ -100,6 +112,35 @@ AUTHOR_CONFIRMATIONS = [
 ]
 
 
+REVIEW_CONFIRMATIONS = [
+    {
+        "id": "gsfc_std_1000i",
+        "document": "GSFC-STD-1000I, Goddard Space Flight Center Rules for the Design, Development, "
+                    "Verification, and Operation of Flight Systems (approved 19 August 2025; supersedes H)",
+        "url": "https://standards.nasa.gov/system/files/tmp/GSFC-STD-1000RevI_Approved_0.pdf",
+        "locator": "Rule 3.07; Table 3.07-1, printed pages 54-55",
+        "manuscript_uses": [
+            "revision I retains the RAM margins used: 50% at preliminary design review, 30% at ship/flight",
+            "revision I retains the margin definition, (allocated - used) / allocated",
+            "revision I retains the statement that the table values are not uniform hard limits",
+        ],
+        "not_confirmed_here": "the phase methods of Rule 3.07 and the RAM row's bulk-storage exclusion are "
+                              "still cited from revision H only",
+        "confirmed_by": "the v30 manuscript review supplied by the author (2026-09-28), from the official PDF",
+        "bytes_in_repository": False,
+        "sha256": None,
+        "sha256_unavailable_reason": "the document was read by the reviewer outside this environment; "
+                                     "no copy was supplied, so no digest can be computed here",
+        "reprobe": {"on": REPROBE_ON, "url": "same as above", "http_code": "000",
+                    "webfetch": "EGRESS_BLOCKED",
+                    "meaning": "host not reachable through this container's proxy (E55/P0-1); "
+                               "not a statement about the document"},
+        "repository_grades_kept": {"file": BUDGETS, "fields": ["margins.pdr50.grade", "margins.ship30.grade"],
+                                   "value": "transcribed_from_directive_primary_blocked"},
+    },
+]
+
+
 def sha256(rel):
     with open(os.path.join(REPO, rel), "rb") as f:
         return hashlib.sha256(f.read()).hexdigest()
@@ -130,12 +171,36 @@ def derive():
                                   "artifact or target code is involved, and the MLIR is the one the "
                                   "AArch64 evaluated specification names as its model",
     }
+    part_a = json.load(open(os.path.join(REPO, E59_PART_A)))
+    bands = {}
+    for c in part_a["cells"]:
+        bands.setdefault(c["band"], {})[c["model"]] = c["budget_bytes"]
+    figures = {m: (v["level_c_mlir"]["bounded_bytes"], v["level_c_mlir"]["per_call_bytes"])
+               for m, v in part_a["models"].items()}
+    budgets_are_rule = all(
+        bands.get("band_above_B", {}).get(m) == bu and bands.get("band_between", {}).get(m) == p
+        and bands.get("band_below_P", {}).get(m) == p - 1 for m, (bu, p) in figures.items())
+    artifact_only = {
+        "claim": "the artifact-only and layout analyses give identical verdicts as policy evaluations at "
+                 "B_u, P and P-1 under both policies, not executed cells; a corollary, not independent evidence",
+        "source": E59_PART_A,
+        "evaluations": len(part_a["cells"]),
+        "models": sorted(figures),
+        "policies": sorted({c["policy"] for c in part_a["cells"]}),
+        "budgets_are_B_u_P_P_minus_1": budgets_are_rule,
+        "models_run": part_a["fairness"]["models_run"],
+        "recompiled": part_a["fairness"]["recompiled"],
+        "verdicts_disagreeing": part_a["totals"]["verdicts_disagreeing"],
+        "corollary_note_present": "BY CONSTRUCTION" in part_a.get("corollary_note", ""),
+    }
     return {
         "record": "D113",
         "purpose": "align the repository record with facts the manuscript relies on",
         "author_confirmations": AUTHOR_CONFIRMATIONS,
+        "review_confirmations": REVIEW_CONFIRMATIONS,
         "repository_grades_observed": grades,
         "deepae_constants_link": link,
+        "artifact_only_policy_evaluations": artifact_only,
     }
 
 
