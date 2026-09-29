@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.74.1**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.74.2**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
 
 **중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
 
@@ -1578,6 +1578,11 @@ $B_u$·$P$·$P-1$의 **정책 평가**(모델 실행 0)이다. 가드 `d113/5`·
 (`EmplaceTransients`·`MaterializeTransientSizeQueries`), torch 경로의 버퍼 추가 위치(`FuncConversion.cpp:692-697`), 그리고 손으로 쓴 `hal.tensor.transients`도 기능을 켤 수 있다는 점(미시험).
 **측정·판정 불변.**
 
+**v0.74.2에서 정정된 것 (D113 기록 확장, `docs/EVIDENCE_v0.74.2_D113_worked.md`)**: 원고 v32의 DeepAE 추출 예시(III.C) 수치 중 **4,128 B와 subview 19개가 저장소 기록에 없었다**
+(명세의 `transient_slice_sum_diagnostic`은 0). `records.json`의 `worked_extraction_deepae`가 보관 AArch64 layout 표현에서 명세 필드 없이 다시 유도한다 —
+$I$·$O$ 2,560 · $T$ 1,088(쓰기 9개 합계 4,128 B, 전부 slab 안) · $C$ 1,063,424 · 초기화 영역 subview 19 · **엔트리 subview 0**. 그리고 원고 표의 *"subview: 봉쇄 검사"*는
+**엔트리 한정**이다 — 평가 네 엔트리에는 subview가 없어 그 검사가 평가 모델에서 돈 적이 없다(초기화 영역 view는 할당하지 않는다). 가드 `d113/8`, 되돌림 FAIL. **평가 수치·판정 불변.**
+
 **v0.50에서 완료된 것 (E48, `docs/EVIDENCE_v0.50_E48.md`)**: **공개 실입력의 AArch64 종단 실행** —
 두 외부 검토가 **독립적으로 최우선**으로 지목한 항목이다(`RESEARCH_STATUS_REVIEW_v048.md` §12 P0-1 ·
 `ONAIR_MLIR_RESEARCH_AND_EXPERIMENT_REVIEW_v048.md` §6 R1). 사전 고정 기준은
@@ -1988,6 +1993,8 @@ Out-of-scope로 먼저 분류하고, Out-of-scope는 문서 한 줄로 닫는다
   플러그인이 생성기의 기본 수용 규칙을 같은 범위로 적용한다. 쓸 수 있는 것은 *"두 경로가 같은 문서를 같이 거부한다(21/21)"*까지이고, provenance 블록이
   **없는** 문서는 둘 다 범위 밖이라 수용한다 — 분석기가 발행하는 문서는 항상 그 블록을 가진다. 면제(`allow_unchecked_producer`)는 과거 배포의 재현용이며
   init 레코드의 `document_acceptance.waived`에 기록된다
+- *"분석기가 subview의 봉쇄를 검사한다"* → **엔트리에서만이다**(v0.74.2). 평가 네 엔트리에는 subview가 없고 상수 subview는 전부 초기화 영역에 있어,
+  그 검사는 평가 모델에서 돈 적이 없다(동작한 것은 두 출력 합성 모델의 엔트리). 초기화 영역 view는 할당하지 않으므로 상한과는 무관하다
 - *"분석기가 map 시도와 copy 대안(초기화 영역의 분기)을 해석한다"* → **아니다**(D108). C는 packed composite 크기를 한 번 읽은 값이고,
   v0.71부터 초기화 영역에는 그 분기 외의 제어 흐름·호출이 있으면 거부한다
 - *"분류하지 못한 자원 op은 전부 전용 키로 명세 생성을 멈춘다"* → **아니다**(E64). 두 이름 계열 **안**의 미인식 op는 `unresolved`가 되어

@@ -9856,6 +9856,21 @@ def d113_manuscript_evidence_records_cases(tmp):
                       ok7, "url=%r tmp_path_in_record=%s" % (ri[0].get("url") if ri else None,
                                                              "/system/files/tmp/" in rtxt)))
 
+    # d113/8 (v0.74.2) -- the manuscript's DeepAE worked extraction, re-derived from the archived layout
+    # representation (not the specification's own fields): I, O, T, C, nine writes of 4,128 B inside the
+    # 1,088 B slab, 19 initializer subviews and no entry subview
+    we = live["worked_extraction_deepae"]
+    ok8 = (committed.get("worked_extraction_deepae") == we and we["I_input_imports"] == [2560]
+           and we["O_external_allocas"] == [2560] and we["T_transient_allocas"] == [1088]
+           and we["transient_writes"] == 9 and we["transient_write_bytes_total"] == 4128
+           and we["writes_within_slab"] and we["C_packed_composites"] == [1063424]
+           and we["constant_subviews_in_initializer"] == 19 and we["entry_subviews"] == 0
+           and we["map_attempt_and_copy_branch"] and all(we["equals_document"].values()))
+    out.append(Result("d113/8 DeepAE worked extraction re-derived from the archived layout representation",
+                      ok8, "writes=%s/%sB slab=%s subviews=%s/%s" % (we["transient_writes"],
+                      we["transient_write_bytes_total"], we["T_transient_allocas"],
+                      we["constant_subviews_in_initializer"], we["entry_subviews"])))
+
     # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
     r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)
     tracked = {l.split("\t", 1)[1]: l.split()[0] for l in r.stdout.splitlines() if "\t" in l}

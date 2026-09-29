@@ -34,6 +34,7 @@ Usage: python3 harness/manuscript_evidence_records.py [--check]
 import hashlib
 import json
 import os
+import re
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -149,6 +150,52 @@ def sha256(rel):
         return hashlib.sha256(f.read()).hexdigest()
 
 
+DEEPAE_LAYOUT_IR = "results/e36b_aarch64_models/b3_deepae/b3_deepae.layout_ir.txt"
+
+
+def worked_extraction_deepae():
+    """v0.74.2: the manuscript's worked extraction (III.C) re-derived from the archived AArch64 layout
+    representation of the evaluated DeepAE specification, not from the specification's own fields."""
+    text = open(os.path.join(REPO, DEEPAE_LAYOUT_IR)).read()
+    chunks = re.split(r"^// -----// IR Dump After [^\n]*$", text, flags=re.M)[1:]
+    entry = [c for c in chunks if "util.func public @infer" in c and "stream.cmd.execute" in c][-1]
+    init = [c for c in chunks if "util.initializer" in c and "stream.resource.try_map" in c][-1]
+    consts = {m.group(1): int(m.group(2)) for m in re.finditer(r"(%c[\w]+) = arith.constant (\d+) : index", entry)}
+    size = lambda tok: consts.get(tok)
+    imp = re.findall(r"stream\.tensor\.import .*?!stream\.resource<external>\{(%c\w+)\}", entry)
+    ext = re.findall(r"stream\.resource\.alloca .*?!stream\.resource<external>\{(%c\w+)\}", entry)
+    tra = re.findall(r"stream\.resource\.alloca .*?!stream\.resource<transient>\{(%c\w+)\}", entry)
+    writes = [(size(o), size(n)) for o, n in
+              re.findall(r"wo %arg\d+\[(%c\w+) for (%c\w+)\] : !stream\.resource<transient>", entry)]
+    comp = re.findall(r"#util\.composite<(\d+)xi8", init)
+    doc = json.load(open(os.path.join(REPO, AARCH64_DOC)))["resources"]
+    t = size(tra[0]) if len(tra) == 1 else None
+    return {
+        "layout_ir": {"path": DEEPAE_LAYOUT_IR, "sha256": sha256(DEEPAE_LAYOUT_IR)},
+        "document": AARCH64_DOC,
+        "I_input_imports": [size(x) for x in imp],
+        "O_external_allocas": [size(x) for x in ext],
+        "T_transient_allocas": [size(x) for x in tra],
+        "transient_writes": len(writes),
+        "transient_write_bytes_total": sum(n for _, n in writes),
+        "transient_write_offsets": sorted({o for o, _ in writes}),
+        "writes_within_slab": t is not None and all(o + n <= t for o, n in writes),
+        "C_packed_composites": [int(x) for x in comp],
+        "constant_subviews_in_initializer": len(re.findall(r"stream\.resource\.subview %\S+\[", init)),
+        "entry_subviews": len(re.findall(r"stream\.resource\.subview", entry)),
+        "map_attempt_and_copy_branch": "stream.resource.try_map" in init and "scf.if %did_map" in init
+                                       and "stream.resource.alloc " in init,
+        "equals_document": {
+            "I": [size(x) for x in imp] == [doc["static_external_input_bytes"]],
+            "O": [size(x) for x in ext] == [doc["static_external_output_bytes"]],
+            "T": [t] == [doc["static_transient_bytes"]],
+            "C": [int(x) for x in comp] == [doc["module_resident_constant_bytes"]],
+        },
+        "note": "subview containment is checked by the analyzer only in the entry; the evaluated entries have "
+                "none, and the constant subviews sit in the initialization region, where they allocate nothing",
+    }
+
+
 def derive():
     div = json.load(open(os.path.join(REPO, E52_DIVERGENCE)))
     q1 = div["Q1_constants_bit_identical"]
@@ -204,6 +251,7 @@ def derive():
         "repository_grades_observed": grades,
         "deepae_constants_link": link,
         "artifact_only_policy_evaluations": artifact_only,
+        "worked_extraction_deepae": worked_extraction_deepae(),
     }
 
 

@@ -156,5 +156,43 @@
     "recompiled": 0,
     "verdicts_disagreeing": 0,
     "corollary_note_present": true
+  },
+  "worked_extraction_deepae": {
+    "layout_ir": {
+      "path": "results/e36b_aarch64_models/b3_deepae/b3_deepae.layout_ir.txt",
+      "sha256": "e566350af5d113e2d02af2712aea4a1cfa020c48348eb813cb1ecfa149326335"
+    },
+    "document": "results/e65_producer_check/reissued/b3_deepae/b3_deepae.contract.json",
+    "I_input_imports": [
+      2560
+    ],
+    "O_external_allocas": [
+      2560
+    ],
+    "T_transient_allocas": [
+      1088
+    ],
+    "transient_writes": 9,
+    "transient_write_bytes_total": 4128,
+    "transient_write_offsets": [
+      0,
+      64,
+      512,
+      576
+    ],
+    "writes_within_slab": true,
+    "C_packed_composites": [
+      1063424
+    ],
+    "constant_subviews_in_initializer": 19,
+    "entry_subviews": 0,
+    "map_attempt_and_copy_branch": true,
+    "equals_document": {
+      "I": true,
+      "O": true,
+      "T": true,
+      "C": true
+    },
+    "note": "subview containment is checked by the analyzer only in the entry; the evaluated entries have none, and the constant subviews sit in the initialization region, where they allocate nothing"
   }
 }
