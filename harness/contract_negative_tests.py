@@ -9202,6 +9202,7 @@ def main():
         all_results += e66_plugin_document_rules_cases(tmp)
         all_results += d113_manuscript_evidence_records_cases(tmp)
         all_results += e67_native_transient_query_cases(tmp)
+        all_results += e68_onair_linkage_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9925,6 +9926,78 @@ def e67_native_transient_query_cases(tmp):
     except Exception as e:
         same, detail = False, "crash: %s" % e
     out.append(Result("e67/4 live re-derivation (DeepAE) equals the committed record", same, detail))
+    return out
+
+
+def e68_onair_linkage_cases(tmp):
+    """E68 (plan docs/plans/E68_onair_artifact_linkage.md, c51ad37): the OnAIR plugin's specification-to-artifact
+    linkage on the evaluation target. A control ran; another model's file stopped at the size check, a same-size file
+    with other bytes at the digest check, and a driver the document does not declare before the budget comparison --
+    each with no runtime and no inference. Guards re-derive from the raw guest cells and the plugin source (D89)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e68_onair_linkage")
+    sp = os.path.join(D, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e68/0 summary present", False, "missing %s" % sp)]
+    import e68_onair_linkage as _e68
+    committed = load(sp)
+    try:
+        live = _e68.derive_summary()
+        same, detail = live == committed, "verdict=%s" % live["verdict"]
+    except Exception as e:
+        live, same, detail = None, False, "crash: %s" % e
+    out.append(Result("e68/1 summary re-derived from the raw guest cells equals the committed one", same, detail))
+    cells = (live or {}).get("cells", {})
+    want = {"e68_control": ("ran", True), "e68_L1_other_model_file": ("size", False),
+            "e68_L2_same_size_other_bytes": ("sha256", False), "e68_L3_driver": ("driver", False)}
+    bad2 = []
+    for c, (stage, runs) in want.items():
+        v = cells.get(c) or {}
+        ok = v.get("as_expected") is True and v.get("attributed") is True and v.get("runtime_created") is runs
+        if c == "e68_L3_driver":
+            ok = ok and v.get("admission_verdict") is None          # refused BEFORE the budget comparison
+        elif c != "e68_control":
+            ok = ok and v.get("admission_verdict") == "ADMIT" and v.get("binding") is None  # the budget alone admitted
+        if not ok:
+            bad2.append(c)
+    out.append(Result("e68/2 control ran; refusals at size, digest and driver, no runtime and no inference, one key changed",
+                      not bad2 and (live or {}).get("verdict", {}).get("all_pass") is True, "bad=%s" % bad2))
+    # e68/3 -- what each refusal cell loaded, re-derived from the evaluated artifacts (not from the manifest)
+    doc = load(os.path.join(repo, _e68.DOC))
+    rn = open(os.path.join(repo, _e68.RESNET_VMFB), "rb").read()
+    flipped = bytearray(rn)
+    flipped[_e68.FLIP_OFFSET] ^= 0xFF
+    l2 = os.path.join(D, "art", "L2_same_size_other_bytes", doc["artifact"]["file"])
+    l1 = os.path.join(D, "art", "L1_other_model_file", doc["artifact"]["file"])
+    env = open(os.path.join(D, "guest", "guest_env.txt"), encoding="utf-8").read()
+    l2_sha = hashlib.sha256(bytes(flipped)).hexdigest()
+    l1_sha = hashlib.sha256(open(l1, "rb").read()).hexdigest()
+    ok3 = (hashlib.sha256(rn).hexdigest() == doc["artifact"]["sha256"] and len(rn) == doc["artifact"]["bytes"]
+           and open(l2, "rb").read() == bytes(flipped) and len(flipped) == doc["artifact"]["bytes"]
+           and l2_sha != doc["artifact"]["sha256"] and l2_sha in env
+           and os.path.realpath(l1) == os.path.realpath(os.path.join(repo, _e68.DEEPAE_VMFB))
+           and os.path.getsize(l1) != doc["artifact"]["bytes"] and l1_sha in env)
+    out.append(Result("e68/3 L1 loads DeepAE's artifact (other size), L2 a same-size one-byte flip; the guest hashed both",
+                      ok3, "L1 %d B, L2 %s" % (os.path.getsize(l1), l2_sha[:16])))
+    # e68/4 -- the order the manuscript states, read from the executed lines of the plugin (comments stripped)
+    def code(path):
+        return "\n".join(l.split("#", 1)[0] for l in open(path, encoding="utf-8").read().splitlines())
+    pl = code(os.path.join(repo, "plugins", "compiled_learner", "compiled_learner_plugin.py"))
+    abn = code(os.path.join(repo, "plugins", "compiled_learner", "artifact_binding.py"))
+    i = pl.find("self._check_declared_driver()\n")
+    j = pl.find("self._decide_admission()\n")
+    k = pl.find("self._load_artifact()\n")
+    la = pl.find("def _load_artifact(self):")
+    vb = pl.find("verify_artifact_binding(", la)
+    ctx = pl.find("rt.SystemContext(", la)
+    ex = pl.find("self.entry not in exports", la)
+    fn = abn.find("def verify_artifact_binding(")
+    gs = abn.find("os.path.getsize(vmfb_path)", fn)
+    hs = abn.find("hashlib.sha256(data)", fn)
+    ok4 = -1 not in (i, j, k, la, vb, ctx, ex, fn, gs, hs) and i < j < k and vb < ctx < ex and gs < hs
+    out.append(Result("e68/4 plugin order: driver < budget < artifact; size < digest < runtime creation < entry-export check",
+                      ok4, "positions=%s" % [i, j, k, vb, ctx, ex, gs, hs]))
     return out
 
 

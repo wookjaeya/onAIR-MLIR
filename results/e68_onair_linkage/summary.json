@@ -1,0 +1,98 @@
+{
+ "base_deployment": "e66_b2_resnet_Bu",
+ "budget_bytes": 618856,
+ "cells": {
+  "e68_L1_other_model_file": {
+   "active": false,
+   "admission_verdict": "ADMIT",
+   "as_expected": true,
+   "attributed": true,
+   "binding": null,
+   "deployment_keys_differing_from_base": [
+    "artifact_dir"
+   ],
+   "expected_stage": "size",
+   "inactive_reason": "ContractViolation: CONTRACT_ARTIFACT_MISMATCH: size 1080730 != contract artifact.bytes 343538 (refused before reading /home/ubuntu/e68/repo/results/e68_onair_linkage/art/L1_other_model_file/b2_resnet.vmfb)",
+   "inferences": 0,
+   "loaded_file": {
+    "bytes": 1080730,
+    "document_bytes": 343538,
+    "sha256": "9ff64bd168e07135c196423d44408e7780984c977912b67c8240c0db522c4d7c",
+    "sha256_in_guest_env": true
+   },
+   "onair_core_unmodified": true,
+   "returncode": 0,
+   "runtime_created": false
+  },
+  "e68_L2_same_size_other_bytes": {
+   "active": false,
+   "admission_verdict": "ADMIT",
+   "as_expected": true,
+   "attributed": true,
+   "binding": null,
+   "deployment_keys_differing_from_base": [
+    "artifact_dir"
+   ],
+   "expected_stage": "sha256",
+   "inactive_reason": "ContractViolation: CONTRACT_ARTIFACT_MISMATCH: sha256 b11049d8aa6efd12... != contract artifact.sha256 2e0bc7dc67af80b7... (/home/ubuntu/e68/repo/results/e68_onair_linkage/art/L2_same_size_other_bytes/b2_resnet.vmfb)",
+   "inferences": 0,
+   "loaded_file": {
+    "bytes": 343538,
+    "document_bytes": 343538,
+    "sha256": "b11049d8aa6efd12082b80123fa751cbb7d835252e441773dae0964cb0998efe",
+    "sha256_in_guest_env": true
+   },
+   "onair_core_unmodified": true,
+   "returncode": 0,
+   "runtime_created": false
+  },
+  "e68_L3_driver": {
+   "active": false,
+   "admission_verdict": null,
+   "as_expected": true,
+   "attributed": true,
+   "binding": null,
+   "deployment_keys_differing_from_base": [
+    "driver"
+   ],
+   "expected_stage": "driver",
+   "inactive_reason": "ContractViolation: deployment driver 'local-task' != contract driver 'local-sync' (the bound is stated for the declared driver only)",
+   "inferences": 0,
+   "onair_core_unmodified": true,
+   "returncode": 0,
+   "runtime_created": false
+  },
+  "e68_control": {
+   "active": true,
+   "admission_verdict": "ADMIT",
+   "as_expected": true,
+   "attributed": true,
+   "binding": "MATCH",
+   "deployment_keys_differing_from_base": [],
+   "expected_stage": "ran",
+   "inactive_reason": null,
+   "inferences": 50,
+   "onair_core_unmodified": true,
+   "returncode": 0,
+   "runtime_created": true
+  }
+ },
+ "code_order_not_cells": {
+  "entry": "checked against the loaded module's exports after runtime creation and module append, before any inference (no cell: every evaluated document names `infer`; a mismatch needs a hand-edited document)",
+  "io_interface": "read from the document, not compared with the module; the digest binds the document to the artifact of the compile that emitted that interface; file_replay checks each sample's shape against the document before the call"
+ },
+ "experiment": "E68",
+ "not_claimed": [
+  "defence against deliberate tampering (the digest identifies; it is not a security control)",
+  "refusal cells for models other than ResNet",
+  "latency"
+ ],
+ "plan": "docs/plans/E68_onair_artifact_linkage.md (committed before any cell, c51ad37)",
+ "target": "AArch64 QEMU guest (cortex-a53)",
+ "verdict": {
+  "Q1_control_ran": true,
+  "Q2_refusals_at_expected_stage": true,
+  "Q3_attributed": true,
+  "all_pass": true
+ }
+}
