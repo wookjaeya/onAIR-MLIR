@@ -10,6 +10,7 @@ D113 기록 확장. 근거 `docs/EVIDENCE_v0.75.1_D113_fig.md`. **평가 수치�
   (*"한 응용 빌드, 그 C 헤더가 문서의 헤더와 바이트 동일"*)의 근거인 빌드 기록이 저장소 밖에만 있었다. `results/e48_real_inputs_aarch64/cfs/trees/e48_b2_resnet/`에
   보존하고, `records.json`의 `resnet_document_and_console`이 헤더 해시 넷 동일·두 로그의 컴파일 레코드 동일·예산 둘 다 오버라이드·거절 실행 런타임 레코드 0을 다시 유도한다.
 - 가드 `d113/9`. 되돌림: 보존 빌드 기록의 헤더 해시 변조 → `d113/1`·`/9` FAIL. 이 컨테이너 **1022/1022 + 2 SKIP → 1023/1023 + 2 SKIP**.
+- **CI 실측**(커밋 `5733290`, run 428, 3레그 success): `full` **1016/1016 + 7 SKIP** · `without-iree` **814/814 + 52 SKIP** · `stdlib-only` **814/814 + 52 SKIP** — v0.75(run 424) 대비 세 레그 전부 PASS +1 · SKIP +0(`d113/9`).
 - **CI 실측**(v0.75, 커밋 `04ec4bf`, run 424, 3레그 success): `full` **1015/1015 + 7 SKIP** · `without-iree` **813/813 + 52 SKIP** · `stdlib-only` **813/813 + 52 SKIP** — v0.74.2(run 422) 대비 세 레그 전부 PASS +4 · SKIP +0(`e68/1`–`/4`).
 
 ## [v0.75] - 2026-09-29
