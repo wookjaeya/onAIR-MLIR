@@ -54,3 +54,16 @@ opt-in 아티팩트의 `infer`는 인자가 둘이고 `infer_transients_size`가
 - 동적 크기 조회 함수는 다루지 않았다(네 모델 모두 상수로 접힌다).
 - 이 기능을 쓰면 transient 저장소가 호출자 메모리로 옮겨가 HAL 통계의 범위가 달라진다 — 평가 구성은 이 기능을 쓰지 않았다.
 - ExecuTorch는 실행하지 않았다. 원고의 ExecuTorch 서술은 원고가 이미 인용하는 커밋(`df6147af`)의 `method_meta.h`·`memory_manager.h` 소스 판독이다.
+
+## 6. 정오표 (v0.74.1)
+
+사실 조사의 적대적 검증이 §1의 세 서술을 소스와 다시 대조했다. **측정·표·판정은 바뀌지 않는다.**
+
+| 위치 | 원래 서술 | 정정 | 근거 |
+|---|---|---|---|
+| §1 첫 항목 | *"세 pass의 설명은 **experimental**이다(`Passes.td:504-549`)"* | **둘만** experimental로 표시된다 — `EmplaceTransients`(`Passes.td:508`)와 `MaterializeTransientSizeQueries`(`:526`). `AnnotateConstantTransientSize`(`:542-555`)에는 그 표시가 없다 | 평가 리비전 소스 |
+| §1 둘째 항목 | torch 경로를 `FuncConversion.cpp:340-345`로 인용 | 그 줄은 `hal.tensor.transients`를 만든다. 버퍼를 입력에 **덧붙이는** 곳은 `:692-697`이다 | 같은 소스 |
+| §1 둘째 항목 | *"켜는 방법: 인자 추가 또는 torch 플래그"* | 두 **지원** 경로가 그렇고, 손으로 쓴 `hal.tensor.transients`(아무 `!hal.buffer` 값, 예: 전역 버퍼)도 기능을 켤 수 있다 — **시험하지 않았다**. 원고는 *"프로그램이 transient 저장을 공급된 버퍼에 두도록 바뀌었을 때만"*으로 적는다 | `HALOps.td:305-341` |
+
+같은 오류가 `CLAUDE.md` v0.74 절(*"실험적 pass 셋"*)과 하네스 docstring에 있어 함께 고쳤다. `CHANGELOG.md` [v0.74]는 고쳐 쓰지 않고 [v0.74.1]에 정정으로 덧붙인다.
+

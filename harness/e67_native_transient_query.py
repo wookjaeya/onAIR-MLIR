@@ -3,8 +3,9 @@
 
 The v31 manuscript review asked what IREE's native size query / reflection metadata provides in the
 evaluated configuration and what it leaves out. At the evaluated revision the facility is opt-in:
-it is emitted only for an entry that takes an added `!hal.buffer {iree.abi.transients}` argument
-(caller-supplied transient storage). This script records, deterministically:
+it acts only on a `hal.tensor.transients` op, which the two supported routes create for an entry that
+takes an added `!hal.buffer {iree.abi.transients}` argument (caller-supplied transient storage) or via
+the torch input's --iree-torch-externalize-transients; a hand-written op is a third route (untested). This script records, deterministically:
 
   1. the four EVALUATED artifacts carry no transient-size reflection or query function
      (iree-dump-module; the evaluated entries take no such argument);

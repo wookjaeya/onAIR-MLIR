@@ -8,7 +8,7 @@
 
 NASA cFS/OnAIR 위에서 MLIR/IREE로 AOT 컴파일한 AI 추론 아티팩트를 배치할 때, 컴파일러의
 할당 스케줄에서 도출한 **정적 메모리 계약**으로 배치 전 admission(허용/거부) 판정을 수행하는
-연구. 현재 버전: **v0.74**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
+연구. 현재 버전: **v0.74.1**(git tag는 v0.9 이후 미부착 — 커밋 이력·CHANGELOG로 확인).
 
 **중심 주장(v0.41 정본, `docs/EVIDENCE_v0.41_E37.md` §2)** — 지어내지 말 것:
 
@@ -1566,11 +1566,17 @@ $B_u$·$P$·$P-1$의 **정책 평가**(모델 실행 0)이다. 가드 `d113/5`·
 
 **v0.74에서 완료된 것 (E67, `docs/EVIDENCE_v0.74_E67.md`)**: v31 원고 독립 메타리뷰 §3이 요구한 *"가장 가까운 기존 기능과의 비교"* 중 IREE 쪽을
 평가 리비전에서 **관측으로** 기록했다. **평가 수치·판정 불변.** 평가 아티팩트 4개에는 IREE 자체 transient 크기 조회가 **없다**(export `infer`·`__init`뿐).
-그 기능(실험적 pass 셋, 기본 파이프라인에 있으나 비활성)은 공개 엔트리에 `!hal.buffer {iree.abi.transients}` 인자를 **추가**해야 켜지고, 평가 MLIR에 그
+그 기능(pass 셋, 그중 둘이 experimental 표시 — v0.74.1 정정; 기본 파이프라인에 있으나 비활성)은 공개 엔트리에 `!hal.buffer {iree.abi.transients}` 인자를 **추가**하는 지원 경로로 켜지고(손으로 쓴 `hal.tensor.transients`도 켤 수 있으나 미시험), 평가 MLIR에 그
 인자만 더해 같은 컴파일러·AArch64 플래그로 컴파일하면 `iree.abi.transients.size.constant`가 **4/4 명세의 $T$와 정확히 같다**($I$·$O$·$C$·$P$·$B_u$와는 0/4).
 즉 IREE 자체 조회가 주는 것은 호출자 저장소로 옮긴 $T$ 하나이고, $I$·$O$·$C$·적재 분기 조건·수명 전제·예산 비교는 주지 않으며, 엔트리 ABI가 바뀐다.
 값은 검토 대응 scratch 프로브에서 먼저 보였다 — 사전 등록이 아니라 재현 가능한 기록이다. 가드 `e67/1`–`/4`(라이브 재유도 포함), 되돌림 실측 FAIL.
 이 컨테이너 **1013/1013 + 2 SKIP → 1017/1017 + 2 SKIP**.
+
+**CI 실측**(커밋 `37e4ff9`, run 418, 3레그 success — `158743b`와 함께 푸시돼 독립 run이 없다): `full` **1010/1010 + 7 SKIP** · `without-iree` **808/808 + 52 SKIP** · `stdlib-only` **808/808 + 52 SKIP** — v0.73.3(run 416) 대비 `full`은 PASS +4 · SKIP +0이라 `e67/1`–`/4`가 전부 돌고, 축소 두 레그는 PASS +3 · SKIP +1이다(`e67/4` 라이브 재유도가 `iree-compile`을 요구).
+
+**v0.74.1에서 정정된 것 (E67 문서, `docs/EVIDENCE_v0.74_E67.md` §6)**: 사실 조사의 적대적 검증이 E67 소스 서술 세 곳을 바로잡았다 — experimental 표시는 pass **셋이 아니라 둘**
+(`EmplaceTransients`·`MaterializeTransientSizeQueries`), torch 경로의 버퍼 추가 위치(`FuncConversion.cpp:692-697`), 그리고 손으로 쓴 `hal.tensor.transients`도 기능을 켤 수 있다는 점(미시험).
+**측정·판정 불변.**
 
 **v0.50에서 완료된 것 (E48, `docs/EVIDENCE_v0.50_E48.md`)**: **공개 실입력의 AArch64 종단 실행** —
 두 외부 검토가 **독립적으로 최우선**으로 지목한 항목이다(`RESEARCH_STATUS_REVIEW_v048.md` §12 P0-1 ·

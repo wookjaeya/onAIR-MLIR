@@ -2,6 +2,16 @@
 
 형식: [버전] 날짜 — 변경. 가설 판정 변경은 반드시 "판정:" 접두어, 이전 주장 철회는 "정정:" 접두어로 기록.
 
+## [v0.74.1] - 2026-09-29
+
+E67 문서 정정. 근거 `docs/EVIDENCE_v0.74_E67.md` §6. **측정·판정 불변.**
+
+- **정정: E67 소스 서술** — [v0.74]의 *"실험적 pass 셋"*은 틀렸다: experimental로 표시된 것은 `EmplaceTransients`(`Passes.td:508`)와
+  `MaterializeTransientSizeQueries`(`:526`) **둘**이고 `AnnotateConstantTransientSize`에는 그 표시가 없다. torch 경로가 버퍼를 입력에 덧붙이는 곳은
+  `FuncConversion.cpp:692-697`이다(`:340-345`는 op 생성). 켜는 경로는 인자 추가·torch 플래그 두 지원 경로 외에 손으로 쓴 `hal.tensor.transients`도
+  있다(미시험). EVIDENCE에 정오표, CLAUDE.md·하네스 docstring 수정.
+- **CI 실측**(v0.74, 커밋 `37e4ff9`, run 418, 3레그 success): `full` **1010/1010 + 7 SKIP** · `without-iree` **808/808 + 52 SKIP** · `stdlib-only` **808/808 + 52 SKIP** — v0.73.3(run 416) 대비 `full` PASS +4 · SKIP +0(`e67/1`–`/4`), 축소 두 레그 PASS +3 · SKIP +1(`e67/4`가 `iree-compile`을 요구).
+
 ## [v0.74] - 2026-09-29
 
 **판정: E67** — 평가 리비전에서 IREE 자체 transient 크기 조회가 주는 것과 빠뜨리는 것(v31 원고 독립 메타리뷰 §3의 비교 요구). 근거
