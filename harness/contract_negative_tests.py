@@ -9872,6 +9872,21 @@ def d113_manuscript_evidence_records_cases(tmp):
                       we["transient_write_bytes_total"], we["T_transient_allocas"],
                       we["constant_subviews_in_initializer"], we["entry_subviews"])))
 
+    # d113/9 (v0.75.1) -- the manuscript's two ResNet figures: one build for both console runs, its C header
+    # byte-identical to the one issued for the shown document, each budget from the runtime override, and no
+    # runtime record in the refused run; re-derived from the archived build record and the raw guest logs
+    fg = live["resnet_document_and_console"]
+    ok9 = (committed.get("resnet_document_and_console") == fg and fg["document"]["byte_identical_to_reissued"]
+           and fg["header_identical_to_reissued"] and fg["both_runs_same_compiled_in_specification"]
+           and fg["compiled_in_matches_document"] and fg["budgets_from_override"]
+           and fg["runs"]["admitted"]["verdict"] == "ADMIT" and fg["runs"]["refused"]["verdict"] == "NOT_ADMITTED"
+           and fg["runs"]["admitted"]["runtime_records"] == 4 and fg["runs"]["refused"]["runtime_records"] == 0)
+    out.append(Result("d113/9 ResNet figures: one build, header byte-identical to the document's, budgets from "
+                      "the override, refused run without runtime records", ok9,
+                      "headers=%s same_build_config=%s override=%s" % (
+                          fg["header_identical_to_reissued"], fg["both_runs_same_compiled_in_specification"],
+                          fg["budgets_from_override"])))
+
     # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
     r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)
     tracked = {l.split("\t", 1)[1]: l.split()[0] for l in r.stdout.splitlines() if "\t" in l}

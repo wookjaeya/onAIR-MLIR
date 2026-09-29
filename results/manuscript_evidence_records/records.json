@@ -194,5 +194,69 @@
       "C": true
     },
     "note": "subview containment is checked by the analyzer only in the entry; the evaluated entries have none, and the constant subviews sit in the initialization region, where they allocate nothing"
+  },
+  "resnet_document_and_console": {
+    "document": {
+      "path": "results/e66_plugin_document_rules/docs/b2_resnet/b2_resnet.contract.json",
+      "sha256": "93cbe369f9ca01cfc177fb72db673b28f80d8627806b218627f090e78f7b358d",
+      "byte_identical_to_reissued": true
+    },
+    "header_sha256": {
+      "reissued": "42ff744ac8319a27f97a0cace0c4fe7e78328ec7743d3d14623586472c58e6a5",
+      "e36b": "42ff744ac8319a27f97a0cace0c4fe7e78328ec7743d3d14623586472c58e6a5",
+      "build_record": "42ff744ac8319a27f97a0cace0c4fe7e78328ec7743d3d14623586472c58e6a5",
+      "tree_manifest": "42ff744ac8319a27f97a0cace0c4fe7e78328ec7743d3d14623586472c58e6a5"
+    },
+    "header_identical_to_reissued": true,
+    "build_tree": {
+      "path": "results/e48_real_inputs_aarch64/cfs/trees/e48_b2_resnet",
+      "ai_learner_so_sha256": "3fb5fd2eb3f48d453b05d3482b209f4e25156da7466ec14b2ef832018fbd626d",
+      "compiled_budget_default": 618857,
+      "allow_conditional_map": 0
+    },
+    "runs": {
+      "admitted": {
+        "log": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log",
+        "sha256": "597adb17fb34e9c06120b2d1c7159bf86a4c1d353ed80e4ec2f1c9315ecc5c69",
+        "build_config": {
+          "app": "AI_LEARNER",
+          "stage": "build_config",
+          "model": "b2_resnet",
+          "allow_conditional_map": 0,
+          "contract_bounded_bytes": 618856,
+          "contract_per_call_bytes": 309416,
+          "contract_const_bytes": 309440,
+          "contract_bound_known": true,
+          "contract_artifact_sha256": "2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb"
+        },
+        "verdict": "ADMIT",
+        "budget": 618856,
+        "budget_source": "override",
+        "runtime_records": 4
+      },
+      "refused": {
+        "log": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_deny_Bm1_real.log",
+        "sha256": "88bd1f613d9c1900ac2f478b6c9b8b3e8f2a3ac2be29d935865958acafb132be",
+        "build_config": {
+          "app": "AI_LEARNER",
+          "stage": "build_config",
+          "model": "b2_resnet",
+          "allow_conditional_map": 0,
+          "contract_bounded_bytes": 618856,
+          "contract_per_call_bytes": 309416,
+          "contract_const_bytes": 309440,
+          "contract_bound_known": true,
+          "contract_artifact_sha256": "2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb"
+        },
+        "verdict": "NOT_ADMITTED",
+        "budget": 618855,
+        "budget_source": "override",
+        "runtime_records": 0
+      }
+    },
+    "both_runs_same_compiled_in_specification": true,
+    "compiled_in_matches_document": true,
+    "budgets_from_override": true,
+    "note": "the figures rename the implementation's identifier prefix to the paper's term; values are the logs' own. The single-build statement rests on the archived build record and on the two logs carrying identical compiled-in records; the guest did not hash the binary in these runs."
   }
 }

@@ -196,6 +196,62 @@ def worked_extraction_deepae():
     }
 
 
+FIG_DOC = "results/e66_plugin_document_rules/docs/b2_resnet/b2_resnet.contract.json"
+FIG_DOC_REISSUED = "results/e65_producer_check/reissued/b2_resnet/b2_resnet.contract.json"
+FIG_HDR_REISSUED = "results/e65_producer_check/reissued/b2_resnet/contract_gen.b2_resnet.h"
+FIG_HDR_E36B = "results/e36b_aarch64_models/b2_resnet/contract_gen.b2_resnet.h"
+FIG_TREE = "results/e48_real_inputs_aarch64/cfs/trees/e48_b2_resnet"
+FIG_LOGS = {"admitted": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log",
+            "refused": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_deny_Bm1_real.log"}
+
+
+def resnet_document_and_console():
+    """v0.75.1: the manuscript's two ResNet figures (the evaluated document; the flight application's console
+    at B_u and B_u - 1). Re-derives the facts the accompanying sentence states: both runs used one build,
+    whose C header is byte-identical to the one issued for the shown document, and each budget came from the
+    runtime override, not from the compiled-in default."""
+    bi = json.load(open(os.path.join(REPO, FIG_TREE, "build_info.json")))
+    man = json.load(open(os.path.join(REPO, FIG_TREE, "tree_manifest.json")))
+    doc = json.load(open(os.path.join(REPO, FIG_DOC)))
+    runs = {}
+    for k, rel in FIG_LOGS.items():
+        lines = open(os.path.join(REPO, rel)).read().splitlines()
+        rec = lambda st: [json.loads(l) for l in lines if l.startswith('{"app":"AI_LEARNER","stage":"%s"' % st)]
+        bc, adm = rec("build_config"), rec("admission")
+        runs[k] = {"log": rel, "sha256": sha256(rel),
+                   "build_config": bc[0] if len(bc) == 1 else None,
+                   "verdict": adm[0]["verdict"] if len(adm) == 1 else None,
+                   "budget": adm[0]["budget"] if len(adm) == 1 else None,
+                   "budget_source": adm[0]["budget_source"] if len(adm) == 1 else None,
+                   "runtime_records": sum(1 for st in ("binding", "map_branch", "mem_init", "mem") if rec(st))}
+    bc = runs["admitted"]["build_config"]
+    hdr = {"reissued": sha256(FIG_HDR_REISSUED), "e36b": sha256(FIG_HDR_E36B),
+           "build_record": bi["contract_header"]["sha256"], "tree_manifest": man["contract_gen_h_sha256"]}
+    return {
+        "document": {"path": FIG_DOC, "sha256": sha256(FIG_DOC),
+                     "byte_identical_to_reissued": sha256(FIG_DOC) == sha256(FIG_DOC_REISSUED)},
+        "header_sha256": hdr,
+        "header_identical_to_reissued": len(set(hdr.values())) == 1,
+        "build_tree": {"path": FIG_TREE, "ai_learner_so_sha256": man["ai_learner_so_sha256"],
+                       "compiled_budget_default": bi["app_knobs"]["AI_LEARNER_BUDGET_BYTES"],
+                       "allow_conditional_map": bi["app_knobs"]["AI_LEARNER_ALLOW_CONDITIONAL_MAP"]},
+        "runs": runs,
+        "both_runs_same_compiled_in_specification": runs["refused"]["build_config"] == bc and bc is not None,
+        "compiled_in_matches_document": bc is not None
+            and bc.get("contract_bounded_bytes") == doc["resources"]["bounded_bytes"]
+            and bc.get("contract_per_call_bytes") == doc["resources"]["static_per_call_bytes"]
+            and bc.get("contract_const_bytes") == doc["resources"]["module_resident_constant_bytes"]
+            and bc.get("contract_artifact_sha256") == doc["artifact"]["sha256"],
+        "budgets_from_override": all(r["budget_source"] == "override" for r in runs.values())
+            and {r["budget"] for r in runs.values()} == {doc["resources"]["bounded_bytes"],
+                                                         doc["resources"]["bounded_bytes"] - 1}
+            and bi["app_knobs"]["AI_LEARNER_BUDGET_BYTES"] not in {r["budget"] for r in runs.values()},
+        "note": "the figures rename the implementation's identifier prefix to the paper's term; values are the "
+                "logs' own. The single-build statement rests on the archived build record and on the two logs "
+                "carrying identical compiled-in records; the guest did not hash the binary in these runs.",
+    }
+
+
 def derive():
     div = json.load(open(os.path.join(REPO, E52_DIVERGENCE)))
     q1 = div["Q1_constants_bit_identical"]
@@ -252,6 +308,7 @@ def derive():
         "deepae_constants_link": link,
         "artifact_only_policy_evaluations": artifact_only,
         "worked_extraction_deepae": worked_extraction_deepae(),
+        "resnet_document_and_console": resnet_document_and_console(),
     }
 
 
