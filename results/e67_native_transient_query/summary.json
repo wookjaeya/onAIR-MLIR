@@ -1,0 +1,234 @@
+{
+  "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+  "experiment": "E67",
+  "models": {
+    "b2_resnet": {
+      "evaluated_artifact": {
+        "exports": [
+          "infer",
+          "__init"
+        ],
+        "infer_reflection_keys": [
+          "iree.abi.declaration"
+        ],
+        "path": "results/e36b_aarch64_models/b2_resnet/b2_resnet.vmfb",
+        "transient_mentions_in_dump": 0
+      },
+      "evaluated_artifact_sha256_matches_specification": true,
+      "model_sha256_matches_specification": true,
+      "opt_in": {
+        "argv": [
+          "iree-compile",
+          "<edited mlir>",
+          "--iree-hal-target-backends=llvm-cpu",
+          "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+          "--iree-llvmcpu-target-cpu=cortex-a53",
+          "-o",
+          "<vmfb>"
+        ],
+        "edit": "added to @infer: %transient_storage: !hal.buffer {iree.abi.transients}",
+        "exports": [
+          "infer",
+          "infer_transients_size",
+          "__init"
+        ],
+        "infer_args": "!vm.ref<?>, !vm.ref<?>",
+        "reflection": {
+          "iree.abi.transients.size": "infer_transients_size",
+          "iree.abi.transients.size.constant": "297088"
+        },
+        "reported_transient_size": 297088
+      },
+      "reported_equals": {
+        "B_u": false,
+        "C": false,
+        "I": false,
+        "O": false,
+        "P": false,
+        "T": true
+      },
+      "specification_figures": {
+        "B_u": 618856,
+        "C": 309440,
+        "I": 12288,
+        "O": 40,
+        "P": 309416,
+        "T": 297088
+      }
+    },
+    "b3_deepae": {
+      "evaluated_artifact": {
+        "exports": [
+          "infer",
+          "__init"
+        ],
+        "infer_reflection_keys": [
+          "iree.abi.declaration"
+        ],
+        "path": "results/e36b_aarch64_models/b3_deepae/b3_deepae.vmfb",
+        "transient_mentions_in_dump": 0
+      },
+      "evaluated_artifact_sha256_matches_specification": true,
+      "model_sha256_matches_specification": true,
+      "opt_in": {
+        "argv": [
+          "iree-compile",
+          "<edited mlir>",
+          "--iree-hal-target-backends=llvm-cpu",
+          "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+          "--iree-llvmcpu-target-cpu=cortex-a53",
+          "-o",
+          "<vmfb>"
+        ],
+        "edit": "added to @infer: %transient_storage: !hal.buffer {iree.abi.transients}",
+        "exports": [
+          "infer",
+          "infer_transients_size",
+          "__init"
+        ],
+        "infer_args": "!vm.ref<?>, !vm.ref<?>",
+        "reflection": {
+          "iree.abi.transients.size": "infer_transients_size",
+          "iree.abi.transients.size.constant": "1088"
+        },
+        "reported_transient_size": 1088
+      },
+      "reported_equals": {
+        "B_u": false,
+        "C": false,
+        "I": false,
+        "O": false,
+        "P": false,
+        "T": true
+      },
+      "specification_figures": {
+        "B_u": 1069632,
+        "C": 1063424,
+        "I": 2560,
+        "O": 2560,
+        "P": 6208,
+        "T": 1088
+      }
+    },
+    "smartcam": {
+      "evaluated_artifact": {
+        "exports": [
+          "infer",
+          "__init"
+        ],
+        "infer_reflection_keys": [
+          "iree.abi.declaration"
+        ],
+        "path": "results/e32_smartcam_aarch64/build/smartcam.vmfb",
+        "transient_mentions_in_dump": 0
+      },
+      "evaluated_artifact_sha256_matches_specification": true,
+      "model_sha256_matches_specification": true,
+      "opt_in": {
+        "argv": [
+          "iree-compile",
+          "<edited mlir>",
+          "--iree-hal-target-backends=llvm-cpu",
+          "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+          "--iree-llvmcpu-target-cpu=cortex-a53",
+          "-o",
+          "<vmfb>"
+        ],
+        "edit": "added to @infer: %transient_storage: !hal.buffer {iree.abi.transients}",
+        "exports": [
+          "infer",
+          "infer_transients_size",
+          "__init"
+        ],
+        "infer_args": "!vm.ref<?>, !vm.ref<?>",
+        "reflection": {
+          "iree.abi.transients.size": "infer_transients_size",
+          "iree.abi.transients.size.constant": "8779968"
+        },
+        "reported_transient_size": 8779968
+      },
+      "reported_equals": {
+        "B_u": false,
+        "C": false,
+        "I": false,
+        "O": false,
+        "P": false,
+        "T": true
+      },
+      "specification_figures": {
+        "B_u": 18222796,
+        "C": 8840704,
+        "I": 602112,
+        "O": 12,
+        "P": 9382092,
+        "T": 8779968
+      }
+    },
+    "wgan": {
+      "evaluated_artifact": {
+        "exports": [
+          "infer",
+          "__init"
+        ],
+        "infer_reflection_keys": [
+          "iree.abi.declaration"
+        ],
+        "path": "results/e53_wgan_aarch64/build/aarch64/wgan.vmfb",
+        "transient_mentions_in_dump": 0
+      },
+      "evaluated_artifact_sha256_matches_specification": true,
+      "model_sha256_matches_specification": true,
+      "opt_in": {
+        "argv": [
+          "iree-compile",
+          "<edited mlir>",
+          "--iree-hal-target-backends=llvm-cpu",
+          "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+          "--iree-llvmcpu-target-cpu=cortex-a53",
+          "-o",
+          "<vmfb>"
+        ],
+        "edit": "added to @infer: %transient_storage: !hal.buffer {iree.abi.transients}",
+        "exports": [
+          "infer",
+          "infer_transients_size",
+          "__init"
+        ],
+        "infer_args": "!vm.ref<?>, !vm.ref<?>",
+        "reflection": {
+          "iree.abi.transients.size": "infer_transients_size",
+          "iree.abi.transients.size.constant": "130178560"
+        },
+        "reported_transient_size": 130178560
+      },
+      "reported_equals": {
+        "B_u": false,
+        "C": false,
+        "I": false,
+        "O": false,
+        "P": false,
+        "T": true
+      },
+      "specification_figures": {
+        "B_u": 135666432,
+        "C": 4283648,
+        "I": 602112,
+        "O": 602112,
+        "P": 131382784,
+        "T": 130178560
+      }
+    }
+  },
+  "not_measured": [
+    "execution of the opt-in artifacts (their entry ABI differs from the evaluated artifacts)",
+    "the dynamic-size query function (all four sizes fold to a constant)",
+    "runtime validation of caller-supplied storage size"
+  ],
+  "question": "what IREE's own transient-size query provides at the evaluated revision, and what it leaves out",
+  "summary": {
+    "evaluated_artifacts_without_transient_query": 4,
+    "n": 4,
+    "opt_in_reported_equals_T": 4,
+    "opt_in_reported_equals_any_other_figure": 0
+  }
+}

@@ -9201,6 +9201,7 @@ def main():
         all_results += e65_producer_check_cases(tmp)
         all_results += e66_plugin_document_rules_cases(tmp)
         all_results += d113_manuscript_evidence_records_cases(tmp)
+        all_results += e67_native_transient_query_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -9864,6 +9865,53 @@ def d113_manuscript_evidence_records_cases(tmp):
     out.append(Result("d114/1 tracked vmfb links resolve to tracked artifacts",
                       bool(tracked) and not unresolved, "links=%d unresolved=%s" % (len(links), unresolved)))
     return out
+
+def e67_native_transient_query_cases(tmp):
+    """E67: IREE's own transient-size query at the evaluated revision. The four evaluated artifacts carry none;
+    compiled with the one added entry argument the facility needs, each reports exactly the specification's T and
+    none of I, O, C, P, B_u. Guards re-read the specifications (not the summary's copy of them) and re-derive one
+    model live when the toolchain is present (D77/D89)."""
+    out = []
+    repo = os.path.dirname(HERE)
+    sp = os.path.join(repo, "results", "e67_native_transient_query", "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e67/0 summary present", False, "missing %s" % sp)]
+    s = load(sp)
+    import e67_native_transient_query as _e67
+    models = s.get("models", {})
+    out.append(Result("e67/1 four models, evaluated compiler revision, model and artifact digests match the specifications",
+                      sorted(models) == sorted(_e67.MODELS) and "e4a3b0405d7d23554da26403658d0e8c3c5ecf25" in s.get("compiler_version", "")
+                      and all(v["model_sha256_matches_specification"] and v["evaluated_artifact_sha256_matches_specification"]
+                              for v in models.values()),
+                      "models=%s" % sorted(models)))
+    bad2 = [m for m, v in models.items() if v["evaluated_artifact"]["exports"] != ["infer", "__init"]
+            or v["evaluated_artifact"]["transient_mentions_in_dump"] != 0
+            or v["evaluated_artifact"]["infer_reflection_keys"] != ["iree.abi.declaration"]]
+    out.append(Result("e67/2 evaluated artifacts carry no transient-size query or reflection", not bad2, "bad=%s" % bad2))
+    bad3 = []
+    for m, v in models.items():
+        spec = load(os.path.join(repo, _e67.SPEC.format(m=m)))["resources"]
+        t = spec["static_transient_bytes"]
+        others = [spec[k] for k in ("static_external_input_bytes", "static_external_output_bytes",
+                                    "module_resident_constant_bytes", "static_per_call_bytes", "bounded_bytes")]
+        rep = v["opt_in"]["reported_transient_size"]
+        if (rep != t or rep in others or v["opt_in"]["infer_args"].count("!vm.ref") != 2
+                or "infer_transients_size" not in v["opt_in"]["exports"]):
+            bad3.append((m, rep, t))
+    out.append(Result("e67/3 opt-in reports exactly T (re-read from the specification), no other figure; entry takes an added argument",
+                      not bad3 and s["summary"]["opt_in_reported_equals_T"] == 4, "bad=%s" % bad3))
+    if not (shutil.which("iree-compile") and shutil.which("iree-dump-module")):
+        out.append(Result("e67/4 live re-derivation (DeepAE)", True, "needs iree-compile and iree-dump-module", skip=True))
+        return out
+    try:
+        live = _e67.derive(["b3_deepae"])["models"]["b3_deepae"]
+        same = live == models.get("b3_deepae")
+        detail = "reported=%s" % live["opt_in"]["reported_transient_size"]
+    except Exception as e:
+        same, detail = False, "crash: %s" % e
+    out.append(Result("e67/4 live re-derivation (DeepAE) equals the committed record", same, detail))
+    return out
+
 
 def e65_producer_check_cases(tmp):
     """E65 (plan docs/plans/E65_producer_revision_and_plugin_option.md, 7b67d89).
