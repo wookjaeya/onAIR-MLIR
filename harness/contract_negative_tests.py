@@ -9845,6 +9845,16 @@ def d113_manuscript_evidence_records_cases(tmp):
                                                                      ao["policies"], ao["budgets_are_B_u_P_P_minus_1"],
                                                                      ao["models_run"])))
 
+    # d113/7 (v0.73.3) -- the revision-I record carries no address: the one the review supplied was a temporary
+    # upload path, not a stable location of the document; the reprobe names the host only
+    rtxt = open(rec_path, encoding="utf-8").read()
+    ri = [a for a in rc if a["id"] == "gsfc_std_1000i"]
+    ok7 = (len(ri) == 1 and ri[0].get("url") is None and bool(ri[0].get("url_note"))
+           and "url" not in (ri[0].get("reprobe") or {}) and "/system/files/tmp/" not in rtxt)
+    out.append(Result("d113/7 GSFC-STD-1000I record carries no document address (temporary path removed)",
+                      ok7, "url=%r tmp_path_in_record=%s" % (ri[0].get("url") if ri else None,
+                                                             "/system/files/tmp/" in rtxt)))
+
     # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
     r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)
     tracked = {l.split("\t", 1)[1]: l.split()[0] for l in r.stdout.splitlines() if "\t" in l}

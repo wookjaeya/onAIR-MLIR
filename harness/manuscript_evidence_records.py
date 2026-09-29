@@ -117,7 +117,10 @@ REVIEW_CONFIRMATIONS = [
         "id": "gsfc_std_1000i",
         "document": "GSFC-STD-1000I, Goddard Space Flight Center Rules for the Design, Development, "
                     "Verification, and Operation of Flight Systems (approved 19 August 2025; supersedes H)",
-        "url": "https://standards.nasa.gov/system/files/tmp/GSFC-STD-1000RevI_Approved_0.pdf",
+        "url": None,
+        "url_note": "no address is recorded: the one the review supplied was a temporary upload path, not a "
+                    "stable location of the document; the standard is identified by its number, issuer and "
+                    "approval date (v0.73.3)",
         "locator": "Rule 3.07; Table 3.07-1, printed pages 54-55",
         "manuscript_uses": [
             "revision I retains the RAM margins used: 50% at preliminary design review, 30% at ship/flight",
@@ -131,7 +134,7 @@ REVIEW_CONFIRMATIONS = [
         "sha256": None,
         "sha256_unavailable_reason": "the document was read by the reviewer outside this environment; "
                                      "no copy was supplied, so no digest can be computed here",
-        "reprobe": {"on": REPROBE_ON, "url": "same as above", "http_code": "000",
+        "reprobe": {"on": REPROBE_ON, "host": "standards.nasa.gov", "http_code": "000",
                     "webfetch": "EGRESS_BLOCKED",
                     "meaning": "host not reachable through this container's proxy (E55/P0-1); "
                                "not a statement about the document"},
