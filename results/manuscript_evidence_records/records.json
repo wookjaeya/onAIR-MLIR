@@ -258,5 +258,1007 @@
     "compiled_in_matches_document": true,
     "budgets_from_override": true,
     "note": "the figures rename the implementation's identifier prefix to the paper's term; values are the logs' own. The single-build statement rests on the archived build record and on the two logs carrying identical compiled-in records; the guest did not hash the binary in these runs."
+  },
+  "earlier_build_copy_arm": {
+    "claim": "earlier flight-application builds that read the artifact with malloc and no alignment request peaked at exactly B_u in every archived development-model guest cell that recorded a peak; the image address was not recorded",
+    "application_sources": {
+      "77a2df1": "g.blob = g.blob_len > 0 ? malloc((size_t)g.blob_len) : NULL;",
+      "e4c6371": "g.blob = malloc((size_t)g.blob_len);"
+    },
+    "aligned_allocation_introduced_in": "c086593",
+    "guest_cells": [
+      {
+        "log": "results/e14_aarch64_qemu/cfs/logs/A1_conv2d.log",
+        "sha256": "88a1ae25c6b0cf48dd2e357b82788a9dcfcca149242b4a029addf9d50f4d174f",
+        "specification": "results/e14_aarch64_qemu/aarch64/contracts/contract.conv2d.aarch64.json",
+        "application_source": "77a2df1",
+        "model": "conv2d",
+        "target": [
+          "aarch64-unknown-linux-gnu"
+        ],
+        "admissions": [
+          "ADMIT"
+        ],
+        "figures": {
+          "I": 256,
+          "O": 8,
+          "T": 1088,
+          "P": 1352,
+          "C": 2176,
+          "B_u": 3528
+        },
+        "mem_peaks": [
+          3528
+        ],
+        "all_peaks_equal_B_u": true,
+        "C_positive": true,
+        "mem_init_equals_I_plus_C": [],
+        "address_recorded": false
+      },
+      {
+        "log": "results/e14_aarch64_qemu/cfs/logs/A1_multibranch.log",
+        "sha256": "1fbab0f552565ff8587ed114babd099eeca7e0b8d32043113c71fb5bc1174dbc",
+        "specification": "results/e14_aarch64_qemu/aarch64/contracts/contract.multibranch.aarch64.json",
+        "application_source": "77a2df1",
+        "model": "multibranch",
+        "target": [
+          "aarch64-unknown-linux-gnu"
+        ],
+        "admissions": [
+          "ADMIT"
+        ],
+        "figures": {
+          "I": 64,
+          "O": 8,
+          "T": 768,
+          "P": 840,
+          "C": 37376,
+          "B_u": 38216
+        },
+        "mem_peaks": [
+          38216
+        ],
+        "all_peaks_equal_B_u": true,
+        "C_positive": true,
+        "mem_init_equals_I_plus_C": [],
+        "address_recorded": false
+      },
+      {
+        "log": "results/e14_aarch64_qemu/cfs/logs/A6_mlp16k_repeat.log",
+        "sha256": "b6a5691601972ef53cad4c7aa1f0afa851c14a66a5ecafcf996635d6914d75f5",
+        "specification": "results/e14_aarch64_qemu/aarch64/contracts/contract.mlp16k.aarch64.json",
+        "application_source": "77a2df1",
+        "model": "mlp16k",
+        "target": [
+          "aarch64-unknown-linux-gnu"
+        ],
+        "admissions": [
+          "ADMIT"
+        ],
+        "figures": {
+          "I": 36,
+          "O": 8,
+          "T": 65536,
+          "P": 65580,
+          "C": 720896,
+          "B_u": 786476
+        },
+        "mem_peaks": [
+          786476,
+          786476,
+          786476,
+          786476
+        ],
+        "all_peaks_equal_B_u": true,
+        "C_positive": true,
+        "mem_init_equals_I_plus_C": [],
+        "address_recorded": false
+      },
+      {
+        "log": "results/e14_aarch64_qemu/cfs/logs/A7_mlp16k_restart.log",
+        "sha256": "8d46f8e2a1ced5d8ff2dee48ba863f6ceadf36e1447ae2eb1a83a743445c71cd",
+        "specification": "results/e14_aarch64_qemu/aarch64/contracts/contract.mlp16k.aarch64.json",
+        "application_source": "77a2df1",
+        "model": "mlp16k",
+        "target": [
+          "aarch64-unknown-linux-gnu"
+        ],
+        "admissions": [
+          "ADMIT",
+          "ADMIT"
+        ],
+        "figures": {
+          "I": 36,
+          "O": 8,
+          "T": 65536,
+          "P": 65580,
+          "C": 720896,
+          "B_u": 786476
+        },
+        "mem_peaks": [
+          786476,
+          786476,
+          786476,
+          786476
+        ],
+        "all_peaks_equal_B_u": true,
+        "C_positive": true,
+        "mem_init_equals_I_plus_C": [],
+        "address_recorded": false
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/cfs/canonical_B.log",
+        "sha256": "1a603580b8cc1d0618c66e02be2755b88e0317b2a922aa91a1f7d38b1df501ab",
+        "specification": "results/e25_equivalence/aarch64/model_canonical.aarch64.contract.json",
+        "application_source": "e4c6371",
+        "model": "canonical_e25",
+        "target": [
+          "aarch64-unknown-linux-gnu"
+        ],
+        "admissions": [
+          "ADMIT"
+        ],
+        "figures": {
+          "I": 36,
+          "O": 8,
+          "T": 65536,
+          "P": 65580,
+          "C": 720896,
+          "B_u": 786476
+        },
+        "mem_peaks": [
+          786476,
+          786476,
+          786476
+        ],
+        "all_peaks_equal_B_u": true,
+        "C_positive": true,
+        "mem_init_equals_I_plus_C": [
+          true
+        ],
+        "address_recorded": false
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/cfs/canonical_Bp1.log",
+        "sha256": "0bb8cbbfe38b0a65950187c1518bb142cd1f060c0cfea71171f69994acb00a7b",
+        "specification": "results/e25_equivalence/aarch64/model_canonical.aarch64.contract.json",
+        "application_source": "e4c6371",
+        "model": "canonical_e25",
+        "target": [
+          "aarch64-unknown-linux-gnu"
+        ],
+        "admissions": [
+          "ADMIT"
+        ],
+        "figures": {
+          "I": 36,
+          "O": 8,
+          "T": 65536,
+          "P": 65580,
+          "C": 720896,
+          "B_u": 786476
+        },
+        "mem_peaks": [
+          786476,
+          786476,
+          786476,
+          786476
+        ],
+        "all_peaks_equal_B_u": true,
+        "C_positive": true,
+        "mem_init_equals_I_plus_C": [
+          true
+        ],
+        "address_recorded": false
+      }
+    ],
+    "guest_cells_count": 6,
+    "guest_cells_peak_B_u": 6,
+    "guest_models": [
+      "canonical_e25",
+      "conv2d",
+      "mlp16k",
+      "multibranch"
+    ],
+    "address_recorded_in_any": false,
+    "user_mode_runner_cells": [
+      {
+        "log": "results/e14_aarch64_qemu/native/logs/qemu_user/conv2d.A1_admit.log",
+        "model": "conv2d",
+        "peak": 1352,
+        "arm": "map"
+      },
+      {
+        "log": "results/e14_aarch64_qemu/native/logs/qemu_user/conv2d.A2_boundary_B.log",
+        "model": "conv2d",
+        "peak": 1352,
+        "arm": "map"
+      },
+      {
+        "log": "results/e14_aarch64_qemu/native/logs/qemu_user/conv2d.A2_boundary_Bplus1.log",
+        "model": "conv2d",
+        "peak": 1352,
+        "arm": "map"
+      },
+      {
+        "log": "results/e14_aarch64_qemu/native/logs/qemu_user/mlp16k.A1_admit.log",
+        "model": "mlp16k",
+        "peak": 786476,
+        "arm": "copy"
+      },
+      {
+        "log": "results/e14_aarch64_qemu/native/logs/qemu_user/multibranch.A1_admit.log",
+        "model": "multibranch",
+        "peak": 38216,
+        "arm": "copy"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/conv2d_B.jsonl",
+        "model": "conv2d",
+        "peak": 1352,
+        "arm": "map"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/conv2d_B1MiB.jsonl",
+        "model": "conv2d",
+        "peak": 1352,
+        "arm": "map"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/conv2d_Bp1.jsonl",
+        "model": "conv2d",
+        "peak": 1352,
+        "arm": "map"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/mlp16k_B.jsonl",
+        "model": "mlp16k",
+        "peak": 786476,
+        "arm": "copy"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/mlp16k_B1MiB.jsonl",
+        "model": "mlp16k",
+        "peak": 786476,
+        "arm": "copy"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/mlp16k_Bp1.jsonl",
+        "model": "mlp16k",
+        "peak": 786476,
+        "arm": "copy"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/multibranch_B.jsonl",
+        "model": "multibranch",
+        "peak": 840,
+        "arm": "map"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/multibranch_B1MiB.jsonl",
+        "model": "multibranch",
+        "peak": 840,
+        "arm": "map"
+      },
+      {
+        "log": "results/e26_boundary_utility/aarch64/native/multibranch_Bp1.jsonl",
+        "model": "multibranch",
+        "peak": 840,
+        "arm": "map"
+      }
+    ],
+    "user_mode_arm_counts": {
+      "map": 9,
+      "copy": 5,
+      "other": 0
+    },
+    "note": "the arm is inferred from peak == P + C with C > 0; the malloc-era builds did not record the module image address. The standalone runner under user-mode emulation, with the same malloc-era code, took the map arm in some cells: the arm followed where the buffer landed. None of these cells uses one of the four public models."
+  },
+  "cumulative_allocation_identity": {
+    "claim": "in the admitted flight-application cells the manuscript counts (execution and alignment cells), the allocator's cumulative allocated bytes were I (I + C on the copy arm) before the first call and, at each report, that plus (O + T) per completed call (replay calls included), within the resolution of the logged one-decimal average; a byte total, not a buffer-by-buffer match",
+    "cell_lists": "harness/e66_plugin_document_rules.py EXECUTION + ALIGNMENT",
+    "field": "mem.hal_bytes_per_call_amortized = device_bytes_allocated / loop calls (ai_learner.c), printed %.1f; mem_init.hal_allocated is an exact integer",
+    "totals": {
+      "cells": 69,
+      "init_identity": 69,
+      "logs_with_call_reports": 57,
+      "call_reports": 3133,
+      "call_reports_matching": 3133,
+      "call_reports_exact_integer": 664,
+      "replay_calls": 334,
+      "max_slack_bytes": 26
+    },
+    "cells": [
+      {
+        "log": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 200,
+        "call_reports": 204,
+        "call_reports_matching": 204
+      },
+      {
+        "log": "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 34,
+        "call_reports": 148,
+        "call_reports_matching": 148
+      },
+      {
+        "log": "results/e48_real_inputs_aarch64/cfs/logs/smartcam_admit_B_real.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 19,
+        "call_reports": 282,
+        "call_reports_matching": 282
+      },
+      {
+        "log": "results/e53_wgan_aarch64/cfs/logs/cfs_B.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 1,
+        "call_reports": 4,
+        "call_reports_matching": 4
+      },
+      {
+        "log": "results/e63_single_build_and_conditional_floor/cells/logs/e63_wgan_map_e55b_build.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 1,
+        "call_reports": 2,
+        "call_reports_matching": 2
+      },
+      {
+        "log": "results/e55b_copy_path/cells/logs/e55b_b2_resnet_copy.log",
+        "model": "b2_resnet",
+        "arm": "copy",
+        "init_allocated": 321728,
+        "expected_init": 321728,
+        "replay_calls": 34,
+        "call_reports": 222,
+        "call_reports_matching": 222
+      },
+      {
+        "log": "results/e55b_copy_path/cells/logs/e55b_b3_deepae_copy.log",
+        "model": "b3_deepae",
+        "arm": "copy",
+        "init_allocated": 1065984,
+        "expected_init": 1065984,
+        "replay_calls": 34,
+        "call_reports": 224,
+        "call_reports_matching": 224
+      },
+      {
+        "log": "results/e55b_copy_path/cells/logs/e55b_smartcam_copy.log",
+        "model": "smartcam",
+        "arm": "copy",
+        "init_allocated": 9442816,
+        "expected_init": 9442816,
+        "replay_calls": 5,
+        "call_reports": 105,
+        "call_reports_matching": 105
+      },
+      {
+        "log": "results/e55b_copy_path/cells/logs/e55b_wgan_copy.log",
+        "model": "wgan",
+        "arm": "copy",
+        "init_allocated": 4885760,
+        "expected_init": 4885760,
+        "replay_calls": 1,
+        "call_reports": 2,
+        "call_reports_matching": 2
+      },
+      {
+        "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 0,
+        "call_reports": 74,
+        "call_reports_matching": 74
+      },
+      {
+        "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_b3_deepae_conditional.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 0,
+        "call_reports": 74,
+        "call_reports_matching": 74
+      },
+      {
+        "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_smartcam_conditional.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 48,
+        "call_reports_matching": 48
+      },
+      {
+        "log": "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_conditional.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 3,
+        "call_reports_matching": 3
+      },
+      {
+        "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_b2_resnet_admit.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 0,
+        "call_reports": 223,
+        "call_reports_matching": 223
+      },
+      {
+        "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_b3_deepae_admit.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 0,
+        "call_reports": 224,
+        "call_reports_matching": 224
+      },
+      {
+        "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_smartcam_admit.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 139,
+        "call_reports_matching": 139
+      },
+      {
+        "log": "results/e56_conditional_refusal_aarch64/cells/logs/e56_wgan_admit.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b2_resnet.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 0,
+        "call_reports": 61,
+        "call_reports_matching": 61
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b3_deepae.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 0,
+        "call_reports": 64,
+        "call_reports_matching": 64
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__smartcam.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 45,
+        "call_reports_matching": 45
+      },
+      {
+        "log": "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_pdr50__wgan.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 1,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__b2_resnet.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 0,
+        "call_reports": 65,
+        "call_reports_matching": 65
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__b3_deepae.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 0,
+        "call_reports": 63,
+        "call_reports_matching": 63
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__smartcam.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 36,
+        "call_reports_matching": 36
+      },
+      {
+        "log": "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_ship30__wgan.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 1,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__b2_resnet.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 0,
+        "call_reports": 66,
+        "call_reports_matching": 66
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__b3_deepae.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 0,
+        "call_reports": 60,
+        "call_reports_matching": 60
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__smartcam.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 43,
+        "call_reports_matching": 43
+      },
+      {
+        "log": "results/e54_reference_budget/cells/e53_wgan_part1/logs/PB_pdr50__wgan.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 1,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__b2_resnet.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 0,
+        "call_reports": 65,
+        "call_reports_matching": 65
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__b3_deepae.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 0,
+        "call_reports": 60,
+        "call_reports_matching": 60
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__smartcam.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 37,
+        "call_reports_matching": 37
+      },
+      {
+        "log": "results/e54_reference_budget/cells/e53_wgan_part1/logs/PB_ship30__wgan.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 1,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_b2_resnet_pow2_above.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 0,
+        "call_reports": 67,
+        "call_reports_matching": 67
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_b3_deepae_pow2_above.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 0,
+        "call_reports": 64,
+        "call_reports_matching": 64
+      },
+      {
+        "log": "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_smartcam_pow2_above.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 32,
+        "call_reports_matching": 32
+      },
+      {
+        "log": "results/e54_reference_budget/cells/e53_wgan_part2/logs/sweep_wgan_pow2_above.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 1,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off00.log",
+        "model": "b2_resnet",
+        "arm": "map",
+        "init_allocated": 12288,
+        "expected_init": 12288,
+        "replay_calls": 0,
+        "call_reports": 21,
+        "call_reports_matching": 21
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off08.log",
+        "model": "b2_resnet",
+        "arm": "copy",
+        "init_allocated": 321728,
+        "expected_init": 321728,
+        "replay_calls": 0,
+        "call_reports": 21,
+        "call_reports_matching": 21
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off16.log",
+        "model": "b2_resnet",
+        "arm": "copy",
+        "init_allocated": 321728,
+        "expected_init": 321728,
+        "replay_calls": 0,
+        "call_reports": 21,
+        "call_reports_matching": 21
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off24.log",
+        "model": "b2_resnet",
+        "arm": "copy",
+        "init_allocated": 321728,
+        "expected_init": 321728,
+        "replay_calls": 0,
+        "call_reports": 20,
+        "call_reports_matching": 20
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off32.log",
+        "model": "b2_resnet",
+        "arm": "copy",
+        "init_allocated": 321728,
+        "expected_init": 321728,
+        "replay_calls": 0,
+        "call_reports": 20,
+        "call_reports_matching": 20
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off40.log",
+        "model": "b2_resnet",
+        "arm": "copy",
+        "init_allocated": 321728,
+        "expected_init": 321728,
+        "replay_calls": 0,
+        "call_reports": 20,
+        "call_reports_matching": 20
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off48.log",
+        "model": "b2_resnet",
+        "arm": "copy",
+        "init_allocated": 321728,
+        "expected_init": 321728,
+        "replay_calls": 0,
+        "call_reports": 21,
+        "call_reports_matching": 21
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off56.log",
+        "model": "b2_resnet",
+        "arm": "copy",
+        "init_allocated": 321728,
+        "expected_init": 321728,
+        "replay_calls": 0,
+        "call_reports": 19,
+        "call_reports_matching": 19
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off00.log",
+        "model": "b3_deepae",
+        "arm": "map",
+        "init_allocated": 2560,
+        "expected_init": 2560,
+        "replay_calls": 0,
+        "call_reports": 20,
+        "call_reports_matching": 20
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off08.log",
+        "model": "b3_deepae",
+        "arm": "copy",
+        "init_allocated": 1065984,
+        "expected_init": 1065984,
+        "replay_calls": 0,
+        "call_reports": 19,
+        "call_reports_matching": 19
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off16.log",
+        "model": "b3_deepae",
+        "arm": "copy",
+        "init_allocated": 1065984,
+        "expected_init": 1065984,
+        "replay_calls": 0,
+        "call_reports": 19,
+        "call_reports_matching": 19
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off24.log",
+        "model": "b3_deepae",
+        "arm": "copy",
+        "init_allocated": 1065984,
+        "expected_init": 1065984,
+        "replay_calls": 0,
+        "call_reports": 19,
+        "call_reports_matching": 19
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off32.log",
+        "model": "b3_deepae",
+        "arm": "copy",
+        "init_allocated": 1065984,
+        "expected_init": 1065984,
+        "replay_calls": 0,
+        "call_reports": 14,
+        "call_reports_matching": 14
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off40.log",
+        "model": "b3_deepae",
+        "arm": "copy",
+        "init_allocated": 1065984,
+        "expected_init": 1065984,
+        "replay_calls": 0,
+        "call_reports": 21,
+        "call_reports_matching": 21
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off48.log",
+        "model": "b3_deepae",
+        "arm": "copy",
+        "init_allocated": 1065984,
+        "expected_init": 1065984,
+        "replay_calls": 0,
+        "call_reports": 21,
+        "call_reports_matching": 21
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off56.log",
+        "model": "b3_deepae",
+        "arm": "copy",
+        "init_allocated": 1065984,
+        "expected_init": 1065984,
+        "replay_calls": 0,
+        "call_reports": 21,
+        "call_reports_matching": 21
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off00.log",
+        "model": "smartcam",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off08.log",
+        "model": "smartcam",
+        "arm": "copy",
+        "init_allocated": 9442816,
+        "expected_init": 9442816,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off16.log",
+        "model": "smartcam",
+        "arm": "copy",
+        "init_allocated": 9442816,
+        "expected_init": 9442816,
+        "replay_calls": 0,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off24.log",
+        "model": "smartcam",
+        "arm": "copy",
+        "init_allocated": 9442816,
+        "expected_init": 9442816,
+        "replay_calls": 0,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off32.log",
+        "model": "smartcam",
+        "arm": "copy",
+        "init_allocated": 9442816,
+        "expected_init": 9442816,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off40.log",
+        "model": "smartcam",
+        "arm": "copy",
+        "init_allocated": 9442816,
+        "expected_init": 9442816,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off48.log",
+        "model": "smartcam",
+        "arm": "copy",
+        "init_allocated": 9442816,
+        "expected_init": 9442816,
+        "replay_calls": 0,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off56.log",
+        "model": "smartcam",
+        "arm": "copy",
+        "init_allocated": 9442816,
+        "expected_init": 9442816,
+        "replay_calls": 0,
+        "call_reports": 1,
+        "call_reports_matching": 1
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off00.log",
+        "model": "wgan",
+        "arm": "map",
+        "init_allocated": 602112,
+        "expected_init": 602112,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off08.log",
+        "model": "wgan",
+        "arm": "copy",
+        "init_allocated": 4885760,
+        "expected_init": 4885760,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off16.log",
+        "model": "wgan",
+        "arm": "copy",
+        "init_allocated": 4885760,
+        "expected_init": 4885760,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off24.log",
+        "model": "wgan",
+        "arm": "copy",
+        "init_allocated": 4885760,
+        "expected_init": 4885760,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off32.log",
+        "model": "wgan",
+        "arm": "copy",
+        "init_allocated": 4885760,
+        "expected_init": 4885760,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off40.log",
+        "model": "wgan",
+        "arm": "copy",
+        "init_allocated": 4885760,
+        "expected_init": 4885760,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off48.log",
+        "model": "wgan",
+        "arm": "copy",
+        "init_allocated": 4885760,
+        "expected_init": 4885760,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      },
+      {
+        "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off56.log",
+        "model": "wgan",
+        "arm": "copy",
+        "init_allocated": 4885760,
+        "expected_init": 4885760,
+        "replay_calls": 0,
+        "call_reports": 0,
+        "call_reports_matching": 0
+      }
+    ]
   }
 }

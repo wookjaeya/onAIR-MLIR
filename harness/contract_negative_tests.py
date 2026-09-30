@@ -9887,6 +9887,49 @@ def d113_manuscript_evidence_records_cases(tmp):
                           fg["header_identical_to_reissued"], fg["both_runs_same_compiled_in_specification"],
                           fg["budgets_from_override"])))
 
+    # d113/10 (v0.75.2) -- earlier flight-application builds (malloc, no alignment request) peaked at exactly
+    # B_u in every archived development-model guest cell recording a peak; no address was recorded. The
+    # same malloc-era code under user-mode emulation took both arms, so the record keeps those counts too.
+    eb = live["earlier_build_copy_arm"]
+    ok10 = (committed.get("earlier_build_copy_arm") == eb and eb["guest_cells_count"] == 6
+            and eb["guest_cells_peak_B_u"] == 6 and not eb["address_recorded_in_any"]
+            and all(c["target"] == ["aarch64-unknown-linux-gnu"] for c in eb["guest_cells"])
+            and eb["user_mode_arm_counts"] == {"map": 9, "copy": 5, "other": 0})
+    out.append(Result("d113/10 earlier malloc builds: every archived guest cell peaked at B_u (copy arm), "
+                      "address not recorded; user-mode runs took both arms", ok10,
+                      "guest=%s/%s user_mode=%s" % (eb["guest_cells_peak_B_u"], eb["guest_cells_count"],
+                                                    eb["user_mode_arm_counts"])))
+    # d113/10b -- the application source of those builds allocated with malloc; c086593 introduced the
+    # 64-byte-aligned buffer (needs git history; a shallow CI checkout skips)
+    have = subprocess.run(["git", "cat-file", "-e", eb["aligned_allocation_introduced_in"] + "^{commit}"],
+                          cwd=repo, capture_output=True).returncode == 0
+    if not have:
+        out.append(Result("d113/10b earlier-build allocation lines at their source commits", None,
+                          "needs git history for the source commits", skip=True))
+    else:
+        src = "native/cfs_app/fsw/src/ai_learner.c"
+        show = lambda c: subprocess.run(["git", "show", "%s:%s" % (c, src)], cwd=repo,
+                                        capture_output=True, text=True).stdout
+        okb = (all(line in show(c) for c, line in eb["application_sources"].items())
+               and "posix_memalign(&p, 64, n)" in show(eb["aligned_allocation_introduced_in"]))
+        out.append(Result("d113/10b earlier-build allocation lines at their source commits", okb,
+                          "sources=%s aligned_at=%s" % (sorted(eb["application_sources"]),
+                                                        eb["aligned_allocation_introduced_in"])))
+
+    # d113/11 (v0.75.2) -- in the manuscript's 69 admitted cells (37 execution + 32 alignment), the allocator's
+    # cumulative allocation was I (+C on the copy arm) before the first call and, at every report, that plus
+    # (O + T) per completed call within the logged one-decimal resolution
+    ca = live["cumulative_allocation_identity"]
+    t = ca["totals"]
+    ok11 = (committed.get("cumulative_allocation_identity") == ca and t["cells"] == 69
+            and t["init_identity"] == 69 and t["logs_with_call_reports"] == 57
+            and t["call_reports"] == t["call_reports_matching"] == 3133
+            and t["call_reports_exact_integer"] == 664 and t["max_slack_bytes"] <= 26)
+    out.append(Result("d113/11 cumulative allocation = I (+C) + (O+T) per call in the 69 admitted cells", ok11,
+                      "cells=%s init=%s reports=%s/%s exact=%s slack<=%s" % (
+                          t["cells"], t["init_identity"], t["call_reports_matching"], t["call_reports"],
+                          t["call_reports_exact_integer"], t["max_slack_bytes"])))
+
     # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
     r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)
     tracked = {l.split("\t", 1)[1]: l.split()[0] for l in r.stdout.splitlines() if "\t" in l}

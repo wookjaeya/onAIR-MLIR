@@ -31,6 +31,7 @@ Usage: python3 harness/manuscript_evidence_records.py [--check]
   default: write results/manuscript_evidence_records/records.json
   --check: re-derive and compare with the committed file (rc 1 on any difference)
 """
+import glob
 import hashlib
 import json
 import os
@@ -252,6 +253,173 @@ def resnet_document_and_console():
     }
 
 
+# v0.75.2 -- two facts added to the manuscript (v38) in answer to a referee. Both are re-derived from
+# archived guest logs every run; nothing here is taken from the manuscript.
+
+# (a) Earlier flight-application builds read the module into malloc() without an alignment request
+# (ai_learner.c up to c086593, which introduced posix_memalign(64) and the map_branch record).
+EARLY_BUILD_SOURCES = {"77a2df1": "g.blob = g.blob_len > 0 ? malloc((size_t)g.blob_len) : NULL;",
+                       "e4c6371": "g.blob = malloc((size_t)g.blob_len);"}
+EARLY_ALIGNED_COMMIT = "c086593"
+EARLY_GUEST_CELLS = [  # (log, specification, source commit of the application build)
+    ("results/e14_aarch64_qemu/cfs/logs/A1_conv2d.log",
+     "results/e14_aarch64_qemu/aarch64/contracts/contract.conv2d.aarch64.json", "77a2df1"),
+    ("results/e14_aarch64_qemu/cfs/logs/A1_multibranch.log",
+     "results/e14_aarch64_qemu/aarch64/contracts/contract.multibranch.aarch64.json", "77a2df1"),
+    ("results/e14_aarch64_qemu/cfs/logs/A6_mlp16k_repeat.log",
+     "results/e14_aarch64_qemu/aarch64/contracts/contract.mlp16k.aarch64.json", "77a2df1"),
+    ("results/e14_aarch64_qemu/cfs/logs/A7_mlp16k_restart.log",
+     "results/e14_aarch64_qemu/aarch64/contracts/contract.mlp16k.aarch64.json", "77a2df1"),
+    ("results/e26_boundary_utility/aarch64/cfs/canonical_B.log",
+     "results/e25_equivalence/aarch64/model_canonical.aarch64.contract.json", "e4c6371"),
+    ("results/e26_boundary_utility/aarch64/cfs/canonical_Bp1.log",
+     "results/e25_equivalence/aarch64/model_canonical.aarch64.contract.json", "e4c6371"),
+]
+# The same malloc-era code run as the standalone runner under user-mode emulation (not the flight
+# application, not the system guest). Recorded so the record shows the arm depended on placement.
+EARLY_USER_MODE_GLOBS = ["results/e14_aarch64_qemu/native/logs/qemu_user/*.log",
+                         "results/e26_boundary_utility/aarch64/native/*.jsonl"]
+
+
+def _app_records(rel):
+    out = []
+    for line in open(os.path.join(REPO, rel), errors="replace"):
+        j = line.find('{"app":"AI_LEARNER"')
+        if j >= 0:
+            try:
+                out.append(json.loads(line[j:].strip()))
+            except ValueError:
+                pass  # a record cut by the console line buffer: not used here
+    return out
+
+
+def _figures(spec_rel):
+    r = json.load(open(os.path.join(REPO, spec_rel)))["resources"]
+    fig = {"I": r["static_external_input_bytes"], "O": r["static_external_output_bytes"],
+           "T": r["static_transient_bytes"], "P": r["static_per_call_bytes"],
+           "C": r["module_resident_constant_bytes"], "B_u": r["bounded_bytes"]}
+    assert fig["I"] + fig["O"] + fig["T"] == fig["P"] and fig["P"] + fig["C"] == fig["B_u"]
+    return fig
+
+
+def earlier_build_copy_arm():
+    cells = []
+    for log, spec, src in EARLY_GUEST_CELLS:
+        recs = _app_records(log)
+        fig = _figures(spec)
+        peaks = [r["hal_peak"] for r in recs if r.get("stage") == "mem"]
+        inits = [r for r in recs if r.get("stage") == "mem_init"]
+        cells.append({
+            "log": log, "sha256": sha256(log), "specification": spec, "application_source": src,
+            "model": next((r.get("model") for r in recs if r.get("model")), None),
+            "target": sorted({r["target"] for r in recs if r.get("target")}),
+            "admissions": [r.get("verdict") for r in recs if r.get("stage") == "admission"],
+            "figures": fig, "mem_peaks": peaks,
+            "all_peaks_equal_B_u": bool(peaks) and all(p == fig["B_u"] for p in peaks),
+            "C_positive": fig["C"] > 0,
+            "mem_init_equals_I_plus_C": [r.get("hal_allocated") == fig["I"] + fig["C"] for r in inits],
+            "address_recorded": any(r.get("stage") == "map_branch" for r in recs),
+        })
+    user_mode = []
+    for pat in EARLY_USER_MODE_GLOBS:
+        for fp in sorted(glob.glob(os.path.join(REPO, pat))):
+            text = open(fp, errors="replace").read()
+            m = re.search(r'"model":"([a-z0-9_]+)"', text)
+            peaks = [int(x) for x in re.findall(r'"(?:hal_device_bytes_peak|device_bytes_peak|hal_peak)":(\d+)', text)]
+            per = re.search(r'"per_call":(\d+)', text)
+            bnd = re.search(r'"bounded(?:_bytes)?":(\d+)', text)
+            if not (m and peaks and per and bnd):
+                continue
+            pk, p, b = max(peaks), int(per.group(1)), int(bnd.group(1))
+            user_mode.append({"log": os.path.relpath(fp, REPO), "model": m.group(1), "peak": pk,
+                              "arm": "map" if pk == p else ("copy" if pk == b else "other")})
+    arms = [c["all_peaks_equal_B_u"] and c["C_positive"] for c in cells]
+    return {
+        "claim": "earlier flight-application builds that read the artifact with malloc and no alignment "
+                 "request peaked at exactly B_u in every archived development-model guest cell that "
+                 "recorded a peak; the image address was not recorded",
+        "application_sources": EARLY_BUILD_SOURCES,
+        "aligned_allocation_introduced_in": EARLY_ALIGNED_COMMIT,
+        "guest_cells": cells,
+        "guest_cells_count": len(cells),
+        "guest_cells_peak_B_u": sum(arms),
+        "guest_models": sorted({c["model"] for c in cells}),
+        "address_recorded_in_any": any(c["address_recorded"] for c in cells),
+        "user_mode_runner_cells": user_mode,
+        "user_mode_arm_counts": {a: sum(1 for u in user_mode if u["arm"] == a) for a in ("map", "copy", "other")},
+        "note": "the arm is inferred from peak == P + C with C > 0; the malloc-era builds did not record the "
+                "module image address. The standalone runner under user-mode emulation, with the same "
+                "malloc-era code, took the map arm in some cells: the arm followed where the buffer landed. "
+                "None of these cells uses one of the four public models.",
+    }
+
+
+# (b) The allocator's cumulative allocation in the manuscript's admitted flight-application cells.
+def _e66_cells():
+    sys.path.insert(0, os.path.join(REPO, "harness"))
+    import e66_plugin_document_rules as e66
+    return e66, [p for v in e66.EXECUTION.values() for p in v] + list(e66.ALIGNMENT)
+
+
+def cumulative_allocation_identity():
+    e66, cells = _e66_cells()
+    rows, figs = [], {}
+    tot = {"cells": 0, "init_identity": 0, "logs_with_call_reports": 0, "call_reports": 0,
+           "call_reports_matching": 0, "call_reports_exact_integer": 0, "replay_calls": 0, "max_slack_bytes": 0}
+    for p in cells:
+        fp = e66.resolve(p)
+        rel = os.path.relpath(fp, REPO)
+        recs = _app_records(rel)
+        model = next(r["model"] for r in recs if r.get("stage") == "mem_init")
+        if model not in figs:
+            figs[model] = _figures(SPEC_BY_MODEL[model])
+        f = figs[model]
+        init = next(r for r in recs if r.get("stage") == "mem_init")
+        mb = next(r for r in recs if r.get("stage") == "map_branch")
+        arm = "map" if mb["hal_peak_after_append"] == 0 else ("copy" if mb["hal_peak_after_append"] == f["C"] else "other")
+        base = f["I"] + (f["C"] if arm == "copy" else 0)
+        replay = sum(r.get("completed", 0) for r in recs if r.get("stage") == "e25_equivalence")
+        reports = []
+        for r in recs:
+            if r.get("stage") != "mem":
+                continue
+            n, am = r["completed"], r["hal_bytes_per_call_amortized"]
+            exp = base + (replay + n) * (f["O"] + f["T"])
+            shown = "%.1f" % am
+            ints = [c for c in range(int(n * (am - 0.06)) - 2, int(n * (am + 0.06)) + 3) if "%.1f" % (c / n) == shown]
+            reports.append({"n": n, "match": "%.1f" % (exp / n) == shown, "exact": len(ints) == 1,
+                            "slack": max(abs(c - exp) for c in ints) if ints else None})
+        ok_init = init["hal_allocated"] == base
+        tot["cells"] += 1
+        tot["init_identity"] += ok_init
+        tot["logs_with_call_reports"] += bool(reports)
+        tot["call_reports"] += len(reports)
+        tot["call_reports_matching"] += sum(x["match"] for x in reports)
+        tot["call_reports_exact_integer"] += sum(x["exact"] for x in reports)
+        tot["replay_calls"] += replay
+        tot["max_slack_bytes"] = max([tot["max_slack_bytes"]] + [x["slack"] for x in reports if x["slack"] is not None])
+        rows.append({"log": rel, "model": model, "arm": arm, "init_allocated": init["hal_allocated"],
+                     "expected_init": base, "replay_calls": replay, "call_reports": len(reports),
+                     "call_reports_matching": sum(x["match"] for x in reports)})
+    return {
+        "claim": "in the admitted flight-application cells the manuscript counts (execution and alignment cells), "
+                 "the allocator's cumulative allocated bytes were I (I + C on the copy arm) before the first call "
+                 "and, at each report, that plus (O + T) per completed call (replay calls included), within the "
+                 "resolution of the logged one-decimal average; a byte total, not a buffer-by-buffer match",
+        "cell_lists": "harness/e66_plugin_document_rules.py EXECUTION + ALIGNMENT",
+        "field": "mem.hal_bytes_per_call_amortized = device_bytes_allocated / loop calls (ai_learner.c), "
+                 "printed %.1f; mem_init.hal_allocated is an exact integer",
+        "totals": tot,
+        "cells": rows,
+    }
+
+
+SPEC_BY_MODEL = {"b2_resnet": "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
+                 "b3_deepae": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
+                 "smartcam": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+                 "wgan": "results/e53_wgan_aarch64/build/aarch64/wgan.contract.json"}
+
+
 def derive():
     div = json.load(open(os.path.join(REPO, E52_DIVERGENCE)))
     q1 = div["Q1_constants_bit_identical"]
@@ -309,6 +477,8 @@ def derive():
         "artifact_only_policy_evaluations": artifact_only,
         "worked_extraction_deepae": worked_extraction_deepae(),
         "resnet_document_and_console": resnet_document_and_console(),
+        "earlier_build_copy_arm": earlier_build_copy_arm(),
+        "cumulative_allocation_identity": cumulative_allocation_identity(),
     }
 
 
