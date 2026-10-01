@@ -9942,6 +9942,37 @@ def d113_manuscript_evidence_records_cases(tmp):
                           dr["archived_budgets_reproduced"], dr["verdicts_unchanged"], dr["cells"],
                           dr["smallest_decimal_headroom"])))
 
+    # d113/13 (v0.75.4) -- the operating-system layer's task-stack addition the manuscript bounds by 135,152 B:
+    # configured stack (budgets.json terms) equals every evaluation build's startup-script stack, and the
+    # addition is recomputed here independently of the generator (round_up(s + PTHREAD_STACK_MIN, page) - s)
+    ts = live["os_task_stack_addition"]
+    o = ts["osal"]
+    indep = {r["model"]: -(-(r["configured_bytes"] + 131072) // 4096) * 4096 - r["configured_bytes"]
+             for r in ts["rows"]}
+    ok13 = (committed.get("os_task_stack_addition") == ts and len(ts["rows"]) == 4
+            and all(r["configured_matches_build"] for r in ts["rows"])
+            and all(indep[r["model"]] == r["addition_bytes"] for r in ts["rows"])
+            and o["pthread_stack_min"] == 131072 and o["page_bytes"] == 4096
+            and ts["max_addition"] == {"model": "b3_deepae", "bytes": 135152})
+    out.append(Result("d113/13 OS task-stack addition beyond R_x: at most 135,152 B (4 KiB pages), configured "
+                      "stack = each build's startup entry", ok13,
+                      "max=%s additions=%s" % (ts["max_addition"], sorted(indep.items()))))
+    # d113/13b -- the recorded source lines and constant still read as recorded (needs the cFS checkout and the
+    # AArch64 cross toolchain header, which CI does not have)
+    src = os.path.join(os.path.expanduser("~/onair-mlir-bench/ext/cFS"), o["source"])
+    hdr = o["pthread_stack_min_header"]
+    if not (os.path.isfile(src) and os.path.isfile(hdr)):
+        out.append(Result("d113/13b OSAL task-stack source and PTHREAD_STACK_MIN header read as recorded", None,
+                          "needs the cFS OSAL checkout and the AArch64 cross toolchain header", skip=True))
+    else:
+        lines = open(src, encoding="utf-8", errors="replace").read().split("\n")
+        okl = all(lines[int(k) - 1].strip() == v for k, v in o["lines"].items())
+        okh = re.search(r"#define\s+PTHREAD_STACK_MIN\s+131072\b", open(hdr).read()) is not None
+        oks = (hashlib.sha256(open(src, "rb").read()).hexdigest() == o["source_sha256"]
+               and hashlib.sha256(open(hdr, "rb").read()).hexdigest() == o["pthread_stack_min_header_sha256"])
+        out.append(Result("d113/13b OSAL task-stack source and PTHREAD_STACK_MIN header read as recorded",
+                          okl and okh and oks, "lines=%s header=%s sha256=%s" % (okl, okh, oks)))
+
     # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
     r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)
     tracked = {l.split("\t", 1)[1]: l.split()[0] for l in r.stdout.splitlines() if "\t" in l}

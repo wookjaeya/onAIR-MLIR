@@ -87,7 +87,7 @@
       "manuscript_uses": [
         "revision I retains the RAM margins used: 50% at preliminary design review, 30% at ship/flight",
         "revision I retains the margin definition, (allocated - used) / allocated",
-        "revision I retains the statement that the table values are not uniform hard limits"
+        "revision I retains the qualification cited from revision H that the values are not hard limits (manuscript v40: 'and that qualification'; the review's words: the table values are not uniform hard limits)"
       ],
       "not_confirmed_here": "the phase methods of Rule 3.07 and the RAM row's bulk-storage exclusion are still cited from revision H only",
       "confirmed_by": "the v30 manuscript review supplied by the author (2026-09-28), from the official PDF",
@@ -1409,5 +1409,77 @@
         "verdict_decimal": "ADMIT"
       }
     ]
+  },
+  "os_task_stack_addition": {
+    "claim": "by its source code, the operating-system layer adds its minimum thread stack to the configured task-stack size and rounds up to a page; with 4 KiB pages the addition beyond R_x is at most 135,152 B",
+    "osal": {
+      "source": "osal/src/os/posix/src/os-impl-tasks.c",
+      "osal_commit": "8111e4a5cc0bef109540ef648d00924032882452",
+      "source_sha256": "76497fefbb4443a30ba83b1259454befd78861f5d7c94c9337caf114107089d2",
+      "lines": {
+        "58": "#ifdef PTHREAD_STACK_MIN",
+        "59": "#define OS_IMPL_STACK_EXTRA PTHREAD_STACK_MIN",
+        "501": "stacksz += OS_IMPL_STACK_EXTRA;",
+        "503": "stacksz += POSIX_GlobalVars.PageSize - 1;",
+        "504": "stacksz -= stacksz % POSIX_GlobalVars.PageSize;"
+      },
+      "aarch64_compile_flags": [
+        "-DSIMULATION=aarch64-linux-gnu",
+        "-D_LINUX_OS_",
+        "-D_POSIX_OS_",
+        "-D_XOPEN_SOURCE=600",
+        "-std=c99"
+      ],
+      "pthread_stack_min_header": "/usr/aarch64-linux-gnu/include/bits/pthread_stack_min.h",
+      "pthread_stack_min_header_sha256": "6f9e3fe35ad8c096a032cce93ae485085ab47d9ca784c6e3d8ca8c422c8c60ac",
+      "pthread_stack_min": 131072,
+      "page_bytes": 4096,
+      "page_note": "the manuscript states the 4 KiB-page condition with the figure"
+    },
+    "configured_from": "results/e54_reference_budget/budgets.json models.*.R_noncontract_AI_terms (task_stack_base_bytes + task_stack_kernel_bytes)",
+    "build_records": {
+      "b2_resnet": "results/e55b_copy_path/trees/e55b_b2_resnet_copy/build_info.json",
+      "b3_deepae": "results/e55b_copy_path/trees/e55b_b3_deepae_copy/build_info.json",
+      "smartcam": "results/e55b_copy_path/trees/e55b_smartcam_copy/build_info.json",
+      "wgan": "results/e55b_copy_path/trees/e55b_wgan_copy/build_info.json"
+    },
+    "rows": [
+      {
+        "model": "b2_resnet",
+        "configured_bytes": 263376,
+        "startup_script_stack_bytes": 263376,
+        "configured_matches_build": true,
+        "pthread_stacksize_bytes": 397312,
+        "addition_bytes": 133936
+      },
+      {
+        "model": "b3_deepae",
+        "configured_bytes": 262160,
+        "startup_script_stack_bytes": 262160,
+        "configured_matches_build": true,
+        "pthread_stacksize_bytes": 397312,
+        "addition_bytes": 135152
+      },
+      {
+        "model": "smartcam",
+        "configured_bytes": 264063,
+        "startup_script_stack_bytes": 264063,
+        "configured_matches_build": true,
+        "pthread_stacksize_bytes": 397312,
+        "addition_bytes": 133249
+      },
+      {
+        "model": "wgan",
+        "configured_bytes": 263024,
+        "startup_script_stack_bytes": 263024,
+        "configured_matches_build": true,
+        "pthread_stacksize_bytes": 397312,
+        "addition_bytes": 134288
+      }
+    ],
+    "max_addition": {
+      "model": "b3_deepae",
+      "bytes": 135152
+    }
   }
 }

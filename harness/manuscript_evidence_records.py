@@ -128,7 +128,9 @@ REVIEW_CONFIRMATIONS = [
         "manuscript_uses": [
             "revision I retains the RAM margins used: 50% at preliminary design review, 30% at ship/flight",
             "revision I retains the margin definition, (allocated - used) / allocated",
-            "revision I retains the statement that the table values are not uniform hard limits",
+            "revision I retains the qualification cited from revision H that the values are not hard limits "
+            "(manuscript v40: 'and that qualification'; the review's words: the table values are not uniform "
+            "hard limits)",
         ],
         "not_confirmed_here": "the phase methods of Rule 3.07 and the RAM row's bulk-storage exclusion are "
                               "still cited from revision H only",
@@ -453,6 +455,69 @@ def reference_profiles_decimal_reading():
     }
 
 
+# v0.75.4 -- the manuscript (Sec. V.E) bounds the operating-system layer's addition to a configured task stack
+# by 135,152 B with 4 KiB pages. OSAL's POSIX OS_TaskCreate adds OS_IMPL_STACK_EXTRA -- PTHREAD_STACK_MIN when the
+# platform defines it -- and rounds up to the page size. The AArch64 build compiles that file with
+# -D_XOPEN_SOURCE=600 -std=c99 (no _GNU_SOURCE), so PTHREAD_STACK_MIN is the cross toolchain header's constant,
+# not glibc's dynamic sysconf form. These are recorded with where they were read (the cFS checkout and the cross
+# toolchain are not in the repository); the guard re-reads them when this container has them, and the
+# arithmetic below runs from repository files only, so the record is the same everywhere.
+OSAL_TASK_STACK = {
+    "source": "osal/src/os/posix/src/os-impl-tasks.c",
+    "osal_commit": "8111e4a5cc0bef109540ef648d00924032882452",
+    "source_sha256": "76497fefbb4443a30ba83b1259454befd78861f5d7c94c9337caf114107089d2",
+    "lines": {"58": "#ifdef PTHREAD_STACK_MIN",
+              "59": "#define OS_IMPL_STACK_EXTRA PTHREAD_STACK_MIN",
+              "501": "stacksz += OS_IMPL_STACK_EXTRA;",
+              "503": "stacksz += POSIX_GlobalVars.PageSize - 1;",
+              "504": "stacksz -= stacksz % POSIX_GlobalVars.PageSize;"},
+    "aarch64_compile_flags": ["-DSIMULATION=aarch64-linux-gnu", "-D_LINUX_OS_", "-D_POSIX_OS_",
+                              "-D_XOPEN_SOURCE=600", "-std=c99"],
+    "pthread_stack_min_header": "/usr/aarch64-linux-gnu/include/bits/pthread_stack_min.h",
+    "pthread_stack_min_header_sha256": "6f9e3fe35ad8c096a032cce93ae485085ab47d9ca784c6e3d8ca8c422c8c60ac",
+    "pthread_stack_min": 131072,
+    "page_bytes": 4096,
+    "page_note": "the manuscript states the 4 KiB-page condition with the figure",
+}
+STACK_BUILD_RECORDS = {
+    "b2_resnet": "results/e55b_copy_path/trees/e55b_b2_resnet_copy/build_info.json",
+    "b3_deepae": "results/e55b_copy_path/trees/e55b_b3_deepae_copy/build_info.json",
+    "smartcam": "results/e55b_copy_path/trees/e55b_smartcam_copy/build_info.json",
+    "wgan": "results/e55b_copy_path/trees/e55b_wgan_copy/build_info.json",
+}
+
+
+def os_task_stack_addition():
+    """Configured task stack per model (base allowance + dispatch requirement, the R_x terms of budgets.json),
+    checked against the startup-script stack each evaluation build recorded, then OSAL's addition: plus
+    PTHREAD_STACK_MIN, rounded up to the page. The manuscript cites the largest addition beyond R_x."""
+    b = json.load(open(os.path.join(REPO, BUDGETS)))
+    rows = []
+    for m in sorted(b["models"]):
+        t = b["models"][m]["R_noncontract_AI_terms"]
+        configured = t["task_stack_base_bytes"] + t["task_stack_kernel_bytes"]
+        built = json.load(open(os.path.join(REPO, STACK_BUILD_RECORDS[m])))["task_stack"]
+        osal = configured + OSAL_TASK_STACK["pthread_stack_min"]
+        osal += OSAL_TASK_STACK["page_bytes"] - 1
+        osal -= osal % OSAL_TASK_STACK["page_bytes"]
+        rows.append({"model": m, "configured_bytes": configured,
+                     "startup_script_stack_bytes": built["startup_script_stack_bytes"],
+                     "configured_matches_build": configured == built["startup_script_stack_bytes"],
+                     "pthread_stacksize_bytes": osal, "addition_bytes": osal - configured})
+    top = max(rows, key=lambda r: r["addition_bytes"])
+    return {
+        "claim": "by its source code, the operating-system layer adds its minimum thread stack to the configured "
+                 "task-stack size and rounds up to a page; with 4 KiB pages the addition beyond R_x is at most "
+                 "135,152 B",
+        "osal": OSAL_TASK_STACK,
+        "configured_from": BUDGETS + " models.*.R_noncontract_AI_terms (task_stack_base_bytes + "
+                                     "task_stack_kernel_bytes)",
+        "build_records": STACK_BUILD_RECORDS,
+        "rows": rows,
+        "max_addition": {"model": top["model"], "bytes": top["addition_bytes"]},
+    }
+
+
 SPEC_BY_MODEL = {"b2_resnet": "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
                  "b3_deepae": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
                  "smartcam": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
@@ -519,6 +584,7 @@ def derive():
         "earlier_build_copy_arm": earlier_build_copy_arm(),
         "cumulative_allocation_identity": cumulative_allocation_identity(),
         "reference_profiles_decimal_reading": reference_profiles_decimal_reading(),
+        "os_task_stack_addition": os_task_stack_addition(),
     }
 
 
