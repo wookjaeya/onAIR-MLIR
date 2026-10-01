@@ -1260,5 +1260,154 @@
         "call_reports_matching": 0
       }
     ]
+  },
+  "reference_profiles_decimal_reading": {
+    "claim": "the reference profiles read the published 4 GB and 1 GB as 4 GiB and 1 GiB, a scenario assumption; read as decimal bytes instead, no profile verdict changes",
+    "source": "results/e54_reference_budget/budgets.json",
+    "binary_capacity_bytes": {
+      "PA": 4294967296,
+      "PB": 1073741824
+    },
+    "decimal_capacity_bytes": {
+      "PA": 4000000000,
+      "PB": 1000000000
+    },
+    "cells": 16,
+    "archived_budgets_reproduced": 16,
+    "verdicts_unchanged": 16,
+    "smallest_decimal_headroom": {
+      "cell": "PB_pdr50__wgan",
+      "bytes": 124921227
+    },
+    "rows": [
+      {
+        "cell": "PA_pdr50__b2_resnet",
+        "budget_binary": 1917443102,
+        "budget_decimal": 1769959454,
+        "headroom_decimal": 1769340598,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PA_pdr50__b3_deepae",
+        "budget_binary": 1916708942,
+        "budget_decimal": 1769225294,
+        "headroom_decimal": 1768155662,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PA_pdr50__smartcam",
+        "budget_binary": 1907615220,
+        "budget_decimal": 1760131572,
+        "headroom_decimal": 1741908776,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PA_pdr50__wgan",
+        "budget_binary": 1908071307,
+        "budget_decimal": 1760587659,
+        "headroom_decimal": 1624921227,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PA_ship30__b2_resnet",
+        "budget_binary": 2776436561,
+        "budget_decimal": 2569959454,
+        "headroom_decimal": 2569340598,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PA_ship30__b3_deepae",
+        "budget_binary": 2775702401,
+        "budget_decimal": 2569225294,
+        "headroom_decimal": 2568155662,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PA_ship30__smartcam",
+        "budget_binary": 2766608679,
+        "budget_decimal": 2560131572,
+        "headroom_decimal": 2541908776,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PA_ship30__wgan",
+        "budget_binary": 2767064766,
+        "budget_decimal": 2560587659,
+        "headroom_decimal": 2424921227,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PB_pdr50__b2_resnet",
+        "budget_binary": 306830366,
+        "budget_decimal": 269959454,
+        "headroom_decimal": 269340598,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PB_pdr50__b3_deepae",
+        "budget_binary": 306096206,
+        "budget_decimal": 269225294,
+        "headroom_decimal": 268155662,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PB_pdr50__smartcam",
+        "budget_binary": 297002484,
+        "budget_decimal": 260131572,
+        "headroom_decimal": 241908776,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PB_pdr50__wgan",
+        "budget_binary": 297458571,
+        "budget_decimal": 260587659,
+        "headroom_decimal": 124921227,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PB_ship30__b2_resnet",
+        "budget_binary": 521578730,
+        "budget_decimal": 469959454,
+        "headroom_decimal": 469340598,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PB_ship30__b3_deepae",
+        "budget_binary": 520844570,
+        "budget_decimal": 469225294,
+        "headroom_decimal": 468155662,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PB_ship30__smartcam",
+        "budget_binary": 511750848,
+        "budget_decimal": 460131572,
+        "headroom_decimal": 441908776,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      },
+      {
+        "cell": "PB_ship30__wgan",
+        "budget_binary": 512206935,
+        "budget_decimal": 460587659,
+        "headroom_decimal": 324921227,
+        "verdict_binary": "ADMIT",
+        "verdict_decimal": "ADMIT"
+      }
+    ]
   }
 }

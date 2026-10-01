@@ -9930,6 +9930,18 @@ def d113_manuscript_evidence_records_cases(tmp):
                           t["cells"], t["init_identity"], t["call_reports_matching"], t["call_reports"],
                           t["call_reports_exact_integer"], t["max_slack_bytes"])))
 
+    # d113/12 (v0.75.3) -- the reference profiles read the published 4 GB / 1 GB as GiB; the record re-derives
+    # every archived profile budget from its terms and shows the decimal reading changes no verdict
+    dr = live["reference_profiles_decimal_reading"]
+    ok12 = (committed.get("reference_profiles_decimal_reading") == dr and dr["cells"] == 16
+            and dr["archived_budgets_reproduced"] == 16 and dr["verdicts_unchanged"] == 16
+            and dr["binary_capacity_bytes"] == {"PA": 4 * 2**30, "PB": 2**30}
+            and dr["smallest_decimal_headroom"] == {"cell": "PB_pdr50__wgan", "bytes": 124921227})
+    out.append(Result("d113/12 reference profiles: GiB reading reproduces budgets, decimal reading changes no verdict",
+                      ok12, "reproduced=%s unchanged=%s/%s min_decimal_headroom=%s" % (
+                          dr["archived_budgets_reproduced"], dr["verdicts_unchanged"], dr["cells"],
+                          dr["smallest_decimal_headroom"])))
+
     # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
     r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)
     tracked = {l.split("\t", 1)[1]: l.split()[0] for l in r.stdout.splitlines() if "\t" in l}

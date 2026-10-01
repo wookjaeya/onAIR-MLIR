@@ -34,6 +34,7 @@ Usage: python3 harness/manuscript_evidence_records.py [--check]
 import glob
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -414,6 +415,44 @@ def cumulative_allocation_identity():
     }
 
 
+DECIMAL_CAPACITY_BYTES = {"PA": 4 * 10**9, "PB": 10**9}  # the published "4 GB" and "1 GB" read as decimal
+
+
+def reference_profiles_decimal_reading():
+    """The reference profiles take the published 4 GB and 1 GB as 4 GiB and 1 GiB (budgets.json
+    R_physical_bytes). Re-derive every profile budget from its own terms, confirm it reproduces the archived
+    figure, then repeat with the published capacity read as decimal bytes and compare the verdicts."""
+    b = json.load(open(os.path.join(REPO, BUDGETS)))
+    rows, reproduced, unchanged = [], 0, 0
+    for c in b["cells"]:
+        prof, mod = b["profiles"][c["budget_profile_id"]], b["models"][c["model"]]
+        rest = (prof["R_OS_cFS_bytes"] + prof["R_other_apps_bytes"] + prof["R_reserved_bytes"]
+                + mod["R_noncontract_AI_bytes"])
+        mu = prof["margin_fraction"]
+        b_bin = math.floor(prof["R_physical_bytes"] * (1 - mu)) - rest
+        b_dec = math.floor(DECIMAL_CAPACITY_BYTES[prof["platform"]] * (1 - mu)) - rest
+        u = c["U_bounded_bytes"]
+        v_bin = "ADMIT" if u <= b_bin else "NOT_ADMITTED"
+        v_dec = "ADMIT" if u <= b_dec else "NOT_ADMITTED"
+        reproduced += b_bin == c["B_contract_bytes"]
+        unchanged += v_bin == v_dec == c["predicted_verdict"]
+        rows.append({"cell": c["cell_id"], "budget_binary": b_bin, "budget_decimal": b_dec,
+                     "headroom_decimal": b_dec - u, "verdict_binary": v_bin, "verdict_decimal": v_dec})
+    low = min(rows, key=lambda r: r["headroom_decimal"])
+    return {
+        "claim": "the reference profiles read the published 4 GB and 1 GB as 4 GiB and 1 GiB, a scenario "
+                 "assumption; read as decimal bytes instead, no profile verdict changes",
+        "source": BUDGETS,
+        "binary_capacity_bytes": {k: v["r_physical_bytes"] for k, v in b["platforms"].items()},
+        "decimal_capacity_bytes": DECIMAL_CAPACITY_BYTES,
+        "cells": len(rows),
+        "archived_budgets_reproduced": reproduced,
+        "verdicts_unchanged": unchanged,
+        "smallest_decimal_headroom": {"cell": low["cell"], "bytes": low["headroom_decimal"]},
+        "rows": rows,
+    }
+
+
 SPEC_BY_MODEL = {"b2_resnet": "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
                  "b3_deepae": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
                  "smartcam": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
@@ -479,6 +518,7 @@ def derive():
         "resnet_document_and_console": resnet_document_and_console(),
         "earlier_build_copy_arm": earlier_build_copy_arm(),
         "cumulative_allocation_identity": cumulative_allocation_identity(),
+        "reference_profiles_decimal_reading": reference_profiles_decimal_reading(),
     }
 
 
