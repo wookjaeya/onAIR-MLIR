@@ -11,7 +11,7 @@ D113 기록 확장. 근거 `docs/EVIDENCE_v0.75.4_D113_stack.md`. **새 실행 0
   - OSAL `os-impl-tasks.c`(58–59·501·503–504행)가 `PTHREAD_STACK_MIN`을 더하고 페이지로 올림한다.
   - AArch64 빌드는 그 파일을 `_GNU_SOURCE` 없이 컴파일하므로, 이 값은 교차 툴체인 헤더의 상수 131,072다.
   - 설정 스택은 네 평가 빌드의 시작 스크립트 스택과 4/4 일치한다. 최댓값은 DeepAE 135,152 B다.
-- GSFC 개정판 I 기록의 사용처 문구를 원고 v40(*"and that qualification"* — H의 *"not hard limits"* 단서를 가리킴)에 맞췄다. 검토자의 표현도 함께 적었다.
+- GSFC 개정판 I 기록의 사용처 문구를 원고 v40에 맞췄다. 원고는 H의 단서를 *"the not-hard-limits qualification"*으로 받아, H와 I를 같은 말로 적는다. 검토자의 표현(*"not uniform hard limits"*)도 함께 적었다.
 - 가드 `d113/13`·`/13b`(`/13b`는 cFS 체크아웃과 교차 툴체인이 있을 때만 돈다).
   - 되돌림: 최댓값을 변조하면 `d113/1`·`/13`이 FAIL한다. 기록한 소스 한 줄을 변조하면 `d113/1`·`/13`·`/13b`가 FAIL한다.
 - 이 컨테이너 **1027/1027 + 2 SKIP → 1029/1029 + 2 SKIP**.

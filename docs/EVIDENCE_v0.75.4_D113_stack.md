@@ -62,3 +62,11 @@
 - 게스트의 페이지 크기를 직접 기록한 원자료는 없다. 커널은 Ubuntu `6.8.0-138-generic`(E64 `guest_environment.json`)으로 4 KiB 페이지 구성이지만,
   원고는 이 값을 *"with 4 KiB pages"*라는 **조건**으로 적는다.
 - GSFC 개정판 I의 원문 표현은 이 환경에서 확인하지 못했다(호스트 000). 원고는 검토자가 확인한 범위, 곧 H의 단서가 유지된다는 것만 쓴다.
+
+## 5. 정오표 (같은 버전, 원고 v40 확정 후)
+
+- 위 경위 2와 §2는 원고 v40의 개정판 I 문구를 *"and that qualification"*이라 적었다. 원고 v40의 두 검증 가운데 언어 관점이 그 표현의 범위를 지적했다.
+  앞 절의 *"levels at which a shortfall is taken up with the rule's owner"*까지 받는 것으로 읽힐 수 있는데, 개정판 I에서 확인된 것은
+  *"not hard limits"* 단서뿐이다. 근거 관점도 같은 범위를 지적했다.
+- 그래서 원고 v40은 **"the not-hard-limits qualification"**으로 확정됐다. 기록의 사용처 문구(`manuscript v40: '...'`)도 이 문구로 바꿨다.
+- 바뀌는 것은 원고 문구를 가리키는 표현뿐이다. 기록이 담는 확인 범위(I가 H의 *"not hard limits"* 단서를 유지한다는 검토자 확인)는 그대로다.

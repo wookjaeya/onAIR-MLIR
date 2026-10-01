@@ -129,8 +129,8 @@ REVIEW_CONFIRMATIONS = [
             "revision I retains the RAM margins used: 50% at preliminary design review, 30% at ship/flight",
             "revision I retains the margin definition, (allocated - used) / allocated",
             "revision I retains the qualification cited from revision H that the values are not hard limits "
-            "(manuscript v40: 'and that qualification'; the review's words: the table values are not uniform "
-            "hard limits)",
+            "(manuscript v40: 'the not-hard-limits qualification'; the review's words: the table values "
+            "are not uniform hard limits)",
         ],
         "not_confirmed_here": "the phase methods of Rule 3.07 and the RAM row's bulk-storage exclusion are "
                               "still cited from revision H only",

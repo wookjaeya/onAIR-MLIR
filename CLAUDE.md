@@ -1624,7 +1624,7 @@ AArch64 게스트 셀 6개(개발용 모델 4종)가 전부 피크 = $B_u$(copy 
 `records.json`의 `os_task_stack_addition`이 이제 이 값을 다시 유도한다. OSAL `os-impl-tasks.c`(58–59·501·503–504행)가 `PTHREAD_STACK_MIN`을 더하고
 페이지 단위로 올림하며, AArch64 빌드는 `_GNU_SOURCE` 없이 컴파일하므로 그 값은 교차 툴체인 헤더의 상수 131,072다. 설정 스택은 네 평가 빌드의
 시작 스크립트 스택과 4/4 일치하고, 최댓값은 DeepAE 135,152 B다.
-(2) GSFC 개정판 I 기록의 사용처 문구를 원고 v40(*"and that qualification"*, H의 *"not hard limits"*를 가리킴)에 맞췄다.
+(2) GSFC 개정판 I 기록의 사용처 문구를 원고 v40(*"the not-hard-limits qualification"* — H와 I를 같은 말로 적는다)에 맞췄다.
 가드 `d113/13`·`/13b`(`/13b`는 cFS 체크아웃과 교차 툴체인이 있을 때만 돈다). 되돌림 두 가지(최댓값 변조, 기록한 소스 한 줄 변조)는 각각 실측에서 FAIL한다.
 이 컨테이너 **1027/1027 + 2 SKIP → 1029/1029 + 2 SKIP**. **새 실행 0, 평가 수치·판정 불변.**
 (이 항목의 CI 실측은 후속 커밋이 적는다 — v0.51.1 D85의 맨 위 항목 면제.)
