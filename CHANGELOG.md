@@ -15,6 +15,9 @@ D116 가드 수정(CI가 잡음). 근거 `docs/EVIDENCE_v0.76_E69.md` §5. **새
   - `full`은 v0.75.4(run 442) 대비 PASS +5 · SKIP +0이라 `e69/1`~`/5`가 모두 나타난다.
   - 축소 두 레그는 PASS +4 · FAIL +1 · SKIP +0이다.
 - 이 컨테이너 **1034/1034 + 2 SKIP**(변화 없음).
+- **CI 실측**(커밋 `a44e087`, run 448, 3레그 success): `full` **1025/1025 + 9 SKIP** · `without-iree` **823/823 + 54 SKIP** · `stdlib-only` **823/823 + 54 SKIP**.
+  - v0.76(run 446) 대비 `full`은 변화가 없다.
+  - 축소 두 레그는 PASS +1 · FAIL −1 · SKIP +0이다. D116으로 `e69/1`이 FAIL에서 PASS로 돌아왔다(검사 수 변화 없음).
 
 ## [v0.76] - 2026-10-02
 
