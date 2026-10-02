@@ -10121,7 +10121,20 @@ def e69_onair_final_documents_cases(tmp):
         subprocess.run([sys.executable, os.path.join(HERE, "e69_onair_final_documents.py"), "summary",
                         "--out", live_path], cwd=repo, check=True, capture_output=True, text=True)
         live = load(live_path)
-        same, detail = live == committed, "verdict=%s" % live.get("verdict")
+        # D116: the flight-application comparison (supplementary, not a criterion) needs numpy; the reduced CI legs
+        # have none and the generator then records it as unavailable. Compare everything else, and say so.
+        try:
+            import numpy  # noqa: F401,PLC0415
+            have_np = True
+        except ImportError:
+            have_np = False
+        a_, b_ = copy.deepcopy(live), copy.deepcopy(committed)
+        if not have_np:
+            for x in (a_, b_):
+                (x.get("supplementary") or {}).pop("vs_flight_application", None)
+        same = a_ == b_
+        detail = "verdict=%s%s" % (live.get("verdict"),
+                                   "" if have_np else " (numpy absent: vs_flight_application not compared)")
     except Exception as e:                                          # noqa: BLE001
         live, same, detail = None, False, "crash: %s" % e
     out.append(Result("e69/1 summary re-derived from the raw guest cells equals the committed one", same, detail))
