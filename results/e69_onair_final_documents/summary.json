@@ -1,0 +1,506 @@
+{
+ "experiment": "E69",
+ "plan": "docs/plans/E69_onair_readback_final_documents.md",
+ "generated_by": "harness/e69_onair_final_documents.py summary",
+ "target": "AArch64 QEMU system guest; iree-base-runtime 3.11.0 aarch64 wheel (as E57/E62/E66)",
+ "criteria": {
+  "Q0_final_documents_only": {
+   "cells": {
+    "e69_b2_resnet_Bu_ctl": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b3_deepae_Bu_ctl": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_smartcam_Bu_ctl": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_wgan_Bu_ctl": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b2_resnet_Bu_default": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b3_deepae_Bu_long_ctl": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b3_deepae_Bu_long_fix": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b2_resnet_Bu_enf_ctl": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b2_resnet_Bu_enf_fix": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b3_deepae_Bu_enf_ctl": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b3_deepae_Bu_enf_fix": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_smartcam_Bu_enf_ctl": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_smartcam_Bu_enf_fix": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b2_resnet_cond_true": {
+     "document_acceptance": null,
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    },
+    "e69_b2_resnet_cond_false": {
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "waiver_requested": null,
+     "onair_core_unmodified": true
+    }
+   },
+   "plugin_sha256_guest": {
+    "plugins/compiled_learner/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "plugins/compiled_learner/artifact_binding.py": "f5a0a859d14d6db628fff244c6a08c49c3a087582d45f21778dc05a5837639c4",
+    "plugins/compiled_learner/compiled_learner_plugin.py": "e2d5c1a4ea309e8c1ce0731e87b6f9f9e36af88f33e85261149e02892ade052a",
+    "plugins/compiled_learner/readback.py": "6b3aba68d923039eec0da3870044ffa38e9bce9680b27f17ed7e4f72a5f1537a"
+   },
+   "plugin_sha256_e66": {
+    "plugins/compiled_learner/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "plugins/compiled_learner/artifact_binding.py": "f5a0a859d14d6db628fff244c6a08c49c3a087582d45f21778dc05a5837639c4",
+    "plugins/compiled_learner/compiled_learner_plugin.py": "e2d5c1a4ea309e8c1ce0731e87b6f9f9e36af88f33e85261149e02892ade052a",
+    "plugins/compiled_learner/readback.py": "6b3aba68d923039eec0da3870044ffa38e9bce9680b27f17ed7e4f72a5f1537a"
+   },
+   "plugin_files_as_e66": true,
+   "holds": true
+  },
+  "Q1_first_readback_retains": {
+   "cells": {
+    "e69_b2_resnet_Bu_ctl": {
+     "inferences": 50,
+     "post_append_live": 0,
+     "admitted_budget": 618856,
+     "live_after_call_k_eq_kO": true,
+     "peak_after_call_n_eq_P_plus_n_minus_1_O": true,
+     "first_call_over_admitted_budget": null,
+     "peak_first": 309416,
+     "peak_last": 311376,
+     "readback": "asarray",
+     "all_within_budget": true
+    },
+    "e69_b3_deepae_Bu_ctl": {
+     "inferences": 100,
+     "post_append_live": 0,
+     "admitted_budget": 1069632,
+     "live_after_call_k_eq_kO": true,
+     "peak_after_call_n_eq_P_plus_n_minus_1_O": true,
+     "first_call_over_admitted_budget": null,
+     "peak_first": 6208,
+     "peak_last": 259648,
+     "readback": "asarray",
+     "all_within_budget": true
+    },
+    "e69_smartcam_Bu_ctl": {
+     "inferences": 50,
+     "post_append_live": 0,
+     "admitted_budget": 18222796,
+     "live_after_call_k_eq_kO": true,
+     "peak_after_call_n_eq_P_plus_n_minus_1_O": true,
+     "first_call_over_admitted_budget": null,
+     "peak_first": 9382092,
+     "peak_last": 9382680,
+     "readback": "asarray",
+     "all_within_budget": true
+    },
+    "e69_wgan_Bu_ctl": {
+     "inferences": 3,
+     "post_append_live": 0,
+     "admitted_budget": 135666432,
+     "live_after_call_k_eq_kO": true,
+     "peak_after_call_n_eq_P_plus_n_minus_1_O": true,
+     "first_call_over_admitted_budget": null,
+     "peak_first": 131382784,
+     "peak_last": 132587008,
+     "readback": "asarray",
+     "all_within_budget": true
+    },
+    "e69_b3_deepae_Bu_long_ctl": {
+     "inferences": 450,
+     "post_append_live": 0,
+     "admitted_budget": 1069632,
+     "live_after_call_k_eq_kO": true,
+     "peak_after_call_n_eq_P_plus_n_minus_1_O": true,
+     "first_call_over_admitted_budget": 417,
+     "peak_first": 6208,
+     "peak_last": 1155648,
+     "readback": "asarray"
+    }
+   },
+   "holds": true
+  },
+  "Q2_first_over_budget_call": {
+   "predicted": 417,
+   "observed": 417,
+   "holds": true
+  },
+  "Q3_second_readback_releases": {
+   "cells": {
+    "e69_b3_deepae_Bu_long_fix": {
+     "inferences": 450,
+     "readback": "buffer_protocol",
+     "all_peak_eq_P_live_0": true,
+     "max_peak": 6208,
+     "source": "run here"
+    },
+    "e66_b2_resnet_Bu": {
+     "inferences": 50,
+     "readback": "buffer_protocol",
+     "all_peak_eq_P_live_0": true,
+     "max_peak": 309416,
+     "source": "cited: E66 final-document cell"
+    },
+    "e66_b3_deepae_Bu": {
+     "inferences": 100,
+     "readback": "buffer_protocol",
+     "all_peak_eq_P_live_0": true,
+     "max_peak": 6208,
+     "source": "cited: E66 final-document cell"
+    },
+    "e66_smartcam_Bu": {
+     "inferences": 50,
+     "readback": "buffer_protocol",
+     "all_peak_eq_P_live_0": true,
+     "max_peak": 9382092,
+     "source": "cited: E66 final-document cell"
+    },
+    "e66_wgan_Bu": {
+     "inferences": 3,
+     "readback": "buffer_protocol",
+     "all_peak_eq_P_live_0": true,
+     "max_peak": 131382784,
+     "source": "cited: E66 final-document cell"
+    }
+   },
+   "holds": true
+  },
+  "Q4_outputs_identical_across_readbacks": {
+   "pairs": {
+    "e69_b2_resnet_Bu_ctl vs e66_b2_resnet_Bu": {
+     "compared": 50,
+     "bit_identical": 50
+    },
+    "e69_b3_deepae_Bu_ctl vs e66_b3_deepae_Bu": {
+     "compared": 100,
+     "bit_identical": 100
+    },
+    "e69_smartcam_Bu_ctl vs e66_smartcam_Bu": {
+     "compared": 50,
+     "bit_identical": 50
+    },
+    "e69_wgan_Bu_ctl vs e66_wgan_Bu": {
+     "compared": 3,
+     "bit_identical": 3
+    },
+    "e69_b3_deepae_Bu_long_ctl vs e69_b3_deepae_Bu_long_fix": {
+     "compared": 450,
+     "bit_identical": 450
+    }
+   },
+   "holds": true
+  },
+  "Q5_per_call_check": {
+   "cells": {
+    "e69_b2_resnet_Bu_enf_ctl": {
+     "inferences": 1,
+     "violations": 1,
+     "violation_live": 40,
+     "violation_post_append": 0,
+     "max_peak": 309416,
+     "holds": true
+    },
+    "e69_b2_resnet_Bu_enf_fix": {
+     "inferences": 50,
+     "violations": 0,
+     "all_peak_eq_P_live_0": true,
+     "holds": true
+    },
+    "e69_b3_deepae_Bu_enf_ctl": {
+     "inferences": 1,
+     "violations": 1,
+     "violation_live": 2560,
+     "violation_post_append": 0,
+     "max_peak": 6208,
+     "holds": true
+    },
+    "e69_b3_deepae_Bu_enf_fix": {
+     "inferences": 100,
+     "violations": 0,
+     "all_peak_eq_P_live_0": true,
+     "holds": true
+    },
+    "e69_smartcam_Bu_enf_ctl": {
+     "inferences": 1,
+     "violations": 1,
+     "violation_live": 12,
+     "violation_post_append": 0,
+     "max_peak": 9382092,
+     "holds": true
+    },
+    "e69_smartcam_Bu_enf_fix": {
+     "inferences": 50,
+     "violations": 0,
+     "all_peak_eq_P_live_0": true,
+     "holds": true
+    }
+   },
+   "holds": true
+  },
+  "Q6_default_is_buffer_protocol": {
+   "present": true,
+   "init_output_readback": "buffer_protocol",
+   "inferences": 50,
+   "all_peak_eq_P_live_0": true,
+   "holds": true
+  },
+  "Q7_conditional_option": {
+   "present": true,
+   "true": {
+    "active": false,
+    "inactive_reason": "ConfigurationError: allow_conditional_map=true: the conditional policy is not available on this path, which does not verify the map-arm premise before creating the runtime",
+    "runtime_created": false,
+    "inferences": 0,
+    "admission": null,
+    "binding": null,
+    "document_acceptance": null
+   },
+   "false": {
+    "active": true,
+    "verdict": "ADMIT",
+    "inferences": 50
+   },
+   "holds": true
+  },
+  "Q8_mechanism_probe": {
+   "present": true,
+   "asarray_refcount": {
+    "before": 2,
+    "while_array_or_view_alive": 3,
+    "after_array_or_view_gone": 3,
+    "delta_after": 1
+   },
+   "asarray_live_after_all_dropped": 2560,
+   "bufproto_refcount": {
+    "before": 2,
+    "while_array_or_view_alive": 3,
+    "after_array_or_view_gone": 2,
+    "delta_after": 0
+   },
+   "bufproto_live_after_all_dropped": 0,
+   "same_output": true,
+   "holds": true
+  }
+ },
+ "falsifiers": {
+  "F1_waiver_used": false,
+  "F2_retention_differs": false,
+  "F3_fix_exceeds_P": false,
+  "F4_outputs_differ": false,
+  "F5_conditional_true_ran": false
+ },
+ "supplementary": {
+  "vs_earlier_document_cells": {
+   "e69_b2_resnet_Bu_ctl": {
+    "earlier_cell": "e62_b2_resnet_Bu_ctl",
+    "series_equal": true,
+    "outputs_bitidentical": 50,
+    "inferences": 50
+   },
+   "e69_b3_deepae_Bu_ctl": {
+    "earlier_cell": "e62_b3_deepae_Bu_ctl",
+    "series_equal": true,
+    "outputs_bitidentical": 100,
+    "inferences": 100
+   },
+   "e69_smartcam_Bu_ctl": {
+    "earlier_cell": "e62_smartcam_Bu_ctl",
+    "series_equal": true,
+    "outputs_bitidentical": 50,
+    "inferences": 50
+   },
+   "e69_wgan_Bu_ctl": {
+    "earlier_cell": "e62_wgan_Bu_ctl",
+    "series_equal": true,
+    "outputs_bitidentical": 3,
+    "inferences": 3
+   },
+   "e69_b2_resnet_Bu_default": {
+    "earlier_cell": "e62_b2_resnet_Bu_default",
+    "series_equal": true,
+    "outputs_bitidentical": 50,
+    "inferences": 50
+   },
+   "e69_b3_deepae_Bu_long_ctl": {
+    "earlier_cell": "e57_b3_deepae_Bu_long",
+    "series_equal": true,
+    "outputs_bitidentical": 450,
+    "inferences": 450
+   },
+   "e69_b3_deepae_Bu_long_fix": {
+    "earlier_cell": "e62_b3_deepae_Bu_long_fix",
+    "series_equal": true,
+    "outputs_bitidentical": 450,
+    "inferences": 450
+   },
+   "e69_b2_resnet_Bu_enf_ctl": {
+    "earlier_cell": "e62_b2_resnet_Bu_enf_ctl",
+    "series_equal": true,
+    "outputs_bitidentical": 1,
+    "inferences": 1
+   },
+   "e69_b2_resnet_Bu_enf_fix": {
+    "earlier_cell": "e62_b2_resnet_Bu_enf_fix",
+    "series_equal": true,
+    "outputs_bitidentical": 50,
+    "inferences": 50
+   },
+   "e69_b3_deepae_Bu_enf_ctl": {
+    "earlier_cell": "e62_b3_deepae_Bu_enf_ctl",
+    "series_equal": true,
+    "outputs_bitidentical": 1,
+    "inferences": 1
+   },
+   "e69_b3_deepae_Bu_enf_fix": {
+    "earlier_cell": "e62_b3_deepae_Bu_enf_fix",
+    "series_equal": true,
+    "outputs_bitidentical": 100,
+    "inferences": 100
+   },
+   "e69_smartcam_Bu_enf_ctl": {
+    "earlier_cell": "e62_smartcam_Bu_enf_ctl",
+    "series_equal": true,
+    "outputs_bitidentical": 1,
+    "inferences": 1
+   },
+   "e69_smartcam_Bu_enf_fix": {
+    "earlier_cell": "e62_smartcam_Bu_enf_fix",
+    "series_equal": true,
+    "outputs_bitidentical": 50,
+    "inferences": 50
+   }
+  },
+  "vs_flight_application": {
+   "e69_b2_resnet_Bu_ctl": {
+    "reference": "results/e36b_aarch64_models/b2_resnet/e25_outputs.bin",
+    "compared": 50,
+    "bit_identical": 50
+   },
+   "e69_b3_deepae_Bu_ctl": {
+    "reference": "results/e36b_aarch64_models/b3_deepae/e25_outputs.bin",
+    "compared": 100,
+    "bit_identical": 100
+   },
+   "e69_smartcam_Bu_ctl": {
+    "reference": "results/e37_evidence_consolidation/s_cfs_post_d61/e25_outputs.bin",
+    "compared": 50,
+    "bit_identical": 50
+   },
+   "e69_wgan_Bu_ctl": {
+    "reference": "results/e53_wgan_aarch64/cfs/logs/cfs_B.e25_outputs.bin",
+    "compared": 1,
+    "bit_identical": 1
+   },
+   "e69_b3_deepae_Bu_long_ctl": {
+    "reference": "results/e36b_aarch64_models/b3_deepae/e25_outputs.bin",
+    "compared": 450,
+    "bit_identical": 450
+   },
+   "e69_b3_deepae_Bu_long_fix": {
+    "reference": "results/e36b_aarch64_models/b3_deepae/e25_outputs.bin",
+    "compared": 450,
+    "bit_identical": 450
+   }
+  }
+ },
+ "holds": {
+  "Q0_final_documents_only": true,
+  "Q1_first_readback_retains": true,
+  "Q2_first_over_budget_call": true,
+  "Q3_second_readback_releases": true,
+  "Q4_outputs_identical_across_readbacks": true,
+  "Q5_per_call_check": true,
+  "Q6_default_is_buffer_protocol": true,
+  "Q7_conditional_option": true,
+  "Q8_mechanism_probe": true
+ },
+ "verdict": "PASS",
+ "not_claimed": [
+  "an IREE upstream defect confirmed, reported or fixed; other wheels, revisions or drivers",
+  "latency (the guest is FUNCTIONAL_ONLY); process RSS (D78)",
+  "per-call check on WGAN (not run, as E62)"
+ ]
+}

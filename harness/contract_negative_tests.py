@@ -9203,6 +9203,7 @@ def main():
         all_results += d113_manuscript_evidence_records_cases(tmp)
         all_results += e67_native_transient_query_cases(tmp)
         all_results += e68_onair_linkage_cases(tmp)
+        all_results += e69_onair_final_documents_cases(tmp)
         all_results += cited_raw_logs_tracked_cases()
         all_results += artifact_binding_and_corruption_cases(a.root, tmp)
         if not a.skip_regression:
@@ -10102,6 +10103,72 @@ def e68_onair_linkage_cases(tmp):
     return out
 
 
+def e69_onair_final_documents_cases(tmp):
+    """E69 (plan docs/plans/E69_onair_readback_final_documents.md, f2ffe7a): the OnAIR readback cells re-run on the
+    final, re-issued documents with no waiver. Guards re-derive from the raw guest cells (D89), regenerate the
+    deployments from their E62/E65 sources (only the declared changes), recompute the first over-budget call from
+    the document's own figures, and compare the plugin files the guest imported with the repository's."""
+    out = []
+    repo = os.path.dirname(HERE)
+    D = os.path.join(repo, "results", "e69_onair_final_documents")
+    sp = os.path.join(D, "summary.json")
+    if not os.path.exists(sp):
+        return [Result("e69/0 summary present", False, "missing %s" % sp)]
+    import e69_onair_final_documents as _e69
+    committed = load(sp)
+    live_path = os.path.join(tmp, "e69_summary.json")
+    try:
+        subprocess.run([sys.executable, os.path.join(HERE, "e69_onair_final_documents.py"), "summary",
+                        "--out", live_path], cwd=repo, check=True, capture_output=True, text=True)
+        live = load(live_path)
+        same, detail = live == committed, "verdict=%s" % live.get("verdict")
+    except Exception as e:                                          # noqa: BLE001
+        live, same, detail = None, False, "crash: %s" % e
+    out.append(Result("e69/1 summary re-derived from the raw guest cells equals the committed one", same, detail))
+    holds = (live or {}).get("holds") or {}
+    out.append(Result("e69/2 Q0-Q8 all hold (final documents only, retention, call 417, release, outputs, check, "
+                      "default, conditional option, probe)",
+                      (live or {}).get("verdict") == "PASS" and len(holds) == 9 and all(holds.values()),
+                      "holds=%s" % holds))
+    # e69/3 -- the deployments are their sources with only the declared changes; no waiver key anywhere
+    cfg = load(_e69.CONFIG)["deployments"]
+    src = {"e62": load(_e69.E62_CONFIG)["deployments"], "e65": load(_e69.E65_CONFIG)["deployments"]}
+    bad3 = []
+    for dep, (c, sdep, over) in _e69.CELLS.items():
+        d, s = cfg.get(dep), src[c].get(sdep)
+        if d is None or s is None or "allow_unchecked_producer" in d:
+            bad3.append(dep)
+            continue
+        keep = {k: v for k, v in s.items() if not k.startswith("_") and k != "allow_unchecked_producer"}
+        keep["artifact_dir"] = _e69.DOCS % _e69.model_of(dep)
+        keep.update(over)
+        if {k: v for k, v in d.items() if not k.startswith("_")} != keep:
+            bad3.append(dep)
+    out.append(Result("e69/3 every E69 deployment = its E62/E65 source with only artifact_dir, the waiver key and the "
+                      "declared overrides changed", set(cfg) == set(_e69.CELLS) and not bad3, "bad=%s" % bad3))
+    # e69/4 -- the first over-budget call, recomputed from the document's own figures and the raw records
+    doc = load(os.path.join(repo, "results", "e66_plugin_document_rules", "docs", "b3_deepae", "b3_deepae.contract.json"))
+    r = doc["resources"]
+    P_, B_ = r["static_per_call_bytes"], r["bounded_bytes"]
+    O_ = r["static_external_output_bytes"]
+    n_pred = (B_ - P_) // O_ + 2                                   # least n with P + (n-1)O > B_u
+    rec = os.path.join(D, "cells", "e69_b3_deepae_Bu_long_ctl", "plugin_records.jsonl")
+    peaks = [((json.loads(x).get("hal") or {}).get("device_bytes_peak"), json.loads(x).get("n"))
+             for x in open(rec, encoding="utf-8") if x.strip() and json.loads(x).get("event") == "inference"]
+    first = next((n for pk, n in peaks if pk is not None and pk > B_), None)
+    out.append(Result("e69/4 first-readback DeepAE: first call over B_u recomputed from the document (P, O, B_u) and the "
+                      "raw records is 417", first == n_pred == 417 and len(peaks) == 450,
+                      "predicted=%s observed=%s calls=%d" % (n_pred, first, len(peaks))))
+    # e69/5 -- the plugin the guest imported is the repository's plugin
+    env = os.path.join(D, "guest_env.txt")
+    guest = _e69.plugin_hashes(env) or {}
+    here = {os.path.relpath(f, repo): hashlib.sha256(open(f, "rb").read()).hexdigest()
+            for f in sorted(glob.glob(os.path.join(repo, "plugins", "compiled_learner", "*.py")))}
+    out.append(Result("e69/5 plugin files the guest imported equal the repository's", bool(guest) and guest == here,
+                      "files=%d" % len(here)))
+    return out
+
+
 def e65_producer_check_cases(tmp):
     """E65 (plan docs/plans/E65_producer_revision_and_plugin_option.md, 7b67d89).
     M1: the artifact's bytecode version is read and a mismatch withholds the bound and makes the header
@@ -10244,7 +10311,7 @@ def e65_producer_check_cases(tmp):
                       "MATCH, then the runtime refuses the module at append (16.0 vs 17.0), no inference", ok,
                       msg[:120]))
 
-    # e65/8 -- M2 pure check, and no repository deployment is refused by it except the one cell built to be
+    # e65/8 -- M2 pure check, and no repository deployment is refused by it except the cells built to be (E65; E69 re-run)
     import sys as _sys
     _sys.path.insert(0, os.path.join(repo, "plugins", "compiled_learner"))
     import artifact_binding as _ab
@@ -10264,10 +10331,11 @@ def e65_producer_check_cases(tmp):
             except _ab.ConfigurationError:
                 refused_cfg.append(name)
     out.append(Result("e65/8 conditional option: absent/false accepted; true and every non-boolean refused; of all "
-                      "repository deployments only the E65 refusal cell is refused",
+                      "repository deployments only the cells built to be refused (E65, and its E69 re-run on the "
+                      "re-issued document) are refused",
                       verdicts == {"absent": False, "false": False, "true": "refused", "'false'": "refused",
                                    "0": "refused", "null": "refused"}
-                      and refused_cfg == ["e65_b2_resnet_conditional_requested"],
+                      and sorted(refused_cfg) == ["e65_b2_resnet_conditional_requested", "e69_b2_resnet_cond_true"],
                       "%s refused=%s" % (verdicts, refused_cfg)))
 
     # e65/9 -- Q3 re-derived from the plugin's own init records
