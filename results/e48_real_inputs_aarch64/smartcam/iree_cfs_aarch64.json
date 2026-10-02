@@ -1,0 +1,340 @@
+{
+ "tool": "harness/e32_cfs_outputs.py",
+ "runner": "native/cfs_app AI_LEARNER in cFS on the AArch64 QEMU guest, IREE C runtime (local-sync, embedded ELF loader)",
+ "mode": "batch",
+ "mode_note": "the app's two modes are never mixed (plan SS3.4): `batch` replays the fixture at initialisation; `message_replay` builds features from Software Bus telemetry bytes and therefore CANNOT be compared to the original oracle -- its inputs are not fixture samples.",
+ "artifact": {
+  "path": "results/e32_smartcam_aarch64/build/smartcam.vmfb",
+  "bytes": 8991281,
+  "sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"
+ },
+ "fixture": {
+  "dir": "../../../tmp/claude-0/-home-user-onAIR-MLIR/c0f54197-5cc6-50c9-87ea-5cca7a8e5915/scratchpad/sc_fx",
+  "total_samples": 19
+ },
+ "results": [
+  {
+   "sample_id": "img_msec_1536095035794_2",
+   "kind": "real_example",
+   "input_sha256": "4d70f04f948123b87c1f34e59f1241ef25dcc81ceb9df7afa90e646f40f919b5",
+   "output": [
+    0.021095309406518936,
+    0.9207271933555603,
+    0.05817752331495285
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1595796409478_1",
+   "kind": "real_example",
+   "input_sha256": "2c04e944bca042612f268c42f524fa5564c0b7ebfd65de7c29ebf37694525122",
+   "output": [
+    0.021100949496030807,
+    0.9544497132301331,
+    0.02444935217499733
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1595796767320_1",
+   "kind": "real_example",
+   "input_sha256": "40a7eafa69b24e6647ba038d0ac7fcf3e8b70380855fdd7a8b52fb57bd53b633",
+   "output": [
+    0.07848203182220459,
+    0.8700109124183655,
+    0.05150710418820381
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1597433874681_2",
+   "kind": "real_example",
+   "input_sha256": "9d4f218b0eaa02f72f7b79feaa3feb0e550b84726088aab6a9a4fa935fcb5ae7",
+   "output": [
+    0.09974293410778046,
+    0.8829022645950317,
+    0.017354849725961685
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "img_msec_1597977418041_2",
+   "kind": "real_example",
+   "input_sha256": "b496bd8eced2ec1bc0d5fe2d5f3f6d55e7c8001dacbae3cbd7dd44a4875d84ed",
+   "output": [
+    0.031212111935019493,
+    0.9508790969848633,
+    0.017908718436956406
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 0.9999998807907104
+  },
+  {
+   "sample_id": "img_msec_1598399412981_2",
+   "kind": "real_example",
+   "input_sha256": "9b42ad7f9b64063fc5350e2a4069919bd13c3c8f7104a4ba4b02079df0396e4f",
+   "output": [
+    0.023927366361021996,
+    0.9445956349372864,
+    0.03147701919078827
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1598399450660_2",
+   "kind": "real_example",
+   "input_sha256": "a479e016abdbde749c4024cf3882e96082c3da9316d17cb27074a0bcd552f56c",
+   "output": [
+    0.026513921096920967,
+    0.9306122064590454,
+    0.04287397861480713
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "img_msec_1604269082071_2",
+   "kind": "real_example",
+   "input_sha256": "d5d4f34d49568ec9f4e8c50bafced474f84e97e559fbd0d022ed1788f10d7cb8",
+   "output": [
+    0.28108394145965576,
+    0.6708335280418396,
+    0.04808249697089195
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "img_msec_1606689546581_2",
+   "kind": "real_example",
+   "input_sha256": "b633128d641182b5c069fd27ce63fe4c0b7b6bd1f1343c8f9c09c2bf2b7b5e03",
+   "output": [
+    0.023004015907645226,
+    0.9530961513519287,
+    0.023899922147393227
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0000001192092896
+  },
+  {
+   "sample_id": "img_msec_1608603868361_2",
+   "kind": "real_example",
+   "input_sha256": "2c2ffbeedb2e021f45fdb488ce407a2e0f50fa908574e6253abaa1715d6a7b4b",
+   "output": [
+    0.06743833422660828,
+    0.8948244452476501,
+    0.037737224251031876
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1608753938601_2",
+   "kind": "real_example",
+   "input_sha256": "83c7bd629fd1f9032533204ffc51f5616d2fc2f8af7d1e4550a3f5157a6183d2",
+   "output": [
+    0.16984644532203674,
+    0.005057779140770435,
+    0.8250958323478699
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1608753991481_2",
+   "kind": "real_example",
+   "input_sha256": "409d4030c5014f9b0a50ca2abbdc4c51bf4d87f6703c78b8ec48b69d2013ba39",
+   "output": [
+    0.12864448130130768,
+    0.014049560762941837,
+    0.8573058843612671
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 0.9999999403953552
+  },
+  {
+   "sample_id": "img_msec_1608754015482_2",
+   "kind": "real_example",
+   "input_sha256": "96cba406ba752e74e71731dd6b2e2976c35adb4f4ce44adb5e946e37c10d632d",
+   "output": [
+    0.0665556937456131,
+    0.01446409709751606,
+    0.9189802408218384
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1608843127532_2",
+   "kind": "real_example",
+   "input_sha256": "2a4e9f4984941fc5e74fa14ab4da0991b338a5ee0381fadfeb7fcc97ea8cf9ac",
+   "output": [
+    0.00517144612967968,
+    0.03019932098686695,
+    0.9646292328834534
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1608843170331_2",
+   "kind": "real_example",
+   "input_sha256": "3a90185bca48152f23d39feff9951ce384bc6038b040c98b0fe72c50838c058d",
+   "output": [
+    0.004232459701597691,
+    0.003302057273685932,
+    0.9924654960632324
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1608888968488_2",
+   "kind": "real_example",
+   "input_sha256": "c9ecf36163ad81d9d5202e5d874ccc6d8e3a9ddd1ae694f494a70de72a5c2888",
+   "output": [
+    0.07664628326892853,
+    0.024595919996500015,
+    0.898757815361023
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1609060095205_2",
+   "kind": "real_example",
+   "input_sha256": "57a323d8cbe4c4a8af5533d499d525ea98fba30a078c4a576e12a6b7f51f0133",
+   "output": [
+    0.07183147221803665,
+    0.8493566513061523,
+    0.0788118839263916
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1609060135935_2",
+   "kind": "real_example",
+   "input_sha256": "ebfb5b1e1442a0ff10ca7893d6fc6033ccc5f9b5550bdd7c20956f56d9afc0a4",
+   "output": [
+    0.0658741220831871,
+    0.9056771993637085,
+    0.028448747470974922
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 1,
+   "sum": 1.0
+  },
+  {
+   "sample_id": "img_msec_1609316713883_2",
+   "kind": "real_example",
+   "input_sha256": "80e9a75f28b1169eb0d0d3f115a1e95bc13e7fa9fb37d5a60a612714e23533a1",
+   "output": [
+    0.002407234627753496,
+    0.006206001620739698,
+    0.9913867115974426
+   ],
+   "output_shape": [
+    1,
+    3
+   ],
+   "output_dtype": "float32",
+   "argmax": 2,
+   "sum": 0.9999999403953552
+  }
+ ]
+}

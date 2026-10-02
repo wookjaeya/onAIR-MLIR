@@ -1,0 +1,567 @@
+{
+ "Q1_parity": {
+  "accepted": [
+   "reissued_b2_resnet",
+   "reissued_b3_deepae",
+   "reissued_smartcam",
+   "reissued_wgan",
+   "archived_waived_b2_resnet",
+   "archived_waived_b3_deepae",
+   "archived_waived_smartcam",
+   "archived_waived_wgan",
+   "variant_no_provenance_no_producer_check"
+  ],
+  "bound_method_sets_equal": true,
+  "disagreements": [],
+  "n": 21,
+  "pass": true
+ },
+ "Q2_budget": {
+  "committed_deployments_checked": 51,
+  "committed_deployments_mismatched": [],
+  "committed_documents_not_as_expected": [],
+  "pass": true
+ },
+ "Q3_reissued_documents": {
+  "cells": {
+   "b2_resnet": {
+    "B_u": {
+     "active": true,
+     "admission_verdict": "ADMIT",
+     "admitted_budget_bytes": 618856,
+     "deployment": "e66_b2_resnet_Bu",
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "hal_after_append": {
+      "available": true,
+      "device_bytes_allocated": 0,
+      "device_bytes_freed": 0,
+      "device_bytes_live": 0,
+      "device_bytes_peak": 0
+     },
+     "inactive_reason": null,
+     "inferences": 50,
+     "onair_core_unmodified": true,
+     "onair_returncode": 0,
+     "peaks": {
+      "all_equal_P": true,
+      "distinct": [
+       309416
+      ],
+      "n": 50
+     },
+     "present": true,
+     "runtime_created": true
+    },
+    "B_u_minus_1": {
+     "active": false,
+     "admission_verdict": "NOT_ADMITTED",
+     "admitted_budget_bytes": null,
+     "deployment": "e66_b2_resnet_Bum1",
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "hal_after_append": null,
+     "inactive_reason": "ContractViolation: admission NOT_ADMITTED -- bounded 618856 > budget 618855 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)",
+     "inferences": 0,
+     "onair_core_unmodified": true,
+     "onair_returncode": 0,
+     "peaks": [],
+     "present": true,
+     "runtime_created": false
+    },
+    "cfs_boundary_verdicts": {
+     "B_u": "ADMIT",
+     "B_u_minus_1": "NOT_ADMITTED",
+     "logs": [
+      "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_deny_Bm1_real.log",
+      "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log"
+     ]
+    },
+    "e62_fix_cell_inferences": 50,
+    "outputs_bit_identical_to_e62_fix_cell_call_by_call": true,
+    "pass": true,
+    "verdicts_agree_with_cfs": true
+   },
+   "b3_deepae": {
+    "B_u": {
+     "active": true,
+     "admission_verdict": "ADMIT",
+     "admitted_budget_bytes": 1069632,
+     "deployment": "e66_b3_deepae_Bu",
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "hal_after_append": {
+      "available": true,
+      "device_bytes_allocated": 0,
+      "device_bytes_freed": 0,
+      "device_bytes_live": 0,
+      "device_bytes_peak": 0
+     },
+     "inactive_reason": null,
+     "inferences": 100,
+     "onair_core_unmodified": true,
+     "onair_returncode": 0,
+     "peaks": {
+      "all_equal_P": true,
+      "distinct": [
+       6208
+      ],
+      "n": 100
+     },
+     "present": true,
+     "runtime_created": true
+    },
+    "B_u_minus_1": {
+     "active": false,
+     "admission_verdict": "NOT_ADMITTED",
+     "admitted_budget_bytes": null,
+     "deployment": "e66_b3_deepae_Bum1",
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "hal_after_append": null,
+     "inactive_reason": "ContractViolation: admission NOT_ADMITTED -- bounded 1069632 > budget 1069631 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)",
+     "inferences": 0,
+     "onair_core_unmodified": true,
+     "onair_returncode": 0,
+     "peaks": [],
+     "present": true,
+     "runtime_created": false
+    },
+    "cfs_boundary_verdicts": {
+     "B_u": "ADMIT",
+     "B_u_minus_1": "NOT_ADMITTED",
+     "logs": [
+      "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_deny_Bm1_real.log",
+      "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log"
+     ]
+    },
+    "e62_fix_cell_inferences": 100,
+    "outputs_bit_identical_to_e62_fix_cell_call_by_call": true,
+    "pass": true,
+    "verdicts_agree_with_cfs": true
+   },
+   "smartcam": {
+    "B_u": {
+     "active": true,
+     "admission_verdict": "ADMIT",
+     "admitted_budget_bytes": 18222796,
+     "deployment": "e66_smartcam_Bu",
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "hal_after_append": {
+      "available": true,
+      "device_bytes_allocated": 0,
+      "device_bytes_freed": 0,
+      "device_bytes_live": 0,
+      "device_bytes_peak": 0
+     },
+     "inactive_reason": null,
+     "inferences": 50,
+     "onair_core_unmodified": true,
+     "onair_returncode": 0,
+     "peaks": {
+      "all_equal_P": true,
+      "distinct": [
+       9382092
+      ],
+      "n": 50
+     },
+     "present": true,
+     "runtime_created": true
+    },
+    "B_u_minus_1": {
+     "active": false,
+     "admission_verdict": "NOT_ADMITTED",
+     "admitted_budget_bytes": null,
+     "deployment": "e66_smartcam_Bum1",
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "hal_after_append": null,
+     "inactive_reason": "ContractViolation: admission NOT_ADMITTED -- bounded 18222796 > budget 18222795 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)",
+     "inferences": 0,
+     "onair_core_unmodified": true,
+     "onair_returncode": 0,
+     "peaks": [],
+     "present": true,
+     "runtime_created": false
+    },
+    "cfs_boundary_verdicts": {
+     "B_u": "ADMIT",
+     "B_u_minus_1": "NOT_ADMITTED",
+     "logs": [
+      "results/e48_real_inputs_aarch64/cfs/logs/smartcam_deny_Bm1_real.log",
+      "results/e48_real_inputs_aarch64/cfs/logs/smartcam_admit_B_real.log"
+     ]
+    },
+    "e62_fix_cell_inferences": 50,
+    "outputs_bit_identical_to_e62_fix_cell_call_by_call": true,
+    "pass": true,
+    "verdicts_agree_with_cfs": true
+   },
+   "wgan": {
+    "B_u": {
+     "active": true,
+     "admission_verdict": "ADMIT",
+     "admitted_budget_bytes": 135666432,
+     "deployment": "e66_wgan_Bu",
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "hal_after_append": {
+      "available": true,
+      "device_bytes_allocated": 0,
+      "device_bytes_freed": 0,
+      "device_bytes_live": 0,
+      "device_bytes_peak": 0
+     },
+     "inactive_reason": null,
+     "inferences": 3,
+     "onair_core_unmodified": true,
+     "onair_returncode": 0,
+     "peaks": {
+      "all_equal_P": true,
+      "distinct": [
+       131382784
+      ],
+      "n": 3
+     },
+     "present": true,
+     "runtime_created": true
+    },
+    "B_u_minus_1": {
+     "active": false,
+     "admission_verdict": "NOT_ADMITTED",
+     "admitted_budget_bytes": null,
+     "deployment": "e66_wgan_Bum1",
+     "document_acceptance": {
+      "verdict": "accepted",
+      "waived": []
+     },
+     "hal_after_append": null,
+     "inactive_reason": "ContractViolation: admission NOT_ADMITTED -- bounded 135666432 > budget 135666431 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)",
+     "inferences": 0,
+     "onair_core_unmodified": true,
+     "onair_returncode": 0,
+     "peaks": [],
+     "present": true,
+     "runtime_created": false
+    },
+    "cfs_boundary_verdicts": {
+     "B_u": "ADMIT",
+     "B_u_minus_1": "NOT_ADMITTED",
+     "logs": [
+      "results/e53_wgan_aarch64/cfs/logs/cfs_Bm1.log",
+      "results/e53_wgan_aarch64/cfs/logs/cfs_B.log"
+     ]
+    },
+    "e62_fix_cell_inferences": 3,
+    "outputs_bit_identical_to_e62_fix_cell_call_by_call": true,
+    "pass": true,
+    "verdicts_agree_with_cfs": true
+   }
+  },
+  "pass": true,
+  "verdict_agreement_with_cfs": "8/8"
+ },
+ "Q4_refusals_and_waiver": {
+  "attribution_control": "Q3 e66_b2_resnet_Bu: same artifact, fixture, budget and configuration; only the document differs",
+  "cells": {
+   "e66_b2_resnet_C1_waived": {
+    "active": true,
+    "admission_verdict": "ADMIT",
+    "admitted_budget_bytes": 618856,
+    "deployment": "e66_b2_resnet_C1_waived",
+    "document_acceptance": {
+     "verdict": "accepted",
+     "waived": [
+      "allow_unchecked_producer"
+     ]
+    },
+    "hal_after_append": {
+     "available": true,
+     "device_bytes_allocated": 0,
+     "device_bytes_freed": 0,
+     "device_bytes_live": 0,
+     "device_bytes_peak": 0
+    },
+    "inactive_reason": null,
+    "inferences": 50,
+    "onair_core_unmodified": true,
+    "onair_returncode": 0,
+    "pass_": true,
+    "peaks": {
+     "distinct": [
+      309416
+     ],
+     "n": 50
+    },
+    "present": true,
+    "runtime_created": true
+   },
+   "e66_b2_resnet_R1_unchecked": {
+    "active": false,
+    "admission_verdict": null,
+    "admitted_budget_bytes": null,
+    "deployment": "e66_b2_resnet_R1_unchecked",
+    "document_acceptance": null,
+    "expected_reason_fragment": "carries no validity.producer_check",
+    "hal_after_append": null,
+    "inactive_reason": "DocumentNotAccepted: the document states a bound but carries no validity.producer_check, so the artifact's bytecode version was never compared with the examined revision (a missing comparison is not read as a match)",
+    "inferences": 0,
+    "onair_core_unmodified": true,
+    "onair_returncode": 0,
+    "pass_": true,
+    "present": true,
+    "runtime_created": false
+   },
+   "e66_b2_resnet_R2_earlier_revision": {
+    "active": false,
+    "admission_verdict": null,
+    "admitted_budget_bytes": null,
+    "deployment": "e66_b2_resnet_R2_earlier_revision",
+    "document_acceptance": null,
+    "expected_reason_fragment": "producer_check.state='mismatch'",
+    "hal_after_append": null,
+    "inactive_reason": "DocumentNotAccepted: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]): the analysis was not examined for the revision that produced this artifact",
+    "inferences": 0,
+    "onair_core_unmodified": true,
+    "onair_returncode": 0,
+    "pass_": true,
+    "present": true,
+    "runtime_created": false
+   },
+   "e66_b2_resnet_R3_override": {
+    "active": false,
+    "admission_verdict": null,
+    "admitted_budget_bytes": null,
+    "deployment": "e66_b2_resnet_R3_override",
+    "document_acceptance": null,
+    "expected_reason_fragment": "overrides_applied=['--allow-structural-mismatch']",
+    "hal_after_append": null,
+    "inactive_reason": "DocumentNotAccepted: the document's own provenance says it was not fully verified: provenance.overrides_applied=['--allow-structural-mismatch']; provenance.verification_grade='overridden'",
+    "inferences": 0,
+    "onair_core_unmodified": true,
+    "onair_returncode": 0,
+    "pass_": true,
+    "present": true,
+    "runtime_created": false
+   },
+   "e66_b2_resnet_R4_budget_zero": {
+    "active": false,
+    "admission_verdict": null,
+    "admitted_budget_bytes": null,
+    "deployment": "e66_b2_resnet_R4_budget_zero",
+    "document_acceptance": null,
+    "expected_reason_fragment": "budget_bytes=0 does not resolve to a positive integer",
+    "hal_after_append": null,
+    "inactive_reason": "ConfigurationError: budget_bytes=0 does not resolve to a positive integer (the flight application refuses the same value as BUDGET_INVALID)",
+    "inferences": 0,
+    "onair_core_unmodified": true,
+    "onair_returncode": 0,
+    "pass_": true,
+    "present": true,
+    "runtime_created": false
+   }
+  },
+  "pass": true
+ },
+ "Q5_corpus": {
+  "pass": true,
+  "representation": "results/e65_producer_check/multiout_aarch64/multiout.layout_ir.txt",
+  "total_representations": 12,
+  "total_unclassified": 0,
+  "unclassified_resource_ops": []
+ },
+ "Q6_vcpu_record": {
+  "models_observed_at_two_or_more_cpu_counts": [
+   "b2_resnet",
+   "b3_deepae",
+   "smartcam",
+   "wgan"
+  ],
+  "note": "a record for the manuscript's Table 4 guest row, not a verdict",
+  "per_model": {
+   "b2_resnet": {
+    "P": 309416,
+    "cells": {
+     "1": [
+      "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+      "results/e56_conditional_refusal_aarch64/cells/logs/e56_b2_resnet_admit.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b2_resnet.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__b2_resnet.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__b2_resnet.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__b2_resnet.log",
+      "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_b2_resnet_pow2_above.log",
+      "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off00.log"
+     ],
+     "2": [
+      "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log"
+     ]
+    },
+    "cpus_with_final_peak_equal_P": [
+     "1",
+     "2"
+    ]
+   },
+   "b3_deepae": {
+    "P": 6208,
+    "cells": {
+     "1": [
+      "results/e55_mandatory_followups/cells/p0_4/logs/e55_b3_deepae_conditional.log",
+      "results/e56_conditional_refusal_aarch64/cells/logs/e56_b3_deepae_admit.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b3_deepae.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__b3_deepae.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__b3_deepae.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__b3_deepae.log",
+      "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_b3_deepae_pow2_above.log",
+      "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off00.log"
+     ],
+     "2": [
+      "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log"
+     ]
+    },
+    "cpus_with_final_peak_equal_P": [
+     "1",
+     "2"
+    ]
+   },
+   "smartcam": {
+    "P": 9382092,
+    "cells": {
+     "1": [
+      "results/e55_mandatory_followups/cells/p0_4/logs/e55_smartcam_conditional.log",
+      "results/e56_conditional_refusal_aarch64/cells/logs/e56_smartcam_admit.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__smartcam.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__smartcam.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__smartcam.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__smartcam.log",
+      "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_smartcam_pow2_above.log",
+      "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off00.log"
+     ],
+     "2": [
+      "results/e48_real_inputs_aarch64/cfs/logs/smartcam_admit_B_real.log"
+     ]
+    },
+    "cpus_with_final_peak_equal_P": [
+     "1",
+     "2"
+    ]
+   },
+   "wgan": {
+    "P": 131382784,
+    "cells": {
+     "1": [
+      "results/e53_wgan_aarch64/cfs/logs/cfs_B.log",
+      "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_conditional.log",
+      "results/e56_conditional_refusal_aarch64/cells/logs/e56_wgan_admit.log",
+      "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_pdr50__wgan.log",
+      "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_ship30__wgan.log",
+      "results/e54_reference_budget/cells/e53_wgan_part1/logs/PB_pdr50__wgan.log",
+      "results/e54_reference_budget/cells/e53_wgan_part1/logs/PB_ship30__wgan.log",
+      "results/e54_reference_budget/cells/e53_wgan_part2/logs/sweep_wgan_pow2_above.log"
+     ],
+     "4": [
+      "results/e63_single_build_and_conditional_floor/cells/logs/e63_wgan_map_e55b_build.log"
+     ]
+    },
+    "cpus_with_final_peak_equal_P": [
+     "1",
+     "4"
+    ]
+   }
+  }
+ },
+ "Q7_inventory_record": {
+  "alignment_cells_total": 32,
+  "alignment_cells_with_final_peak": 22,
+  "alignment_final_peaks_by_arm": {
+   "offset_0_equals_P": 3,
+   "other_offsets_equal_P_plus_C": 19
+  },
+  "alignment_final_peaks_within_B_u": true,
+  "distinct_execution_peaks": [
+   6208,
+   309416,
+   618856,
+   1069632,
+   9382092,
+   18222796,
+   131382784,
+   135666432
+  ],
+  "execution_cells": {
+   "at_B_u": 5,
+   "conditional": 8,
+   "copy_arm": 4,
+   "reference_profiles": 16,
+   "sensitivity_above": 4
+  },
+  "execution_cells_all_present": true,
+  "execution_cells_peak_within_admitted_budget": 37,
+  "execution_cells_total": 37,
+  "note": "counts for the manuscript's evidence summary, recounted from the raw logs; not a verdict",
+  "refusal_cells": {
+   "B_u_minus_1": 4,
+   "conditional_P_minus_1": 4,
+   "conditional_control_at_P": 4,
+   "misaligned_conditional": 4,
+   "sensitivity_below": 4
+  },
+  "refusal_cells_total": 20,
+  "refusal_cells_without_runtime_or_inference": 20,
+  "refusal_verdicts": [
+   "ADMIT_CONDITIONAL_MAP",
+   "NOT_ADMITTED"
+  ],
+  "runtime_load_refusal_cells": [
+   {
+    "log": "results/e65_producer_check/guest/cells/logs/e65_drift_legacy.log",
+    "mem_init_records": 0,
+    "run_records": 0,
+    "runtime_load_failed": [
+     "iree-src/runtime/src/iree/vm/bytecode/verifier.c:176: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0"
+    ],
+    "verdict": "ADMIT"
+   }
+  ],
+  "unknown_bound_cells": [
+   {
+    "log": "results/e65_producer_check/guest/cells/logs/e65_drift_nobound.log",
+    "mem_init_records": 0,
+    "run_records": 0,
+    "verdict": "UNKNOWN_BOUND"
+   },
+   {
+    "log": "results/e14_aarch64_qemu/cfs/logs/A8_dynamic_unknown.log",
+    "mem_init_records": 0,
+    "run_records": 0,
+    "verdict": "UNKNOWN_BOUND"
+   }
+  ]
+ },
+ "experiment": "E66",
+ "generated_by": "harness/mk_e66_summary.py",
+ "not_claimed": [
+  "a hand-edited document is outside the research assumption; the four hand-edited parity variants are unit cases",
+  "documents without a provenance block keep the header generator's scope (accepted by both, recorded)",
+  "the earlier OnAIR cells (E57, E62, E65) were not re-run; they reproduce from their configurations only with the recorded waiver",
+  "latency, accuracy, the conditional policy"
+ ],
+ "plan": "docs/plans/E66_plugin_document_rules.md",
+ "plan_commit": "ae115f3",
+ "target": "AArch64 QEMU system guest; the IREE Python runtime of E57/E62/E65 (same wheel)",
+ "verdict": "PASS"
+}

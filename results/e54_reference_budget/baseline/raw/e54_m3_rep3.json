@@ -1,0 +1,19 @@
+{
+  "tag": "m3",
+  "rep": 3,
+  "startup_apps_declared": 3,
+  "startup_libs_declared": 2,
+  "apps_emitting_evs": 2,
+  "apps_emitting_evs_list": "CI_LAB,TO_LAB",
+  "ai_learner_present_in_cf": false,
+  "vmfb_present_in_cf": false,
+  "sample_count": 10,
+  "sample_window_s": 90,
+  "core_cpu1_rss_peak_kb": 5324,
+  "core_cpu1_vmhwm_kb": 5324,
+  "mem_total_kb": 1487348,
+  "mem_available_before_kb": 1270200,
+  "mem_available_during_kb": 1277084,
+  "system_used_before_kb": 217148,
+  "harness_sshd_bash_systemd_rss_before_kb": 47164
+}

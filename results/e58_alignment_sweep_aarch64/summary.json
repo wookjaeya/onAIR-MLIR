@@ -1,0 +1,1064 @@
+{
+ "experiment": "E58",
+ "plan": "docs/plans/E58_alignment_sweep_aarch64.md (committed before measurement, 4d10203)",
+ "generated_by": "harness/mk_e58_summary.py",
+ "target": "aarch64-unknown-linux-gnu, cFS AI_LEARNER in a QEMU system guest",
+ "binary_note": "one E55b unconditional build per model (commit 3e746a8 source); all eight cells of a model ran that same binary, so alignment is the only setting varied within a model",
+ "replaces": "results/e29_conditional_contract/align_sweep.json (x86-64 development-host probe) as the manuscript's determinant evidence; kept on disk, no longer cited",
+ "criteria": {
+  "V": "blob_align applied with module_ptr_mod64 == requested offset, ADMIT, MATCH, map_branch present, unconditional build",
+  "D1": "every valid cell: hal_peak_after_append in {0, C}",
+  "D2": "every valid cell: hal_peak_after_append == 0 <=> module_ptr_mod64 == 0"
+ },
+ "cells": [
+  {
+   "model": "b2_resnet",
+   "offset": 0,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off00.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 0,
+    "state": "applied",
+    "module_ptr_mod64": 0
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 618856,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "map",
+   "hal_peak_after_append": 0,
+   "C": 309440,
+   "P": 309416,
+   "B_u": 618856,
+   "append_is_0": true,
+   "append_is_C": false,
+   "third_value": false,
+   "final_hal_peak_observed": 309416,
+   "mem_init_hal_peak": 12288
+  },
+  {
+   "model": "b2_resnet",
+   "offset": 8,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off08.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 618856,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 309440,
+   "C": 309440,
+   "P": 309416,
+   "B_u": 618856,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 618856,
+   "mem_init_hal_peak": 321728
+  },
+  {
+   "model": "b2_resnet",
+   "offset": 16,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off16.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 16,
+    "state": "applied",
+    "module_ptr_mod64": 16
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 618856,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 309440,
+   "C": 309440,
+   "P": 309416,
+   "B_u": 618856,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 618856,
+   "mem_init_hal_peak": 321728
+  },
+  {
+   "model": "b2_resnet",
+   "offset": 24,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off24.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 24,
+    "state": "applied",
+    "module_ptr_mod64": 24
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 618856,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 309440,
+   "C": 309440,
+   "P": 309416,
+   "B_u": 618856,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 618856,
+   "mem_init_hal_peak": 321728
+  },
+  {
+   "model": "b2_resnet",
+   "offset": 32,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off32.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 32,
+    "state": "applied",
+    "module_ptr_mod64": 32
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 618856,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 309440,
+   "C": 309440,
+   "P": 309416,
+   "B_u": 618856,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 618856,
+   "mem_init_hal_peak": 321728
+  },
+  {
+   "model": "b2_resnet",
+   "offset": 40,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off40.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 40,
+    "state": "applied",
+    "module_ptr_mod64": 40
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 618856,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 309440,
+   "C": 309440,
+   "P": 309416,
+   "B_u": 618856,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 618856,
+   "mem_init_hal_peak": 321728
+  },
+  {
+   "model": "b2_resnet",
+   "offset": 48,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off48.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 48,
+    "state": "applied",
+    "module_ptr_mod64": 48
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 618856,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 309440,
+   "C": 309440,
+   "P": 309416,
+   "B_u": 618856,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 618856,
+   "mem_init_hal_peak": 321728
+  },
+  {
+   "model": "b2_resnet",
+   "offset": 56,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off56.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 56,
+    "state": "applied",
+    "module_ptr_mod64": 56
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 618856,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 309440,
+   "C": 309440,
+   "P": 309416,
+   "B_u": 618856,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 618856,
+   "mem_init_hal_peak": 321728
+  },
+  {
+   "model": "b3_deepae",
+   "offset": 0,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off00.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 0,
+    "state": "applied",
+    "module_ptr_mod64": 0
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 1069632,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "map",
+   "hal_peak_after_append": 0,
+   "C": 1063424,
+   "P": 6208,
+   "B_u": 1069632,
+   "append_is_0": true,
+   "append_is_C": false,
+   "third_value": false,
+   "final_hal_peak_observed": 6208,
+   "mem_init_hal_peak": 2560
+  },
+  {
+   "model": "b3_deepae",
+   "offset": 8,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off08.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 1069632,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 1063424,
+   "C": 1063424,
+   "P": 6208,
+   "B_u": 1069632,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 1069632,
+   "mem_init_hal_peak": 1065984
+  },
+  {
+   "model": "b3_deepae",
+   "offset": 16,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off16.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 16,
+    "state": "applied",
+    "module_ptr_mod64": 16
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 1069632,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 1063424,
+   "C": 1063424,
+   "P": 6208,
+   "B_u": 1069632,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 1069632,
+   "mem_init_hal_peak": 1065984
+  },
+  {
+   "model": "b3_deepae",
+   "offset": 24,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off24.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 24,
+    "state": "applied",
+    "module_ptr_mod64": 24
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 1069632,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 1063424,
+   "C": 1063424,
+   "P": 6208,
+   "B_u": 1069632,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 1069632,
+   "mem_init_hal_peak": 1065984
+  },
+  {
+   "model": "b3_deepae",
+   "offset": 32,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off32.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 32,
+    "state": "applied",
+    "module_ptr_mod64": 32
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 1069632,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 1063424,
+   "C": 1063424,
+   "P": 6208,
+   "B_u": 1069632,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 1069632,
+   "mem_init_hal_peak": 1065984
+  },
+  {
+   "model": "b3_deepae",
+   "offset": 40,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off40.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 40,
+    "state": "applied",
+    "module_ptr_mod64": 40
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 1069632,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 1063424,
+   "C": 1063424,
+   "P": 6208,
+   "B_u": 1069632,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 1069632,
+   "mem_init_hal_peak": 1065984
+  },
+  {
+   "model": "b3_deepae",
+   "offset": 48,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off48.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 48,
+    "state": "applied",
+    "module_ptr_mod64": 48
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 1069632,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 1063424,
+   "C": 1063424,
+   "P": 6208,
+   "B_u": 1069632,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 1069632,
+   "mem_init_hal_peak": 1065984
+  },
+  {
+   "model": "b3_deepae",
+   "offset": 56,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off56.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 56,
+    "state": "applied",
+    "module_ptr_mod64": 56
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 1069632,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 1063424,
+   "C": 1063424,
+   "P": 6208,
+   "B_u": 1069632,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 1069632,
+   "mem_init_hal_peak": 1065984
+  },
+  {
+   "model": "smartcam",
+   "offset": 0,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off00.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 0,
+    "state": "applied",
+    "module_ptr_mod64": 0
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 18222796,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "map",
+   "hal_peak_after_append": 0,
+   "C": 8840704,
+   "P": 9382092,
+   "B_u": 18222796,
+   "append_is_0": true,
+   "append_is_C": false,
+   "third_value": false,
+   "final_hal_peak_observed": 9382092,
+   "mem_init_hal_peak": 602112
+  },
+  {
+   "model": "smartcam",
+   "offset": 8,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off08.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 18222796,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 8840704,
+   "C": 8840704,
+   "P": 9382092,
+   "B_u": 18222796,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 9442816
+  },
+  {
+   "model": "smartcam",
+   "offset": 16,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off16.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 16,
+    "state": "applied",
+    "module_ptr_mod64": 16
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 18222796,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 8840704,
+   "C": 8840704,
+   "P": 9382092,
+   "B_u": 18222796,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 18222796,
+   "mem_init_hal_peak": 9442816
+  },
+  {
+   "model": "smartcam",
+   "offset": 24,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off24.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 24,
+    "state": "applied",
+    "module_ptr_mod64": 24
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 18222796,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 8840704,
+   "C": 8840704,
+   "P": 9382092,
+   "B_u": 18222796,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 18222796,
+   "mem_init_hal_peak": 9442816
+  },
+  {
+   "model": "smartcam",
+   "offset": 32,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off32.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 32,
+    "state": "applied",
+    "module_ptr_mod64": 32
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 18222796,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 8840704,
+   "C": 8840704,
+   "P": 9382092,
+   "B_u": 18222796,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 18222796,
+   "mem_init_hal_peak": 9442816
+  },
+  {
+   "model": "smartcam",
+   "offset": 40,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off40.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 40,
+    "state": "applied",
+    "module_ptr_mod64": 40
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 18222796,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 8840704,
+   "C": 8840704,
+   "P": 9382092,
+   "B_u": 18222796,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 9442816
+  },
+  {
+   "model": "smartcam",
+   "offset": 48,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off48.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 48,
+    "state": "applied",
+    "module_ptr_mod64": 48
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 18222796,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 8840704,
+   "C": 8840704,
+   "P": 9382092,
+   "B_u": 18222796,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 18222796,
+   "mem_init_hal_peak": 9442816
+  },
+  {
+   "model": "smartcam",
+   "offset": 56,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off56.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 56,
+    "state": "applied",
+    "module_ptr_mod64": 56
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 18222796,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 8840704,
+   "C": 8840704,
+   "P": 9382092,
+   "B_u": 18222796,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": 18222796,
+   "mem_init_hal_peak": 9442816
+  },
+  {
+   "model": "wgan",
+   "offset": 0,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off00.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 0,
+    "state": "applied",
+    "module_ptr_mod64": 0
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "map",
+   "hal_peak_after_append": 0,
+   "C": 4283648,
+   "P": 131382784,
+   "B_u": 135666432,
+   "append_is_0": true,
+   "append_is_C": false,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 602112
+  },
+  {
+   "model": "wgan",
+   "offset": 8,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off08.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 8,
+    "state": "applied",
+    "module_ptr_mod64": 8
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 4283648,
+   "C": 4283648,
+   "P": 131382784,
+   "B_u": 135666432,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 4885760
+  },
+  {
+   "model": "wgan",
+   "offset": 16,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off16.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 16,
+    "state": "applied",
+    "module_ptr_mod64": 16
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 4283648,
+   "C": 4283648,
+   "P": 131382784,
+   "B_u": 135666432,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 4885760
+  },
+  {
+   "model": "wgan",
+   "offset": 24,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off24.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 24,
+    "state": "applied",
+    "module_ptr_mod64": 24
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 4283648,
+   "C": 4283648,
+   "P": 131382784,
+   "B_u": 135666432,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 4885760
+  },
+  {
+   "model": "wgan",
+   "offset": 32,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off32.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 32,
+    "state": "applied",
+    "module_ptr_mod64": 32
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 4283648,
+   "C": 4283648,
+   "P": 131382784,
+   "B_u": 135666432,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 4885760
+  },
+  {
+   "model": "wgan",
+   "offset": 40,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off40.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 40,
+    "state": "applied",
+    "module_ptr_mod64": 40
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 4283648,
+   "C": 4283648,
+   "P": 131382784,
+   "B_u": 135666432,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 4885760
+  },
+  {
+   "model": "wgan",
+   "offset": 48,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off48.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 48,
+    "state": "applied",
+    "module_ptr_mod64": 48
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 4283648,
+   "C": 4283648,
+   "P": 131382784,
+   "B_u": 135666432,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 4885760
+  },
+  {
+   "model": "wgan",
+   "offset": 56,
+   "log": "results/e58_alignment_sweep_aarch64/cells/logs/e58_wgan_off56.log",
+   "present": true,
+   "valid": true,
+   "invalid_reason": null,
+   "blob_align": {
+    "requested_offset": 56,
+    "state": "applied",
+    "module_ptr_mod64": 56
+   },
+   "admission": {
+    "verdict": "ADMIT",
+    "budget": 135666432,
+    "budget_source": "override",
+    "target": "aarch64-unknown-linux-gnu"
+   },
+   "binding": "MATCH",
+   "arm_label": "copy",
+   "hal_peak_after_append": 4283648,
+   "C": 4283648,
+   "P": 131382784,
+   "B_u": 135666432,
+   "append_is_0": false,
+   "append_is_C": true,
+   "third_value": false,
+   "final_hal_peak_observed": null,
+   "mem_init_hal_peak": 4885760
+  }
+ ],
+ "per_model": {
+  "b2_resnet": {
+   "cells": 8,
+   "valid": 8,
+   "map_at": [
+    0
+   ],
+   "copy_at": [
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56
+   ],
+   "third_values": []
+  },
+  "b3_deepae": {
+   "cells": 8,
+   "valid": 8,
+   "map_at": [
+    0
+   ],
+   "copy_at": [
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56
+   ],
+   "third_values": []
+  },
+  "smartcam": {
+   "cells": 8,
+   "valid": 8,
+   "map_at": [
+    0
+   ],
+   "copy_at": [
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56
+   ],
+   "third_values": []
+  },
+  "wgan": {
+   "cells": 8,
+   "valid": 8,
+   "map_at": [
+    0
+   ],
+   "copy_at": [
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56
+   ],
+   "third_values": []
+  }
+ },
+ "totals": {
+  "cells": 32,
+  "valid": 32,
+  "map": 4,
+  "copy": 28,
+  "third_value": 0
+ },
+ "verdict": {
+  "V_all_valid": true,
+  "D1": true,
+  "D2": true,
+  "PASS": true
+ },
+ "not_claimed": [
+  "that alignment is the sole determinant under other drivers or IREE releases",
+  "final execution peaks or output equivalence (the sweep judges the append point; the final peaks P / B_u are E55b's and the archived map-arm cells')",
+  "behaviour at offsets that are not 8-byte multiples (the knob refuses them)",
+  "that a deployment takes the copy arm: the app aligns its own image, so it is structurally on the map arm; this sweep controls the alignment on purpose"
+ ]
+}

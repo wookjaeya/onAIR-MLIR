@@ -1,0 +1,71 @@
+{
+ "tool": "harness/onair_integration_check.py",
+ "deployment": "e62_wgan_Bu_fix",
+ "onair": {
+  "path": "/home/ubuntu/e57/OnAIR",
+  "head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+  "core_unmodified": true,
+  "untracked_unchanged": true,
+  "tracked_dirty_before": "",
+  "tracked_dirty_after": "",
+  "status_before": "?? csv_out_252_06_15.csv",
+  "status_after": "?? csv_out_252_06_15.csv",
+  "check_note": "OnAIR core must be untouched: no TRACKED file may be modified before or after the run. Untracked files left by OnAIR's own example runs are reported separately and are not a modification"
+ },
+ "invocation": {
+  "cmd": [
+   "/usr/bin/python3",
+   "driver.py",
+   "onair.ini"
+  ],
+  "cwd": "/home/ubuntu/e57/OnAIR",
+  "env_var": "ONAIR_MLIR_DEPLOYMENT_CONFIG",
+  "ini": "/home/ubuntu/e62/out/e62_wgan_Bu_fix/onair.ini",
+  "deployment_config": "/home/ubuntu/e62/out/e62_wgan_Bu_fix/deployment.json"
+ },
+ "returncode": 0,
+ "plugin_constructed": true,
+ "plugin_init": {
+  "event": "init",
+  "active": true,
+  "inactive_reason": null,
+  "input_mode": "file_replay",
+  "admission": {
+   "bounded_bytes": 135666432,
+   "per_call_bytes": 131382784,
+   "constants_bytes": 4283648,
+   "budget_bytes": 135666432,
+   "bound_method": "static_from_stream_layout",
+   "scope": "per_app_local_budget",
+   "verdict": "ADMIT",
+   "admitted_budget_bytes": 135666432,
+   "conditional_available": false,
+   "reason": "bounded 135666432 <= budget 135666432",
+   "budget_source": "deployment_config",
+   "budget_source_detail": "/home/ubuntu/e62/out/e62_wgan_Bu_fix/deployment.json[e62_wgan_Bu_fix]"
+  },
+  "binding": {
+   "verdict": "MATCH",
+   "artifact_bytes": 4321533,
+   "artifact_sha256": "e382429cbfbf580356379365fa67a8a2b01b47d58ec4e04b4a4c14165be2e102"
+  },
+  "entry": "infer",
+  "deployment_source": "/home/ubuntu/e62/out/e62_wgan_Bu_fix/deployment.json[e62_wgan_Bu_fix]",
+  "runtime_created": true,
+  "output_readback": "buffer_protocol",
+  "enforce_output_release": false,
+  "hal_after_append": {
+   "available": true,
+   "device_bytes_peak": 0,
+   "device_bytes_allocated": 0,
+   "device_bytes_freed": 0,
+   "device_bytes_live": 0
+  },
+  "module_ptr_mod64": null,
+  "module_ptr_mod64_unavailable_reason": "not observable from the Python binding: VmModule.copy_buffer places its own copy of the image and does not expose the address"
+ },
+ "inferences": 3,
+ "stdout_tail": "\u001b[95m\u001b[1m\n***************************************************\n************    SIMULATION STARTED     ************\n***************************************************\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 1 ---------------------\n\u001b[0m\nCURRENT DATA: [0.0, 0.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 2 ---------------------\n\u001b[0m\nCURRENT DATA: [1.0, 1.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 3 ---------------------\n\u001b[0m\nCURRENT DATA: [2.0, 2.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n",
+ "stderr_tail": "",
+ "records_file": "/home/ubuntu/e62/out/e62_wgan_Bu_fix/plugin_records.jsonl"
+}

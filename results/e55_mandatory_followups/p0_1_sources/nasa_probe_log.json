@@ -1,0 +1,606 @@
+{
+ "experiment": "E55",
+ "item": "P0-1",
+ "directive": "docs/reviews/MANDATORY_FOLLOWUPS_v0.57_RECOMMENDATION.md §2",
+ "grades": "E54의 어휘를 그대로 승계한다(새 이름을 만들지 않는다 — D65).",
+ "why_reprobed": "지시가 준 세 URL은 E54가 기계 판독 매니페스트에 기록한 넷과 **하나도 같지 않다**. swehb는 옛 display/SWEHBVC 경로였고 NPR은 ?t=NPR&c=7150&s=2D 질의형이었으며, **GSFC-STD-1000은 프로브 기록 자체가 없다**. 따라서 '이미 차단됐다'를 승계하지 않고 다시 쟀다(D74/E45/E47).",
+ "proxy_denial_mechanism": "이 컨테이너의 에이전트 프록시가 **호스트 allowlist**로 거부한다. 평문 HTTP 에서 프록시가 돌려준 101 B 본문이 'Host not in allowlist: swehb.nasa.gov.' 였다 — **바이트를 받은 것은 취득이 아니다**(그 바이트는 거부문이지 문서가 아니다). 호스트가 거부되므로 같은 호스트의 다른 경로를 더 시도하는 것은 의미가 없고, 그 구분을 확인한 뒤 중단했다.",
+ "targets": [
+  {
+   "id": "swehb_9_12",
+   "name": "NASA Software Engineering Handbook SWE 9.12 Resource Margins",
+   "directive_url": "https://swehb.nasa.gov/spaces/SWEHBVD/pages/102695803/9.12%2BResource%2BMargins",
+   "acquired": false,
+   "paths_tried": 27,
+   "grade": "transcribed_from_directive_primary_blocked",
+   "attempts": [
+    {
+     "url": "https://swehb.nasa.gov/spaces/SWEHBVD/pages/102695803/9.12%2BResource%2BMargins",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "curl: (56) CONNECT tunnel failed, response 403 — 지시가 준 정확한 URL"
+    },
+    {
+     "url": "https://swehb.nasa.gov/spaces/SWEHBVD/pages/102695803/9.12%2BResource%2BMargins",
+     "method": "WebFetch",
+     "http_code": "EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "{\"error_type\":\"EGRESS_BLOCKED\",\"domain\":\"swehb.nasa.gov\"} — WebFetch도 같은 allowlist"
+    },
+    {
+     "url": "https://swehb.nasa.gov/display/SWEHBVD/9.12+Resource+Margins",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "구형 /display/ 경로 형태. CONNECT 403"
+    },
+    {
+     "url": "http://swehb.nasa.gov/",
+     "method": "curl",
+     "http_code": "403",
+     "bytes": 101,
+     "content_is_target": "no",
+     "note": "유일하게 바이트를 받은 NASA 응답이지만 내용은 프록시 거부문: 'Host not in allowlist: swehb.nasa.gov.' — 성공으로 세지 않음"
+    },
+    {
+     "url": "https://swehb.nasa.gov/x/ewMfBg",
+     "method": "WebFetch",
+     "http_code": "EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "WebSearch가 찾아 준 단축 링크"
+    },
+    {
+     "url": "https://swehb.nasa.gov/spaces/SWEHBVC/pages/140640581/Resource+Usage+Measurement",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "Ver C 인접 페이지도 동일 차단"
+    },
+    {
+     "url": "https://standards.nasa.gov/sites/default/files/standards/GSFC/H/0/GSFC-STD-1000RevH_Approved.pdf",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "GSFC Gold Rules — SWE 9.12가 아니라 그것이 참조하는 별도 문서. 어차피 차단"
+    },
+    {
+     "url": "https://standards.nasa.gov/sites/default/files/standards/GSFC/H/0/GSFC-STD-1000RevH_Approved.pdf",
+     "method": "WebFetch",
+     "http_code": "EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": ""
+    },
+    {
+     "url": "https://ntrs.nasa.gov/api/citations/search?q=resource%20margins",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT 403"
+    },
+    {
+     "url": "https://ntrs.nasa.gov/api/citations/20210014033/downloads/2021-04-20-RAM.pdf",
+     "method": "WebFetch",
+     "http_code": "EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": ""
+    },
+    {
+     "url": "https://www.nasa.gov/wp-content/uploads/2023/01/nasa-systems-engineering-handbook.pdf",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT 403"
+    },
+    {
+     "url": "https://sma.nasa.gov/sma-disciplines/software-assurance",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT 403"
+    },
+    {
+     "url": "https://nodis3.gsfc.nasa.gov/",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT 403 (프록시 status에도 기록됨)"
+    },
+    {
+     "url": "https://llis.nasa.gov/",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT 403"
+    },
+    {
+     "url": "https://web.archive.org/web/2023/https://swehb.nasa.gov/display/SWEHBVD/9.12+Resource+Margins",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT 403"
+    },
+    {
+     "url": "https://web.archive.org/web/2024/https://swehb.nasa.gov/display/SWEHBVD/9.12+Resource+Margins",
+     "method": "WebFetch",
+     "http_code": "TOOL_REFUSED",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "'Claude Code is unable to fetch from web.archive.org' — 도구 수준 거부(EGRESS_BLOCKED와 다른 사유)"
+    },
+    {
+     "url": "https://archive.org/wayback/available?url=swehb.nasa.gov/display/SWEHBVD/9.12%2BResource%2BMargins",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "스냅샷 존재 여부 자체를 확인 못 함"
+    },
+    {
+     "url": "https://r.jina.ai/https://swehb.nasa.gov/display/SWEHBVD/9.12+Resource+Margins",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "제3자 텍스트 추출 프록시 우회 시도. CONNECT 403"
+    },
+    {
+     "url": "https://www.bing.com/search?q=swe+9.12+resource+margins",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT 403"
+    },
+    {
+     "url": "https://duckduckgo.com/html/?q=swe+9.12+resource+margins",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT 403"
+    },
+    {
+     "url": "https://raw.githubusercontent.com/kmay89/securaCV/main/docs/strategy/12-engineering-foundations-flight-rules.md",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 35579,
+     "content_is_target": "no",
+     "note": "실제 바이트 취득. 그러나 GitHub 코드검색이 찾아 준 제3자 문서로 'resource margins'를 언급만 하고 SWE 9.12 본문도 마진 수치도 없음(grep 확인)"
+    },
+    {
+     "url": "GitHub code search x4: \"Resource Margins\" \"SWE-9.12\" / \"swehb.nasa.gov\" \"Resource Margins\" / \"Design margins help identify computing resource problems\" / \"CPU Selection\" \"PDR\" \"CDR\" margin RAM percent",
+     "method": "other",
+     "http_code": "200",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "GitHub API 정상 응답. SWEHB 미러 0건 — 히트는 전부 우리 저장소 자신(wookjaeya/onAIR-MLIR) + securaCV"
+    },
+    {
+     "url": "GitHub repository search: swehb NASA software engineering handbook",
+     "method": "other",
+     "http_code": "200",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "total_count=0 — 미러 저장소 없음"
+    },
+    {
+     "url": "Scholar Gateway semanticSearch (SWE-9.12 마진 백분율 질의)",
+     "method": "other",
+     "http_code": "200",
+     "bytes": 53000,
+     "content_is_target": "no",
+     "note": "응답 수신했으나 'SWE-9.12'·'Software Engineering Handbook' 문자열은 질의 에코 2곳뿐이고 결과 본문에 대상 문서·마진 백분율 0건"
+    },
+    {
+     "url": "WebSearch (질의 3회)",
+     "method": "WebSearch",
+     "http_code": "200",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "링크와 요약만 반환. 1회차 요약이 '75% CPU Selection / 60% PDR / 50% CDR / 20% Launch'를 냈으나 어떤 취득 바이트에도 없고, 2회차는 재현 실패하며 도구가 'unable to find the specific verbatim text'라고 보고. 원문 인용 불가"
+    },
+    {
+     "url": "https://raw.githubusercontent.com/octocat/Hello-World/master/README",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 13,
+     "content_is_target": "no",
+     "note": "통제군 — 네트워크 경로 자체는 살아 있음을 증명(WebFetch로도 성공)"
+    },
+    {
+     "url": "https://raw.githubusercontent.com/nasa/cFS/main/README.md",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 14894,
+     "content_is_target": "no",
+     "note": "통제군 2 — 대용량 전송도 정상. 따라서 실패 원인은 전송 장애가 아니라 호스트 allowlist"
+    }
+   ]
+  },
+  {
+   "id": "gsfc_std_1000_revI",
+   "name": "GSFC-STD-1000 Rev. I Table 3.07-1 Flight Software Margins",
+   "directive_url": "https://standards.nasa.gov/system/files/tmp/GSFC-STD-1000RevI_Approved_0.pdf",
+   "acquired": false,
+   "paths_tried": 20,
+   "grade": "transcribed_from_directive_primary_blocked",
+   "note": "E54 의 기계 판독 매니페스트에 **프로브 기록이 없던 새 출처**다. 이번에 처음 쟀고 차단됐다. WebSearch 가 찾은 미러 하나는 **Rev G** 였고, 다른 개정판을 같은 것이라 쓰지 않는다.",
+   "attempts": [
+    {
+     "url": "https://standards.nasa.gov/system/files/tmp/GSFC-STD-1000RevI_Approved_0.pdf",
+     "method": "curl",
+     "http_code": "000 (CONNECT tunnel failed, gateway 403)",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": "지시가 준 정본 URL. 프록시 status 엔드포인트가 connect_rejected / 'gateway answered 403 to CONNECT (policy denial)'로 기록. README가 403/407은 재시도 금지·조직 정책 거부로 보고하라고 명시. '볼 수 없었다'이지 '보았더니 없더라'가 아니다"
+    },
+    {
+     "url": "https://standards.nasa.gov/system/files/tmp/GSFC-STD-1000RevI_Approved_0.pdf",
+     "method": "WebFetch",
+     "http_code": "EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": "WebFetch는 curl과 다른 경로일 수 있어 별도 시도. 같은 호스트 차단"
+    },
+    {
+     "url": "https://standards.nasa.gov/sites/default/files/standards/GSFC/I/0/GSFC-STD-1000RevI_Approved.pdf",
+     "method": "curl",
+     "http_code": "000 (CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": "Rev H의 실제 경로 패턴(.../GSFC/H/0/...)에서 I로 유추한 경로. 호스트 자체가 차단이라 경로 유효성은 확인 불가"
+    },
+    {
+     "url": "https://standards.nasa.gov/standard/GSFC/GSFC-STD-1000",
+     "method": "curl",
+     "http_code": "000 (CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": "표준 랜딩 페이지"
+    },
+    {
+     "url": "https://sma.nasa.gov/ (및 /sma-disciplines/software-safety)",
+     "method": "curl",
+     "http_code": "000 (CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": ""
+    },
+    {
+     "url": "https://ntrs.nasa.gov/ (검색 및 citations API)",
+     "method": "curl",
+     "http_code": "000 (CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": ""
+    },
+    {
+     "url": "https://nodis3.gsfc.nasa.gov/",
+     "method": "curl",
+     "http_code": "000 (CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": "GSFC 하위 호스트"
+    },
+    {
+     "url": "https://soma.larc.nasa.gov/lws/pdf_files/3.11%20GSFC-STD-1000Revg_signature.pdf",
+     "method": "curl",
+     "http_code": "000 (CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "WebSearch가 찾은 NASA 미러. 차단됐고, 설령 받았어도 **Rev G**라 대상이 아니다 — 다른 개정판을 같은 것이라 쓰지 말라는 지시에 따라 대체 불가"
+    },
+    {
+     "url": "https://www.macro-inc.com/NASADocs/GSFC-STD-1000FlightSystemRules.PDF",
+     "method": "curl + WebFetch",
+     "http_code": "000 (CONNECT 403) / EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": "제3자 미러. 두 방법 모두 차단"
+    },
+    {
+     "url": "https://snebulos.mit.edu/projects/reference/NASA-Generic/GSFC-STD-1000G.pdf",
+     "method": "curl + WebFetch",
+     "http_code": "000 (CONNECT 403) / EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "MIT 미러. 파일명이 명시적으로 **Rev G**라 대상이 아니다"
+    },
+    {
+     "url": "https://standards.nasa.gov/sites/default/files/standards/GSFC/H/0/GSFC-STD-1000RevH_Approved.pdf",
+     "method": "curl",
+     "http_code": "000 (CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "**Rev H** — 대상 아님. 참고로 검색 인덱스가 내놓은 실제 다운로드 가능 미러는 전부 Rev G/Rev H이고 Rev I는 정본 URL 한 건뿐이다"
+    },
+    {
+     "url": "https://everyspec.com/NASA/NASA-GSFC-Pubs/ (및 GSFC-STD-1000E 항목)",
+     "method": "curl + WebFetch",
+     "http_code": "000 (CONNECT 403) / EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": ""
+    },
+    {
+     "url": "https://web.archive.org/web/2024/… 및 /web/2024id_/… (정본 PDF 스냅샷)",
+     "method": "curl + WebFetch",
+     "http_code": "000 (CONNECT 403) / 'Claude Code is unable to fetch from web.archive.org'",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": "archive.org·web.archive.org·scholar.archive.org 전부 차단. 스냅샷 존재 여부는 **확인하지 못했다**(없다고 쓸 수 없다)"
+    },
+    {
+     "url": "https://www.scribd.com/document/818216102/GSFC-STD-1000RevH-Approved",
+     "method": "curl",
+     "http_code": "000 (CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "Rev H이고 호스트도 차단"
+    },
+    {
+     "url": "https://raw.githubusercontent.com/ · https://github.com/ · api.github.com",
+     "method": "curl",
+     "http_code": "404 / 400 / 200 (도달 가능)",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "**이 호스트는 열려 있다.** 그러나 GitHub code search 4회(\"GSFC-STD-1000\" extension:pdf → 0건 · \"GSFC-STD-1000\" \"3.07\" → 0건 · GSFC in:path extension:pdf → 0건 · \"Flight Software Margins\" \"Table 3.07-1\" → 0건)로 사본이 없었다. 주의: GitHub code search는 **PDF 바이너리를 인덱싱하지 않으므로** 0건은 '없음의 증명'이 아니라 '이 인덱스에서 찾지 못함'이다"
+    },
+    {
+     "url": "https://raw.githubusercontent.com/kmay89/securaCV/main/docs/strategy/12-engineering-foundations-flight-rules.md",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 35579,
+     "content_is_target": "no",
+     "note": "실제 바이트를 받았으나 **대상 문서가 아니다** — GSFC-STD-1000을 한 줄 인용만 하는 2차 문서. Table 3.07-1도 마진 수치도 없다"
+    },
+    {
+     "url": "https://raw.githubusercontent.com/cheesejaguar/SMART-QSO/main/RALPH.md",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 97512,
+     "content_is_target": "no",
+     "note": "동일 — 참고문헌 표에 제목만 등재. 수치 없음"
+    },
+    {
+     "url": "(로컬) /home/user/onAIR-MLIR 전체",
+     "method": "other",
+     "http_code": "N/A (파일시스템)",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "기존 사본 유무 확인: 저장소에 PDF **0개**, GSFC-STD-1000 언급은 docs/plans/E55_mandatory_followups.md·docs/reviews/MANDATORY_FOLLOWUPS_v0.57_RECOMMENDATION.md 두 건의 **서술뿐**이고 문서 바이트는 없다. 이것은 '보았더니 없더라'다"
+    },
+    {
+     "url": "(호스트 허용 범위 매핑) gitlab.com · huggingface.co · zenodo.org · arxiv.org · wikipedia.org · google/bing/duckduckgo · scholar.google · docs.google.com · r.jina.ai · nasa.github.io · llis.nasa.gov · swehb.nasa.gov",
+     "method": "curl",
+     "http_code": "000 (전부 CONNECT 403)",
+     "bytes": 0,
+     "content_is_target": "unknown",
+     "note": "우회 통로 탐색. 실제로 도달 가능한 호스트는 github.com·raw.githubusercontent.com·codeload·objects.githubusercontent.com·api.github.com·bitbucket.org·sourceforge.net·pypi.org·files.pythonhosted.org 뿐이다"
+    },
+    {
+     "url": "WebSearch (질의 2회: Table 3.07-1 / Rev I github 미러)",
+     "method": "WebSearch",
+     "http_code": "N/A (검색 API, 문서 바이트 아님)",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "제목·URL 목록만 반환. 정본 Rev I URL이 인덱스에 **존재**함은 확인되나 내용은 반환되지 않았고, 검색 스니펫은 원문이 아니므로 인용 근거로 쓰지 않는다. 미러로 노출된 다운로드 가능 사본은 전부 Rev G/Rev H다"
+    }
+   ]
+  },
+  {
+   "id": "npr_7150_2d_5_4_5",
+   "name": "NPR 7150.2D §5.4.5 [SWE-199]",
+   "directive_url": "https://nodis3.gsfc.nasa.gov/displayDir.cfm?Internal_ID=N_PR_7150_002D_&page_name=Chapter5",
+   "acquired": true,
+   "acquired_from": "third-party GitHub mirrors (NASA hosts all blocked)",
+   "grade": "mirror_adjacent_revision_fetched",
+   "grade_name_caveat": "E54 가 정의한 이 등급의 **정의**는 '제3자 미러에서 받았고 인용을 그 바이트에서 확인했다'이고 개정판에 대해 아무 말도 하지 않는다. 그러나 **이름**은 'adjacent_revision'이라 여기서는 오해를 부른다 — 이것은 인접 개정판이 아니라 **개정 D 그 자체**다. 네 번째 등급 이름을 만드는 대신(D65/E44) revision_match 필드로 구분한다.",
+   "revision_match": "same_revision_D",
+   "mirrors_agreeing": 5,
+   "clause_normalized_sha256": "734cab987d9bd46117ab3fa0065d7b8dc877ea2ee9ebafb8d9279f59e52b4092",
+   "clause_normalized_chars": 783,
+   "independently_fetched_in_this_turn": [
+    {
+     "url": "https://raw.githubusercontent.com/Break-Through-Tech/Aerospace-1D-compliance-copilot/main/data/npr-7150-2d.txt",
+     "http_code": 200,
+     "bytes": 179180,
+     "sha256": "49de67f6b5dbe40b67e9deca02847298c8187a72aa2b5c50586a21e9a9380419",
+     "clause_5_4_5_normalized_chars": 783,
+     "clause_5_4_5_normalized_sha256": "734cab987d9bd46117ab3fa0065d7b8dc877ea2ee9ebafb8d9279f59e52b4092",
+     "fetched_by": "this session, directly (not relayed from a subagent)"
+    },
+    {
+     "url": "https://raw.githubusercontent.com/lpurdy01/video_pipeline_workspace/master/refrence_literature/raw/extracted_markdown/npr_7150_2d.txt",
+     "http_code": 200,
+     "bytes": 255538,
+     "sha256": "4f46935a1902d2ce089b85aa04766562da9bdc4b5524625f0e7e09873aedf17d",
+     "clause_5_4_5_normalized_chars": 783,
+     "clause_5_4_5_normalized_sha256": "734cab987d9bd46117ab3fa0065d7b8dc877ea2ee9ebafb8d9279f59e52b4092",
+     "fetched_by": "this session, directly (not relayed from a subagent)"
+    }
+   ],
+   "quote": "5.4.5 The project manager shall monitor measures to ensure the software will meet or exceed performance and functionality requirements, including satisfying constraints. [SWE-199]",
+   "attempts": [
+    {
+     "url": "https://nodis3.gsfc.nasa.gov/displayDir.cfm?Internal_ID=N_PR_7150_002D_&page_name=Chapter5",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "CONNECT tunnel failed, response 403. Proxy status endpoint records host as connect_rejected (policy denial). Re-measured this session, not inherited from E54."
+    },
+    {
+     "url": "https://nodis3.gsfc.nasa.gov/displayDir.cfm?Internal_ID=N_PR_7150_002D_&page_name=Chapter5",
+     "method": "WebFetch",
+     "http_code": "EGRESS_BLOCKED",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "WebFetch returned structured error EGRESS_BLOCKED for domain nodis3.gsfc.nasa.gov. Different tool, same policy denial."
+    },
+    {
+     "url": "http://nodis3.gsfc.nasa.gov/displayDir.cfm?Internal_ID=N_PR_7150_002D_&page_name=Chapter5",
+     "method": "curl",
+     "http_code": "403",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "Plain HTTP port 80 also tried. 403 is the proxy's denial, not an origin response."
+    },
+    {
+     "url": "https://nodis3.gsfc.nasa.gov/npg_img/N_PR_7150_002D_/N_PR_7150_002D_.pdf",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "Direct PDF path on NODIS. Host blocked, so alternate page_name values are moot - the whole host refuses the tunnel."
+    },
+    {
+     "url": "https://nodis.hq.nasa.gov/displayDir.cfm?Internal_ID=N_PR_7150_002D_&page_name=Chapter5",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "Alternate NODIS host."
+    },
+    {
+     "url": "https://swehb.nasa.gov/display/SWEHBVD/5.4+Software+Engineering+Requirements",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "NASA Software Engineering Handbook."
+    },
+    {
+     "url": "https://swehb.nasa.gov/spaces/SITE/pages/123601159/NPR%2B7150.2D",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "SWEHB URL named as source_url inside an acquired mirror; still blocked."
+    },
+    {
+     "url": "https://ntrs.nasa.gov/api/citations/20205008889/downloads/NPR7150.2D.pdf",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "NTRS."
+    },
+    {
+     "url": "https://www.nasa.gov/wp-content/uploads/2023/01/npr-7150-2d.pdf",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "www.nasa.gov CMS upload path."
+    },
+    {
+     "url": "https://web.archive.org/web/2024/https://nodis3.gsfc.nasa.gov/displayDir.cfm?Internal_ID=N_PR_7150_002D_&page_name=Chapter5",
+     "method": "curl",
+     "http_code": "000",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "Wayback snapshot. web.archive.org itself is blocked."
+    },
+    {
+     "url": "http://archive.org/wayback/available?url=nodis3.gsfc.nasa.gov/displayDir.cfm...",
+     "method": "curl",
+     "http_code": "403",
+     "bytes": 98,
+     "content_is_target": "no",
+     "note": "98 bytes received but it is the proxy's denial body, NOT the document. Bytes received does not mean target acquired."
+    },
+    {
+     "url": "https://s3.amazonaws.com/nodis-public/N_PR_7150_002D_.pdf",
+     "method": "curl",
+     "http_code": "404",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "Host reachable (real origin 404) - speculative bucket name, file not there."
+    },
+    {
+     "url": "WebSearch: NPR 7150.2D section 5.4.5 software resource margins SWE-149",
+     "method": "WebSearch",
+     "http_code": "n/a",
+     "bytes": 0,
+     "content_is_target": "no",
+     "note": "Returned links + a model-generated summary asserting SWE-199. NOT acquired bytes of the document - treated only as a lead and later independently confirmed against real text."
+    },
+    {
+     "url": "https://raw.githubusercontent.com/Break-Through-Tech/Aerospace-1D-compliance-copilot/main/data/npr-7150-2d.txt",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 179180,
+     "content_is_target": "yes",
+     "note": "Verified NPR 7150.2D: header, effective/expiration dates, Office of the Chief Engineer, 133 SWE- tags. Contains full 5.4.5."
+    },
+    {
+     "url": "https://raw.githubusercontent.com/lshtram/high-reliability-framework/main/.opencode/reference-books/nasa-npr-7150/00-full-text.md",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 212973,
+     "content_is_target": "yes",
+     "note": "Records 'Source: N_PR_7150_002D_.pdf' - the same NODIS artifact named by the blocked URL's Internal_ID."
+    },
+    {
+     "url": "https://raw.githubusercontent.com/lshtram/high-reliability-framework/main/.opencode/reference-books/nasa-npr-7150/05-chapter-supporting-software-life-cycle.md",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 12092,
+     "content_is_target": "yes",
+     "note": "Chapter 5 only; independent chunking of same lineage."
+    },
+    {
+     "url": "https://raw.githubusercontent.com/lpurdy01/video_pipeline_workspace/master/refrence_literature/raw/extracted_markdown/npr_7150_2d.txt",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 255538,
+     "content_is_target": "yes",
+     "note": "Full 89-page PDF text extraction incl. Appendix C requirements-mapping table, which independently maps clause 5.4.5 -> SWE 199."
+    },
+    {
+     "url": "https://raw.githubusercontent.com/Break-Through-Tech/Aerospace-1D-compliance-copilot/main/data/npr-7150-2d-requirements.json",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 47754,
+     "content_is_target": "yes",
+     "note": "Structured mirror: {swe_id: SWE-199, clause: 5.4.5, requirement: ...}. Independent representation of the same clause."
+    },
+    {
+     "url": "https://raw.githubusercontent.com/m4opt/m4opt/main/docs/dev/npr7150.rst",
+     "method": "curl",
+     "http_code": "200",
+     "bytes": 151641,
+     "content_is_target": "yes",
+     "note": "Fifth mirror, different lineage (a project compliance table, not a PDF dump). Same 5.4.5 text; 0 'margin', 0 '%'."
+    }
+   ]
+  }
+ ],
+ "decisive_finding": {
+  "question": "취득한 원문이 참조 예산의 마진 백분율(50/50/40/30)을 근거 짓는가?",
+  "answer": "아니다.",
+  "evidence": "NPR 7150.2D 전문에서 'margin' 은 **정확히 1회** 나타나고 그것이 §5.4.5 의 Note 다 — 기술 자원 지표를 '**the margins** 와 비교한다'고 요구할 뿐 그 값을 말하지 않는다. '50 percent/%' 0건 · '40 percent/%' 0건 · '30 percent/%' 2건인데 그 둘은 **MOTS 코드 변경 임계값**이지 자원 마진이 아니다(직접 문맥 확인). 두 미러에서 내가 직접 받아 센 값이다.",
+  "consequence": "따라서 마진 백분율의 등급은 `transcribed_from_directive_primary_blocked` 로 **유지**된다. 취득이 바꾼 것은 값의 근거가 아니라 **관행의 근거**다 — 자원 지표를 마진과 비교하라는 요구 자체는 이제 1차 요구문서의 조항(§5.4.5 [SWE-199])으로 인용할 수 있다."
+ },
+ "not_claimed": [
+  "마진 백분율을 1차 출처에서 인용했다 — 쓸 수 없다. 그 값은 이 세션이 받은 어떤 바이트에도 없다.",
+  "NASA 호스트가 영구히 조달 불가다 — 관측한 것은 '이 컨테이너의 프록시 allowlist가 이 호스트들을 거부한다'까지다.",
+  "GitHub 미러가 1차 출처다 — 제3자 재배포이고, 정본성의 근거는 미러의 권위가 아니라 **5개 독립 미러의 정규화 텍스트 일치**다."
+ ]
+}

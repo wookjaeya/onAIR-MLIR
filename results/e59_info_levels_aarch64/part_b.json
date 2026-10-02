@@ -1,0 +1,620 @@
+{
+ "experiment": "E59 Part B",
+ "plan": "docs/plans/E59_info_levels_aarch64.md (committed before measurement, 7acc660)",
+ "target": "aarch64-unknown-linux-gnu",
+ "cpu": "cortex-a53",
+ "per_model": {
+  "b2_resnet": {
+   "interface_floor_I_plus_O": 12328,
+   "reference_311_contract": {
+    "bounded": 618856,
+    "per_call": 309416,
+    "constants": 309440
+   },
+   "control_311": {
+    "compile": {
+     "rc": 0,
+     "argv": [
+      "iree-compile",
+      "b2_resnet.mlir",
+      "--iree-hal-target-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--mlir-elide-elementsattrs-if-larger=16",
+      "--iree-hal-dump-executable-files-to=dump",
+      "-o",
+      "b2_resnet.vmfb"
+     ],
+     "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25 LLVM version 23.0.0git Optimized build",
+     "mlir_sha256": "f74133512fc23eafd29b40c4c5e86eda174fde0a25baa2164d76dca0bb628ec2",
+     "vmfb_sha256": "7c92a37480389d76c02914076ed1b8cf0ff2c5c9d7a374fc1e7e1a3a6bbda088",
+     "vmfb_bytes": 345610,
+     "mlir_matches_contract": true
+    },
+    "levels": {
+     "c": {
+      "status": "value",
+      "bounded": 618856,
+      "per_call": 309416,
+      "constants": 309440,
+      "kernel_stack": 1232,
+      "constants_confirmation_state": "confirmed",
+      "notes": [],
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b": {
+      "status": "value",
+      "bounded": 618856,
+      "per_call": 309416,
+      "constants": 309440,
+      "why": "alloca_unresolved=[]",
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b_prime": {
+      "status": "value",
+      "bounded": 618856,
+      "per_call": 309416,
+      "constants": 309440,
+      "why": "refusals=[]",
+      "verdict": "value",
+      "differs_from_311_reference": false
+     }
+    }
+   },
+   "drift_310": {
+    "compile": {
+     "rc": 0,
+     "argv": [
+      "iree-compile",
+      "b2_resnet.mlir",
+      "--iree-hal-target-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--mlir-elide-elementsattrs-if-larger=16",
+      "--iree-hal-dump-executable-files-to=dump",
+      "-o",
+      "b2_resnet.vmfb"
+     ],
+     "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.10.0rc20260107 @ ae97779f59a81bc56f804927be57749bb22548fa LLVM version 22.0.0git Optimized build",
+     "mlir_sha256": "f74133512fc23eafd29b40c4c5e86eda174fde0a25baa2164d76dca0bb628ec2",
+     "vmfb_sha256": "55586e31feebf697155e3b6cb87ec18d656d5a58bd7ef8209836cbc1842561a8",
+     "vmfb_bytes": 346554,
+     "mlir_matches_contract": true
+    },
+    "levels": {
+     "c": {
+      "status": "value",
+      "bounded": 618856,
+      "per_call": 309416,
+      "constants": 309440,
+      "kernel_stack": 1232,
+      "constants_confirmation_state": "confirmed",
+      "notes": [
+       "iree-dump-module failed: c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0\n"
+      ],
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b": {
+      "status": "value",
+      "bounded": 38552,
+      "per_call": 12288,
+      "constants": 26264,
+      "why": "alloca_unresolved=[]",
+      "verdict": "impossible_value",
+      "differs_from_311_reference": true
+     },
+     "b_prime": {
+      "status": "explicit_refusal",
+      "refusal_code": "C4_DISASM",
+      "why": "C4_DISASM: iree-dump-module --output=disassembly --function=infer exited rc=1; stderr='c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0'",
+      "verdict": "explicit_refusal"
+     }
+    }
+   },
+   "control_reproduces_archived_figures": true
+  },
+  "b3_deepae": {
+   "interface_floor_I_plus_O": 5120,
+   "reference_311_contract": {
+    "bounded": 1069632,
+    "per_call": 6208,
+    "constants": 1063424
+   },
+   "control_311": {
+    "compile": {
+     "rc": 0,
+     "argv": [
+      "iree-compile",
+      "b3_deepae.mlir",
+      "--iree-hal-target-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--mlir-elide-elementsattrs-if-larger=16",
+      "--iree-hal-dump-executable-files-to=dump",
+      "-o",
+      "b3_deepae.vmfb"
+     ],
+     "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25 LLVM version 23.0.0git Optimized build",
+     "mlir_sha256": "e40c75d867241532e578ab0a2dd4028cede1f4d0a593433284f55a574e3f3241",
+     "vmfb_sha256": "484208f40c3e22a2ee1d1e2265d9eaf7421cccc4c523950cd4f2ffa61c4e1f81",
+     "vmfb_bytes": 1081538,
+     "mlir_matches_contract": true
+    },
+    "levels": {
+     "c": {
+      "status": "value",
+      "bounded": 1069632,
+      "per_call": 6208,
+      "constants": 1063424,
+      "kernel_stack": 16,
+      "constants_confirmation_state": "confirmed",
+      "notes": [],
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b": {
+      "status": "value",
+      "bounded": 1069632,
+      "per_call": 6208,
+      "constants": 1063424,
+      "why": "alloca_unresolved=[]",
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b_prime": {
+      "status": "value",
+      "bounded": 1069632,
+      "per_call": 6208,
+      "constants": 1063424,
+      "why": "refusals=[]",
+      "verdict": "value",
+      "differs_from_311_reference": false
+     }
+    }
+   },
+   "drift_310": {
+    "compile": {
+     "rc": 0,
+     "argv": [
+      "iree-compile",
+      "b3_deepae.mlir",
+      "--iree-hal-target-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--mlir-elide-elementsattrs-if-larger=16",
+      "--iree-hal-dump-executable-files-to=dump",
+      "-o",
+      "b3_deepae.vmfb"
+     ],
+     "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.10.0rc20260107 @ ae97779f59a81bc56f804927be57749bb22548fa LLVM version 22.0.0git Optimized build",
+     "mlir_sha256": "e40c75d867241532e578ab0a2dd4028cede1f4d0a593433284f55a574e3f3241",
+     "vmfb_sha256": "7675d9baf664a8f07fbeca0121ffe59af659b26d46244521cb21f85a9c69c5f8",
+     "vmfb_bytes": 1082170,
+     "mlir_matches_contract": true
+    },
+    "levels": {
+     "c": {
+      "status": "value",
+      "bounded": 1069632,
+      "per_call": 6208,
+      "constants": 1063424,
+      "kernel_stack": 16,
+      "constants_confirmation_state": "confirmed",
+      "notes": [
+       "iree-dump-module failed: c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0\n"
+      ],
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b": {
+      "status": "value",
+      "bounded": 11384,
+      "per_call": 2560,
+      "constants": 8824,
+      "why": "alloca_unresolved=[]",
+      "verdict": "impossible_value",
+      "differs_from_311_reference": true
+     },
+     "b_prime": {
+      "status": "explicit_refusal",
+      "refusal_code": "C4_DISASM",
+      "why": "C4_DISASM: iree-dump-module --output=disassembly --function=infer exited rc=1; stderr='c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0'",
+      "verdict": "explicit_refusal"
+     }
+    }
+   },
+   "control_reproduces_archived_figures": true
+  },
+  "smartcam": {
+   "interface_floor_I_plus_O": 602124,
+   "reference_311_contract": {
+    "bounded": 18222796,
+    "per_call": 9382092,
+    "constants": 8840704
+   },
+   "control_311": {
+    "compile": {
+     "rc": 0,
+     "argv": [
+      "iree-compile",
+      "smartcam.mlir",
+      "--iree-hal-target-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--mlir-elide-elementsattrs-if-larger=16",
+      "--iree-hal-dump-executable-files-to=dump",
+      "-o",
+      "smartcam.vmfb"
+     ],
+     "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25 LLVM version 23.0.0git Optimized build",
+     "mlir_sha256": "f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4",
+     "vmfb_sha256": "a533a03dd85ac663f2aa931d6f21bf2ff6cf1278b00c8adfb6aa9f03b86182b5",
+     "vmfb_bytes": 8996033,
+     "mlir_matches_contract": true
+    },
+    "levels": {
+     "c": {
+      "status": "value",
+      "bounded": 18222796,
+      "per_call": 9382092,
+      "constants": 8840704,
+      "kernel_stack": 1919,
+      "constants_confirmation_state": "confirmed",
+      "notes": [],
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b": {
+      "status": "value",
+      "bounded": 18222796,
+      "per_call": 9382092,
+      "constants": 8840704,
+      "why": "alloca_unresolved=[]",
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b_prime": {
+      "status": "value",
+      "bounded": 18222796,
+      "per_call": 9382092,
+      "constants": 8840704,
+      "why": "refusals=[]",
+      "verdict": "value",
+      "differs_from_311_reference": false
+     }
+    }
+   },
+   "drift_310": {
+    "compile": {
+     "rc": 0,
+     "argv": [
+      "iree-compile",
+      "smartcam.mlir",
+      "--iree-hal-target-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--mlir-elide-elementsattrs-if-larger=16",
+      "--iree-hal-dump-executable-files-to=dump",
+      "-o",
+      "smartcam.vmfb"
+     ],
+     "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.10.0rc20260107 @ ae97779f59a81bc56f804927be57749bb22548fa LLVM version 22.0.0git Optimized build",
+     "mlir_sha256": "f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4",
+     "vmfb_sha256": "3b9f927b072541fbf4a0b63e2cdc0f8219527a26a4841aaf72ca66502d5748d0",
+     "vmfb_bytes": 8995577,
+     "mlir_matches_contract": true
+    },
+    "levels": {
+     "c": {
+      "status": "value",
+      "bounded": 18222796,
+      "per_call": 9382092,
+      "constants": 8840704,
+      "kernel_stack": 1919,
+      "constants_confirmation_state": "confirmed",
+      "notes": [
+       "iree-dump-module failed: c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0\n"
+      ],
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b": {
+      "status": "value",
+      "bounded": 734376,
+      "per_call": 602112,
+      "constants": 132264,
+      "why": "alloca_unresolved=[]",
+      "verdict": "impossible_value",
+      "differs_from_311_reference": true
+     },
+     "b_prime": {
+      "status": "explicit_refusal",
+      "refusal_code": "C4_DISASM",
+      "why": "C4_DISASM: iree-dump-module --output=disassembly --function=infer exited rc=1; stderr='c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0'",
+      "verdict": "explicit_refusal"
+     }
+    }
+   },
+   "control_reproduces_archived_figures": true
+  },
+  "wgan": {
+   "interface_floor_I_plus_O": 1204224,
+   "reference_311_contract": {
+    "bounded": 135666432,
+    "per_call": 131382784,
+    "constants": 4283648
+   },
+   "control_311": {
+    "compile": {
+     "rc": 0,
+     "argv": [
+      "iree-compile",
+      "wgan.mlir",
+      "--iree-hal-target-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--mlir-elide-elementsattrs-if-larger=16",
+      "--iree-hal-dump-executable-files-to=dump",
+      "-o",
+      "wgan.vmfb"
+     ],
+     "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25 LLVM version 23.0.0git Optimized build",
+     "mlir_sha256": "0671e0817a03683aae6e45099d67edf3c4c7b89a990a794484006e4cd6857f70",
+     "vmfb_sha256": "bcc898c6508e59dd6ac13b2eae40844d7bc170788b4159eae5329b5c6f4d17ca",
+     "vmfb_bytes": 4323061,
+     "mlir_matches_contract": true
+    },
+    "levels": {
+     "c": {
+      "status": "value",
+      "bounded": 135666432,
+      "per_call": 131382784,
+      "constants": 4283648,
+      "kernel_stack": 880,
+      "constants_confirmation_state": "confirmed",
+      "notes": [],
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b": {
+      "status": "value",
+      "bounded": 135666432,
+      "per_call": 131382784,
+      "constants": 4283648,
+      "why": "alloca_unresolved=[]",
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b_prime": {
+      "status": "value",
+      "bounded": 135666432,
+      "per_call": 131382784,
+      "constants": 4283648,
+      "why": "refusals=[]",
+      "verdict": "value",
+      "differs_from_311_reference": false
+     }
+    }
+   },
+   "drift_310": {
+    "compile": {
+     "rc": 0,
+     "argv": [
+      "iree-compile",
+      "wgan.mlir",
+      "--iree-hal-target-backends=llvm-cpu",
+      "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+      "--iree-llvmcpu-target-cpu=cortex-a53",
+      "--mlir-print-ir-after=iree-stream-layout-slices",
+      "--mlir-elide-elementsattrs-if-larger=16",
+      "--iree-hal-dump-executable-files-to=dump",
+      "-o",
+      "wgan.vmfb"
+     ],
+     "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.10.0rc20260107 @ ae97779f59a81bc56f804927be57749bb22548fa LLVM version 22.0.0git Optimized build",
+     "mlir_sha256": "0671e0817a03683aae6e45099d67edf3c4c7b89a990a794484006e4cd6857f70",
+     "vmfb_sha256": "28dc928b0dc3ddfcaeebd56a7c9827cc23167772f80d1cb2cb082dd31302bca8",
+     "vmfb_bytes": 4320693,
+     "mlir_matches_contract": true
+    },
+    "levels": {
+     "c": {
+      "status": "value",
+      "bounded": 135666432,
+      "per_call": 131382784,
+      "constants": 4283648,
+      "kernel_stack": 880,
+      "constants_confirmation_state": "confirmed",
+      "notes": [
+       "iree-dump-module failed: c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0\n"
+      ],
+      "verdict": "value",
+      "differs_from_311_reference": false
+     },
+     "b": {
+      "status": "value",
+      "bounded": 626920,
+      "per_call": 602112,
+      "constants": 24808,
+      "why": "alloca_unresolved=[]",
+      "verdict": "impossible_value",
+      "differs_from_311_reference": true
+     },
+     "b_prime": {
+      "status": "explicit_refusal",
+      "refusal_code": "C4_DISASM",
+      "why": "C4_DISASM: iree-dump-module --output=disassembly --function=infer exited rc=1; stderr='c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0'",
+      "verdict": "explicit_refusal"
+     }
+    }
+   },
+   "control_reproduces_archived_figures": true
+  }
+ },
+ "drift_cells": [
+  {
+   "model": "b2_resnet",
+   "level": "c",
+   "status": "value",
+   "verdict": "value",
+   "bounded": 618856,
+   "per_call": 309416,
+   "constants": 309440,
+   "why": null,
+   "differs_from_311_reference": false
+  },
+  {
+   "model": "b2_resnet",
+   "level": "b",
+   "status": "value",
+   "verdict": "impossible_value",
+   "bounded": 38552,
+   "per_call": 12288,
+   "constants": 26264,
+   "why": "alloca_unresolved=[]",
+   "differs_from_311_reference": true
+  },
+  {
+   "model": "b2_resnet",
+   "level": "b_prime",
+   "status": "explicit_refusal",
+   "verdict": "explicit_refusal",
+   "bounded": null,
+   "per_call": null,
+   "constants": null,
+   "why": "C4_DISASM: iree-dump-module --output=disassembly --function=infer exited rc=1; stderr='c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0'",
+   "differs_from_311_reference": null
+  },
+  {
+   "model": "b3_deepae",
+   "level": "c",
+   "status": "value",
+   "verdict": "value",
+   "bounded": 1069632,
+   "per_call": 6208,
+   "constants": 1063424,
+   "why": null,
+   "differs_from_311_reference": false
+  },
+  {
+   "model": "b3_deepae",
+   "level": "b",
+   "status": "value",
+   "verdict": "impossible_value",
+   "bounded": 11384,
+   "per_call": 2560,
+   "constants": 8824,
+   "why": "alloca_unresolved=[]",
+   "differs_from_311_reference": true
+  },
+  {
+   "model": "b3_deepae",
+   "level": "b_prime",
+   "status": "explicit_refusal",
+   "verdict": "explicit_refusal",
+   "bounded": null,
+   "per_call": null,
+   "constants": null,
+   "why": "C4_DISASM: iree-dump-module --output=disassembly --function=infer exited rc=1; stderr='c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0'",
+   "differs_from_311_reference": null
+  },
+  {
+   "model": "smartcam",
+   "level": "c",
+   "status": "value",
+   "verdict": "value",
+   "bounded": 18222796,
+   "per_call": 9382092,
+   "constants": 8840704,
+   "why": null,
+   "differs_from_311_reference": false
+  },
+  {
+   "model": "smartcam",
+   "level": "b",
+   "status": "value",
+   "verdict": "impossible_value",
+   "bounded": 734376,
+   "per_call": 602112,
+   "constants": 132264,
+   "why": "alloca_unresolved=[]",
+   "differs_from_311_reference": true
+  },
+  {
+   "model": "smartcam",
+   "level": "b_prime",
+   "status": "explicit_refusal",
+   "verdict": "explicit_refusal",
+   "bounded": null,
+   "per_call": null,
+   "constants": null,
+   "why": "C4_DISASM: iree-dump-module --output=disassembly --function=infer exited rc=1; stderr='c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0'",
+   "differs_from_311_reference": null
+  },
+  {
+   "model": "wgan",
+   "level": "c",
+   "status": "value",
+   "verdict": "value",
+   "bounded": 135666432,
+   "per_call": 131382784,
+   "constants": 4283648,
+   "why": null,
+   "differs_from_311_reference": false
+  },
+  {
+   "model": "wgan",
+   "level": "b",
+   "status": "value",
+   "verdict": "impossible_value",
+   "bounded": 626920,
+   "per_call": 602112,
+   "constants": 24808,
+   "why": "alloca_unresolved=[]",
+   "differs_from_311_reference": true
+  },
+  {
+   "model": "wgan",
+   "level": "b_prime",
+   "status": "explicit_refusal",
+   "verdict": "explicit_refusal",
+   "bounded": null,
+   "per_call": null,
+   "constants": null,
+   "why": "C4_DISASM: iree-dump-module --output=disassembly --function=infer exited rc=1; stderr='c/runtime/src/iree/vm/bytecode/verifier.c:180: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0'",
+   "differs_from_311_reference": null
+  }
+ ],
+ "per_level": {
+  "c": {
+   "value": 4,
+   "explicit_refusal": 0,
+   "tool_error": 0,
+   "impossible_value": 0
+  },
+  "b": {
+   "value": 0,
+   "explicit_refusal": 0,
+   "tool_error": 0,
+   "impossible_value": 4
+  },
+  "b_prime": {
+   "value": 0,
+   "explicit_refusal": 4,
+   "tool_error": 0,
+   "impossible_value": 0
+  }
+ },
+ "collection_clean": true,
+ "controls_reproducing": 4
+}

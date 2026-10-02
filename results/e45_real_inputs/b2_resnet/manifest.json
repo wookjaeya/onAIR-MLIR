@@ -1,0 +1,101 @@
+{
+ "tool": "harness/fetch_real_inputs.py resnet",
+ "experiment": "E45",
+ "model": "b2_resnet (MLPerf Tiny image classification, ic01)",
+ "goal": "G1 only -- real inputs for semantic equivalence. NO accuracy is claimed.",
+ "scope_note": "For this model the data WOULD support an accuracy figure (lossless canonical bytes, unpermuted canonical labels, a citable official subset). It is not claimed because the paper's axis is memory admission, and because claiming it for one of three models would be asymmetric. 'not claimed' here means chosen-not-to, not unable-to.",
+ "upstream": {
+  "dataset": "CIFAR-10 test batch (Krizhevsky 2009)",
+  "canonical_url": "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz",
+  "canonical_host_reachable_here": false,
+  "canonical_host_probe": "curl https://www.cs.toronto.edu/... -> 000 (blocked, measured)",
+  "test_batch_md5": "40351d587109b95175f43aff81a1287e",
+  "test_batch_sha256": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831",
+  "md5_attested_by": "torchvision/datasets/cifar.py test_list -- computed by torchvision on files extracted from the canonical tarball, so matching it is a chain of custody to upstream rather than agreement between two redistributions",
+  "mirror_used": "https://raw.githubusercontent.com/PythonCharmers/PythonCharmersData/master/cifar-10-batches-py/test_batch",
+  "mirror_is_official": false,
+  "mirror_attempts": [
+   {
+    "url": "https://raw.githubusercontent.com/PythonCharmers/PythonCharmersData/master/cifar-10-batches-py/test_batch",
+    "result": "digest_match",
+    "bytes": 31035526,
+    "md5": "40351d587109b95175f43aff81a1287e",
+    "sha256": "f53d8d457504f7cff4ea9e021afcf0e0ad8e24a91f3fc42091b8adef61157831"
+   }
+  ]
+ },
+ "licence": {
+  "data": "UNSTATED. CIFAR-10 publishes no explicit licence and none of the mirrors carries a LICENSE file. Cite Krizhevsky, 'Learning Multiple Layers of Features from Tiny Images' (2009). Do NOT describe the mirror as an official distribution channel.",
+  "selector_and_harness": "Apache-2.0 (mlcommons/tiny @ 4addd0fa08d216e20637637874e084895f289da4) -- covers perf_samples_idxs.npy and y_labels.csv, NOT the pixels."
+ },
+ "subset": {
+  "selector": "mlcommons/tiny perf_samples_idxs.npy (seed 8108, 20 per class)",
+  "selector_url": "https://raw.githubusercontent.com/mlcommons/tiny/4addd0fa08d216e20637637874e084895f289da4/benchmark/training/image_classification/perf_samples_idxs.npy",
+  "selector_sha256": "3bd4a88eeb4c50fad652d0f24c8af13bc9219ba2878aea47c6536bfbeb43024d",
+  "n": 200,
+  "per_class": [
+   20,
+   20,
+   20,
+   20,
+   20,
+   20,
+   20,
+   20,
+   20,
+   20
+  ],
+  "chosen_by_this_project": false,
+  "ambiguity_warning": "The EEMBC EnergyRunner harness that scores real MLPerf Tiny submissions uses a DIFFERENT 200 samples. Never write 'the official ic01 eval set' without saying which one."
+ },
+ "cross_check": {
+  "against": "https://raw.githubusercontent.com/mlcommons/tiny/4addd0fa08d216e20637637874e084895f289da4/benchmark/evaluation/datasets/ic01/y_labels.csv",
+  "y_labels_sha256": "79e1f19ad731f046983a1a4480bda6369df26c5acee47505a860f164fb58ccd4",
+  "filenames_matched": "200/200",
+  "filename_and_label_matched": "200/200"
+ },
+ "tensors": {
+  "x": {
+   "file": "inputs/cifar10_perf200_nhwc_uint8.npy",
+   "shape": [
+    200,
+    32,
+    32,
+    3
+   ],
+   "dtype": "uint8",
+   "sha256": "f6442743b8f3b0f535338b18fe0976f5aae86720b6e9e41c05a9aea90b286e5b",
+   "layout": "NHWC, rollaxis(reshape(N,3,32,32),1,4) -- the reference's transform"
+  },
+  "y": {
+   "file": "inputs/cifar10_perf200_labels.npy",
+   "shape": [
+    200
+   ],
+   "dtype": "uint8",
+   "sha256": "6aac54ca0f2a598d3faef9d68f79361839e1f4bc3f934dfe1b70aff9ca4754c2"
+  }
+ },
+ "value_domain": {
+  "range": [
+   0,
+   255
+  ],
+  "model_expects": "raw 0..255 as float32, with NO division by 255",
+  "evidence": "tiny/benchmark/training/image_classification/tflite_test.py: the float branch is `test_imgs = test_imgs.astype(np.float32)`; only the quantised branch transforms (astype(int64)-128 -> int8)",
+  "contrast_with_existing_fixture": "results/e34_two_models/b2_resnet/fixture is uniform[0,1), i.e. outside this domain"
+ },
+ "label_order": [
+  "airplane",
+  "automobile",
+  "bird",
+  "cat",
+  "deer",
+  "dog",
+  "frog",
+  "horse",
+  "ship",
+  "truck"
+ ],
+ "label_order_note": "canonical order from batches.meta. It is also alphabetical, so 'the order looks alphabetical' is NOT evidence of correctness; the evidence is the y_labels.csv cross-check above."
+}

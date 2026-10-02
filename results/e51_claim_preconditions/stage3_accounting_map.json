@@ -1,0 +1,735 @@
+{
+  "tool": "harness/e51_accounting_map.py",
+  "experiment": "E51",
+  "stage": 3,
+  "plan": "docs/plans/E51_claim_preconditions.md SS3",
+  "review": "docs/reviews/DECISIONS_v0_52_REVIEW.md SS5.3",
+  "does_not": [
+    "보관 계약 재생성",
+    "값 재계산",
+    "이미 있는 사실의 두 번째 사본"
+  ],
+  "definitions": {
+    "cited_from": "results/e49_research_audit/audit_matrix.json::accounting_scope",
+    "definitions": {
+      "U_static_bound": {
+        "produced_by": "harness/make_contract.py",
+        "unit": "byte",
+        "time": "compile-time",
+        "includes": "I + O_slab + T_slab (+ C in the unconditional value)",
+        "excludes": "IREE runtime context (VM, HAL device, module tables), the task stack, cFS/OSAL memory, wrapper I/O and file-load temporaries. See resources.scope -- this exclusion is the 'partial' in 'partial per-app model-execution memory contract'."
+      },
+      "B_budget": {
+        "produced_by": "배포 설정 (macro / override / argv / deployment_config / none)",
+        "unit": "byte",
+        "time": "admission-time",
+        "scope": "per_app_local_budget",
+        "reservation_semantics": "declared (예약 능력이 있는 호출 0건 — E44)"
+      },
+      "H_observed": {
+        "produced_by": "IREE HAL allocator statistics",
+        "unit": "byte",
+        "time": "runtime",
+        "excludes": "allocator 밖 메모리(프로세스 RSS·모듈 이미지·태스크 스택)"
+      },
+      "same_scope_id": {
+        "declared_in_contract": true,
+        "archived_contracts_total": 30,
+        "archived_contracts_carrying_analysis_domain": 1,
+        "note": "E40 이 신설한 `analysis_domain`/`accounting_rules` 는 그 이후에 만든 계약만 싣는다 — 보관 계약 30 개 중 1 개다. 배포에 쓰인 세 실물 모델의 계약에는 **없다**. 게이트를 약화시키지는 않는다(driver 검사는 세 자리 중 하나도 없으면 거부 = fail-closed)지만, *'계약이 두 분기와 정렬 전제를 선언한다'* 는 서술의 범위가 **그 이후 생성분**임을 여기에 적는다. 소급 재생성은 E47 이 실측으로 거부했다(축소 dump 에서 재생성하면 provenance 두 필드가 퇴화한다)."
+      },
+      "module_image_excluded": null
+    },
+    "missing": false
+  },
+  "rows": [
+    {
+      "source": "results/e36_aarch64_cfs/summary.json",
+      "cell": "cells.regression_no_override",
+      "verdict": "ADMIT",
+      "admission_mode": "unconditional",
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded",
+          "static_per_call_bytes": "per_call",
+          "module_resident_constant_bytes": "constants"
+        },
+        "read_from": "results/e36_aarch64_cfs/summary.json::contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 18222797,
+        "budget_source": "macro",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": 18222797,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.regression_no_override",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": 9382092,
+        "peak_within_admitted_budget": true,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.regression_no_override.hal_peak",
+        "absent_reason": null,
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": true,
+      "inferences": 35
+    },
+    {
+      "source": "results/e36_aarch64_cfs/summary.json",
+      "cell": "cells.admit_B",
+      "verdict": "ADMIT",
+      "admission_mode": "unconditional",
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded",
+          "static_per_call_bytes": "per_call",
+          "module_resident_constant_bytes": "constants"
+        },
+        "read_from": "results/e36_aarch64_cfs/summary.json::contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 18222796,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": 18222796,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.admit_B",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": 9382092,
+        "peak_within_admitted_budget": true,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.admit_B.hal_peak",
+        "absent_reason": null,
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": "bounded_bytes",
+      "H_le_admitted": true,
+      "inferences": 34
+    },
+    {
+      "source": "results/e36_aarch64_cfs/summary.json",
+      "cell": "cells.deny_B_minus_1",
+      "verdict": "NOT_ADMITTED",
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded",
+          "static_per_call_bytes": "per_call",
+          "module_resident_constant_bytes": "constants"
+        },
+        "read_from": "results/e36_aarch64_cfs/summary.json::contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 18222795,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": null,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.deny_B_minus_1",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=NOT_ADMITTED) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    },
+    {
+      "source": "results/e36_aarch64_cfs/summary.json",
+      "cell": "cells.malformed_abc",
+      "verdict": null,
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded",
+          "static_per_call_bytes": "per_call",
+          "module_resident_constant_bytes": "constants"
+        },
+        "read_from": "results/e36_aarch64_cfs/summary.json::contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": null,
+        "budget_source": null,
+        "absence_is_stated": true,
+        "absence_reason": "budget_invalid_event: 앱이 예산을 파싱하지 못해 초기화를 거부했다 — 예산이 '0' 인 것이 아니라 '없다'",
+        "admitted_budget_bytes": null,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.malformed_abc",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=None) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    },
+    {
+      "source": "results/e36_aarch64_cfs/summary.json",
+      "cell": "cells.zero_budget",
+      "verdict": null,
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded",
+          "static_per_call_bytes": "per_call",
+          "module_resident_constant_bytes": "constants"
+        },
+        "read_from": "results/e36_aarch64_cfs/summary.json::contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": null,
+        "budget_source": null,
+        "absence_is_stated": true,
+        "absence_reason": "budget_invalid_event: 앱이 예산을 파싱하지 못해 초기화를 거부했다 — 예산이 '0' 인 것이 아니라 '없다'",
+        "admitted_budget_bytes": null,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.zero_budget",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=None) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    },
+    {
+      "source": "results/e36_aarch64_cfs/summary.json",
+      "cell": "cells.cond_denied_without_optin",
+      "verdict": "NOT_ADMITTED",
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded",
+          "static_per_call_bytes": "per_call",
+          "module_resident_constant_bytes": "constants"
+        },
+        "read_from": "results/e36_aarch64_cfs/summary.json::contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 9382092,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": null,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.cond_denied_without_optin",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=NOT_ADMITTED) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    },
+    {
+      "source": "results/e36_aarch64_cfs/summary.json",
+      "cell": "cells.cond_positive",
+      "verdict": "ADMIT_CONDITIONAL_MAP",
+      "admission_mode": "conditional_map",
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded",
+          "static_per_call_bytes": "per_call",
+          "module_resident_constant_bytes": "constants"
+        },
+        "read_from": "results/e36_aarch64_cfs/summary.json::contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 9382092,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": 9382092,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.cond_positive",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": 9382092,
+        "peak_within_admitted_budget": true,
+        "read_from": "results/e36_aarch64_cfs/summary.json::cells.cond_positive.hal_peak",
+        "absent_reason": null,
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": "static_per_call_bytes",
+      "H_le_admitted": true,
+      "inferences": 35
+    },
+    {
+      "source": "results/e36b_aarch64_models/summary.json",
+      "cell": "models.b2_resnet.cfs_admit",
+      "verdict": "ADMIT",
+      "admission_mode": "unconditional",
+      "U": {
+        "values": {
+          "bounded_bytes": 618856,
+          "static_per_call_bytes": 309416,
+          "module_resident_constant_bytes": 309440
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b2_resnet.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 618856,
+        "budget_source": "macro",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": 618856,
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b2_resnet.cfs_admit",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": 309416,
+        "peak_within_admitted_budget": true,
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b2_resnet.cfs_admit.hal_peak",
+        "absent_reason": null,
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": "bounded_bytes",
+      "H_le_admitted": true,
+      "inferences": 45
+    },
+    {
+      "source": "results/e36b_aarch64_models/summary.json",
+      "cell": "models.b2_resnet.cfs_deny_B_minus_1",
+      "verdict": "NOT_ADMITTED",
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 618856,
+          "static_per_call_bytes": 309416,
+          "module_resident_constant_bytes": 309440
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b2_resnet.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 618855,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": null,
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b2_resnet.cfs_deny_B_minus_1",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=NOT_ADMITTED) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    },
+    {
+      "source": "results/e36b_aarch64_models/summary.json",
+      "cell": "models.b3_deepae.cfs_admit",
+      "verdict": "ADMIT",
+      "admission_mode": "unconditional",
+      "U": {
+        "values": {
+          "bounded_bytes": 1069632,
+          "static_per_call_bytes": 6208,
+          "module_resident_constant_bytes": 1063424
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b3_deepae.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 1069632,
+        "budget_source": "macro",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": 1069632,
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b3_deepae.cfs_admit",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": 6208,
+        "peak_within_admitted_budget": true,
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b3_deepae.cfs_admit.hal_peak",
+        "absent_reason": null,
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": "bounded_bytes",
+      "H_le_admitted": true,
+      "inferences": 35
+    },
+    {
+      "source": "results/e36b_aarch64_models/summary.json",
+      "cell": "models.b3_deepae.cfs_deny_B_minus_1",
+      "verdict": "NOT_ADMITTED",
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 1069632,
+          "static_per_call_bytes": 6208,
+          "module_resident_constant_bytes": 1063424
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b3_deepae.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 1069631,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": null,
+        "read_from": "results/e36b_aarch64_models/summary.json::models.b3_deepae.cfs_deny_B_minus_1",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=NOT_ADMITTED) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    },
+    {
+      "source": "results/e48_real_inputs_aarch64/summary.json",
+      "cell": "models.b2_resnet.cfs_admit_B",
+      "verdict": "ADMIT",
+      "admission_mode": "unconditional",
+      "U": {
+        "values": {
+          "bounded_bytes": 618856,
+          "static_per_call_bytes": 309416,
+          "module_resident_constant_bytes": 309440
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b2_resnet.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 618856,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": 618856,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b2_resnet.cfs_admit_B",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": 309416,
+        "peak_within_admitted_budget": true,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b2_resnet.cfs_admit_B.hal_peak",
+        "absent_reason": null,
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": "bounded_bytes",
+      "H_le_admitted": true,
+      "inferences": 204
+    },
+    {
+      "source": "results/e48_real_inputs_aarch64/summary.json",
+      "cell": "models.b2_resnet.cfs_deny_B_minus_1",
+      "verdict": "NOT_ADMITTED",
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 618856,
+          "static_per_call_bytes": 309416,
+          "module_resident_constant_bytes": 309440
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b2_resnet.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 618855,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": null,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b2_resnet.cfs_deny_B_minus_1",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=NOT_ADMITTED) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    },
+    {
+      "source": "results/e48_real_inputs_aarch64/summary.json",
+      "cell": "models.b3_deepae.cfs_admit_B",
+      "verdict": "ADMIT",
+      "admission_mode": "unconditional",
+      "U": {
+        "values": {
+          "bounded_bytes": 1069632,
+          "static_per_call_bytes": 6208,
+          "module_resident_constant_bytes": 1063424
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b3_deepae.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 1069632,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": 1069632,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b3_deepae.cfs_admit_B",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": 6208,
+        "peak_within_admitted_budget": true,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b3_deepae.cfs_admit_B.hal_peak",
+        "absent_reason": null,
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": "bounded_bytes",
+      "H_le_admitted": true,
+      "inferences": 148
+    },
+    {
+      "source": "results/e48_real_inputs_aarch64/summary.json",
+      "cell": "models.b3_deepae.cfs_deny_B_minus_1",
+      "verdict": "NOT_ADMITTED",
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 1069632,
+          "static_per_call_bytes": 6208,
+          "module_resident_constant_bytes": 1063424
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b3_deepae.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 1069631,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": null,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.b3_deepae.cfs_deny_B_minus_1",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=NOT_ADMITTED) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    },
+    {
+      "source": "results/e48_real_inputs_aarch64/summary.json",
+      "cell": "models.smartcam.cfs_admit_B",
+      "verdict": "ADMIT",
+      "admission_mode": "unconditional",
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.smartcam.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 18222796,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": 18222796,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.smartcam.cfs_admit_B",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": 9382092,
+        "peak_within_admitted_budget": true,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.smartcam.cfs_admit_B.hal_peak",
+        "absent_reason": null,
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": "bounded_bytes",
+      "H_le_admitted": true,
+      "inferences": 282
+    },
+    {
+      "source": "results/e48_real_inputs_aarch64/summary.json",
+      "cell": "models.smartcam.cfs_deny_B_minus_1",
+      "verdict": "NOT_ADMITTED",
+      "admission_mode": null,
+      "U": {
+        "values": {
+          "bounded_bytes": 18222796,
+          "static_per_call_bytes": 9382092,
+          "module_resident_constant_bytes": 8840704
+        },
+        "key_spelling_used": {
+          "bounded_bytes": "bounded_bytes",
+          "static_per_call_bytes": "static_per_call_bytes",
+          "module_resident_constant_bytes": "module_resident_constant_bytes"
+        },
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.smartcam.contract",
+        "produced_by": "harness/make_contract.py (compile-time)"
+      },
+      "B": {
+        "budget_bytes": 18222795,
+        "budget_source": "override",
+        "absence_is_stated": null,
+        "absence_reason": null,
+        "admitted_budget_bytes": null,
+        "read_from": "results/e48_real_inputs_aarch64/summary.json::models.smartcam.cfs_deny_B_minus_1",
+        "scope": "per_app_local_budget"
+      },
+      "H": {
+        "hal_peak": null,
+        "peak_within_admitted_budget": null,
+        "read_from": null,
+        "absent_reason": "이 셀은 추론을 하지 않았다 (verdict=NOT_ADMITTED) — HAL 피크가 없는 것이 0 이라는 뜻이 아니다",
+        "produced_by": "IREE HAL allocator statistics (runtime)"
+      },
+      "admitted_budget_equals": null,
+      "H_le_admitted": null,
+      "inferences": 0
+    }
+  ],
+  "row_count": 17,
+  "rows_with_U_and_B_resolved": 17,
+  "rows_violating_H_le_admitted": [],
+  "problems": [],
+  "overlap_audit": {
+    "checked": "results/evidence_linkage/linkage.json",
+    "present": true,
+    "linkage_locator_count": 221,
+    "rows_whose_H_locator_already_in_linkage": 11,
+    "note": "연결표는 셀마다 값을 이미 싣고 있다. 이 표가 더하는 것은 값이 아니라 **U·B·H 를 한 정의 아래 한 행으로 놓는 매핑**이다 — 새 수치를 만들지 않는다는 것이 이 단계의 제약이다(계획 SS3)."
+  },
+  "field_name_drift": {
+    "what": "같은 세 수치가 요약 생성기마다 다른 이름으로 저장돼 있다 — mk_e36_summary: bounded/per_call/constants, mk_e36b_summary·mk_e48_summary: bounded_bytes/static_per_call_bytes/module_resident_constant_bytes.",
+    "impact": "수치·판정에는 영향이 없다(값은 같다). 영향은 **판독**에 있다 — 한 철자만 아는 판독기는 다른 쪽에서 조용히 null 을 보고한다. 이 도구의 첫 판이 실제로 E36 다섯 셀에 그렇게 했다.",
+    "handling": "보관 요약을 고쳐 쓰지 않고 별칭을 명시 선언했다; 행마다 읽은 철자를 싣는다.",
+    "spellings_seen": [
+      "bounded",
+      "bounded_bytes",
+      "constants",
+      "module_resident_constant_bytes",
+      "per_call",
+      "static_per_call_bytes"
+    ]
+  },
+  "verdict": "PASS"
+}

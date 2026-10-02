@@ -1,0 +1,1230 @@
+{
+ "Q1_parity": {
+  "accepted": [
+   "reissued_b2_resnet",
+   "reissued_b3_deepae",
+   "reissued_smartcam",
+   "reissued_wgan",
+   "archived_waived_b2_resnet",
+   "archived_waived_b3_deepae",
+   "archived_waived_smartcam",
+   "archived_waived_wgan",
+   "variant_no_provenance_no_producer_check"
+  ],
+  "bound_method_sets_equal": true,
+  "cases": [
+   {
+    "agree": true,
+    "case": "reissued_b2_resnet",
+    "document": "results/e65_producer_check/reissued/b2_resnet/b2_resnet.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "analyzer (E65 re-issue)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "reissued_b3_deepae",
+    "document": "results/e65_producer_check/reissued/b3_deepae/b3_deepae.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "analyzer (E65 re-issue)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "reissued_smartcam",
+    "document": "results/e65_producer_check/reissued/smartcam/smartcam.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "analyzer (E65 re-issue)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "reissued_wgan",
+    "document": "results/e65_producer_check/reissued/wgan/wgan.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "analyzer (E65 re-issue)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "archived_b2_resnet",
+    "document": "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: the document states a bound but carries no validity.producer_check (written before E65), so the bytecode version of the artifact was never compared with the revision the analysis was checked for. Re-issue it w"
+     ]
+    },
+    "origin": "analyzer (before E65)",
+    "plugin": {
+     "accepted": false,
+     "reason": "the document states a bound but carries no validity.producer_check, so the artifact's bytecode version was never compared with the examined revision (a missing comparison is not read as a match)",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "archived_b3_deepae",
+    "document": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: the document states a bound but carries no validity.producer_check (written before E65), so the bytecode version of the artifact was never compared with the revision the analysis was checked for. Re-issue it w"
+     ]
+    },
+    "origin": "analyzer (before E65)",
+    "plugin": {
+     "accepted": false,
+     "reason": "the document states a bound but carries no validity.producer_check, so the artifact's bytecode version was never compared with the examined revision (a missing comparison is not read as a match)",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "archived_smartcam",
+    "document": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: the document states a bound but carries no validity.producer_check (written before E65), so the bytecode version of the artifact was never compared with the revision the analysis was checked for. Re-issue it w"
+     ]
+    },
+    "origin": "analyzer (before E65)",
+    "plugin": {
+     "accepted": false,
+     "reason": "the document states a bound but carries no validity.producer_check, so the artifact's bytecode version was never compared with the examined revision (a missing comparison is not read as a match)",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "archived_wgan",
+    "document": "results/e53_wgan_aarch64/build/aarch64/wgan.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: the document states a bound but carries no validity.producer_check (written before E65), so the bytecode version of the artifact was never compared with the revision the analysis was checked for. Re-issue it w"
+     ]
+    },
+    "origin": "analyzer (before E65)",
+    "plugin": {
+     "accepted": false,
+     "reason": "the document states a bound but carries no validity.producer_check, so the artifact's bytecode version was never compared with the examined revision (a missing comparison is not read as a match)",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "archived_waived_b2_resnet",
+    "document": "results/e36b_aarch64_models/b2_resnet/b2_resnet.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "analyzer (before E65)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": [
+      "allow_unchecked_producer"
+     ]
+    },
+    "transform": null,
+    "waiver": true
+   },
+   {
+    "agree": true,
+    "case": "archived_waived_b3_deepae",
+    "document": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "analyzer (before E65)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": [
+      "allow_unchecked_producer"
+     ]
+    },
+    "transform": null,
+    "waiver": true
+   },
+   {
+    "agree": true,
+    "case": "archived_waived_smartcam",
+    "document": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "analyzer (before E65)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": [
+      "allow_unchecked_producer"
+     ]
+    },
+    "transform": null,
+    "waiver": true
+   },
+   {
+    "agree": true,
+    "case": "archived_waived_wgan",
+    "document": "results/e53_wgan_aarch64/build/aarch64/wgan.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "analyzer (before E65)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": [
+      "allow_unchecked_producer"
+     ]
+    },
+    "transform": null,
+    "waiver": true
+   },
+   {
+    "agree": true,
+    "case": "earlier_revision_b2_resnet",
+    "document": "results/e65_producer_check/drift_310_reanalyzed/b2_resnet/b2_resnet.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]). The analysis was checked for IREE 3.11.0rc20260316 only; pass --allow-producer-mismatch to write a header that states NO b"
+     ]
+    },
+    "origin": "analyzer (earlier-revision artifact)",
+    "plugin": {
+     "accepted": false,
+     "reason": "validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]): the analysis was not examined for the revision that produced this artifact",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "earlier_revision_b3_deepae",
+    "document": "results/e65_producer_check/drift_310_reanalyzed/b3_deepae/b3_deepae.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]). The analysis was checked for IREE 3.11.0rc20260316 only; pass --allow-producer-mismatch to write a header that states NO b"
+     ]
+    },
+    "origin": "analyzer (earlier-revision artifact)",
+    "plugin": {
+     "accepted": false,
+     "reason": "validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]): the analysis was not examined for the revision that produced this artifact",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "earlier_revision_smartcam",
+    "document": "results/e65_producer_check/drift_310_reanalyzed/smartcam/smartcam.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]). The analysis was checked for IREE 3.11.0rc20260316 only; pass --allow-producer-mismatch to write a header that states NO b"
+     ]
+    },
+    "origin": "analyzer (earlier-revision artifact)",
+    "plugin": {
+     "accepted": false,
+     "reason": "validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]): the analysis was not examined for the revision that produced this artifact",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "earlier_revision_wgan",
+    "document": "results/e65_producer_check/drift_310_reanalyzed/wgan/wgan.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing: validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]). The analysis was checked for IREE 3.11.0rc20260316 only; pass --allow-producer-mismatch to write a header that states NO b"
+     ]
+    },
+    "origin": "analyzer (earlier-revision artifact)",
+    "plugin": {
+     "accepted": false,
+     "reason": "validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]): the analysis was not examined for the revision that produced this artifact",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "override_b2_resnet",
+    "document": "results/e66_plugin_document_rules/docs/b2_resnet_override/b2_resnet.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing to emit a deployable header from a contract whose own provenance says it was not fully verified: provenance.overrides_applied=['--allow-structural-mismatch']; provenance.verification_grade='overridden'. Rebuild"
+     ]
+    },
+    "origin": "analyzer (--allow-structural-mismatch)",
+    "plugin": {
+     "accepted": false,
+     "reason": "the document's own provenance says it was not fully verified: provenance.overrides_applied=['--allow-structural-mismatch']; provenance.verification_grade='overridden'",
+     "waived": []
+    },
+    "transform": null,
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "variant_grade_only",
+    "document": "results/e65_producer_check/reissued/b2_resnet/b2_resnet.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing to emit a deployable header from a contract whose own provenance says it was not fully verified: provenance.verification_grade='overridden'. Rebuild the contract without the --allow-* escape hatch(es), or pass "
+     ]
+    },
+    "origin": "hand-edited variant of the re-issued ResNet document (unit case)",
+    "plugin": {
+     "accepted": false,
+     "reason": "the document's own provenance says it was not fully verified: provenance.verification_grade='overridden'",
+     "waived": []
+    },
+    "transform": "grade_only",
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "variant_single_invocation_false",
+    "document": "results/e65_producer_check/reissued/b2_resnet/b2_resnet.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing to emit a deployable header from a contract whose own provenance says it was not fully verified: provenance.single_invocation=False (not a positively verified single iree-compile invocation). Rebuild the contra"
+     ]
+    },
+    "origin": "hand-edited variant of the re-issued ResNet document (unit case)",
+    "plugin": {
+     "accepted": false,
+     "reason": "the document's own provenance says it was not fully verified: provenance.single_invocation=False",
+     "waived": []
+    },
+    "transform": "not_single",
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "variant_no_provenance_no_producer_check",
+    "document": "results/e65_producer_check/reissued/b2_resnet/b2_resnet.contract.json",
+    "generator": {
+     "accepted": true,
+     "rc": 0,
+     "stderr_tail": []
+    },
+    "origin": "hand-edited variant of the re-issued ResNet document (unit case)",
+    "plugin": {
+     "accepted": true,
+     "reason": null,
+     "waived": []
+    },
+    "transform": "no_prov_no_pc",
+    "waiver": false
+   },
+   {
+    "agree": true,
+    "case": "variant_unrecognized_bound_method",
+    "document": "results/e65_producer_check/reissued/b2_resnet/b2_resnet.contract.json",
+    "generator": {
+     "accepted": false,
+     "rc": 1,
+     "stderr_tail": [
+      "gen_contract_header: refusing unrecognized resources.bound_method 'static_from_elsewhere' (allowed: ['NONE', 'static_from_stream_layout', 'static_from_stream_schedule'])"
+     ]
+    },
+    "origin": "hand-edited variant of the re-issued ResNet document (unit case)",
+    "plugin": {
+     "accepted": false,
+     "reason": "unrecognized resources.bound_method 'static_from_elsewhere'",
+     "waived": []
+    },
+    "transform": "unknown_method",
+    "waiver": false
+   }
+  ],
+  "disagreements": [],
+  "n": 21,
+  "pass": true
+ },
+ "Q2_budget": {
+  "cases": [
+   {
+    "case": "absent",
+    "expected": "none",
+    "got": "none",
+    "ok": true,
+    "value": "'<absent>'"
+   },
+   {
+    "case": "null",
+    "expected": "none",
+    "got": "none",
+    "ok": true,
+    "value": "None"
+   },
+   {
+    "case": "one",
+    "expected": 1,
+    "got": 1,
+    "ok": true,
+    "value": "1"
+   },
+   {
+    "case": "resnet_Bu",
+    "expected": 618856,
+    "got": 618856,
+    "ok": true,
+    "value": "618856"
+   },
+   {
+    "case": "zero",
+    "expected": "refuse",
+    "got": "refuse",
+    "ok": true,
+    "value": "0"
+   },
+   {
+    "case": "negative",
+    "expected": "refuse",
+    "got": "refuse",
+    "ok": true,
+    "value": "-1"
+   },
+   {
+    "case": "true",
+    "expected": "refuse",
+    "got": "refuse",
+    "ok": true,
+    "value": "True"
+   },
+   {
+    "case": "false",
+    "expected": "refuse",
+    "got": "refuse",
+    "ok": true,
+    "value": "False"
+   },
+   {
+    "case": "string",
+    "expected": "refuse",
+    "got": "refuse",
+    "ok": true,
+    "value": "'618856'"
+   },
+   {
+    "case": "float",
+    "expected": "refuse",
+    "got": "refuse",
+    "ok": true,
+    "value": "618856.9"
+   },
+   {
+    "case": "list",
+    "expected": "refuse",
+    "got": "refuse",
+    "ok": true,
+    "value": "[]"
+   }
+  ],
+  "committed_deployments_checked": 51,
+  "committed_deployments_expected_refused": [
+   "e66_b2_resnet_R4_budget_zero"
+  ],
+  "committed_deployments_mismatched": [],
+  "committed_documents": [
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments.json",
+    "deployment": "smartcam",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments.json",
+    "deployment": "smartcam_deny",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments.json",
+    "deployment": "smartcam_mismatch",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments.json",
+    "deployment": "legacy_mlp",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments.json",
+    "deployment": "smartcam_wrong_driver",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments.json",
+    "deployment": "smartcam_no_budget",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_b2_resnet_Bu",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_b2_resnet_Bum1",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_b3_deepae_Bu",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_b3_deepae_Bum1",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_smartcam_Bu",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_smartcam_Bum1",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_wgan_Bu",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_wgan_Bum1",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e57_aarch64.json",
+    "deployment": "e57_b3_deepae_Bu_long",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b2_resnet_Bu_fix",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b3_deepae_Bu_fix",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_smartcam_Bu_fix",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_wgan_Bu_fix",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b3_deepae_Bu_long_fix",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b2_resnet_Bu_ctl",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b3_deepae_Bu_ctl",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_smartcam_Bu_ctl",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_wgan_Bu_ctl",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b2_resnet_Bu_default",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b2_resnet_Bu_enf_ctl",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b2_resnet_Bu_enf_fix",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b3_deepae_Bu_enf_ctl",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b3_deepae_Bu_enf_fix",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_smartcam_Bu_enf_ctl",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_smartcam_Bu_enf_fix",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b2_resnet_Bum1",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_b3_deepae_Bum1",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_smartcam_Bum1",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e62_aarch64.json",
+    "deployment": "e62_wgan_Bum1",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e65_aarch64.json",
+    "deployment": "e65_b2_resnet_conditional_requested",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e65_aarch64.json",
+    "deployment": "e65_b2_resnet_conditional_false_control",
+    "expected": "accepted",
+    "pinned": true,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b2_resnet_Bum1",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b2_resnet_Bu",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b3_deepae_Bum1",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b3_deepae_Bu",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_smartcam_Bum1",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_smartcam_Bu",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_wgan_Bum1",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_wgan_Bu",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": false,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b2_resnet_R1_unchecked",
+    "expected": "refused",
+    "pinned": false,
+    "reason": "the document states a bound but carries no validity.producer_check, so the artifact's bytecode version was never compared with the examined revision (a missing comparison is not read as a match)"
+   },
+   {
+    "accepted": false,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b2_resnet_R2_earlier_revision",
+    "expected": "refused",
+    "pinned": false,
+    "reason": "validity.producer_check.state='mismatch' (artifact bytecode [16, 0], checked [17, 0]): the analysis was not examined for the revision that produced this artifact"
+   },
+   {
+    "accepted": false,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b2_resnet_R3_override",
+    "expected": "refused",
+    "pinned": false,
+    "reason": "the document's own provenance says it was not fully verified: provenance.overrides_applied=['--allow-structural-mismatch']; provenance.verification_grade='overridden'"
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b2_resnet_R4_budget_zero",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": []
+   },
+   {
+    "accepted": true,
+    "as_expected": true,
+    "config": "configs/deployments/onair_deployments_e66_aarch64.json",
+    "deployment": "e66_b2_resnet_C1_waived",
+    "expected": "accepted",
+    "pinned": false,
+    "waived": [
+     "allow_unchecked_producer"
+    ]
+   }
+  ],
+  "committed_documents_not_as_expected": [],
+  "pass": true
+ },
+ "Q5_corpus": {
+  "e64_corpus_cited": {
+   "count": 11,
+   "record": "results/e64_aarch64_evidence/corpus.json",
+   "unclassified_total": 0
+  },
+  "e64_directory_list_note": "E64 enumerates AArch64 representations by an explicit directory list (AARCH64_COMPILE_DIRS); E65's multiout_aarch64 directory is not in it, so the twelfth representation is counted here, not by re-running E64",
+  "pass": true,
+  "pre_scheduling_ops": [],
+  "representation": "results/e65_producer_check/multiout_aarch64/multiout.layout_ir.txt",
+  "sha256": "e5c47a57c20a845ec8164efbfcc6a2ab2616b6a825ca742e8fba2290722a35df",
+  "total_representations": 12,
+  "total_unclassified": 0,
+  "unclassified_resource_ops": [],
+  "unsupported_control_ops": []
+ },
+ "Q6_vcpu_record": {
+  "models_observed_at_two_or_more_cpu_counts": [
+   "b2_resnet",
+   "b3_deepae",
+   "smartcam",
+   "wgan"
+  ],
+  "note": "a record for the manuscript's Table 4 guest row, not a verdict",
+  "per_model": {
+   "b2_resnet": {
+    "P": 309416,
+    "cells": {
+     "1": [
+      "results/e55_mandatory_followups/cells/p0_4/logs/e55_b2_resnet_conditional.log",
+      "results/e56_conditional_refusal_aarch64/cells/logs/e56_b2_resnet_admit.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b2_resnet.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__b2_resnet.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__b2_resnet.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__b2_resnet.log",
+      "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_b2_resnet_pow2_above.log",
+      "results/e58_alignment_sweep_aarch64/cells/logs/e58_b2_resnet_off00.log"
+     ],
+     "2": [
+      "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log"
+     ]
+    },
+    "cpus_with_final_peak_equal_P": [
+     "1",
+     "2"
+    ]
+   },
+   "b3_deepae": {
+    "P": 6208,
+    "cells": {
+     "1": [
+      "results/e55_mandatory_followups/cells/p0_4/logs/e55_b3_deepae_conditional.log",
+      "results/e56_conditional_refusal_aarch64/cells/logs/e56_b3_deepae_admit.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__b3_deepae.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__b3_deepae.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__b3_deepae.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__b3_deepae.log",
+      "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_b3_deepae_pow2_above.log",
+      "results/e58_alignment_sweep_aarch64/cells/logs/e58_b3_deepae_off00.log"
+     ],
+     "2": [
+      "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log"
+     ]
+    },
+    "cpus_with_final_peak_equal_P": [
+     "1",
+     "2"
+    ]
+   },
+   "smartcam": {
+    "P": 9382092,
+    "cells": {
+     "1": [
+      "results/e55_mandatory_followups/cells/p0_4/logs/e55_smartcam_conditional.log",
+      "results/e56_conditional_refusal_aarch64/cells/logs/e56_smartcam_admit.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_pdr50__smartcam.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PA_ship30__smartcam.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_pdr50__smartcam.log",
+      "results/e54_reference_budget/cells/cfs_e48_part1/logs/PB_ship30__smartcam.log",
+      "results/e54_reference_budget/cells/cfs_e48_part2/logs/sweep_smartcam_pow2_above.log",
+      "results/e58_alignment_sweep_aarch64/cells/logs/e58_smartcam_off00.log"
+     ],
+     "2": [
+      "results/e48_real_inputs_aarch64/cfs/logs/smartcam_admit_B_real.log"
+     ]
+    },
+    "cpus_with_final_peak_equal_P": [
+     "1",
+     "2"
+    ]
+   },
+   "wgan": {
+    "P": 131382784,
+    "cells": {
+     "1": [
+      "results/e53_wgan_aarch64/cfs/logs/cfs_B.log",
+      "results/e55_mandatory_followups/cells/p0_4/logs/e55_wgan_conditional.log",
+      "results/e56_conditional_refusal_aarch64/cells/logs/e56_wgan_admit.log",
+      "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_pdr50__wgan.log",
+      "results/e54_reference_budget/cells/e53_wgan_part1/logs/PA_ship30__wgan.log",
+      "results/e54_reference_budget/cells/e53_wgan_part1/logs/PB_pdr50__wgan.log",
+      "results/e54_reference_budget/cells/e53_wgan_part1/logs/PB_ship30__wgan.log",
+      "results/e54_reference_budget/cells/e53_wgan_part2/logs/sweep_wgan_pow2_above.log"
+     ],
+     "4": [
+      "results/e63_single_build_and_conditional_floor/cells/logs/e63_wgan_map_e55b_build.log"
+     ]
+    },
+    "cpus_with_final_peak_equal_P": [
+     "1",
+     "4"
+    ]
+   }
+  }
+ },
+ "Q7_inventory_record": {
+  "alignment_cells_total": 32,
+  "alignment_cells_with_final_peak": 22,
+  "alignment_final_peaks_by_arm": {
+   "offset_0_equals_P": 3,
+   "other_offsets_equal_P_plus_C": 19
+  },
+  "alignment_final_peaks_within_B_u": true,
+  "distinct_execution_peaks": [
+   6208,
+   309416,
+   618856,
+   1069632,
+   9382092,
+   18222796,
+   131382784,
+   135666432
+  ],
+  "execution_cells": {
+   "at_B_u": 5,
+   "conditional": 8,
+   "copy_arm": 4,
+   "reference_profiles": 16,
+   "sensitivity_above": 4
+  },
+  "execution_cells_all_present": true,
+  "execution_cells_peak_within_admitted_budget": 37,
+  "execution_cells_total": 37,
+  "note": "counts for the manuscript's evidence summary, recounted from the raw logs; not a verdict",
+  "refusal_cells": {
+   "B_u_minus_1": 4,
+   "conditional_P_minus_1": 4,
+   "conditional_control_at_P": 4,
+   "misaligned_conditional": 4,
+   "sensitivity_below": 4
+  },
+  "refusal_cells_total": 20,
+  "refusal_cells_without_runtime_or_inference": 20,
+  "refusal_verdicts": [
+   "ADMIT_CONDITIONAL_MAP",
+   "NOT_ADMITTED"
+  ],
+  "runtime_load_refusal_cells": [
+   {
+    "log": "results/e65_producer_check/guest/cells/logs/e65_drift_legacy.log",
+    "mem_init_records": 0,
+    "run_records": 0,
+    "runtime_load_failed": [
+     "iree-src/runtime/src/iree/vm/bytecode/verifier.c:176: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0"
+    ],
+    "verdict": "ADMIT"
+   }
+  ],
+  "unknown_bound_cells": [
+   {
+    "log": "results/e65_producer_check/guest/cells/logs/e65_drift_nobound.log",
+    "mem_init_records": 0,
+    "run_records": 0,
+    "verdict": "UNKNOWN_BOUND"
+   },
+   {
+    "log": "results/e14_aarch64_qemu/cfs/logs/A8_dynamic_unknown.log",
+    "mem_init_records": 0,
+    "run_records": 0,
+    "verdict": "UNKNOWN_BOUND"
+   }
+  ]
+ },
+ "experiment": "E66",
+ "plan": "docs/plans/E66_plugin_document_rules.md (committed before any implementation or cell, ae115f3)"
+}

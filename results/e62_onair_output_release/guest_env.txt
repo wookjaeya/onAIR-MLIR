@@ -1,0 +1,5 @@
+uname: Linux onair-aarch64 6.8.0-138-generic #138-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 22:20:42 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+nproc: 4
+               total        used        free      shared  buff/cache   available
+Mem:      2049822720   216686592  1598185472     1114112   317636608  1833136128
+python 3.12.3 numpy 2.3.5 iree.runtime /home/ubuntu/e57/pylib/iree/runtime/__init__.py

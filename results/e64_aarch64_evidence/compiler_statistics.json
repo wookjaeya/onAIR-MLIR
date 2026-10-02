@@ -1,0 +1,254 @@
+{
+ "experiment": "E64",
+ "part": "C",
+ "plan": "docs/plans/E64_aarch64_evidence_for_manuscript.md (committed before measurement, 6578481)",
+ "compiler_version": "IREE (https://iree.dev): IREE compiler version 3.11.0rc20260316 @ e4a3b0405d7d23554da26403658d0e8c3c5ecf25 LLVM version 23.0.0git Optimized build",
+ "target": {
+  "triple": "aarch64-unknown-linux-gnu",
+  "cpu": "cortex-a53"
+ },
+ "note": "statistics, vmfb, layout IR and executable dump come from ONE iree-compile invocation per model; the specification is generated from that invocation's outputs. vmfb and dump are not stored (not byte-reproducible; the figures are -- E26e); the statistics files and the specifications are.",
+ "models": {
+  "b2_resnet": {
+   "mlir_source": "results/e36b_aarch64_models/b2_resnet/b2_resnet.mlir",
+   "mlir_sha256": "f74133512fc23eafd29b40c4c5e86eda174fde0a25baa2164d76dca0bb628ec2",
+   "json_invocation": {
+    "rc": 0,
+    "argv": [
+     "iree-compile",
+     "b2_resnet.mlir",
+     "--iree-hal-target-backends=llvm-cpu",
+     "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+     "--iree-llvmcpu-target-cpu=cortex-a53",
+     "--mlir-print-ir-after=iree-stream-layout-slices",
+     "--mlir-elide-elementsattrs-if-larger=16",
+     "--iree-hal-dump-executable-files-to=dump",
+     "--iree-scheduling-dump-statistics-format=json",
+     "--iree-scheduling-dump-statistics-file=b2_resnet.stats.json",
+     "-o",
+     "b2_resnet.vmfb"
+    ],
+    "vmfb_sha256": "98be54a6560905689788cf27dde19f7ac6974350ecc40c0886bf7ef9dff9ee6d",
+    "vmfb_elf_formats": [
+     "embedded-elf-arm_64"
+    ]
+   },
+   "specification_same_invocation": {
+    "elf_rc": 0,
+    "make_contract_rc": 0,
+    "stderr_tail": []
+   },
+   "stats": {
+    "constant_size": 309440,
+    "transient_memory_size": 297128
+   },
+   "specification": {
+    "bound_method": "static_from_stream_layout",
+    "bounded_bytes": 618856,
+    "static_per_call_bytes": 309416,
+    "C": 309440,
+    "T": 297088,
+    "O": 40,
+    "unresolved_sizes": []
+   },
+   "constant_size_equals_C": true,
+   "transient_equals_T_plus_O": true
+  },
+  "b3_deepae": {
+   "mlir_source": "results/e36b_aarch64_models/b3_deepae/b3_deepae.mlir",
+   "mlir_sha256": "e40c75d867241532e578ab0a2dd4028cede1f4d0a593433284f55a574e3f3241",
+   "json_invocation": {
+    "rc": 0,
+    "argv": [
+     "iree-compile",
+     "b3_deepae.mlir",
+     "--iree-hal-target-backends=llvm-cpu",
+     "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+     "--iree-llvmcpu-target-cpu=cortex-a53",
+     "--mlir-print-ir-after=iree-stream-layout-slices",
+     "--mlir-elide-elementsattrs-if-larger=16",
+     "--iree-hal-dump-executable-files-to=dump",
+     "--iree-scheduling-dump-statistics-format=json",
+     "--iree-scheduling-dump-statistics-file=b3_deepae.stats.json",
+     "-o",
+     "b3_deepae.vmfb"
+    ],
+    "vmfb_sha256": "49eb32dcbfdbc80005aa50fbcd56f0c35c3a105f227c3b2b410ef92c2b58382e",
+    "vmfb_elf_formats": [
+     "embedded-elf-arm_64"
+    ]
+   },
+   "specification_same_invocation": {
+    "elf_rc": 0,
+    "make_contract_rc": 0,
+    "stderr_tail": []
+   },
+   "stats": {
+    "constant_size": 1063424,
+    "transient_memory_size": 3648
+   },
+   "specification": {
+    "bound_method": "static_from_stream_layout",
+    "bounded_bytes": 1069632,
+    "static_per_call_bytes": 6208,
+    "C": 1063424,
+    "T": 1088,
+    "O": 2560,
+    "unresolved_sizes": []
+   },
+   "constant_size_equals_C": true,
+   "transient_equals_T_plus_O": true
+  },
+  "smartcam": {
+   "mlir_source": "results/p1_smartcam_feasibility/build/smartcam.mlir.gz",
+   "mlir_sha256": "f1f659fafd57382583135ed4998706d50848cd35aed0510aece59b75ae6ce8a4",
+   "json_invocation": {
+    "rc": 0,
+    "argv": [
+     "iree-compile",
+     "smartcam.mlir",
+     "--iree-hal-target-backends=llvm-cpu",
+     "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+     "--iree-llvmcpu-target-cpu=cortex-a53",
+     "--mlir-print-ir-after=iree-stream-layout-slices",
+     "--mlir-elide-elementsattrs-if-larger=16",
+     "--iree-hal-dump-executable-files-to=dump",
+     "--iree-scheduling-dump-statistics-format=json",
+     "--iree-scheduling-dump-statistics-file=smartcam.stats.json",
+     "-o",
+     "smartcam.vmfb"
+    ],
+    "vmfb_sha256": "75ad7e75e2ce5a5655b22521908b88e447604e477c548a0a7674cffcd7962f31",
+    "vmfb_elf_formats": [
+     "embedded-elf-arm_64"
+    ]
+   },
+   "specification_same_invocation": {
+    "elf_rc": 0,
+    "make_contract_rc": 0,
+    "stderr_tail": []
+   },
+   "stats": {
+    "constant_size": 8840704,
+    "transient_memory_size": 8779980
+   },
+   "specification": {
+    "bound_method": "static_from_stream_layout",
+    "bounded_bytes": 18222796,
+    "static_per_call_bytes": 9382092,
+    "C": 8840704,
+    "T": 8779968,
+    "O": 12,
+    "unresolved_sizes": []
+   },
+   "constant_size_equals_C": true,
+   "transient_equals_T_plus_O": true
+  },
+  "wgan": {
+   "mlir_source": "results/e53_wgan_aarch64/build/aarch64/wgan.mlir",
+   "mlir_sha256": "0671e0817a03683aae6e45099d67edf3c4c7b89a990a794484006e4cd6857f70",
+   "json_invocation": {
+    "rc": 0,
+    "argv": [
+     "iree-compile",
+     "wgan.mlir",
+     "--iree-hal-target-backends=llvm-cpu",
+     "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+     "--iree-llvmcpu-target-cpu=cortex-a53",
+     "--mlir-print-ir-after=iree-stream-layout-slices",
+     "--mlir-elide-elementsattrs-if-larger=16",
+     "--iree-hal-dump-executable-files-to=dump",
+     "--iree-scheduling-dump-statistics-format=json",
+     "--iree-scheduling-dump-statistics-file=wgan.stats.json",
+     "-o",
+     "wgan.vmfb"
+    ],
+    "vmfb_sha256": "142cc38457497205239833fc0ee224e1452f98938630c2e7a3885a33fc1aa7ae",
+    "vmfb_elf_formats": [
+     "embedded-elf-arm_64"
+    ]
+   },
+   "specification_same_invocation": {
+    "elf_rc": 0,
+    "make_contract_rc": 0,
+    "stderr_tail": []
+   },
+   "stats": {
+    "constant_size": 4283648,
+    "transient_memory_size": 130780672
+   },
+   "specification": {
+    "bound_method": "static_from_stream_layout",
+    "bounded_bytes": 135666432,
+    "static_per_call_bytes": 131382784,
+    "C": 4283648,
+    "T": 130178560,
+    "O": 602112,
+    "unresolved_sizes": []
+   },
+   "constant_size_equals_C": true,
+   "transient_equals_T_plus_O": true
+  },
+  "dynamic": {
+   "mlir_source": "results/e14_aarch64_qemu/models/dynamic/dyn_batch_mlp.mlir",
+   "mlir_sha256": "2da5861c0cd540fb2ebb9434e6a29bbd051986cb02230d4d6375008112572268",
+   "json_invocation": {
+    "rc": 0,
+    "argv": [
+     "iree-compile",
+     "dynamic.mlir",
+     "--iree-hal-target-backends=llvm-cpu",
+     "--iree-llvmcpu-target-triple=aarch64-unknown-linux-gnu",
+     "--iree-llvmcpu-target-cpu=cortex-a53",
+     "--mlir-print-ir-after=iree-stream-layout-slices",
+     "--mlir-elide-elementsattrs-if-larger=16",
+     "--iree-hal-dump-executable-files-to=dump",
+     "--iree-scheduling-dump-statistics-format=json",
+     "--iree-scheduling-dump-statistics-file=dynamic.stats.json",
+     "-o",
+     "dynamic.vmfb"
+    ],
+    "vmfb_sha256": "11fb073514f8c021430913edb4e832721e0ad4af17c466ec6eab2b0bb7e09fe9",
+    "vmfb_elf_formats": [
+     "embedded-elf-arm_64"
+    ]
+   },
+   "specification_same_invocation": {
+    "elf_rc": 0,
+    "make_contract_rc": 0,
+    "stderr_tail": []
+   },
+   "stats": {
+    "constant_size": 0,
+    "transient_memory_size": 0
+   },
+   "specification": {
+    "bound_method": "NONE",
+    "bounded_bytes": null,
+    "static_per_call_bytes": null,
+    "C": 0,
+    "T": null,
+    "O": null,
+    "unresolved_sizes": [
+     "%1",
+     "%6",
+     "%5"
+    ]
+   },
+   "other_forms": {
+    "csv": {
+     "rc": 0,
+     "text_excerpt": ";\n; Aggregate Statistics (static, whole-program)\n;\n\n\"Constants\",\"Constant Size\",\"Variables\",\"Variable Size\",\"Awaits\",\"Submissions\",\"Transient Size\",\"Fills\",\"Copies\",\"Dispatches\",\"Async Calls\",\"Executables\"\n0,0,0,0,1,1,0,0,0,2,0,2\n\n;\n; Execution\n;\n\n; builtin.module > util.func @infer > stream.cmd.execute\n\"Depth\",\"Command\",\"Symbol\",\"Length\",\"Invocations\",\"Workload\",\"Operands\",\"Resources\"\n0,\"dispatch\",\"@infer_dispatch_0::@infer_dispatch_0_matmul_Dx64x9_f32\",,1,\"?\",1,3\n0,\"dispatch\",\"@infer_dispatch_1::@infer_dispatch_1_matmul_Dx2x64_f32\",,1,\"?\",1,3\n\n"
+    },
+    "pretty": {
+     "rc": 0,
+     "text_excerpt": "//============================================================================//\n// Aggregate Statistics (static, whole-program)\n//============================================================================//\n//\n//   Constants: 0, estimated storage of 0 B (0.00 MiB)\n//   Variables: 0, (TBD) 0 B (0.00 MiB)\n//  D->H Syncs: 1\n// Submissions: 1, using cumulative minimum 0 B (0.00 MiB)\n//   DMA Fills: 0\n//  DMA Copies: 0\n// Collectives: 0\n//  Dispatches: 2\n// Async Calls: 0\n// Executables: 2, 0% reuse\n//\n//============================================================================//\n// Constants / Variables\n//============================================================================//\n//\n// TODO\n//\n//============================================================================//\n// Synchronization\n//============================================================================//\n//\n// TODO\n/"
+    }
+   },
+   "csv_transient_size": 0,
+   "json_transient_size": 0,
+   "pretty_submissions_line": "Submissions: 1, using cumulative minimum 0 B (0.00 MiB)"
+  }
+ },
+ "verdict": "PASS"
+}

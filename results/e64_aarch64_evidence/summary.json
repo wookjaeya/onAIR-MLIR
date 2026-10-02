@@ -1,0 +1,120 @@
+{
+ "experiment": "E64",
+ "plan": "docs/plans/E64_aarch64_evidence_for_manuscript.md (committed before measurement, 6578481)",
+ "A_probes": {
+  "verdict": "PASS",
+  "control": "bound_issued_header_bound_known_1",
+  "cells": {
+   "A1_in_family_unrecognized_op": "specification_without_bound_header_bound_known_0",
+   "A2_out_of_family_resource_op": "refused_dedicated_key_unclassified_resource_ops",
+   "A3_pre_scheduling_async_alloc": "refused_extractors_disagree",
+   "A4_unresolvable_size": "specification_without_bound_header_bound_known_0",
+   "A5_unparseable_op": "refused_extractors_disagree",
+   "A6_other_lifetime_category": "refused_extractors_disagree"
+  },
+  "cells_with_deployable_header": []
+ },
+ "B_corpus": {
+  "verdict": "PASS",
+  "aarch64_representations": 11,
+  "aarch64_unclassified_total": 0,
+  "evaluated_figures_unchanged": true,
+  "evaluated_headers_byte_identical": true
+ },
+ "C_statistics": {
+  "verdict": "PASS",
+  "per_model": {
+   "b2_resnet": {
+    "constant_size_equals_C": true,
+    "transient_equals_T_plus_O": true
+   },
+   "b3_deepae": {
+    "constant_size_equals_C": true,
+    "transient_equals_T_plus_O": true
+   },
+   "smartcam": {
+    "constant_size_equals_C": true,
+    "transient_equals_T_plus_O": true
+   },
+   "wgan": {
+    "constant_size_equals_C": true,
+    "transient_equals_T_plus_O": true
+   }
+  },
+  "dynamic": {
+   "json_transient_size": 0,
+   "csv_transient_size": 0,
+   "pretty_submissions_line": "Submissions: 1, using cumulative minimum 0 B (0.00 MiB)"
+  }
+ },
+ "D_guest": {
+  "machine": "aarch64",
+  "final_layer_vs_sequential_f32": 30,
+  "final_layer_vs_float64": 19,
+  "layers_bit_identical_to_sequential_f32": 0,
+  "same_as_E60_host_computation": {
+   "violations_vs_sequential_f32": true,
+   "violations_vs_float64": true,
+   "bit_identical_to_sequential_f32": true,
+   "E60_host_values": {
+    "seq": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     30
+    ],
+    "f64": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     19
+    ],
+    "bit": [
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false,
+     false
+    ]
+   }
+  },
+  "anomaly_scores": {
+   "max_rel_score_difference": 1.0164556366483228e-05,
+   "max_abs_score_difference": 0.00011119061272424346,
+   "ranks_identical": true,
+   "discordant_pairs": 0,
+   "pairs": 561,
+   "auc_iree": 0.5520833333333334,
+   "auc_litert": 0.5520833333333334
+  },
+  "environment": {
+   "smp": 1,
+   "mem_mib": 1024,
+   "mem_total_kb": 974848,
+   "nproc": 1,
+   "os_release": "Ubuntu 24.04.4 LTS",
+   "python": "3.12.3",
+   "ai_edge_litert": "2.2.0",
+   "iree_base_runtime": "3.11.0",
+   "numpy": "2.3.5",
+   "host_qemu": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)"
+  }
+ }
+}

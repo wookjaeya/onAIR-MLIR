@@ -1,0 +1,3 @@
+== e62_wgan_Bu_ctl 06:08:35 (started in parallel with e62_wgan_Bu_fix; separate process)
+{"deployment": "e62_wgan_Bu_ctl", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 3, "onair_core_unmodified": true}
+== ctl done 07:29:23

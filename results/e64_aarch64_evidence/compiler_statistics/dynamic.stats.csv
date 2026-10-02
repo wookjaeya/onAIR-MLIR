@@ -1,0 +1,16 @@
+;
+; Aggregate Statistics (static, whole-program)
+;
+
+"Constants","Constant Size","Variables","Variable Size","Awaits","Submissions","Transient Size","Fills","Copies","Dispatches","Async Calls","Executables"
+0,0,0,0,1,1,0,0,0,2,0,2
+
+;
+; Execution
+;
+
+; builtin.module > util.func @infer > stream.cmd.execute
+"Depth","Command","Symbol","Length","Invocations","Workload","Operands","Resources"
+0,"dispatch","@infer_dispatch_0::@infer_dispatch_0_matmul_Dx64x9_f32",,1,"?",1,3
+0,"dispatch","@infer_dispatch_1::@infer_dispatch_1_matmul_Dx2x64_f32",,1,"?",1,3
+

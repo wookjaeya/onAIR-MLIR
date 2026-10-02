@@ -1,0 +1,8 @@
+{
+ "tree": "e48_b2_resnet",
+ "archived_from": "the E48 build tree outside the repository (build_info.json and optin_witness.json copied byte for byte)",
+ "ai_learner_so_sha256": "3fb5fd2eb3f48d453b05d3482b209f4e25156da7466ec14b2ef832018fbd626d",
+ "ai_learner_so_bytes": 861480,
+ "contract_gen_h_sha256": "42ff744ac8319a27f97a0cace0c4fe7e78328ec7743d3d14623586472c58e6a5",
+ "note": "one build tree for both ResNet cells of E48 (EVIDENCE_v0.50_E48.md section 4.2); the budget of each cell came from the runtime override, the compiled-in default being bounded+1"
+}

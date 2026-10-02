@@ -1,0 +1,15 @@
+== e57_b3_deepae_Bum1 00:12:25
+{"deployment": "e57_b3_deepae_Bum1", "returncode": 0, "plugin_constructed": true, "active": false, "inferences": 0, "onair_core_unmodified": true}
+== e57_smartcam_Bum1 00:12:55
+{"deployment": "e57_smartcam_Bum1", "returncode": 0, "plugin_constructed": true, "active": false, "inferences": 0, "onair_core_unmodified": true}
+== e57_wgan_Bum1 00:13:43
+{"deployment": "e57_wgan_Bum1", "returncode": 0, "plugin_constructed": true, "active": false, "inferences": 0, "onair_core_unmodified": true}
+== e57_b2_resnet_Bu 00:14:32
+{"deployment": "e57_b2_resnet_Bu", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== e57_b3_deepae_Bu 00:15:52
+{"deployment": "e57_b3_deepae_Bu", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 100, "onair_core_unmodified": true}
+== e57_smartcam_Bu 00:16:45
+{"deployment": "e57_smartcam_Bu", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== e57_wgan_Bu 00:35:16
+{"deployment": "e57_wgan_Bu", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 3, "onair_core_unmodified": true}
+== done 03:19:09

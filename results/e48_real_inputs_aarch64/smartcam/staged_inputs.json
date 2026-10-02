@@ -1,0 +1,14 @@
+{
+ "fixture": "sc_fx",
+ "layout": "nchw",
+ "samples": 19,
+ "elems_per_sample": 150528,
+ "bytes": 11440128,
+ "sha256_inputs_bin": "ef3a3d9659dba573ad81cebce1e79a9ebcb2428193fc3d0235942fdcb957e4f9",
+ "manifest_hashes_verified": 19,
+ "contract": "results/e32_smartcam_aarch64/build/smartcam.contract.json",
+ "contract_input_elems": 150528,
+ "out_order": "results/e48_real_inputs_aarch64/smartcam/replay_order.json",
+ "fixture_manifest_source": "results/e45_real_inputs/cells/smartcam/fixture/manifest.json",
+ "regenerated_by": "harness/model_fixture.py (E45 manifest 해시로 대조 — mk_e25_inputs.py 가 샘플마다 확인)"
+}

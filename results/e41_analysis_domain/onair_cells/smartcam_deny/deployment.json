@@ -1,0 +1,91 @@
+{
+ "_note": "Deployment settings for plugins/compiled_learner. The official OnAIR loader calls Plugin(construct_name, headers) and nothing else (onair/src/util/plugin_import.py:49), so these settings are selected by construct name through the ONAIR_MLIR_DEPLOYMENT_CONFIG environment variable. This file is a DEPLOYMENT config: it says which artifact, which budget and which input convention. It is not the contract -- the contract is generated from the compiler artifacts and lives next to the vmfb.",
+ "_scope": "budget_bytes is a per-app local budget, not a whole-computer figure, and the contract it is compared against covers IREE-HAL-owned allocations only.",
+ "deployments": {
+  "smartcam": {
+   "artifact_dir": "/home/user/onAIR-MLIR/results/p1_smartcam_feasibility/build",
+   "input_mode": "file_replay",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
+   "sample_file_pattern": "inputs/%s.nchw.npy",
+   "call_abi": "input_only",
+   "driver": "local-sync",
+   "verify_artifact_hash": true,
+   "allow_conditional_map": false,
+   "budget_bytes": 18222796,
+   "_budget_note": "= contract bounded_bytes (E30/E32). B-1 is the P-deny cell.",
+   "sample_index_header": "SAMPLE_INDEX",
+   "sample_ids": [
+    "img_msec_1597559030639_2",
+    "img_msec_1607377664281_2",
+    "img_msec_1607639907670_2",
+    "edge_zeros",
+    "edge_ones"
+   ],
+   "_sample_note": "the frame carries a NUMERIC index because NASA's csv parser floatifies every field (parser_util.floatify_input turns a non-numeric string into 0.0); this ordered list is the same 5 samples E32's S-cfs cell used (3 real images + 2 edge)",
+   "contract_file": "smartcam.contract.json",
+   "telemetry": "smartcam_replay",
+   "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused."
+  },
+  "smartcam_deny": {
+   "artifact_dir": "/home/user/onAIR-MLIR/results/p1_smartcam_feasibility/build",
+   "input_mode": "file_replay",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
+   "sample_file_pattern": "inputs/%s.nchw.npy",
+   "call_abi": "input_only",
+   "driver": "local-sync",
+   "verify_artifact_hash": true,
+   "allow_conditional_map": false,
+   "budget_bytes": 18222795,
+   "_budget_note": "= bounded - 1. Must refuse, run zero inferences, and leave OnAIR alive.",
+   "sample_index_header": "SAMPLE_INDEX",
+   "sample_ids": [
+    "img_msec_1597559030639_2",
+    "img_msec_1607377664281_2",
+    "img_msec_1607639907670_2",
+    "edge_zeros",
+    "edge_ones"
+   ],
+   "_sample_note": "the frame carries a NUMERIC index because NASA's csv parser floatifies every field (parser_util.floatify_input turns a non-numeric string into 0.0); this ordered list is the same 5 samples E32's S-cfs cell used (3 real images + 2 edge)",
+   "contract_file": "smartcam.contract.json",
+   "telemetry": "smartcam_replay",
+   "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused.",
+   "record_path": "/home/user/onAIR-MLIR/results/e41_analysis_domain/onair_cells/smartcam_deny/plugin_records.jsonl"
+  },
+  "smartcam_mismatch": {
+   "artifact_dir": "/home/user/onAIR-MLIR/results/e33_onair_official/_mismatch_artifacts",
+   "input_mode": "file_replay",
+   "fixture_dir": "/home/user/onAIR-MLIR/results/e31_smartcam_equivalence/fixture",
+   "sample_file_pattern": "inputs/%s.nchw.npy",
+   "call_abi": "input_only",
+   "driver": "local-sync",
+   "verify_artifact_hash": true,
+   "allow_conditional_map": false,
+   "budget_bytes": 18222796,
+   "_budget_note": "= contract bounded_bytes (E30/E32). B-1 is the P-deny cell.",
+   "sample_index_header": "SAMPLE_INDEX",
+   "sample_ids": [
+    "img_msec_1597559030639_2",
+    "img_msec_1607377664281_2",
+    "img_msec_1607639907670_2",
+    "edge_zeros",
+    "edge_ones"
+   ],
+   "_sample_note": "the frame carries a NUMERIC index because NASA's csv parser floatifies every field (parser_util.floatify_input turns a non-numeric string into 0.0); this ordered list is the same 5 samples E32's S-cfs cell used (3 real images + 2 edge)",
+   "contract_file": "smartcam.contract.json",
+   "_cell_note": "P-mismatch: the x86-64 contract paired with the AArch64 vmfb. Same model, same three contract figures, DIFFERENT artifact -- so only the sha256 binding can tell them apart. The pair is built from two committed artifacts rather than stored as a fake one.",
+   "telemetry": "smartcam_replay",
+   "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused."
+  },
+  "legacy_mlp": {
+   "artifact_dir": "/home/user/onAIR-MLIR/plugins/compiled_learner/runtime",
+   "contract_file": "contract.json",
+   "input_mode": "telemetry",
+   "call_abi": "input_plus_external_weights",
+   "driver": "local-sync",
+   "verify_artifact_hash": true,
+   "_cell_note": "P-legacy regression: the original MLP fixture, telemetry mode, external weights.npz. No budget_bytes: this old-style contract carries binary_size/peak_memory rather than a bounded/per_call/constants triple, so admission records NOT_EVALUATED instead of inventing a bound. The point of this cell is that adding the new machinery did not break the old path (type (B) regression check).",
+   "telemetry": "legacy_mlp",
+   "_telemetry_note": "E41: which configs/onair_data/<name>.csv + <name>_CONFIG.json this cell feeds OnAIR. Until E41 the .ini template hardcoded smartcam_replay, so the archived E33 p_legacy cell (9 telemetry fields) could NOT be regenerated from repository contents -- it came out with 2 fields and refused."
+  }
+ }
+}

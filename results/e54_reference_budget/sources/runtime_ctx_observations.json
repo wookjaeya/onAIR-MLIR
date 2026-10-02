@@ -1,0 +1,115 @@
+{
+ "purpose": "E54 budgets.json 의 iree_fixed_runtime_ctx 입력 집합을 고정한다. 생성기는 원래 results/**/*.log 를 재귀 glob 했는데, 그 집합은 **실험이 추가될 때마다 자란다** -- E54 자신의 셀 로그 25 건이 예산 커밋 이후에 생겨, 오늘 재실행하면 observations 21 -> 46 · chosen_kb 368 -> 376 이 되어 커밋된 예산이 저장소 내용으로 재현되지 않는다(D94). 판정은 16/16 불변이고 예산은 전부 정확히 -8,192 B 로 **보수적 방향**이지만, 재현 불가 자체가 결함이다.",
+ "rule": "이 파일은 얼어붙은 데이터가 아니다. 생성기는 여기 적힌 로그를 **매번 다시 읽어** delta 를 재추출하고, 값이 다르거나 파일이 없으면 거부한다(fail-closed). 또 현재 glob 이 찾는 수를 함께 기록해 드리프트가 **보이게** 한다 -- 조용히 흡수하지 않는다.",
+ "repin": "의도적 갱신은 `python3 harness/e54_budgets.py --repin` 으로만 한다. 자동 갱신은 없다.",
+ "pinned_at_commit": "25df44b (budgets.json 최초 커밋)",
+ "observations": [
+  {
+   "model": "canonical_e25",
+   "delta_kb": 344,
+   "source": "results/e26_boundary_utility/aarch64/cfs/canonical_B.log"
+  },
+  {
+   "model": "canonical_e25",
+   "delta_kb": 340,
+   "source": "results/e26_boundary_utility/aarch64/cfs/canonical_Bp1.log"
+  },
+  {
+   "model": "b2_resnet",
+   "delta_kb": 336,
+   "source": "results/e48_real_inputs_aarch64/cfs/logs/b2_resnet_admit_B_real.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e48_real_inputs_aarch64/cfs/logs/smartcam_admit_B_real.log"
+  },
+  {
+   "model": "b3_deepae",
+   "delta_kb": 300,
+   "source": "results/e48_real_inputs_aarch64/cfs/logs/b3_deepae_admit_B_real.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 284,
+   "source": "results/e37_evidence_consolidation/s_cfs_post_d61/s_cfs_equiv.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e36_aarch64_cfs/prefix_bug/cond_positive.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e36_aarch64_cfs/prefix_bug/admit_B.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e36_aarch64_cfs/smartcam/cond_positive.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e36_aarch64_cfs/smartcam/regression_no_override.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e36_aarch64_cfs/smartcam/admit_B.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e36_aarch64_cfs/cache_leak_bug/regression_no_override.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e36_aarch64_cfs/cache_leak_bug/deny_B_minus_1.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e38_optin_record/cells/cond_positive.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e32_smartcam_aarch64/cfs/A_admit.log"
+  },
+  {
+   "model": "smartcam",
+   "delta_kb": 288,
+   "source": "results/e32_smartcam_aarch64/cfs/A_plus.log"
+  },
+  {
+   "model": "wgan",
+   "delta_kb": 288,
+   "source": "results/e53_wgan_aarch64/cfs/logs/cfs_B.log"
+  },
+  {
+   "model": "b2_resnet",
+   "delta_kb": 296,
+   "source": "results/e36b_aarch64_models/cfs/resnet_equiv.log"
+  },
+  {
+   "model": "b3_deepae",
+   "delta_kb": 344,
+   "source": "results/e36b_aarch64_models/cfs/deepae_equiv.log"
+  },
+  {
+   "model": "b2_resnet",
+   "delta_kb": 360,
+   "source": "results/e36b_aarch64_models/cfs/resnet_admit_B.log"
+  },
+  {
+   "model": "b3_deepae",
+   "delta_kb": 368,
+   "source": "results/e36b_aarch64_models/cfs/deepae_admit_B.log"
+  }
+ ],
+ "count": 21,
+ "chosen_kb_at_pin": 368
+}

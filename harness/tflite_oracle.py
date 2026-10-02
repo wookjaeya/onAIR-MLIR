@@ -12,7 +12,7 @@ fixture's, identical to what the IREE path will receive after the transpose.
 Usage:
   tflite_oracle.py MODEL.tflite --fixture <fixture-dir> --out oracle.json
 """
-import argparse, hashlib, json, os, sys
+import argparse, hashlib, json, os, platform, sys
 
 import numpy as np
 
@@ -59,6 +59,7 @@ def main():
     rec = {
         "tool": "harness/tflite_oracle.py",
         "runner": "ai_edge_litert Interpreter (LiteRT), original flatbuffer unmodified",
+        "machine": platform.machine(),     # E61: where the reference was produced (record only)
         "model": {"path": a.model, "bytes": len(blob), "sha256": hashlib.sha256(blob).hexdigest()},
         "interpreter_signature": {"input_shape": [int(v) for v in inp["shape"]],
                                   "input_dtype": inp["dtype"].__name__,

@@ -1,0 +1,143 @@
+{
+  "tag": "e55_b3_deepae_cond1",
+  "built_utc": "2026-09-14T02:40:18Z",
+  "cfs": {
+    "root": "/root/onair-mlir-bench/ext/cFS",
+    "commit": "78c23b0",
+    "config": "aarch64_std",
+    "simulation": "aarch64-linux-gnu",
+    "prep_opts": "-DENABLE_UNIT_TESTS=FALSE -DSIMULATION=aarch64-linux-gnu -DCFE_EDS_ENABLED=OFF -DMISSIONCONFIG=aarch64 -DCMAKE_BUILD_TYPE=debug -DCFS_APP_PATH=/root/onair-mlir-bench/ext/cFS/apps_aarch64 -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DCMAKE_BUILD_TYPE=debug -S \"/root/onair-mlir-bench/ext/cFS/cfe\" -DCMAKE_INSTALL_PREFIX=/exe",
+    "dropped_apps": [],
+    "cpu2_built": false,
+    "unit_tests": false
+  },
+  "iree_runtime": {
+    "build_dir": "/root/onair-mlir-bench/ext/iree-src/build-rt-aarch64",
+    "elf_machine": "AArch64"
+  },
+  "contract_header": {
+    "path": "/home/user/onAIR-MLIR/results/e36b_aarch64_models/b3_deepae/contract_gen.b3_deepae.h",
+    "sha256": "6fc8c8d9d883ef5b6c9c96035b64e23bf5d07b85e9e309d590f1ec8a46f479fa",
+    "model_name": "b3_deepae",
+    "target_triple": "aarch64-unknown-linux-gnu",
+    "bound_known": 1,
+    "bounded_bytes": 1069632,
+    "artifact_sha256": "9ff64bd168e07135c196423d44408e7780984c977912b67c8240c0db522c4d7c",
+    "kernel_stack_bytes_in_header": 16
+  },
+  "app_knobs": {
+    "route": "cache",
+    "AI_LEARNER_BUDGET_BYTES": 1069633,
+    "AI_LEARNER_STACK_BASE_BYTES": 262144,
+    "AI_LEARNER_REPORT_EVERY": 1,
+    "AI_LEARNER_ALLOW_CONDITIONAL_MAP": 1,
+    "ai_learner_compile_defines": [
+      "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=1",
+      "-DAI_LEARNER_BUDGET_BYTES=1069633",
+      "-DAI_LEARNER_REPORT_EVERY=1",
+      "-DAI_LEARNER_STACK_BASE_BYTES=262144",
+      "-DIREE_ALLOCATOR_SYSTEM_CTL=iree_allocator_libc_ctl",
+      "-DSIMULATION=aarch64-linux-gnu",
+      "-D_XOPEN_SOURCE=600"
+    ]
+  },
+  "optin_witness": {
+    "allow_conditional_map": true,
+    "method": "disassembly: compare against CONTRACT_PER_CALL_BYTES in the admission path",
+    "isa": "aarch64",
+    "elf_machine": "AArch64",
+    "objdump": "aarch64-linux-gnu-objdump",
+    "per_call_bytes": 6208,
+    "bounded_bytes": 1069632,
+    "conditional_compare_sites": [
+      {
+        "addr": "0x7850",
+        "value": 6207,
+        "function": "AI_LEARNER_Init",
+        "materialised_at": "0x784c"
+      }
+    ],
+    "positive_control_sites": [
+      {
+        "addr": "0x7838",
+        "value": 1069631,
+        "function": "AI_LEARNER_Init",
+        "materialised_at": "0x7830"
+      },
+      {
+        "addr": "0x8140",
+        "value": 1069632,
+        "function": "AI_LEARNER_Init",
+        "materialised_at": "0x8138"
+      },
+      {
+        "addr": "0x8dec",
+        "value": 1069632,
+        "function": "AI_LEARNER_Infer",
+        "materialised_at": "0x8de4"
+      }
+    ],
+    "note": "ai_learner.c gates the conditional tier on a compile-time constant; at 0 the compare against CONTRACT_PER_CALL_BYTES is not emitted at all",
+    "allow_conditional_map_state": "1",
+    "binary": "/root/onair-mlir-bench/ext/cfs-aarch64-exe/e55_b3_deepae_cond1/cpu1/cf/ai_learner.so",
+    "binary_sha256": "fdbdcf138053c30966177885ada91dfccc47e4681f5b254d9db5cd1ca3ff263d",
+    "binary_bytes": 862992
+  },
+  "task_stack": {
+    "stack_base_bytes": 262144,
+    "kernel_stack_bytes": 16,
+    "startup_script_stack_bytes": 262160,
+    "startup_line": "CFE_APP, ai_learner,  AI_LEARNER_AppMain, AI_LEARNER,   55,   262160, 0x0, 0;",
+    "note": "task-stack budget bucket (AAPCS64 frame of the dispatch functions), not part of the HAL contract"
+  },
+  "exe": {
+    "dir": "/root/onair-mlir-bench/ext/cfs-aarch64-exe/e55_b3_deepae_cond1/cpu1",
+    "core_cpu1_bytes": 1620984,
+    "core_cpu1_sha256": "02d5a2313c5aa00d6cc21ff0944c95cbace05fb5361164b9e9e07af6f1bcb1b6",
+    "core_cpu1_needed": [
+      "libc.so.6",
+      "ld-linux-aarch64.so.1"
+    ],
+    "ai_learner_so_bytes": 862992,
+    "ai_learner_so_sha256": "fdbdcf138053c30966177885ada91dfccc47e4681f5b254d9db5cd1ca3ff263d",
+    "ai_learner_so_needed": [
+      "libm.so.6",
+      "libc.so.6",
+      "ld-linux-aarch64.so.1"
+    ],
+    "shared_objects": [
+      "ai_learner.so",
+      "cf.so",
+      "cfe_assert.so",
+      "cfe_testcase.so",
+      "ci_lab.so",
+      "cs.so",
+      "ds.so",
+      "fm.so",
+      "hk.so",
+      "hs.so",
+      "lc.so",
+      "md.so",
+      "mm.so",
+      "sample_app.so",
+      "sample_lib.so",
+      "sc.so",
+      "sch_lab.so",
+      "to_lab.so"
+    ],
+    "n_shared_objects": 18,
+    "iree_text_symbols_in_app": 1377,
+    "model_vmfb": "/home/user/onAIR-MLIR/results/e36b_aarch64_models/b3_deepae/b3_deepae.vmfb",
+    "model_vmfb_matches_header": true
+  },
+  "compile_commands": {
+    "total": 480,
+    "with_mcpu_cortex_a53": 480
+  },
+  "build_seconds": {
+    "prep": 2,
+    "install": 2,
+    "total": 5,
+    "jobs": 4
+  }
+}

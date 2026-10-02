@@ -1,0 +1,29 @@
+{
+ "entries": {
+  "L1_other_model_file": {
+   "dir": "results/e68_onair_linkage/art/L1_other_model_file",
+   "document_artifact_bytes": 343538,
+   "document_artifact_sha256": "2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb",
+   "document_byte_identical_to": "results/e66_plugin_document_rules/docs/b2_resnet/b2_resnet.contract.json",
+   "document_identical": true,
+   "loaded_file_bytes": 1080730,
+   "loaded_file_sha256": "9ff64bd168e07135c196423d44408e7780984c977912b67c8240c0db522c4d7c",
+   "loaded_in_place": "results/e36b_aarch64_models/b3_deepae/b3_deepae.vmfb",
+   "symlink_target": "../../../e36b_aarch64_models/b3_deepae/b3_deepae.vmfb"
+  },
+  "L2_same_size_other_bytes": {
+   "derived_from": "results/e36b_aarch64_models/b2_resnet/b2_resnet.vmfb",
+   "dir": "results/e68_onair_linkage/art/L2_same_size_other_bytes",
+   "document_artifact_bytes": 343538,
+   "document_artifact_sha256": "2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb",
+   "document_byte_identical_to": "results/e66_plugin_document_rules/docs/b2_resnet/b2_resnet.contract.json",
+   "document_identical": true,
+   "loaded_file_bytes": 343538,
+   "loaded_file_sha256": "b11049d8aa6efd12082b80123fa751cbb7d835252e441773dae0964cb0998efe",
+   "method": "corrupt_vmfb.corrupt_flip",
+   "offset": 4096
+  }
+ },
+ "experiment": "E68",
+ "plan": "docs/plans/E68_onair_artifact_linkage.md (committed before any cell, c51ad37)"
+}

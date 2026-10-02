@@ -1,0 +1,42 @@
+{
+  "allow_conditional_map": true,
+  "method": "disassembly: compare against CONTRACT_PER_CALL_BYTES in the admission path",
+  "isa": "aarch64",
+  "elf_machine": "AArch64",
+  "objdump": "aarch64-linux-gnu-objdump",
+  "per_call_bytes": 309416,
+  "bounded_bytes": 618856,
+  "conditional_compare_sites": [
+    {
+      "addr": "0x7b64",
+      "value": 309415,
+      "function": "AI_LEARNER_Init",
+      "materialised_at": "0x7b5c"
+    }
+  ],
+  "positive_control_sites": [
+    {
+      "addr": "0x7b48",
+      "value": 618855,
+      "function": "AI_LEARNER_Init",
+      "materialised_at": "0x7b40"
+    },
+    {
+      "addr": "0x8570",
+      "value": 618856,
+      "function": "AI_LEARNER_Init",
+      "materialised_at": "0x8568"
+    },
+    {
+      "addr": "0x921c",
+      "value": 618856,
+      "function": "AI_LEARNER_Infer",
+      "materialised_at": "0x9214"
+    }
+  ],
+  "note": "ai_learner.c gates the conditional tier on a compile-time constant; at 0 the compare against CONTRACT_PER_CALL_BYTES is not emitted at all",
+  "allow_conditional_map_state": "1",
+  "binary": "/root/onair-mlir-bench/ext/cfs-aarch64-exe/e56_b2_resnet/cpu1/cf/ai_learner.so",
+  "binary_sha256": "631e96f8a35567e371f21ad028f7d4aad3fbec9389989b86115d1d9120584c02",
+  "binary_bytes": 863808
+}

@@ -1,0 +1,170 @@
+[
+ {
+  "id": "e55_b2_resnet_control",
+  "part": "p0_4_conditional_four_models",
+  "model": "b2_resnet",
+  "desc": "E55/P0-4 control: conditional tier DISABLED (AI_LEARNER_ALLOW_CONDITIONAL_MAP=0), budget = P = static_per_call_bytes = 309416. bounded = 618856 > P, so the unconditional policy must refuse. This cell is what makes the conditional cell's pass attributable to the conditional tier rather than to a loose budget.",
+  "so": "variants/e55_b2_resnet_cond0/ai_learner.so",
+  "startup": "variants/e55_b2_resnet_cond0/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 180,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "309416"
+  },
+  "expect": {
+   "admission": "NOT_ADMITTED",
+   "min_completed": 0,
+   "runtime_created": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "expect_note": "`min_completed: 0` is the repository's existing convention for a DENY cell but it is a MINIMUM, so it cannot prove zero inferences. `runtime_created: False` is the honest witness (D80: the mem_init record's absence), so it is required here as well. `init_count` is NOT used: it counts admission records, and a refused app emits exactly one -- it has to initialise in order to refuse. `e25_mode_active` is not used either: that record is emitted after admission passes, so it cannot exist on a refused cell."
+ },
+ {
+  "id": "e55_b2_resnet_conditional",
+  "part": "p0_4_conditional_four_models",
+  "model": "b2_resnet",
+  "desc": "E55/P0-4 conditional: conditional tier ENABLED (=1), same budget P = 309416. Expect ADMIT_CONDITIONAL_MAP, >=1 inference, HAL peak <= P, max_active_calls == 1, module_ptr_mod64 == 0 and hal_peak_after_append == 0 (E29b's two preconditions checked BY MEASUREMENT, not assumed).",
+  "so": "variants/e55_b2_resnet_cond1/ai_learner.so",
+  "startup": "variants/e55_b2_resnet_cond1/cfe_es_startup.scr",
+  "vmfb": "models/b2_resnet.vmfb",
+  "seconds": 300,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "309416"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": false
+  }
+ },
+ {
+  "id": "e55_b3_deepae_control",
+  "part": "p0_4_conditional_four_models",
+  "model": "b3_deepae",
+  "desc": "E55/P0-4 control: conditional tier DISABLED (AI_LEARNER_ALLOW_CONDITIONAL_MAP=0), budget = P = static_per_call_bytes = 6208. bounded = 1069632 > P, so the unconditional policy must refuse. This cell is what makes the conditional cell's pass attributable to the conditional tier rather than to a loose budget.",
+  "so": "variants/e55_b3_deepae_cond0/ai_learner.so",
+  "startup": "variants/e55_b3_deepae_cond0/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 180,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "6208"
+  },
+  "expect": {
+   "admission": "NOT_ADMITTED",
+   "min_completed": 0,
+   "runtime_created": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "expect_note": "`min_completed: 0` is the repository's existing convention for a DENY cell but it is a MINIMUM, so it cannot prove zero inferences. `runtime_created: False` is the honest witness (D80: the mem_init record's absence), so it is required here as well. `init_count` is NOT used: it counts admission records, and a refused app emits exactly one -- it has to initialise in order to refuse. `e25_mode_active` is not used either: that record is emitted after admission passes, so it cannot exist on a refused cell."
+ },
+ {
+  "id": "e55_b3_deepae_conditional",
+  "part": "p0_4_conditional_four_models",
+  "model": "b3_deepae",
+  "desc": "E55/P0-4 conditional: conditional tier ENABLED (=1), same budget P = 6208. Expect ADMIT_CONDITIONAL_MAP, >=1 inference, HAL peak <= P, max_active_calls == 1, module_ptr_mod64 == 0 and hal_peak_after_append == 0 (E29b's two preconditions checked BY MEASUREMENT, not assumed).",
+  "so": "variants/e55_b3_deepae_cond1/ai_learner.so",
+  "startup": "variants/e55_b3_deepae_cond1/cfe_es_startup.scr",
+  "vmfb": "models/b3_deepae.vmfb",
+  "seconds": 300,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "6208"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": false
+  }
+ },
+ {
+  "id": "e55_smartcam_control",
+  "part": "p0_4_conditional_four_models",
+  "model": "smartcam",
+  "desc": "E55/P0-4 control: conditional tier DISABLED (AI_LEARNER_ALLOW_CONDITIONAL_MAP=0), budget = P = static_per_call_bytes = 9382092. bounded = 18222796 > P, so the unconditional policy must refuse. This cell is what makes the conditional cell's pass attributable to the conditional tier rather than to a loose budget.",
+  "so": "variants/e55_smartcam_cond0/ai_learner.so",
+  "startup": "variants/e55_smartcam_cond0/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 180,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "9382092"
+  },
+  "expect": {
+   "admission": "NOT_ADMITTED",
+   "min_completed": 0,
+   "runtime_created": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "expect_note": "`min_completed: 0` is the repository's existing convention for a DENY cell but it is a MINIMUM, so it cannot prove zero inferences. `runtime_created: False` is the honest witness (D80: the mem_init record's absence), so it is required here as well. `init_count` is NOT used: it counts admission records, and a refused app emits exactly one -- it has to initialise in order to refuse. `e25_mode_active` is not used either: that record is emitted after admission passes, so it cannot exist on a refused cell."
+ },
+ {
+  "id": "e55_smartcam_conditional",
+  "part": "p0_4_conditional_four_models",
+  "model": "smartcam",
+  "desc": "E55/P0-4 conditional: conditional tier ENABLED (=1), same budget P = 9382092. Expect ADMIT_CONDITIONAL_MAP, >=1 inference, HAL peak <= P, max_active_calls == 1, module_ptr_mod64 == 0 and hal_peak_after_append == 0 (E29b's two preconditions checked BY MEASUREMENT, not assumed).",
+  "so": "variants/e55_smartcam_cond1/ai_learner.so",
+  "startup": "variants/e55_smartcam_cond1/cfe_es_startup.scr",
+  "vmfb": "models/smartcam.vmfb",
+  "seconds": 420,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "9382092"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": false
+  }
+ },
+ {
+  "id": "e55_wgan_control",
+  "part": "p0_4_conditional_four_models",
+  "model": "wgan",
+  "desc": "E55/P0-4 control: conditional tier DISABLED (AI_LEARNER_ALLOW_CONDITIONAL_MAP=0), budget = P = static_per_call_bytes = 131382784. bounded = 135666432 > P, so the unconditional policy must refuse. This cell is what makes the conditional cell's pass attributable to the conditional tier rather than to a loose budget.",
+  "so": "variants/e55_wgan_cond0/ai_learner.so",
+  "startup": "variants/e55_wgan_cond0/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 180,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "131382784"
+  },
+  "expect": {
+   "admission": "NOT_ADMITTED",
+   "min_completed": 0,
+   "runtime_created": false,
+   "no_crash": true,
+   "cfs_operational": true
+  },
+  "expect_note": "`min_completed: 0` is the repository's existing convention for a DENY cell but it is a MINIMUM, so it cannot prove zero inferences. `runtime_created: False` is the honest witness (D80: the mem_init record's absence), so it is required here as well. `init_count` is NOT used: it counts admission records, and a refused app emits exactly one -- it has to initialise in order to refuse. `e25_mode_active` is not used either: that record is emitted after admission passes, so it cannot exist on a refused cell."
+ },
+ {
+  "id": "e55_wgan_conditional",
+  "part": "p0_4_conditional_four_models",
+  "model": "wgan",
+  "desc": "E55/P0-4 conditional: conditional tier ENABLED (=1), same budget P = 131382784. Expect ADMIT_CONDITIONAL_MAP, >=1 inference, HAL peak <= P, max_active_calls == 1, module_ptr_mod64 == 0 and hal_peak_after_append == 0 (E29b's two preconditions checked BY MEASUREMENT, not assumed).",
+  "so": "variants/e55_wgan_cond1/ai_learner.so",
+  "startup": "variants/e55_wgan_cond1/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 5400,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "131382784"
+  },
+  "expect": {
+   "admission": "ADMIT_CONDITIONAL_MAP",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": false
+  }
+ }
+]

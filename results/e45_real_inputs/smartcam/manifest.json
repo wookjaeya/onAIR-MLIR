@@ -1,0 +1,438 @@
+{
+ "tool": "harness/fetch_real_inputs.py smartcam",
+ "experiment": "E45",
+ "model": "SmartCam (OPS-SAT flight model)",
+ "goal": "G1 only -- real inputs for semantic equivalence. NO accuracy claim.",
+ "why_no_accuracy": {
+  "circular_labels": "In the map repository the per-image CSV `label` is the argmax of the onboard model's own prediction and `confidence` is its max (86/86 rows). The model that produced them is the model under test, so the labels cannot score it.",
+  "selection_on_dependent_variable": "config.ini sets confidence_threshold = 0.70 and acquisitions below it were discarded IN ORBIT, thumbnails deleted. The surviving set is selected by the quantity being measured.",
+  "no_protocol": "no train/test split, no held-out set, no class balance."
+ },
+ "fidelity_tiers": {
+  "A_raw_png": {
+   "description": "2048x1944 lossless PNG, the raw acquisition",
+   "count": 3,
+   "samples": [
+    {
+     "sample_id": "img_msec_1597559030639_2",
+     "source_sha256": "a638da7908130d6294e1673c8642ccf8ee75412070c56cb76a2d6fc8b7b094ef",
+     "original_size": [
+      2048,
+      1944
+     ]
+    },
+    {
+     "sample_id": "img_msec_1607377664281_2",
+     "source_sha256": "6e057aa416d4e2c0ab22f8f2da1c35aa579e8f401fc16178752b1c347ee6dc62",
+     "original_size": [
+      2048,
+      1944
+     ]
+    },
+    {
+     "sample_id": "img_msec_1607639907670_2",
+     "source_sha256": "9acd6e6acb28bc8b157a5bc0bdf1ee62bdca95e6af5de7f06fc94ba5563b5ae8",
+     "original_size": [
+      2048,
+      1944
+     ]
+    }
+   ],
+   "where": "results/e31_smartcam_equivalence/fixture"
+  },
+  "B_thumbnail_jpeg": {
+   "description": "614x583 JPEG produced ONBOARD by `pngtopam | pamscale 0.3 | pnmtojpeg -quality 90`; lossy and ~11x fewer pixels than tier A",
+   "count": 19
+  }
+ },
+ "do_not_merge_tiers": "Tier A and tier B are different evidence grades. Report them separately; do not add them into one 'real images: N' figure.",
+ "disjointness": {
+  "sha256_overlap_with_tier_A": [],
+  "sample_id_overlap_with_tier_A": []
+ },
+ "classification_rule": "BYTES, not inspection: a JPEG carrying an EXIF Software tag (GIMP/Adobe/Photoshop/ImageMagick) is ground-edited and is excluded; only results/preliminary/testset/original is read from the denoiser repository, because its other img_msec_* files are deliberate noised/denoised derivatives. Unclassifiable files are EXCLUDED -- over-exclusion costs samples, under-exclusion puts contaminated pixels into a semantic verdict.",
+ "canonical_source_note": "The README names ESA GitLab as the successor host; it is unreachable from this container (HTTP 403). The pinned GitHub commits recorded per sample are the provenance anchor.",
+ "esa_credit": "All OPS-SAT images were acquired by the spacecraft's SmartCam and credited to ESA.",
+ "accepted": [
+  {
+   "sample_id": "img_msec_1608603868361_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1608603868361_2.jpeg",
+   "sha256": "f17c2a9bb267925448cc402161143c02b4fbcc5d14a9e36847895eb808db6ba5",
+   "bytes": 99794,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1609060095205_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1609060095205_2.jpeg",
+   "sha256": "bb884dd6969cde97189b493eaf6192fcc0297dda1a324efdbc37b37eae0294a8",
+   "bytes": 80221,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1609060135935_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1609060135935_2.jpeg",
+   "sha256": "0782bd8fff35ab301f18edba7fddb18c99cc66f70d84e0a1d3506702a2bbb9b0",
+   "bytes": 109640,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1608753938601_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1608753938601_2.jpeg",
+   "sha256": "186ccdedade6c1c17e3b2d048721194837665c3a742eebde3a0b1347511a0d4b",
+   "bytes": 32787,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1608753991481_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1608753991481_2.jpeg",
+   "sha256": "5767f93e67a093633445c9aafbf6ec98a154f4c9bb159739fbdeb520259e1744",
+   "bytes": 50980,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1608754015482_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1608754015482_2.jpeg",
+   "sha256": "e6042b6a5346fa9cff7148d6c993c90a42f2acef83c8d415a9ba0b063945f5bb",
+   "bytes": 65868,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1608843127532_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1608843127532_2.jpeg",
+   "sha256": "b1ed5ceb5e7eee1cd4e34079c3d5d1e40e0cb8091fef0909f307567bbcabe7cc",
+   "bytes": 66384,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1608843170331_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1608843170331_2.jpeg",
+   "sha256": "947b2411b348da3403daa3fd0a26eee800b620abf8a3d67439b96006c2cd078d",
+   "bytes": 56786,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1608888968488_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1608888968488_2.jpeg",
+   "sha256": "de0fa55c6eb7ae20df375f36ef28e1a99e5551361b1f1422a225d53c5fb10185",
+   "bytes": 46656,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1609316713883_2",
+   "repo": "opssat-smartcam-map",
+   "repo_commit": "60fa290ab05f37b574bab859d3553e5594a2463e",
+   "file": "images/img_msec_1609316713883_2.jpeg",
+   "sha256": "342f49ba212b4c7bc6e1252c7a2793f6e103f61f8f30c6628de1114c9407235b",
+   "bytes": 55521,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1536095035794_2",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1536095035794_2.jpeg",
+   "sha256": "448c644a48fc55161ded42817e77ced830275747ebbbf2f0524b952b223529a1",
+   "bytes": 37294,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1595796409478_1",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1595796409478_1.jpeg",
+   "sha256": "511fe06694572ab1681083a4eaed42b0b4e8211339cd4513c4d7002c02996de5",
+   "bytes": 13154,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1595796767320_1",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1595796767320_1.jpeg",
+   "sha256": "5d798951b758ffed167f473ff20f8166e8ca092fdd31826c740dad18f02ceaf5",
+   "bytes": 20743,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1597433874681_2",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1597433874681_2.jpeg",
+   "sha256": "ca5de93328b045298efc82dcaff7b8867bbc59640480122be59141f3c234264a",
+   "bytes": 12582,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1597977418041_2",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1597977418041_2.jpeg",
+   "sha256": "a628588d8bdf4f4e2ba1e7ff90a8c0f8f1d4390c3709d32f95483ab2545b4635",
+   "bytes": 34493,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1598399412981_2",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1598399412981_2.jpeg",
+   "sha256": "59c3e1939eb887cb15ef2b097919023fcd93cf269952df80615a5170be07d951",
+   "bytes": 45302,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1598399450660_2",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1598399450660_2.jpeg",
+   "sha256": "73a24d781f785ca99cae84da30d6a20b667e9f2c5c2154fe132ecb370a3838af",
+   "bytes": 62335,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1604269082071_2",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1604269082071_2.jpeg",
+   "sha256": "0fbb70009e7c9e34a5b0207d8c4edfbadd6f491fe878b0aa03c8b2b5fbc1a1e6",
+   "bytes": 41212,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  },
+  {
+   "sample_id": "img_msec_1606689546581_2",
+   "repo": "opssat-onboard-image-denoiser",
+   "repo_commit": "52706e194fcc63e24ce07d46be0cd0f910f5ea59",
+   "file": "images/img_msec_1606689546581_2.jpeg",
+   "sha256": "0ffe50609502fd2fc3f56d8874541e8f03c1399bdd1414c5ea7f656d0c9a49ba",
+   "bytes": 144043,
+   "exif_software": null,
+   "fidelity_tier": "B_thumbnail_jpeg"
+  }
+ ],
+ "excluded": [
+  {
+   "sample_id": "img_msec_1608588759000_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "af6a56677fb9d4f2fdc08ae29416df73f0b553c5004ae11e08e2b52399ab6a4f",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608588802522_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "df77f22d488e7121c5885b60adafe983934039e05374199696c435fc3a0ac4d2",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608603723961_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "a86c477ba3e3933d42f03828dc84e67b02d6204284ed5bed870d35b691deda1c",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608603767961_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "05ee0e3e8dea6e99fa315eccc13d8dbabb389bd602ec141b68bf4e3abb505a62",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608603820201_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "3f6e9b510d97a39b5acdea679c9f05f6694717fe2c6ec834453c334f70ecaf11",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608603907800_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "a65990faab11d717089566216e3ab7fee789922b0b3b21921263589593d7389d",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608757445321_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "fbf6a54e74cea81525c64ed9f9bb41cb890c043b636ee516fb4b1fd37a6818dd",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608757480361_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "994ff23d495729295a51fbb9ce362af1d57ed6b88411b0afd684b4cd443df034",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608757519000_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "ca2a557b3b2f47c1a2693723fc73d64d74f6a04a7a358e4771db8b4d7ab54598",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608757559961_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "bf91518cb855789cd07aacfc9f7ef5ed76b1beec823b471ed5815da45eaa7492",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608757601401_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "afb20adf5ad5f46278c31c5bf440fe401ba72f3b92faf2d59295a93cf1c23955",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608848794282_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "937c97490b6bd68e52df8f4d8320838be86677e18aca6f88aab91315846be7e2",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608848823403_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "89642877b4e04dc5fa2fc8f325b90d97c172340deccd8d1007de38d84db086ba",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608885385768_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "176fa85c4858beed7f8f7fd972a605a9a15a9cecac7bd165a2d2e048d3f28734",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608885427369_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "d17f6fad710d0ba70caeefc1e214449d7f458d308d39a0883f0a474bdb988e82",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608885467048_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "f96cf91652a1304b5921964f4f3075ee9c76fc0910e445fbe388e710012eef2e",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608888903130_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "f927ee2549f9308599edea068e16cdd0a01fd3da1d0924cfa1c6dc0a4bc7d5a1",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608905876328_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "a4547f3f91fee0970be3a7d1609e8bc13999c738189de47fcd896598617185b1",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608905910888_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "fd7e2a55b1ae8ae4f9d3b7c297f79f7ec99416309b0d8f0545de3491949d86fc",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1608974531551_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "517bccc046c262185d1b0a53692914a2c7d54ced93e3abbcb154e251ab129f2e",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1609059963127_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "156cc4142cdae82a35a8c8c4ecbfe3089ca82699174018f2b5cfedfeea944d30",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1609060050485_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "3344645cd3070e74ab73090feaf43df6682483f301cdda720fb6902b003ee9e2",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.20"
+  },
+  {
+   "sample_id": "img_msec_1609316745252_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "4695029f66091ee623e6b4752712d46e0c10cf245edd8ff7793dc832c46f11b3",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.22"
+  },
+  {
+   "sample_id": "img_msec_1609316780121_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "8baa53772a0d3f47efc412a5ce832c75eab4a713836a1eb59a5a0b8383a83206",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.22"
+  },
+  {
+   "sample_id": "img_msec_1609316823563_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "fc9788fff61f68d65aee86e4158b663969a41e08c7e43e4ded295b12b0402ef5",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.22"
+  },
+  {
+   "sample_id": "img_msec_1609316866602_2",
+   "repo": "opssat-smartcam-map",
+   "sha256": "6bd89ad21cdda472fe6afa080fe142b6663e56798c453fcdaeb0ed1389785862",
+   "reason": "ground-edited",
+   "exif_software": "GIMP 2.10.22"
+  }
+ ],
+ "counts": {
+  "accepted": 19,
+  "excluded": 26,
+  "excluded_ground_edited": 26,
+  "excluded_duplicate": 0
+ }
+}

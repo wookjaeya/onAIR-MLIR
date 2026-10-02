@@ -1,0 +1,17 @@
+uname: Linux onair-aarch64 6.8.0-138-generic #138-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 22:20:42 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+nproc: 4
+               total        used        free      shared  buff/cache   available
+Mem:      2049810432   255905792  1479024640     1118208   398503936  1793904640
+python 3.12.3 numpy 2.3.5 iree.runtime /home/ubuntu/e57/pylib/iree/runtime/__init__.py
+--- sha256 of the plugin files this run imports
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  plugins/compiled_learner/__init__.py
+f5a0a859d14d6db628fff244c6a08c49c3a087582d45f21778dc05a5837639c4  plugins/compiled_learner/artifact_binding.py
+e2d5c1a4ea309e8c1ce0731e87b6f9f9e36af88f33e85261149e02892ade052a  plugins/compiled_learner/compiled_learner_plugin.py
+6b3aba68d923039eec0da3870044ffa38e9bce9680b27f17ed7e4f72a5f1537a  plugins/compiled_learner/readback.py
+--- sha256 of the artifacts behind the document links
+2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb  results/e66_plugin_document_rules/docs/b2_resnet/b2_resnet.vmfb
+55586e31feebf697155e3b6cb87ec18d656d5a58bd7ef8209836cbc1842561a8  results/e66_plugin_document_rules/docs/b2_resnet_earlier_revision/b2_resnet.vmfb
+2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb  results/e66_plugin_document_rules/docs/b2_resnet_override/b2_resnet.vmfb
+9ff64bd168e07135c196423d44408e7780984c977912b67c8240c0db522c4d7c  results/e66_plugin_document_rules/docs/b3_deepae/b3_deepae.vmfb
+ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1  results/e66_plugin_document_rules/docs/smartcam/smartcam.vmfb
+e382429cbfbf580356379365fa67a8a2b01b47d58ec4e04b4a4c14165be2e102  results/e66_plugin_document_rules/docs/wgan/wgan.vmfb

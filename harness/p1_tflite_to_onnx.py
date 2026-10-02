@@ -19,6 +19,10 @@ from tflite2onnx.model import Model
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tflite2onnx_ext_squeeze as ext  # noqa: E402
+# E46: the elementwise family (LEAKY_RELU, TANH) needed by the OPS-SAT WGAN denoiser.
+# Registered unconditionally alongside SQUEEZE -- a model that contains neither is
+# unaffected, and the archived SmartCam artifacts are re-verified byte-for-byte.
+import tflite2onnx_ext_elementwise as ext_elem  # noqa: E402
 
 
 def sha(p):
@@ -36,6 +40,7 @@ def main():
     a = ap.parse_args()
     ext.EMIT_MODE["mode"] = a.squeeze_as
     assert ext.register(), "another SQUEEZE converter is already registered"
+    assert ext_elem.register(), "another LEAKY_RELU/TANH converter is already registered"
 
     buf = open(a.tflite, "rb").read()
     im = tflite.Model.GetRootAsModel(buf, 0)
@@ -57,6 +62,7 @@ def main():
 
     g = model.graphes[0]
     squeezes = [op for op in g.ops if isinstance(op, ext.Squeeze)]
+    elementwise = [op for op in g.ops if isinstance(op, ext_elem.Elementwise)]
     om = onnx.load(a.onnx_out)
     onnx.checker.check_model(om)
     hist = collections.Counter(n.op_type for n in om.graph.node)
@@ -75,13 +81,21 @@ def main():
         "onnx_node_histogram": dict(sorted(hist.items(), key=lambda kv: -kv[1])),
         "onnx_node_count": len(om.graph.node),
         "squeeze_instances": [dict(op.audit, onnx_node_name=op.name) for op in squeezes],
+        "elementwise_instances": [dict(op.audit, onnx_node_name=op.name) for op in elementwise],
         "original_modified": False,
         "canonical_order": "initializer and value_info sorted by name (tflite2onnx emits them from sets)",
         "graph_name_set_to": a.graph_name,
     }
     with open(os.path.splitext(a.onnx_out)[0] + ".transform_manifest.json", "w") as fh:
         json.dump(man, fh, indent=1)
-    print(json.dumps({k: man[k] for k in ("emit_mode", "output_onnx", "signature_onnx", "onnx_node_histogram", "squeeze_instances")}, indent=1))
+    print(json.dumps({k: man[k] for k in ("emit_mode", "output_onnx", "signature_onnx", "onnx_node_histogram", "squeeze_instances")},
+                     indent=1))
+    if man["elementwise_instances"]:
+        import collections as _c
+        print(json.dumps({"elementwise_converted": dict(_c.Counter(
+            i["onnx_type"] for i in man["elementwise_instances"])),
+            "alphas": sorted({i["alpha"] for i in man["elementwise_instances"]
+                              if i["alpha"] is not None})}, indent=1))
     return 0
 
 

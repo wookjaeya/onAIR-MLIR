@@ -1,0 +1,219 @@
+OS_BSP_Initialize():Maximum user msg queue depth = 512
+CFE_PSP: Default Reset SubType = 1
+CFE_PSP: Default CPU ID = 1
+CFE_PSP: Default Spacecraft ID = 66
+CFE_PSP: Default CPU Name: cpu1
+OS_Posix_GetSchedulerParams():208:Policy 1: available, min-max: 1-99
+OS_Posix_GetSchedulerParams():208:Policy 2: available, min-max: 1-99
+OS_Posix_TaskAPI_Impl_Init():401:Selected policy 2 for RT tasks, root task = 99
+OS_Posix_TaskAPI_Impl_Init():419:Could not setschedparam in main thread: Operation not permitted (1)
+CFE_PSP: initializing module 'soft_timebase' with ID 0110ff00
+CFE_PSP: Instantiated software timebase 'cFS-Master' running at 10000 usec
+CFE_PSP: initializing module 'timebase_posix_clock' with ID 0110ff01
+CFE_PSP: Using POSIX monotonic clock as CFE timebase
+CFE_PSP: initializing module 'eeprom_mmap_file' with ID 0110ff02
+CFE_PSP: Using MMAP simulated EEPROM implementation
+CFE_PSP: EEPROM Range (2) created: Start Address = F5EF1375E000, Size = 00080000 Status = 0
+CFE_PSP: initializing module 'port_notimpl' with ID 0110ff03
+CFE_PSP: I/O Port access not implemented
+CFE_PSP: initializing module 'iodriver' with ID 0110ff04
+CFE_PSP: initializing module 'linux_sysmon' with ID 0110ff05
+CFE_PSP: initializing module 'endian_api' with ID 0110ff06
+CFE_PSP: Host CPU Endian=LITTLE
+CFE_PSP: initializing module 'ram_notimpl' with ID 0110ff07
+CFE_PSP: Physical RAM access not implemented
+CFE_PSP: Normal exit from previous cFE instance
+CFE_PSP: Starting the cFE with a PROCESSOR reset.
+1980-001-01:07:34.96852 CFE_ES_Main: CFE_ES_Main in EARLY_INIT state
+1980-001-01:07:35.02656 CFE_ES_InitializeFileSystems: Volatile Disk has 100 Percent free space.
+Number of addresses returned by backtrace = 1
+CFE_PSP: CFE_PSP_AttachExceptions called
+1980-001-01:07:35.08869 CFE_ES_Main: CFE_ES_Main entering CORE_STARTUP state
+1980-001-01:07:35.08903 CFE_ES_CreateObjects: Starting Object Creation calls.
+1980-001-01:07:35.09067 CFE_ES_CreateObjects: Calling EarlyInit for CFE_CONFIG
+1980-001-01:07:35.10692 CFE_ES_CreateObjects: Calling EarlyInit for CFE_ES
+1980-001-01:07:35.12444 CFE_ES_CreateObjects: Calling EarlyInit for CFE_EVS
+1980-001-01:07:35.13004 CFE_EVS_EarlyInit: Event Log restored, n=0, c=20, f=1, m=1, o=99
+1980-001-01:07:35.13274 CFE_ES_CreateObjects: Calling EarlyInit for CFE_FS
+1980-001-01:07:35.13301 CFE_ES_CreateObjects: Calling EarlyInit for CFE_SB
+1980-001-01:07:35.19878 CFE_ES_CreateObjects: Calling EarlyInit for CFE_TBL
+1980-001-01:07:35.26882 CFE_ES_CreateObjects: Calling EarlyInit for CFE_TIME
+EVS Port1 1980-012-14:04:43.06407 66/1/CFE_ES 1: cFE ES Initialized: CFE_ES v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:04:43.08355 66/1/CFE_ES 2: cFS Versions: cfe v7.0.1+dev1, osal v7.0.1+dev1, psp v7.0.1+dev1. cFE chksm 31659
+EVS Port1 1980-012-14:04:43.08448 66/1/CFE_ES 91: Version Info: Mission SampleMission, version git:v7.0.1-90-g78c23b0-dirty
+EVS Port1 1980-012-14:04:43.08843 66/1/CFE_ES 91: Version Info: Module CORE_API, version git:2612eb0
+EVS Port1 1980-012-14:04:43.08938 66/1/CFE_ES 91: Version Info: Module CONFIG, version git:2612eb0
+EVS Port1 1980-012-14:04:43.08969 66/1/CFE_ES 91: Version Info: Module ES, version git:2612eb0
+EVS Port1 1980-012-14:04:43.09518 66/1/CFE_ES 91: Version Info: Module EVS, version git:2612eb0
+EVS Port1 1980-012-14:04:43.09550 66/1/CFE_ES 91: Version Info: Module FS, version git:2612eb0
+EVS Port1 1980-012-14:04:43.09875 66/1/CFE_ES 91: Version Info: Module SB, version git:2612eb0
+EVS Port1 1980-012-14:04:43.10379 66/1/CFE_ES 91: Version Info: Module TBL, version git:2612eb0
+EVS Port1 1980-012-14:04:43.10435 66/1/CFE_ES 91: Version Info: Module TIME, version git:2612eb0
+EVS Port1 1980-012-14:04:43.10466 66/1/CFE_ES 91: Version Info: Module OSAL, version git:8111e4a
+EVS Port1 1980-012-14:04:43.10838 66/1/CFE_ES 91: Version Info: Module PSP, version git:d1da809
+EVS Port1 1980-012-14:04:43.11267 66/1/CFE_ES 91: Version Info: Module MSG, version git:2612eb0
+EVS Port1 1980-012-14:04:43.11431 66/1/CFE_ES 91: Version Info: Module SBR, version git:2612eb0
+EVS Port1 1980-012-14:04:43.11457 66/1/CFE_ES 91: Version Info: Module RESOURCEID, version git:2612eb0
+EVS Port1 1980-012-14:04:43.11849 66/1/CFE_ES 92: Build 202609140214 by root@vm, config aarch64
+EVS Port1 1980-012-14:04:43.21617 66/1/CFE_EVS 1: cFE EVS Initialized: CFE_EVS v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:04:43.31874 CFE_SB_AppInit: Registered 4 events for filtering
+EVS Port1 1980-012-14:04:43.32870 66/1/CFE_SB 1: cFE SB Initialized: CFE_SB v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:04:43.33255 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_SB
+EVS Port1 1980-012-14:04:43.43666 66/1/CFE_TBL 1: cFE TBL Initialized: CFE_TBL v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:04:43.44241 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_TBL
+EVS Port1 1980-012-14:04:43.58244 66/1/CFE_TIME 1: cFE TIME Initialized: CFE_TIME v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:04:43.58741 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender CFE_TIME
+1980-012-14:04:43.64718 CFE_ES_CreateObjects: Finished ES CreateObject table entries.
+1980-012-14:04:43.65230 CFE_ES_Main: CFE_ES_Main entering CORE_READY state
+OS_FileOpen_Impl():110:open(/dev/shm/osal:RAM/cfe_es_startup.scr): No such file or directory
+1980-012-14:04:43.67663 CFE_ES_OpenStartupScript: Cannot Open Volatile Startup file: /ram/cfe_es_startup.scr, Trying Nonvolatile.
+1980-012-14:04:43.68424 CFE_ES_OpenStartupScript: Opened ES App Startup file: /cf/cfe_es_startup.scr
+1980-012-14:04:43.78643 CFE_ES_ParseFileEntry: Loading shared library: /cf/cfe_assert.so
+1980-012-14:04:43.82777 [BEGIN] CFE FUNCTIONAL TEST
+1980-012-14:04:43.83276 [BEGIN] 01 CFE-STARTUP
+1980-012-14:04:43.93327 CFE_ES_ParseFileEntry: Loading shared library: /cf/sample_lib.so
+SAMPLE Lib Initialized.Sample Lib v7.0.0+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:04:44.04861 CFE_ES_ParseFileEntry: Loading file: /cf/sch_lab.so, APP: SCH_LAB
+SCH Lab Initialized.SCH Lab v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:04:44.26710 CFE_ES_ParseFileEntry: Loading file: /cf/ci_lab.so, APP: CI_LAB
+1980-012-14:04:44.42372 CFE_ES_ParseFileEntry: Loading file: /cf/to_lab.so, APP: TO_LAB
+EVS Port1 1980-012-14:04:44.59761 66/1/TO_LAB 1: TO Lab Initialized.TO Lab v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled, Awaiting enable command.
+EVS Port1 1980-012-14:04:44.61029 66/1/CFE_SB 14: No subscribers for MsgId 0x808,sender TO_LAB
+1980-012-14:04:44.75778 CFE_ES_ParseFileEntry: Loading file: /cf/sample_app.so, APP: SAMPLE_APP
+1980-012-14:04:44.80442 CI_LAB listening on UDP port: 1234
+EVS Port1 1980-012-14:04:44.80957 66/1/CI_LAB 3: CI Lab Initialized.CI Lab App v7.0.1+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+EVS Port1 1980-012-14:04:44.91638 66/1/SAMPLE_APP 1: Sample App Initialized.Sample App v7.0.0+dev1 (Draco) DEV BUILD, based on v7.0.1, EDS disabled
+1980-012-14:04:44.94829 CFE_ES_ParseFileEntry: Loading file: /cf/ai_learner.so, APP: AI_LEARNER
+{"app":"AI_LEARNER","stage":"build_config","model":"smartcam","allow_conditional_map":0,"contract_bounded_bytes":18222796,"contract_per_call_bytes":9382092,"contract_const_bytes":8840704,"contract_bound_known":true,"contract_artifact_sha256":"ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1"}
+1980-012-14:04:45.08430 CFE_ES_ParseFileEntry: Loading file: /cf/lc.so, APP: LC
+{"app":"AI_LEARNER","stage":"stack","es_stack_size":264063,"stack_base_bytes":262144,"contract_kernel_stack_bytes":1919,"kernel_stack_accounted":true}
+EVS Port1 1980-012-14:04:45.12738 66/1/AI_LEARNER 8: AI_LEARNER stack: es=264063 base=262144 kernel=1919 accounted=1
+{"app":"AI_LEARNER","stage":"admission","verdict":"ADMIT","model":"smartcam","target":"aarch64-unknown-linux-gnu","bounded":18222796,"budget":18222796,"budget_source":"override","per_call":9382092,"constants":8840704,"kernel_stack_bytes":1919,"bound_known":true,"scope":"per_app_local_budget"}
+EVS Port1 1980-012-14:04:45.03456 66/1/CFE_TIME 21: Stop FLYWHEEL
+{"app":"AI_LEARNER","stage":"blob_align","requested_offset":24,"state":"applied","module_ptr_mod64":24}
+EVS Port1 1980-012-14:04:45.27835 66/1/LC 56: WDT verify results: good = 0, bad = 0, unused = 176
+EVS Port1 1980-012-14:04:45.34051 66/1/LC 66: ADT verify results: good = 0, bad = 0, unused = 176
+1980-012-14:04:45.36827 CFE_ES_ParseFileEntry: Loading file: /cf/cf.so, APP: CF
+EVS Port1 1980-012-14:04:45.37229 66/1/LC 23: LC use of Critical Data Store disabled, activity mask = 0x00991990
+EVS Port1 1980-012-14:04:45.38157 66/1/LC 2: LC Initialized. Version 7.0.1.255
+1980-012-14:04:45.64558 CFE_ES_ParseFileEntry: Loading file: /cf/ds.so, APP: DS
+EVS Port1 1980-012-14:04:45.72744 66/1/CF 20: CF Initialized. Version 7.0.1.255
+EVS Port1 1980-012-14:04:45.87443 66/1/DS 10: Destination file table verify results: good entries = 6, bad = 0, unused = 10
+1980-012-14:04:45.92820 CFE_ES_ParseFileEntry: Loading file: /cf/fm.so, APP: FM
+EVS Port1 1980-012-14:04:45.95046 66/1/DS 12: Filter table verify results: good entries = 14, bad = 0, unused = 242
+EVS Port1 1980-012-14:04:46.01037 66/1/DS 1: Application initialized, version 7.0.1.255, data at 0xf5ef126b0460
+EVS Port1 1980-012-14:04:46.30528 66/1/FM 80: Free Space Table verify results: good entries = 3, bad = 0, unused = 5
+EVS Port1 1980-012-14:04:46.36653 66/1/FM 1: Initialization complete: version 7.0.1.255
+1980-012-14:04:46.38944 CFE_ES_ParseFileEntry: Loading file: /cf/hk.so, APP: HK
+EVS Port1 1980-012-14:04:46.42726 66/1/FM 72: Child Task initialization complete
+EVS Port1 1980-012-14:04:46.65846 66/1/HK 1: HK Initialized.  Version 7.0.1.255
+1980-012-14:04:46.70430 CFE_ES_ParseFileEntry: Loading file: /cf/hs.so, APP: HS
+EVS Port1 1980-012-14:04:46.93824 66/1/HS 54: ExeCount verify results: good = 5, bad = 0, unused = 27
+1980-012-14:04:46.98145 CFE_ES_ParseFileEntry: Loading file: /cf/mm.so, APP: MM
+EVS Port1 1980-012-14:04:46.98309 66/1/HS 50: AppMon verify results: good = 0, bad = 0, unused = 32
+EVS Port1 1980-012-14:04:47.04103 66/1/HS 52: EventMon verify results: good = 0, bad = 0, unused = 16
+EVS Port1 1980-012-14:04:47.12310 66/1/HS 56: MsgActs verify results: good = 2, bad = 0, unused = 6
+1980-012-14:04:47.16652 HS_SysMonInit(): System Monitor using PSP device ID 0110ff05
+EVS Port1 1980-012-14:04:47.22337 66/1/MM 1: MM Initialized. Version 7.0.1.255
+CFE_PSP(Linux_SysMon): Started CPU utilization monitoring on 1 CPU(s)
+EVS Port1 1980-012-14:04:47.33044 66/1/HS 1: HS Initialized.  Version 7.0.1.255
+1980-012-14:04:47.40927 CFE_ES_ParseFileEntry: Loading file: /cf/sc.so, APP: SC
+1980-012-14:04:47.71810 CFE_ES_ParseFileEntry: Loading file: /cf/md.so, APP: MD
+EVS Port1 1980-012-14:04:47.77442 66/1/SC 21: RTS table files not loaded at initialization = 0 of 4
+EVS Port1 1980-012-14:04:47.80946 66/1/SC 9: SC Initialized. Version 7.0.1.255
+EVS Port1 1980-012-14:04:47.95532 66/1/MD 52: MD Dwell Tbl verify results: good = 0, bad = 0, unused = 25
+EVS Port1 1980-012-14:04:47.98516 66/1/MD 3: Recovered Dwell Table #1 is valid and has been copied to the MD App
+EVS Port1 1980-012-14:04:48.01448 66/1/MD 52: MD Dwell Tbl verify results: good = 0, bad = 0, unused = 25
+EVS Port1 1980-012-14:04:48.03726 66/1/MD 3: Recovered Dwell Table #2 is valid and has been copied to the MD App
+EVS Port1 1980-012-14:04:48.06542 66/1/MD 52: MD Dwell Tbl verify results: good = 0, bad = 0, unused = 25
+EVS Port1 1980-012-14:04:48.08009 66/1/MD 3: Recovered Dwell Table #3 is valid and has been copied to the MD App
+1980-012-14:04:48.09602 CFE_ES_ParseFileEntry: Loading file: /cf/cs.so, APP: CS
+EVS Port1 1980-012-14:04:48.10826 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:04:48.12828 66/1/MD 52: MD Dwell Tbl verify results: good = 0, bad = 0, unused = 25
+EVS Port1 1980-012-14:04:48.18954 66/1/MD 3: Recovered Dwell Table #4 is valid and has been copied to the MD App
+EVS Port1 1980-012-14:04:48.28036 66/1/MD 7: Dwell Tables Recovered: 4, Dwell Tables Initialized: 0
+EVS Port1 1980-012-14:04:48.34838 66/1/MD 1: MD Initialized.  Version 7.0.1.255
+EVS Port1 1980-012-14:04:48.50047 66/1/CS 144: CS EEPROM Table verification results: good = 0, bad = 0, unused = 16
+EVS Port1 1980-012-14:04:48.52212 66/1/CS 107: CS EEPROM Table: No valid entries in the table
+EVS Port1 1980-012-14:04:48.55529 66/1/CS 143: CS Memory Table verification results: good = 0, bad = 0, unused = 16
+EVS Port1 1980-012-14:04:48.56427 66/1/CS 107: CS Memory Table: No valid entries in the table
+EVS Port1 1980-012-14:04:48.62011 66/1/CS 139: CS Tables Table verification results: good = 1, bad = 0, unused = 23
+EVS Port1 1980-012-14:04:48.66122 66/1/CS 142: CS Apps Table verification results: good = 0, bad = 0, unused = 24
+EVS Port1 1980-012-14:04:48.71484 66/1/CS 108: CS Apps Table: No valid entries in the table
+EVS Port1 1980-012-14:04:48.74133 66/1/CS 127: OS Text Segment disabled due to platform
+EVS Port1 1980-012-14:04:48.75749 66/1/CS 1: CS Initialized. Version 7.0.1.255
+1980-012-14:04:49.39407 CFE_ES_Main: Startup Sync failed - Applications may not have all initialized
+1980-012-14:04:49.39436 CFE_ES_Main: CFE_ES_Main entering APPS_INIT state
+EVS Port1 1980-012-14:04:50.04689 66/1/CFE_TIME 21: Stop FLYWHEEL
+1980-012-14:04:50.32481 CFE_ES_Main: Startup Sync failed - Applications may not have all started
+1980-012-14:04:50.32783 CFE_ES_Main: CFE_ES_Main entering OPERATIONAL state
+EVS Port1 1980-012-14:04:50.37286 66/1/TO_LAB 19: L550 TO Lab subscribed to 32 messages from the table
+EVS Port1 1980-012-14:04:55.78800 66/1/CFE_TIME 20: Start FLYWHEEL
+.{"app":"AI_LEARNER","stage":"binding","verdict":"MATCH","artifact_bytes":8991281,"artifact_sha256":"ecffe6e0bcbadf51","contract_sha256":"ecffe6e0bcbadf51"}
+EVS Port1 1980-012-14:04:59.01632 66/1/CFE_TIME 21: Stop FLYWHEEL
+{"app":"AI_LEARNER","stage":"map_branch","model":"smartcam","module_ptr_mod64":24,"hal_peak_after_append":8840704,"contract_const_bytes":8840704,"contract_per_call_bytes":9382092,"arm":"copy","admission_mode":"unconditional"}
+{"app":"AI_LEARNER","stage":"mem_init","model":"smartcam","target":"aarch64-unknown-linux-gnu","hal_peak":9442816,"hal_allocated":9442816,"bounded":18222796,"peak_within_bounded":true,"inferences_so_far":0,"process_rss_kb":24624,"rss_kb_before_runtime":14252,"rss_kb_after_session":14540,"rss_kb_after_init":24624}
+{"app":"AI_LEARNER","stage":"e25_mode","active":false,"inputs_path":"/cf/e25_inputs.bin"}
+EVS Port1 1980-012-14:05:02.55715 66/1/AI_LEARNER 3: AI_LEARNER initialized: model smartcam (8991281 B), rss_delta_init=10372 KB
+.EVS Port1 1980-012-14:05:03.11398 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:03.01298 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:06.01712 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:05:09.10008 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:11.01968 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:12.04673 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:14.05093 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:05:16.03105 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:18.02005 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:18.99508 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:05:23.02511 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:24.00204 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:25.02597 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:25.99589 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:26.13504 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+.EVS Port1 1980-012-14:05:30.01522 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:30.14445 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:05:31.03735 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:32.03186 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:05:33.02410 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:34.03135 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:34.09986 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:05:34.99700 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:36.02282 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:37.00787 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:38.09819 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+.EVS Port1 1980-012-14:05:39.04096 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:41.02801 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:42.06829 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+.EVS Port1 1980-012-14:05:46.04786 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:46.07928 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:05:47.01403 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:48.01846 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:48.49822 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=42836906.2us max=42836906.2us hal_peak=18222796 within_bounded=1
+{"app":"AI_LEARNER","stage":"run","model":"smartcam","target":"aarch64-unknown-linux-gnu","attempted":1,"completed":1,"fail_input":0,"fail_invoke":0,"fail_output":0,"mean_us":42836906.22,"max_us":42836906.22,"last_us":42836906.22,"out0":0.84670,"out_elems":3,"out_sha256":"efe594c8affc6cda6a397fa547f61de727f50f11886351e12315dd208420a934","out_head":[0.846697,0.119263,0.034041],"out_tail":[0.846697,0.119263,0.034041],"out_full_file":"/cf/last_out.json","out_full_file_bytes":117,"out_full_file_reason":"ok","out_record_truncates":false}
+{"app":"AI_LEARNER","stage":"mem","model":"smartcam","target":"aarch64-unknown-linux-gnu","completed":1,"hal_peak":18222796,"peak_within_bounded":true,"admitted_budget_bytes":18222796,"peak_within_admitted_budget":true,"admission_mode":"unconditional","hal_bytes_per_call_amortized":18222796.0,"process_rss_kb":33792,"process_rss_delta_init_kb":10372,"max_active_calls":1,"active_calls_now":0,"call_counter_balanced":true}
+EVS Port1 1980-012-14:05:49.01322 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:05:51.09524 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:05:53.01730 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:54.08895 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:05:55.03605 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:55.99908 66/1/CFE_TIME 20: Start FLYWHEEL
+.EVS Port1 1980-012-14:05:58.01499 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:05:58.09197 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:05:59.03222 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:06:00.02253 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:06:01.00228 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:06:02.11134 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+.EVS Port1 1980-012-14:06:03.01919 66/1/CFE_TIME 20: Start FLYWHEEL
+EVS Port1 1980-012-14:06:04.02490 66/1/CFE_TIME 21: Stop FLYWHEEL
+EVS Port1 1980-012-14:06:06.06632 66/1/CFE_SB 17: Msg Limit Err,MsgId 0x800,pipe AI_LEARNER_PIPE,sender CFE_ES
+EVS Port1 1980-012-14:06:08.01536 66/1/CFE_TIME 21: Stop FLYWHEEL
+.EVS Port1 1980-012-14:06:09.02017 66/1/CFE_TIME 20: Start FLYWHEEL
+1980-012-14:06:09.70188 CFE_ES_RunExceptionScan: ExceptionID 0x1110002 in TaskID 0: Caught SIGINT
+1980-012-14:06:09.71096 CFE_ES_RunExceptionScan: Processor Reset count not reached (1/2)
+CFE_PSP: Exiting cFE with PROCESSOR Reset status.
+
+CFE_PSP: Shutdown initiated - Exiting cFE
+CI delete callback -- Closing CI Network socket.
+TO delete callback -- Closing TO Network socket.
+.EVS Port1 1980-012-14:06:20.25709 66/1/AI_LEARNER 4: AI_LEARNER completed=2/2 mean=37414560.0us max=42836906.2us hal_peak=18222796 within_bounded=1
+.EXIT=124

@@ -1,0 +1,174 @@
+{
+ "what": "D105 BEFORE the fix: production make_contract.py (repository HEAD 32f5102) run on edited copies of the archived ResNet AArch64 layout IR by the v20-review fact-finding probe (scratchpad, not the repository). Only the production outcome of each cell is kept; the edited IRs are regenerated deterministically by harness/d105_control_flow_probe.py.",
+ "source_layout_ir": "results/e36b_aarch64_models/b2_resnet/b2_resnet.layout_ir.txt",
+ "code_revision": "32f5102",
+ "cells": {
+  "control_unedited": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "static_per_call_bytes": 309416,
+   "static_transient_bytes": 297088,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "scf_for_alloca_dealloca": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 622952,
+   "static_per_call_bytes": 313512,
+   "static_transient_bytes": 301184,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "scf_for_alloca_no_dealloca": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 622952,
+   "static_per_call_bytes": 313512,
+   "static_transient_bytes": 301184,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "scf_for_alloca_sized_by_iv": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "NONE",
+   "bounded_bytes": null,
+   "static_per_call_bytes": null,
+   "static_transient_bytes": null,
+   "unresolved_sizes": [
+    "%q_iv"
+   ],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "scf_if_two_branches_no_results": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 631144,
+   "static_per_call_bytes": 321704,
+   "static_transient_bytes": 309376,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "scf_if_yields_resource": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "refusal_text": [
+    "  - structural walker: op(s) ['scf.if', 'scf.yield'] carry a !stream.resource operand or result but are neither sized nor on the verified-non-allocating list -- the analysis domain does not cover them, so no bound can be stated for this entry (pass --allow-unclassified-resource-ops to override)"
+   ]
+  },
+  "scf_while_alloca_in_body": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 622952,
+   "static_per_call_bytes": 313512,
+   "static_transient_bytes": 301184,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "cf_cond_br_alloca_in_blocks": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 631144,
+   "static_per_call_bytes": 321704,
+   "static_transient_bytes": 309376,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "util_call_callee_in_own_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "refusal_text": [
+    "  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['outputs', 'transient_slabs', 'unresolved(presence)']; the walker reports allocating pre-scheduling op(s) ['stream.async.clone', 'stream.async.dispatch', 'stream.async.splat'] in the post-layout entry, which the regex parser does not scan at all (D84) -- the allocation schedule is not final, so sizes read from this ent"
+   ]
+  },
+  "util_call_callee_in_same_chunk": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "static_per_call_bytes": 309416,
+   "static_transient_bytes": 297088,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "util_call_resource_operand_same_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "refusal_text": [
+    "  - structural walker: op(s) ['util.call'] carry a !stream.resource operand or result but are neither sized nor on the verified-non-allocating list -- the analysis domain does not cover them, so no bound can be stated for this entry (pass --allow-unclassified-resource-ops to override)"
+   ]
+  },
+  "func_call_callee_in_own_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "refusal_text": [
+    "  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['outputs', 'transient_slabs', 'unresolved(presence)']; the walker reports allocating pre-scheduling op(s) ['stream.async.clone', 'stream.async.dispatch', 'stream.async.splat'] in the post-layout entry, which the regex parser does not scan at all (D84) -- the allocation schedule is not final, so sizes read from this ent"
+   ]
+  },
+  "func_call_callee_in_same_chunk": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "static_per_call_bytes": 309416,
+   "static_transient_bytes": 297088,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "single_entry_print_control": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "static_per_call_bytes": 309416,
+   "static_transient_bytes": 297088,
+   "unresolved_sizes": [],
+   "gen_contract_header_rc": 0,
+   "header_written": true,
+   "header_stderr_tail": "",
+   "refusal_text": []
+  },
+  "single_entry_print_util_call_callee_in_own_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "refusal_text": [
+    "  - structural (iree.compiler.ir) cross-check could not parse the layout IR: no (entry, initializer) chunk combination parsed; errors: ['Unable to parse module assembly:\\nerror: \"-\":282:3: \\'util.call\\' op undefined/incompatible callee: q_helper\\n note: \"-\":282:3: see current operation: \"util.call\"(%49) <{callee = @q_helper}> : (!stream.ti', 'Unable to parse module assembly:\\nerror: \"-\":253:3: \\'u"
+   ]
+  }
+ }
+}
