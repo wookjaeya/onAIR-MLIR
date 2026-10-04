@@ -1,0 +1,337 @@
+{
+  "experiment": "E39a",
+  "plan": "docs/plans/E39_novelty_audit.md (비교 축을 표 작성 전에 고정, §7에서 증거 등급 어휘를 좁힘)",
+  "axes": {
+    "A1": "분석 입력",
+    "A2": "메모리 범위(회계 경계)",
+    "A3": "정적 상한 산출",
+    "A4": "실행 전 판정",
+    "A5": "실제 예약",
+    "A6": "비행 SW 연계",
+    "A7": "타깃 ISA·실행환경",
+    "A8": "같은 회계 영역 실행 관측과 대조",
+    "A9": "증거 등급"
+  },
+  "evidence_grades": {
+    "search_metadata": "검색 결과 목록의 제목·URL·venue·연도 (신뢰 가능)",
+    "search_summary": "검색 도구가 써 준 본문 요약 (2차 요약, 원문 미대조)",
+    "fulltext": "논문 원문(PDF/HTML) 전체 확인 — **이 환경 0건**(E39b 재측정: arxiv·crossref·mlsys·ieee·aaai 다섯 호스트 전부 000)",
+    "fulltext_partial": "원문 일부 확인 — Scholar Gateway가 반환한 청크 본문(발췌 번호와 전체 청크 수를 함께 기록한다). 전체 원문 대조가 아니다",
+    "project_doc_fulltext": "프로젝트가 발행한 1차 설계·구현 문서의 전문(RFC·docs) — E39b에서 커밋 고정 URL + sha256로 취득. **논문 원문이 아니다**",
+    "source_fulltext": "구현 소스·헤더의 해당 부분을 직접 읽음 — E39b. **논문 원문이 아니다**"
+  },
+  "unknown_token": "불명",
+  "works": [
+    {
+      "id": "onair_aaai2025",
+      "title": "OnAIR: Applications of the NASA On-Board Artificial Intelligence Research Platform",
+      "venue": "AAAI 2025 (v39 i28, 28893-28899)",
+      "doi": "10.1609/aaai.v39i28.35156",
+      "urls": [
+        "https://ojs.aaai.org/index.php/AAAI/article/view/35156",
+        "https://dl.acm.org/doi/10.1609/aaai.v39i28.35156"
+      ],
+      "role": "이 연구가 올라타는 플랫폼 (경쟁 대상 아님)",
+      "A1": "해당 없음 (플랫폼)",
+      "A2": "불명",
+      "A3": "아니오",
+      "A4": "판정 없음",
+      "A5": "해당 없음",
+      "A6": "cFS·OnAIR (본체)",
+      "A7": "비행 SW / 위성·드론·로봇",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "fulltext_partial"
+      },
+      "basis": "**부분 원문**(AI Magazine 공동 게재본 4/16 청크): 인지 아키텍처·플러그인 인터페이스·배치 사례를 서술하고, 메모리 상한이나 실행 전 admission은 반환된 청크 어디에도 없다. 이전 판의 근거는 검색 요약이었다(E39a 정정)",
+      "fulltext_source": {
+        "tool": "mcp__Scholar_Gateway__semanticSearch",
+        "retrieved_at": "2026-09-11T01:53:48Z",
+        "co_publication_doi": "10.1002/aaai.70020",
+        "venue": "AI Magazine, 15 September 2025, open access",
+        "note": "AAAI-2025/IAAI-track 논문의 AI Magazine 공동 게재본. DOI가 다르므로 표의 primary DOI(10.1609/aaai.v39i28.35156)와 함께 적는다",
+        "chunks_retrieved": [
+          1,
+          3,
+          5,
+          10
+        ],
+        "total_chunks": 16,
+        "coverage": "4/16 청크 — 부분 원문이다",
+        "query": "메모리 admission / 메모리 예산 검사를 OnAIR이 수행하는가를 직접 물은 질의",
+        "observed": "반환된 4청크(약 27,000자) 안에 memory·admission·budget·RAM·resource·footprint 문자열이 각각 0건. 메모리를 겨냥한 질의가 고른 청크에서 0건이라는 관측이지, 16청크 전체에 없다는 증명이 아니다"
+      }
+    },
+    {
+      "id": "tinyiree_2022",
+      "title": "TinyIREE: An ML Execution Environment for Embedded Systems from Compilation to Deployment",
+      "venue": "IEEE Micro 42(5) 2022, 9-16",
+      "doi": "10.1109/MM.2022.3178068",
+      "urls": [
+        "https://ieeexplore.ieee.org/document/9782563/",
+        "https://arxiv.org/abs/2205.14479"
+      ],
+      "role": "이 연구가 쓰는 컴파일·배포 스택의 기반",
+      "A1": "컴파일러 IR (MLIR/IREE)",
+      "A2": "불명",
+      "A3": "부분 (임베디드 배포 옵션)",
+      "A4": "판정 없음",
+      "A5": "해당 없음",
+      "A6": "일반 임베디드 / bare-metal",
+      "A7": "MCU·CPU (LLVM ISA/ABI)",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "search_summary"
+      },
+      "basis": "검색 요약: 제한된 메모리·연산 자원을 수용하는 IREE 배포 옵션 집합. MobileNet SSD 결과 포함. 정적 상한을 배치 전 판정에 쓰는 서술은 검색 요약에 없음"
+    },
+    {
+      "id": "mlir_2020",
+      "title": "MLIR: Scaling Compiler Infrastructure for Domain Specific Computation",
+      "venue": "CGO 2021 / arXiv 2002.11054",
+      "doi": "10.48550/arXiv.2002.11054",
+      "urls": [
+        "https://arxiv.org/abs/2002.11054"
+      ],
+      "role": "분석 지점이 되는 IR 인프라",
+      "A1": "컴파일러 IR",
+      "A2": "불명",
+      "A3": "아니오",
+      "A4": "판정 없음",
+      "A5": "해당 없음",
+      "A6": "없음",
+      "A7": "전방위",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "search_summary"
+      },
+      "basis": "IR 인프라 자체"
+    },
+    {
+      "id": "tflm_mlsys2021",
+      "title": "TensorFlow Lite Micro: Embedded Machine Learning on TinyML Systems",
+      "venue": "MLSys 2021",
+      "doi": null,
+      "urls": [
+        "https://proceedings.mlsys.org/paper_files/paper/2021/file/6c44dc73014d66ba49b28d483a8f8b0d-Paper.pdf",
+        "https://github.com/tensorflow/tflite-micro/issues/890"
+      ],
+      "role": "정적 arena 산정의 대표 선행 — 이 저장소는 v0.29에서 필수 baseline에서 제외했다(실행환경 불일치)",
+      "A1": "배포 아티팩트 (FlatBuffer 모델)",
+      "A2": "비영속 버퍼 재사용 계획 + 영속 메타데이터 + scratch. **주의**: `arena_used_bytes()`는 scratch를 포함하지 않는다(공개 이슈 #890)",
+      "A3": "예 (arena 크기)",
+      "A4": "판정 없음 (문서는 debugging only로 표기)",
+      "A5": "enforced (arena를 실제로 잡음)",
+      "A6": "없음 (MCU 런타임)",
+      "A7": "MCU 정적 arena",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "project_doc_fulltext+source_fulltext",
+        "axes_checked_against_fulltext": [
+          "A2",
+          "A3"
+        ],
+        "note": "E39b에서 원문 대조한 축만 이 등급이 지지한다; 나머지 축은 여전히 search_summary다. 논문(MLSys 2021) 원문은 **여전히 미취득**이라 그 문헌에 대한 등급은 오르지 않는다",
+        "paper_grade": "search_summary",
+        "source": [
+          "raw.githubusercontent.com/tensorflow/tflite-micro/d0318206.../tensorflow/lite/micro/docs/memory_management.md",
+          "raw.githubusercontent.com/tensorflow/tflite-micro/d0318206.../tensorflow/lite/micro/micro_interpreter.h"
+        ]
+      },
+      "basis": "E39b: 문서 9,849 B + 헤더 8,712 B 전문 대조. **정정**: `arena_used_bytes`와 'debugging'은 `memory_management.md`에 **0건**이고 *\"For debugging only.\"*는 `micro_interpreter.h:143`의 주석이다 — CLAUDE.md가 바로 앞 문장에서 인용한 그 헤더와 **같은 주석 블록**인데 귀속이 한 줄 어긋나 있었다. *\"모든 유효 입력에 대한 상한임을 증명한다\"*는 주장이 두 문헌 어디에도 없다는 것은 원문에서 확인된다(`upper bound` 0건)"
+    },
+    {
+      "id": "tvm_usmp",
+      "title": "Apache TVM RFC 0009: Unified Static Memory Planning (USMP)",
+      "venue": "Apache TVM RFC / tracking issue #8404",
+      "doi": null,
+      "urls": [
+        "https://github.com/apache/tvm-rfcs/blob/main/rfcs/0009_Unified_Static_Memory_Planning.md",
+        "https://discuss.tvm.apache.org/t/rfc-unified-static-memory-planning/10099"
+      ],
+      "role": "**workspace pool과 constant pool을 컴파일 시점에 분리**하는 선행 — 이 저장소의 per_call/constants 분해와 같은 축",
+      "A1": "컴파일러 IR (TIR)",
+      "A2": "workspace pool + **parameter pool**(`--usmp-parameter-pools`) 분리. I/O 텐서를 workspace에 넣는 U4 사용례 포함. **정정(E39b)**: E39a가 쓴 'constant pool'은 이 RFC 원문에 **0건**이고 개념 대응만 맞다",
+      "A3": "예",
+      "A4": "판정 없음 (코드젠에 씀)",
+      "A5": "enforced (풀을 잡음)",
+      "A6": "없음",
+      "A7": "MCU·임베디드 AOT",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "project_doc_fulltext",
+        "axes_checked_against_fulltext": [
+          "A1",
+          "A2"
+        ],
+        "note": "E39b에서 원문 대조한 축만 이 등급이 지지한다; 나머지 축은 여전히 search_summary다",
+        "source": "raw.githubusercontent.com/apache/tvm-rfcs/8e5c1250.../rfcs/0009_Unified_Static_Memory_Planning.md"
+      },
+      "basis": "E39b: RFC 원문 30,902 B 전문 대조 (커밋 고정, sha256 기록). A1·A2 확인, A2 용어 정정"
+    },
+    {
+      "id": "executorch_memplan",
+      "title": "ExecuTorch Memory Planning",
+      "venue": "PyTorch ExecuTorch 공식 문서 / arXiv 2605.08195",
+      "doi": null,
+      "urls": [
+        "https://docs.pytorch.org/executorch/stable/compiler-memory-planning.html",
+        "https://github.com/pytorch/executorch/blob/main/exir/memory_planning.py"
+      ],
+      "role": "텐서 수명 기반 arena 계획의 현행 대표",
+      "A1": "컴파일러 IR — 입력은 `ExportedProgram`이고 emission 직전 단계다. **정정(E39b)**: 이 문서는 'EXIR'라는 이름을 쓰지 않는다(0건)",
+      "A2": "mutable tensor를 고정 크기 arena에 배치. backend delegate가 초기화 후 사전컴파일 데이터를 내릴 수 있어 peak가 달라짐",
+      "A3": "예",
+      "A4": "판정 없음",
+      "A5": "문서가 말하는 것은 *계획하지 않은 I/O는 사용자가 버퍼를 준다*까지다. **정정(E39b)**: 계획된 arena를 누가 잡는지는 이 문서에 없으므로 `enforced`는 이 문헌만으로 확정되지 않는다(E44의 구분: 호출의 존재 ≠ 이 예산의 예약)",
+      "A6": "없음",
+      "A7": "모바일·엣지",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "project_doc_fulltext",
+        "axes_checked_against_fulltext": [
+          "A1",
+          "A2",
+          "A3",
+          "A5"
+        ],
+        "note": "E39b에서 원문 대조한 축만 이 등급이 지지한다; 나머지 축은 여전히 search_summary다",
+        "source": "raw.githubusercontent.com/pytorch/executorch/df6147af.../docs/source/compiler-memory-planning.md"
+      },
+      "basis": "E39b: 문서 원문 7,815 B 전문 대조. naive/Greedy **두 알고리즘을 제공**하고 naive가 *\"serves as an upper bound\"*라고 적는다 — **정정**: E39a의 'greedy best-fit **기본**'에서 '기본'은 이 문서에 근거가 없다"
+    },
+    {
+      "id": "taso_2020",
+      "title": "TASO: Time and Space Optimization for Memory-Constrained DNN Inference",
+      "venue": "SBAC-PAD 2020",
+      "doi": "10.1109/SBAC-PAD49847.2020.00036",
+      "urls": [
+        "https://arxiv.org/abs/2005.10709"
+      ],
+      "role": "**layer별 메모리 상한**을 명시적으로 쓰는 선행 (ARM Cortex-A15)",
+      "A1": "소스 모델 (CNN)",
+      "A2": "layer별 workspace. 전체 회계 경계는 불명",
+      "A3": "예 (layer별 footprint 상한)",
+      "A4": "판정 없음 — **최적화에만 씀**(ILP로 primitive 선택)",
+      "A5": "불명",
+      "A6": "없음",
+      "A7": "ARM Cortex-A15 CPU",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "search_summary"
+      },
+      "basis": "검색 요약: ILP 기반 primitive 선택, layer별 메모리 footprint 상한을 반영한 workspace 할당, 메모리 2.2배 감소"
+    },
+    {
+      "id": "quilt_jsa2026",
+      "title": "Quilt / Peak-memory-aware partitioning and scheduling for multi-tenant DNN model inference",
+      "venue": "Journal of Systems Architecture 2026",
+      "doi": "10.1016/j.sysarc.2026.103696",
+      "urls": [
+        "https://www.sciencedirect.com/science/article/abs/pii/S1383762126000147"
+      ],
+      "role": "**가장 가까운 후보** — MLIR 계열 정적 분석 + OOM 방지",
+      "A1": "컴파일러 IR (ONNX-MLIR)",
+      "A2": "liveness 기반 메모리 풀. 정확한 경계는 불명",
+      "A3": "예 (peak memory 인지)",
+      "A4": "**OOM 방지에 씀 — 단, 거부가 아니라 분할·스케줄링으로 맞춘다**",
+      "A5": "memory pool generator가 풀을 만듦",
+      "A6": "없음",
+      "A7": "다중 테넌트 GPU / desktop-scale edge",
+      "A8": "불명",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "search_summary"
+      },
+      "basis": "검색 요약: liveness analyzer + model partitioner + memory pool generator + runtime interface generator 4개 구성요소. 지연 25.4%/37.7% 감소"
+    },
+    {
+      "id": "futureproof_smp_2025",
+      "title": "Futureproof Static Memory Planning",
+      "venue": "arXiv 2504.04874",
+      "doi": null,
+      "urls": [
+        "https://arxiv.org/html/2504.04874"
+      ],
+      "role": "단편화 상한(근사비)을 다루는 최근 연구",
+      "A1": "배치 계획",
+      "A2": "불명",
+      "A3": "예 (단편화 상한)",
+      "A4": "판정 없음",
+      "A5": "불명",
+      "A6": "없음",
+      "A7": "불명",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "search_summary"
+      },
+      "basis": "검색 요약: 알고리즘 품질을 단편화 상한으로 표현(예: 6-근사)"
+    },
+    {
+      "id": "visors_gnc_2025",
+      "title": "Event-Driven Simulation for Rapid Iterative Development of Distributed Space Flight Software (VISORS GNC 사례)",
+      "venue": "arXiv 2505.12502",
+      "doi": null,
+      "urls": [
+        "https://arxiv.org/pdf/2505.12502"
+      ],
+      "role": "**비행 SW의 앱별 메모리 예산 실무** — 이 연구의 예산 개념과 가장 가까운 운용 관행",
+      "A1": "해당 없음 (운용 관행)",
+      "A2": "동적 메모리 총량",
+      "A3": "아니오 (요구사항으로 부여)",
+      "A4": "**아니오 — 초과 시 고의 크래시**(런타임 사후 강제)",
+      "A5": "enforced (시뮬레이션에서 강제)",
+      "A6": "비행 SW",
+      "A7": "위성",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "search_summary"
+      },
+      "basis": "검색 요약: VISORS GNC는 동적 메모리 최대 50 MB 요구사항, 고충실도 시뮬레이션에서 초과 시 고의 크래시. 비행 코드에서 malloc/free 금지가 일반적"
+    },
+    {
+      "id": "cfs_ntrs",
+      "title": "core Flight System (cFS) — NASA NTRS 자료",
+      "venue": "NASA NTRS",
+      "doi": null,
+      "urls": [
+        "https://ntrs.nasa.gov/api/citations/20240004389/downloads/cFSFSW2024v10.pdf",
+        "https://github.com/nasa/cFS"
+      ],
+      "role": "배치 대상 프레임워크",
+      "A1": "해당 없음",
+      "A2": "불명",
+      "A3": "아니오",
+      "A4": "판정 없음",
+      "A5": "불명",
+      "A6": "cFS 본체 — **저 TRL 앱(AI 추론 포함)의 sandboxing 지원을 언급**",
+      "A7": "비행 SW",
+      "A8": "아니오",
+      "A9": {
+        "metadata": "search_metadata",
+        "content": "search_summary"
+      },
+      "basis": "검색 요약: cFS가 AI Inferencing 같은 저 TRL 앱의 안전한 sandboxing을 지원한다고 언급. 구체적 메모리 예산 admission 기법은 검색 결과에 없음"
+    }
+  ],
+  "e39b": {
+    "experiment": "E39b",
+    "evidence": "results/e39_prior_art/fulltext/fulltext_check.json",
+    "graded": [
+      "tvm_usmp",
+      "executorch_memplan",
+      "tflm_mlsys2021"
+    ],
+    "peer_reviewed_fulltext_count": 0,
+    "note": "등급은 **행 단위가 아니라 축 단위**로 지지된다 — 각 행의 `A9.axes_checked_against_fulltext`가 그 범위다"
+  }
+}

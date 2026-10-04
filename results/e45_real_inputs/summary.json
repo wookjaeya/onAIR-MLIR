@@ -1,0 +1,505 @@
+{
+ "experiment": "E45",
+ "title": "Real evaluation inputs for the three models (G1 only)",
+ "plan": "docs/plans/E45_real_inputs.md (committed before measurement, c27b8b2)",
+ "goal": "G1 -- run the existing semantic-equivalence comparison on REAL inputs in each model's actual value domain. G2 (accuracy) is explicitly out of scope for all three models; the per-model reasons are in each acquisition manifest.",
+ "criteria": "inherited UNCHANGED from E25 (abs_err <= 1e-4 OR rel_err <= 1e-5 per element). A FAIL on real inputs is reported as a FAIL; the criterion is not adjusted to produce a pass.",
+ "recompilations": 0,
+ "new_model_harnesses": 0,
+ "cells": {
+  "b2_resnet": {
+   "real_inputs": {
+    "readable": true,
+    "path": "results/e45_real_inputs/cells/b2_resnet/comparison.json",
+    "verdict": "PASS",
+    "samples": 200,
+    "elements": 2000,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "by_kind": {
+     "real_cifar10": 200
+    },
+    "per_kind": {
+     "real_cifar10": {
+      "samples": 200,
+      "samples_ok": 200,
+      "elements": 2000,
+      "elements_failed": 0,
+      "worst_abs_err": 2.7418136596679688e-06,
+      "worst_rel_err": 1.8780511378274246e-05,
+      "worst_err_note": "the abs and rel maxima may come from different elements",
+      "headroom": 0.9725818634033203,
+      "headroom_at": {
+       "sample_id": "cifar10_1107",
+       "index": 1
+      },
+      "headroom_unavailable_reason": null,
+      "argmax_checked": 200,
+      "argmax_failed": 0,
+      "argmax_note": null
+     }
+    },
+    "worst_element": {
+     "abs": 2.7418136596679688e-06,
+     "rel": 4.890024413978411e-06,
+     "sample_id": "cifar10_1107",
+     "index": 1
+    },
+    "argmax_mode": "require",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   },
+   "archived_prior_cell": {
+    "readable": true,
+    "path": "results/e34_two_models/b2_resnet/comparison.json",
+    "verdict": "PASS",
+    "samples": 34,
+    "elements": 340,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "by_kind": {
+     "edge": 2,
+     "synthetic": 32
+    },
+    "per_kind": null,
+    "worst_element": {
+     "abs": 1.9669532775878906e-06,
+     "rel": 7.0606426832325035e-06,
+     "sample_id": "edge_ones",
+     "index": 4
+    },
+    "argmax_mode": "require",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   }
+  },
+  "b3_deepae": {
+   "real_inputs": {
+    "readable": true,
+    "path": "results/e45_real_inputs/cells/b3_deepae/comparison.json",
+    "verdict": "FAIL",
+    "samples": 34,
+    "elements": 21760,
+    "elements_failed": 94,
+    "argmax_failed": 0,
+    "by_kind": {
+     "real_ad01": 34
+    },
+    "per_kind": {
+     "real_ad01": {
+      "samples": 34,
+      "samples_ok": 33,
+      "elements": 21760,
+      "elements_failed": 94,
+      "worst_abs_err": 0.0006189346313476562,
+      "worst_rel_err": 0.0018434563641026836,
+      "worst_err_note": "the abs and rel maxima may come from different elements",
+      "headroom": -3.9114227294921875,
+      "headroom_at": {
+       "sample_id": "normal_id_04_00000043_hist_librosa_w98",
+       "index": 135
+      },
+      "headroom_unavailable_reason": null,
+      "argmax_checked": 0,
+      "argmax_failed": 0,
+      "argmax_note": "argmax is not applicable to this model; absence is not a pass"
+     }
+    },
+    "worst_element": {
+     "abs": 0.0006189346313476562,
+     "rel": 4.070108975443195e-05,
+     "sample_id": "normal_id_04_00000043_hist_librosa_w98",
+     "index": 294
+    },
+    "argmax_mode": "not-applicable",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   },
+   "archived_prior_cell": {
+    "readable": true,
+    "path": "results/e34_two_models/b3_deepae/comparison.json",
+    "verdict": "PASS",
+    "samples": 34,
+    "elements": 21760,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "by_kind": {
+     "edge": 2,
+     "synthetic": 32
+    },
+    "per_kind": null,
+    "worst_element": {
+     "abs": 4.38690185546875e-05,
+     "rel": 6.595610434857916e-06,
+     "sample_id": "synthetic_31",
+     "index": 130
+    },
+    "argmax_mode": "not-applicable",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   }
+  },
+  "smartcam": {
+   "real_inputs": {
+    "readable": true,
+    "path": "results/e45_real_inputs/cells/smartcam/comparison.json",
+    "verdict": "PASS",
+    "samples": 19,
+    "elements": 57,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "by_kind": {
+     "real_example": 19
+    },
+    "per_kind": {
+     "real_example": {
+      "samples": 19,
+      "samples_ok": 19,
+      "elements": 57,
+      "elements_failed": 0,
+      "worst_abs_err": 2.384185791015625e-06,
+      "worst_rel_err": 1.4267155245771544e-05,
+      "worst_err_note": "the abs and rel maxima may come from different elements",
+      "headroom": 0.9761581420898438,
+      "headroom_at": {
+       "sample_id": "img_msec_1608753938601_2",
+       "index": 2
+      },
+      "headroom_unavailable_reason": null,
+      "argmax_checked": 19,
+      "argmax_failed": 0,
+      "argmax_note": null
+     }
+    },
+    "worst_element": {
+     "abs": 2.384185791015625e-06,
+     "rel": 2.8895831754597524e-06,
+     "sample_id": "img_msec_1608753938601_2",
+     "index": 2
+    },
+    "argmax_mode": "require",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   },
+   "archived_prior_cell": {
+    "readable": true,
+    "path": "results/e31_smartcam_equivalence/comparison.json",
+    "verdict": "PASS",
+    "samples": 37,
+    "elements": 111,
+    "elements_failed": 0,
+    "argmax_failed": 0,
+    "by_kind": {
+     "edge": 2,
+     "real_example": 3,
+     "synthetic": 32
+    },
+    "per_kind": null,
+    "worst_element": {
+     "abs": 5.364418029785156e-07,
+     "rel": 5.677437880786547e-07,
+     "sample_id": "img_msec_1597559030639_2",
+     "index": 2
+    },
+    "argmax_mode": null,
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   }
+  }
+ },
+ "acquisition": {
+  "b2_resnet": {
+   "readable": true,
+   "goal": "G1 only -- real inputs for semantic equivalence. NO accuracy is claimed.",
+   "bytes_vendored_in_tree": true,
+   "value_domain": {
+    "range": [
+     0,
+     255
+    ],
+    "model_expects": "raw 0..255 as float32, with NO division by 255",
+    "evidence": "tiny/benchmark/training/image_classification/tflite_test.py: the float branch is `test_imgs = test_imgs.astype(np.float32)`; only the quantised branch transforms (astype(int64)-128 -> int8)",
+    "contrast_with_existing_fixture": "results/e34_two_models/b2_resnet/fixture is uniform[0,1), i.e. outside this domain"
+   },
+   "licence": {
+    "data": "UNSTATED. CIFAR-10 publishes no explicit licence and none of the mirrors carries a LICENSE file. Cite Krizhevsky, 'Learning Multiple Layers of Features from Tiny Images' (2009). Do NOT describe the mirror as an official distribution channel.",
+    "selector_and_harness": "Apache-2.0 (mlcommons/tiny @ 4addd0fa08d216e20637637874e084895f289da4) -- covers perf_samples_idxs.npy and y_labels.csv, NOT the pixels."
+   },
+   "counts": {
+    "selector": "mlcommons/tiny perf_samples_idxs.npy (seed 8108, 20 per class)",
+    "selector_url": "https://raw.githubusercontent.com/mlcommons/tiny/4addd0fa08d216e20637637874e084895f289da4/benchmark/training/image_classification/perf_samples_idxs.npy",
+    "selector_sha256": "3bd4a88eeb4c50fad652d0f24c8af13bc9219ba2878aea47c6536bfbeb43024d",
+    "n": 200,
+    "per_class": [
+     20,
+     20,
+     20,
+     20,
+     20,
+     20,
+     20,
+     20,
+     20,
+     20
+    ],
+    "chosen_by_this_project": false,
+    "ambiguity_warning": "The EEMBC EnergyRunner harness that scores real MLPerf Tiny submissions uses a DIFFERENT 200 samples. Never write 'the official ic01 eval set' without saying which one."
+   }
+  },
+  "b3_deepae": {
+   "readable": true,
+   "goal": "G1 only -- real inputs for semantic equivalence. NO AUC, no reconstruction-error and no accuracy claim.",
+   "bytes_vendored_in_tree": false,
+   "value_domain": {
+    "range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "mean": -27.44542121887207,
+    "units": "log-mel, dB",
+    "contrast_with_existing_fixture": "results/e34_two_models/b3_deepae/fixture is uniform[0,1) -- outside this domain entirely"
+   },
+   "licence": {
+    "statement": "eembc/energyrunner README: 'You must obtain the input files from the dataset. EEMBC cannot redistribute the input files.'",
+    "purge_timeline_read_from_git": [
+     {
+      "commit": "4285411",
+      "date": "2021-06-11 10:32:36 -0700",
+      "subject": "Deleted license"
+     },
+     {
+      "commit": "00bc683",
+      "date": "2021-06-11 10:34:22 -0700",
+      "subject": "Update README.md"
+     },
+     {
+      "commit": "c38c333",
+      "date": "2021-06-11 10:35:52 -0700",
+      "subject": "Purged material copyrighted by other people."
+     }
+    ],
+    "reading": "This is not an unstated licence. The distributor removed the repository's Apache-2.0 file, wrote that the dataset folder is 'copyright of their respective creators', and deleted the files as 'material copyrighted by other people' -- all within three minutes. Vendoring the bytes would reverse a deliberate takedown."
+   },
+   "counts": {
+    "files": "sorted(names)[::7][:34]",
+    "window_index": 98,
+    "window_index_reason": "mid-clip (196 // 2), so the sample is not a clip edge",
+    "label_blind": true,
+    "label_blind_note": "the rule never reads y_labels.csv, so it cannot select on the dependent variable",
+    "fixed_before_selection": true,
+    "count_reason": "matches the 34 samples of the synthetic fixture it is compared against (results/e34_two_models/b3_deepae/fixture)"
+   }
+  },
+  "smartcam": {
+   "readable": true,
+   "goal": "G1 only -- real inputs for semantic equivalence. NO accuracy claim.",
+   "bytes_vendored_in_tree": true,
+   "value_domain": null,
+   "licence": "All OPS-SAT images were acquired by the spacecraft's SmartCam and credited to ESA.",
+   "counts": {
+    "accepted": 19,
+    "excluded": 26,
+    "excluded_ground_edited": 26,
+    "excluded_duplicate": 0
+   }
+  }
+ },
+ "negative_control": {
+  "b2_resnet": {
+   "real_inputs": {
+    "readable": true,
+    "path": "results/e45_real_inputs/cells/b2_resnet/negative_control_reshape.comparison.json",
+    "verdict": "FAIL",
+    "samples": 200,
+    "elements": 2000,
+    "elements_failed": 1502,
+    "argmax_failed": 180,
+    "by_kind": {
+     "real_cifar10": 200
+    },
+    "per_kind": {
+     "real_cifar10": {
+      "samples": 200,
+      "samples_ok": 0,
+      "elements": 2000,
+      "elements_failed": 1502,
+      "worst_abs_err": 0.999998927115978,
+      "worst_rel_err": 1.0,
+      "worst_err_note": "the abs and rel maxima may come from different elements",
+      "headroom": null,
+      "headroom_at": null,
+      "headroom_unavailable_reason": "not computable: this run stored only failing element rows (--detail failures), so the closest PASSING element is not in the file",
+      "argmax_checked": 200,
+      "argmax_failed": 180,
+      "argmax_note": null
+     }
+    },
+    "worst_element": {
+     "abs": 0.999998927115978,
+     "rel": 0.999999999999584,
+     "sample_id": "cifar10_9244",
+     "index": 7
+    },
+    "argmax_mode": "require",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   },
+   "archived_prior_cell": {
+    "readable": true,
+    "path": "results/e34_two_models/b2_resnet/negative_control_reshape.comparison.json",
+    "verdict": "FAIL",
+    "samples": 34,
+    "elements": 340,
+    "elements_failed": 258,
+    "argmax_failed": 0,
+    "by_kind": {
+     "edge": 2,
+     "synthetic": 32
+    },
+    "per_kind": null,
+    "worst_element": {
+     "abs": 0.06037116050720215,
+     "rel": 0.12020166765187111,
+     "sample_id": "synthetic_03",
+     "index": 4
+    },
+    "argmax_mode": "require",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   }
+  },
+  "b3_deepae": {
+   "real_inputs": {
+    "readable": false,
+    "path": "/home/user/onAIR-MLIR/results/e45_real_inputs/cells/b3_deepae/negative_control_reshape.comparison.json",
+    "reason": "FileNotFoundError: [Errno 2] No such file or directory: '/home/user/onAIR-MLIR/results/e45_real_inputs/cells/b3_deepae/negative_control_reshape.comparison.json'"
+   },
+   "archived_prior_cell": {
+    "readable": false,
+    "path": "/home/user/onAIR-MLIR/results/e34_two_models/b3_deepae/negative_control_reshape.comparison.json",
+    "reason": "FileNotFoundError: [Errno 2] No such file or directory: '/home/user/onAIR-MLIR/results/e34_two_models/b3_deepae/negative_control_reshape.comparison.json'"
+   }
+  },
+  "smartcam": {
+   "real_inputs": {
+    "readable": true,
+    "path": "results/e45_real_inputs/cells/smartcam/negative_control_reshape.comparison.json",
+    "verdict": "FAIL",
+    "samples": 19,
+    "elements": 57,
+    "elements_failed": 57,
+    "argmax_failed": 18,
+    "by_kind": {
+     "real_example": 19
+    },
+    "per_kind": {
+     "real_example": {
+      "samples": 19,
+      "samples_ok": 0,
+      "elements": 57,
+      "elements_failed": 57,
+      "worst_abs_err": 0.9457541070878506,
+      "worst_rel_err": 0.9971970248886698,
+      "worst_err_note": "the abs and rel maxima may come from different elements",
+      "headroom": null,
+      "headroom_at": null,
+      "headroom_unavailable_reason": "not computable: this run stored only failing element rows (--detail failures), so the closest PASSING element is not in the file",
+      "argmax_checked": 19,
+      "argmax_failed": 18,
+      "argmax_note": null
+     }
+    },
+    "worst_element": {
+     "abs": 0.9457541070878506,
+     "rel": 0.9539709912240388,
+     "sample_id": "img_msec_1609316713883_2",
+     "index": 2
+    },
+    "argmax_mode": "require",
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   },
+   "archived_prior_cell": {
+    "readable": true,
+    "path": "results/e31_smartcam_equivalence/negative_control_reshape.comparison.json",
+    "verdict": "FAIL",
+    "samples": 37,
+    "elements": 111,
+    "elements_failed": 105,
+    "argmax_failed": 3,
+    "by_kind": {
+     "edge": 2,
+     "real_example": 3,
+     "synthetic": 32
+    },
+    "per_kind": null,
+    "worst_element": {
+     "abs": 0.8424826338887215,
+     "rel": 0.8916424471372182,
+     "sample_id": "img_msec_1597559030639_2",
+     "index": 2
+    },
+    "argmax_mode": null,
+    "abs_tol": 0.0001,
+    "rel_tol": 1e-05
+   }
+  }
+ },
+ "negative_control_detection": [
+  {
+   "cell": "b2_resnet",
+   "inputs": "real_inputs",
+   "samples": 200,
+   "argmax_failed": 180,
+   "argmax_detection": 0.9,
+   "by_kind": {
+    "real_cifar10": 200
+   }
+  },
+  {
+   "cell": "b2_resnet",
+   "inputs": "archived_prior_cell",
+   "samples": 34,
+   "argmax_failed": 0,
+   "argmax_detection": 0.0,
+   "by_kind": {
+    "edge": 2,
+    "synthetic": 32
+   }
+  },
+  {
+   "cell": "b3_deepae",
+   "inputs": "real_inputs",
+   "argmax_detection": null,
+   "reason": "not readable or argmax not applicable to this model"
+  },
+  {
+   "cell": "b3_deepae",
+   "inputs": "archived_prior_cell",
+   "argmax_detection": null,
+   "reason": "not readable or argmax not applicable to this model"
+  },
+  {
+   "cell": "smartcam",
+   "inputs": "real_inputs",
+   "samples": 19,
+   "argmax_failed": 18,
+   "argmax_detection": 0.9473684210526315,
+   "by_kind": {
+    "real_example": 19
+   }
+  },
+  {
+   "cell": "smartcam",
+   "inputs": "archived_prior_cell",
+   "samples": 37,
+   "argmax_failed": 3,
+   "argmax_detection": 0.08108108108108109,
+   "by_kind": {
+    "edge": 2,
+    "real_example": 3,
+    "synthetic": 32
+   }
+  }
+ ]
+}

@@ -74,6 +74,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 import static_mem_bound as smb  # noqa: E402  (parse_alloc_ir, entry_arg_shapes, artifact_rodata_segments)
+import vmfb_module_info as vmi  # noqa: E402  E65/M1: producer bytecode version read from the artifact
 try:
     import elf_stack_frame as esf  # noqa: E402  optional: locate ELFs inside the vmfb
 except Exception:  # pragma: no cover
@@ -89,6 +90,24 @@ BOUND_METHOD_NONE = "NONE"
 BINDING_RULE = ("the gate must hash the exact bytes handed to the IREE session and compare "
                 "with artifact.sha256 before any runtime allocation")
 DUMP_HEADER_RE = re.compile(r"^// -----// IR Dump After [^\n]*\n", re.M)
+
+# E65/M1: the compiler revision over which the allocation correspondence K was checked, and the
+# bytecode version that revision emits (IREE_VM_BYTECODE_VERSION_MAJOR/_MINOR 17.0 at
+# runtime/src/iree/vm/bytecode/utils/isa.h:26,32 of that revision). Until E65 the contract recorded
+# only the ANALYSIS HOST's compiler (validity.compiler, from `iree-compile --version` at generation
+# time), and four artifacts built by an earlier revision were issued with a bound and grade
+# "verified" -- the disagreement lived only in a free-text note that no consumer reads.
+CHECKED_PRODUCER = {
+    "compiler": "IREE 3.11.0rc20260316",
+    "compiler_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+    "bytecode_version": [17, 0],
+}
+PRODUCER_CHECK_STATES = ("match", "mismatch", "not_observed")
+PRODUCER_CHECK_GRANULARITY = (
+    "the artifact carries no compiler revision string (empty module attrs; the embedded ELF "
+    ".comment reads 'IREE'), so the check compares the bytecode version the artifact declares. "
+    "Two compiler revisions that emit the same bytecode version are NOT distinguished; 'match' "
+    "means 'same bytecode version as the checked revision', not 'same revision'.")
 TENSOR_RE = re.compile(r"tensor<((?:[0-9?]+x)*)([a-z]+[0-9]*)>")
 
 
@@ -332,6 +351,37 @@ def compiler_version():
     return "IREE %s %s" % (m.group(1), m.group(2)[:7]), raw.strip(), m.group(2)
 
 
+def producer_check(vmfb_path):
+    """E65/M1: compare the bytecode version the artifact declares with CHECKED_PRODUCER.
+
+    Three states, never two: an artifact whose version could not be read is `not_observed`, and
+    that is not a match (D25/D29/D68). Only `match` lets a bound be stated."""
+    rec = {
+        "state": None,
+        "artifact_bytecode_version": None,
+        "checked_bytecode_version": list(CHECKED_PRODUCER["bytecode_version"]),
+        "checked_compiler": CHECKED_PRODUCER["compiler"],
+        "checked_compiler_commit": CHECKED_PRODUCER["compiler_commit"],
+        "source": None,
+        "granularity": PRODUCER_CHECK_GRANULARITY,
+        "consequence": None,
+    }
+    try:
+        info = vmi.read_module_info(vmfb_path)
+    except (vmi.ModuleInfoError, OSError, UnicodeDecodeError) as e:
+        rec["state"] = "not_observed"
+        rec["source"] = "unreadable: %s" % e
+    else:
+        rec["artifact_bytecode_version"] = info["bytecode_version"]
+        rec["source"] = info["source"]
+        rec["state"] = ("match" if info["bytecode_version"] == CHECKED_PRODUCER["bytecode_version"]
+                        else "mismatch")
+    rec["consequence"] = ("bound may be stated" if rec["state"] == "match" else
+                          "no bound is stated: K was checked for %s only (see "
+                          "resources.diagnostic_figures_when_bound_withheld)" % CHECKED_PRODUCER["compiler"])
+    return rec
+
+
 def tensor_json(t):
     return {"shape": list(t["shape"]), "dtype": t["dtype"]}
 
@@ -467,6 +517,16 @@ def build_contract(a, extra_args):
 
     unresolved = list(p["unresolved"])
     all_static = p["entry_found"] and not unresolved
+    # E65/M1: a static schedule is necessary but no longer sufficient for stating a bound -- the
+    # artifact must also declare the bytecode version of the revision K was checked over. The
+    # figures are still computed and published, as diagnostics beside a document without a bound
+    # (the same shape as the unknown-bound document for dynamic shapes), never as the bound.
+    producer = producer_check(a.vmfb)
+    bound_stated = bool(all_static) and producer["state"] == "match"
+    if all_static and not bound_stated:
+        notes.append("producer check %s (artifact bytecode %s, checked %s): no bound is stated"
+                     % (producer["state"], producer["artifact_bytecode_version"],
+                        producer["checked_bytecode_version"]))
     inputs_b = sum(p["inputs"])
     outputs_b = sum(p["outputs"])
     transient_b = sum(p["transient_slabs"])
@@ -569,6 +629,90 @@ def build_contract(a, extra_args):
     # silently-passing check in this function, and keeps the 14 stored
     # contracts' provenance.notes list byte-for-byte unchanged (regression
     # check, harness/contract_negative_tests.py).
+    # D86 (external review 2026-09-12 SS4.1): refuse HERE, on the actual reason.
+    # An allocating pre-scheduling op (stream.async.*) left in the post-layout
+    # entry means the allocation schedule this bound is derived from is not
+    # final. Both extractors used to skip those ops -- the regex parser because
+    # it scans two op families (D84), the structural walker because its own
+    # dispatch did `continue` on everything else -- so they AGREED, and a
+    # contract was issued with unresolved == [] whose bound omitted the
+    # allocation. Reproduced on an archived entry with a real 36 B
+    # stream.async.clone: rc=0, bounded unchanged at 786,476.
+    #
+    # It records the REASON and does not itself refuse. Refusing here was the
+    # first version of this fix and it was a type-(B) over-rejection, caught
+    # immediately by the guard E24 built for exactly this (N1) and by the same
+    # two contracts N1 hit: `dynamic` (x86_64 and aarch64), whose entries
+    # legitimately carry six stream.async.* ops because a dynamic shape means
+    # layout genuinely does not finish. Those contracts are the INPUT to the A8
+    # negative scenario, and what they say -- all_static=false, bound_method
+    # NONE, no bound -- is already the correct answer to "layout did not
+    # finish". Refusing to write them would have deleted the evidence that the
+    # tool refuses dynamic shapes.
+    #
+    # So the honest wiring is: the walker reports the ops as unresolved, which
+    # drives all_static=false and bound_method=NONE through the path that
+    # already exists, and a contract that states no bound is not a usable
+    # contract (gen_contract_header.py emits CONTRACT_BOUND_KNOWN=0 and the C
+    # gate refuses admission). For a model whose regex-side unresolved list is
+    # empty -- a static model with an async op left in -- the two extractors now
+    # disagree on unresolved presence, and THAT hard-fails below. Both
+    # directions measured; see EVIDENCE_v0.52.
+    pre_sched = sorted(set(structural.get("pre_scheduling_ops") or [])) if structural is not None else []
+    if pre_sched and structural_diffs:
+        structural_note += ("; the walker reports allocating pre-scheduling op(s) %s in the post-layout "
+                            "entry, which the regex parser does not scan at all (D84) -- the allocation "
+                            "schedule is not final, so sizes read from this entry do not bound execution"
+                            % pre_sched)
+
+    # E55/P0-2 (directive SS3): an op inside the analysis domain that the walker could not
+    # classify must REFUSE, never be counted as zero bytes. The domain is defined by resource
+    # flow (mlir_alloc_walk._touches_resource), so this fires only for an op that actually
+    # produces or consumes a `!stream.resource<...>` and is neither sized nor on the
+    # verified-non-allocating list. Measured over the 26 archived layout IRs the list is empty
+    # (452 instances land in the verified-non-allocating bucket with a recorded reason), so
+    # this gate changes no existing contract -- it closes the path a FUTURE compiler version
+    # or model would otherwise take silently.
+    #
+    # It is a separate refusal, not an entry appended to `unresolved`: the regex parser cannot
+    # see op structure at all, so folding it in would make the two extractors disagree on
+    # unresolved presence for every model and hard-fail the whole corpus. E50 shipped exactly
+    # that shape as its first attempt at D86 and it rejected the two honest `dynamic`
+    # contracts -- the A8 negative scenario's own input.
+    unclassified = sorted(set(structural.get("unclassified_resource_ops") or [])) if structural is not None else []
+    if unclassified:
+        unclassified_note = (
+            "structural walker: op(s) %s carry a !stream.resource operand or result but are "
+            "neither sized nor on the verified-non-allocating list -- the analysis domain does "
+            "not cover them, so no bound can be stated for this entry" % unclassified)
+        notes.append(unclassified_note)
+        if not waive("--allow-unclassified-resource-ops", getattr(a, "allow_unclassified_resource_ops", False)):
+            hard_fail_errors.append(unclassified_note +
+                                    " (pass --allow-unclassified-resource-ops to override)")
+
+    # D105: a call or a control-flow op in the entry is outside the analysis domain -- the walker
+    # neither follows callees nor multiplies an allocation by a trip count -- so no bound is
+    # stated. Not overridable: there is no reading of such an entry under which the issued figure
+    # would be the bound it claims to be.
+    unsupported_ctl = sorted(set(structural.get("unsupported_control_ops") or [])) if structural is not None else []
+    if unsupported_ctl:
+        ctl_note = ("structural walker: the entry contains call or control-flow op(s) %s; the analysis "
+                    "does not follow calls or multiply allocations by trip counts, so no bound can be "
+                    "stated for this entry" % unsupported_ctl)
+        notes.append(ctl_note)
+        hard_fail_errors.append(ctl_note)
+
+    # D108: the same boundary for the module initializer. The only structure allowed there is the
+    # map attempt's branch (scf.if on did_map) -- the two loading arms, counted once. Anything else
+    # (a loop, another branch, a call) would make "counted once" wrong for both extractors alike.
+    init_ctl = sorted(set(structural.get("initializer_control_ops") or [])) if structural is not None else []
+    if init_ctl:
+        init_note = ("structural walker: the module initializer contains call or control-flow op(s) %s other "
+                     "than the map attempt's branch; constant allocations are counted once per appearance, "
+                     "so no bound can be stated" % init_ctl)
+        notes.append(init_note)
+        hard_fail_errors.append(init_note)
+
     if structural_available and (structural is None or structural_diffs):
         notes.append(structural_note)
         if not waive("--allow-structural-mismatch", a.allow_structural_mismatch):
@@ -920,30 +1064,141 @@ def build_contract(a, extra_args):
     # ---- assemble -------------------------------------------------------------
     first_in = tensor_json(sig["inputs"][0]) if sig["inputs"] else None
     first_out = tensor_json(sig["outputs"][0]) if sig["outputs"] else None
-    assumptions = ["static shapes", "single in-flight call (no concurrency)",
+    # E40: DERIVED, not a literal. Until now the first element was the constant
+    # string "static shapes", so contract.dynamic.* declared it while
+    # interface.all_static was False, bound_method was NONE and unresolved_sizes
+    # was non-empty. Nothing read the list, so it was an inert prose inaccuracy --
+    # but the moment it is published as a machine-readable premise it becomes a
+    # false assertion on exactly the contract this repo built to be refused.
+    # E65/M1: shapes static, bound withheld -> the first entry says why there is no bound, as the
+    # dynamic case does; a bare "static shapes" on a document that states no bound is what E40/D70
+    # removed.
+    assumptions = [("static shapes" if bound_stated else
+                    "static shapes, but no bound is stated: producer bytecode version %s is not that "
+                    "of the checked revision %s (see validity.producer_check)"
+                    % (producer["artifact_bytecode_version"], producer["checked_bytecode_version"])
+                    if all_static else
+                    "NON-static shapes: no bound is stated (see resources.unresolved_sizes)"),
+                   "single in-flight call (no concurrency)",
                    "%s driver" % a.driver, "entry function @%s only" % a.entry]
+
+    # ---- E40: the analysis domain and the accounting rules, machine-readable ------
+    # The roadmap (SS5.2/SS5.3) asked for an `analysis_domain` block. It is emitted as
+    # two SEPARATE halves on purpose:
+    #   derived            -- facts this tool computed from the compiler output. Every
+    #                         one of them is re-read from the SAME variable that feeds
+    #                         the existing field, never retyped (D65), and a guard below
+    #                         refuses the contract if a derived value ever disagrees with
+    #                         its source.
+    #   required_premises  -- conditions the DEPLOYMENT must uphold. They are not facts
+    #                         about the model and this tool cannot check them; publishing
+    #                         them as "derived" would be the exact fail-open this block
+    #                         exists to remove.
+    _per_call = (io_b + transient_b) if bound_stated else None
+    _bounded = (io_b + transient_b + const_b) if bound_stated else None
+    analysis_domain = {
+        "derived": {
+            "static_shapes": bool(all_static),
+            "producer_check_state": producer["state"],
+            "driver": a.driver,
+            "entry": a.entry,
+            "supported_resource_ops": list(smb.SUPPORTED_RESOURCE_OPS),
+            "unknown_operation_policy": "UNKNOWN_BOUND",
+            "constant_policy": {
+                "arms": ["map_if_module_image_64byte_aligned", "copy_otherwise"],
+                "map_arm_bound_bytes": _per_call,
+                "copy_arm_bound_bytes": _bounded,
+                "declared_bound_is": "copy_arm (bounded_bytes is the max of the two arms)",
+                "map_arm_precondition":
+                    "the module image pointer handed to the runtime is 64-byte aligned "
+                    "(IREE_HAL_HEAP_BUFFER_ALIGNMENT, runtime/src/iree/base/config.h). E29 measured "
+                    "this to be the sole decider over 8 models x 8 alignment classes. A deployment "
+                    "that admits on the map arm must VERIFY the precondition before creating the "
+                    "runtime, not assume it (D53/D54): admitting on one quantity and checking "
+                    "another is how both of those defects happened.",
+                "map_arm_scope_note":
+                    "D78: the map arm removes the HAL DEVICE allocation of the constants, not "
+                    "their residency. The constant bytes live inside the module image, which the "
+                    "deployment has already read into process memory and keeps for the session, "
+                    "so a budget admitted on map_arm_bound_bytes is a statement about this "
+                    "contract's accounting scope and NOT about process RAM. Measured in this "
+                    "repository: the SmartCam AArch64 cFS conditional cell recorded hal_peak "
+                    "602112 with process_rss_kb 17160 (= 1.87x the 9382092 B budget it was "
+                    "admitted on) at inferences_so_far 0 "
+                    "(results/e38_optin_record/cells/cond_positive.log, stage mem_init).",
+            },
+        },
+        "required_premises": {
+            "max_in_flight_calls": 1,
+            "output_lifetime": "released_before_next_call",
+            "note":
+                "conditions the deployment must uphold; this tool cannot check them from the "
+                "compiler output. Both are load-bearing, not decorative: with N overlapping calls "
+                "the HAL peak rises to at most N x per_call (measured), and the two C deployments "
+                "plus the OnAIR loop uphold them by being single-threaded, not by being checked.",
+        },
+    }
+    accounting_rules = {
+        "per_call_bytes": "inputs + outputs + transient_slabs, all post-layout",
+        "inputs": "stream.tensor.import into !stream.resource<external>",
+        "outputs":
+            "stream.resource.alloca of kind <external>: the ALLOCATED SLAB, not the sum of the "
+            "output tensors. For a multi-output model IREE packs the results into one slab and "
+            "splits it with subviews, so this over-counts (measured: a 128 B slab for 32+16 B of "
+            "outputs). Over-counting is sound; the name 'output buffer' would not be accurate.",
+        "transient":
+            "stream.resource.alloca of kind <transient>. Each slab size is EXACT post-layout -- "
+            "alignment and lifetime reuse are already resolved inside it. Summing several slabs "
+            "would be conservative, but every contract in this repository has at most one.",
+        "constants":
+            "the PACKED #util.composite<Nxi8> buffer size, which includes packing/alignment "
+            "padding, not the dense per-tensor sum (measured padding: 64 B and 32 B on two models).",
+        "bounded_bytes": "per_call_bytes + constants (the copy arm; see analysis_domain)",
+        "non_allocating_ops":
+            "stream.resource.subview / stream.resource.dealloca / stream.tensor.export contribute "
+            "no bytes. subview is CHECKED for containment rather than trusted (D49).",
+        "excluded":
+            "IREE runtime context (VM, HAL device, module tables), the task stack, cFS/OSAL "
+            "memory, wrapper I/O and file-load temporaries. See resources.scope -- this exclusion "
+            "is the 'partial' in 'partial per-app model-execution memory contract'.",
+        "excluded_module_image":
+            "ALSO EXCLUDED, and named separately because it is NOT a 'file-load temporary' (D78): "
+            "the artifact image itself. Both C executors read the whole vmfb into process memory "
+            "and hand it to the runtime zero-copy (iree_allocator_null), so it stays resident for "
+            "the session -- artifact.bytes, which includes the constant bytes. The contract "
+            "accounts HAL device allocations, not this residency.",
+    }
 
     resources = {
         "memory_boundary": MEMORY_BOUNDARY,
-        "static_external_input_bytes": inputs_b if all_static else None,
-        "static_external_output_bytes": outputs_b if all_static else None,
-        "static_io_bytes": io_b if all_static else None,
-        "static_transient_bytes": transient_b if all_static else None,
+        "static_external_input_bytes": inputs_b if bound_stated else None,
+        "static_external_output_bytes": outputs_b if bound_stated else None,
+        "static_io_bytes": io_b if bound_stated else None,
+        "static_transient_bytes": transient_b if bound_stated else None,
         "transient_slabs_post_layout": list(p["transient_slabs"]),
         "transient_slice_sum_diagnostic": sum(p["transient_slices"]),
-        "static_per_call_bytes": (io_b + transient_b) if all_static else None,
+        "static_per_call_bytes": (io_b + transient_b) if bound_stated else None,
         "module_resident_constant_bytes": const_b,
         "module_resident_constant_method": const_method,
         "module_resident_constant_dense_sum_bytes": dense_sum,
         "module_resident_constant_buffers_packed": packed,
         "module_resident_constant_packing_padding_bytes": padding,
-        "bounded_bytes": (io_b + transient_b + const_b) if all_static else None,
-        "bound_method": BOUND_METHOD_STATIC if all_static else BOUND_METHOD_NONE,
+        "bounded_bytes": (io_b + transient_b + const_b) if bound_stated else None,
+        "bound_method": BOUND_METHOD_STATIC if bound_stated else BOUND_METHOD_NONE,
         "bound_source": "post-layout stream.resource.alloca sizes of the entry function after iree-stream-layout-slices "
                         "(alignment and lifetime reuse resolved by the compiler) + packed module constants",
         "unresolved_sizes": unresolved,
         "resolved_partial_sums_when_unbounded": (None if all_static else
                                                  {"inputs": inputs_b, "outputs": outputs_b, "transient": transient_b}),
+        # E65/M1: the figures of a static schedule whose producer check did not match. Named so
+        # that no reader can mistake them for the bound: nothing downstream reads this key, and
+        # gen_contract_header.py refuses any document whose producer check is not `match`.
+        "diagnostic_figures_when_bound_withheld": (None if (bound_stated or not all_static) else {
+            "reason": "producer check %s" % producer["state"],
+            "static_io_bytes": io_b, "static_transient_bytes": transient_b,
+            "static_per_call_bytes": io_b + transient_b,
+            "module_resident_constant_bytes": const_b,
+            "bounded_bytes": io_b + transient_b + const_b}),
         "bound_assumptions": assumptions,
         "entry_function_found": p["entry_found"],
         "dispatches": p["dispatches"],
@@ -1015,6 +1270,8 @@ def build_contract(a, extra_args):
             "extra_args": extra_args,
         },
         "resources": resources,
+        "analysis_domain": analysis_domain,
+        "accounting_rules": accounting_rules,
         "timing": {
             "boundary": "L1_kernel",
             "execution_bound_us": None,
@@ -1040,6 +1297,11 @@ def build_contract(a, extra_args):
             "compiler": comp_short,
             "compiler_version_raw": comp_raw,
             "compiler_commit": comp_sha,
+            # D107/E65: `compiler*` above is the ANALYSIS HOST's compiler (read by running
+            # `iree-compile --version` when this document is generated), not the artifact's
+            # producer. The producer identity the artifact itself declares is below.
+            "compiler_fields_describe": "analysis_host",
+            "producer_check": producer,
             "runtime_commit": runtime_commit,
             "assumptions": assumptions,
             "binding_rule": BINDING_RULE,
@@ -1080,8 +1342,79 @@ def build_contract(a, extra_args):
     }
     contract["provenance"].update(entry_prov)
     contract["provenance"]["mlir_sha256"] = contract["model"]["sha256"]
+
+    # E40 drift guard: every `analysis_domain.derived` value must still equal the
+    # field it was derived from. Without this the block is precisely the D65 failure
+    # -- one fact in two places, only one of which gets corrected. This is a refusal,
+    # not a note: a contract whose own two statements disagree must not be written.
+    _drift = analysis_domain_drift(contract)
+    if _drift:
+        raise SystemExit("make_contract: analysis_domain drifted from its sources; refusing to write:"
+                         "\n  - " + "\n  - ".join(_drift))
     return contract
 
+
+
+def analysis_domain_drift(contract):
+    """E40: every `analysis_domain.derived` value re-checked against its source field.
+
+    Returns a list of human-readable drift descriptions (empty == agrees). Kept a
+    plain function so a test can drive it with a tampered contract without having to
+    run a compile -- the guard that refuses the contract calls this.
+    """
+    d = (contract.get("analysis_domain") or {}).get("derived")
+    if not isinstance(d, dict):
+        return ["analysis_domain.derived is missing"]
+    res = contract.get("resources") or {}
+    drift = []
+    # E65/M1: a bound is stated iff the shapes are static AND the producer check matched. A
+    # document written before E65 carries no producer check; for it the pre-E65 identity holds.
+    _pc = (contract.get("validity") or {}).get("producer_check")
+    if isinstance(_pc, dict):
+        _expect_bound = bool(d.get("static_shapes")) and _pc.get("state") == "match"
+        if d.get("producer_check_state") != _pc.get("state"):
+            drift.append("analysis_domain.derived.producer_check_state=%r vs validity.producer_check.state=%r"
+                         % (d.get("producer_check_state"), _pc.get("state")))
+        if _pc.get("state") not in PRODUCER_CHECK_STATES:
+            drift.append("validity.producer_check.state=%r is not one of %s"
+                         % (_pc.get("state"), PRODUCER_CHECK_STATES))
+    else:
+        _expect_bound = bool(d.get("static_shapes"))
+    if _expect_bound != (res.get("bound_method") != BOUND_METHOD_NONE):
+        drift.append("analysis_domain.derived.static_shapes=%r producer_check=%r vs resources.bound_method=%r"
+                     % (d.get("static_shapes"), (_pc or {}).get("state") if isinstance(_pc, dict) else None,
+                        res.get("bound_method")))
+    tgt_drv = (contract.get("target") or {}).get("driver")
+    val_drv = (contract.get("validity") or {}).get("driver")
+    if d.get("driver") != tgt_drv or d.get("driver") != val_drv:
+        drift.append("analysis_domain.derived.driver=%r vs target.driver=%r vs validity.driver=%r"
+                     % (d.get("driver"), tgt_drv, val_drv))
+    mdl_entry = (contract.get("model") or {}).get("entry")
+    val_entry = (contract.get("validity") or {}).get("entry")
+    if d.get("entry") != mdl_entry or d.get("entry") != val_entry:
+        drift.append("analysis_domain.derived.entry=%r vs model.entry=%r vs validity.entry=%r"
+                     % (d.get("entry"), mdl_entry, val_entry))
+    cp = d.get("constant_policy") or {}
+    if (cp.get("map_arm_bound_bytes") != res.get("static_per_call_bytes")
+            or cp.get("copy_arm_bound_bytes") != res.get("bounded_bytes")):
+        drift.append("analysis_domain.derived.constant_policy arms=%r/%r vs resources per_call=%r bounded=%r"
+                     % (cp.get("map_arm_bound_bytes"), cp.get("copy_arm_bound_bytes"),
+                        res.get("static_per_call_bytes"), res.get("bounded_bytes")))
+    # the prose assumption list and the machine-readable flag must agree. Without this
+    # the two can drift back apart silently, which is the exact state E40 found:
+    # bound_assumptions[0] said "static shapes" on a contract that states no bound.
+    asm = (res.get("bound_assumptions") or [None])[0]
+    val_asm = ((contract.get("validity") or {}).get("assumptions") or [None])[0]
+    if not isinstance(asm, str) or asm.startswith("static shapes") != bool(d.get("static_shapes")):
+        drift.append("resources.bound_assumptions[0]=%r contradicts "
+                     "analysis_domain.derived.static_shapes=%r" % (asm, d.get("static_shapes")))
+    elif val_asm != asm:
+        drift.append("validity.assumptions[0]=%r != resources.bound_assumptions[0]=%r" % (val_asm, asm))
+    if d.get("supported_resource_ops") != list(smb.SUPPORTED_RESOURCE_OPS):
+        drift.append("analysis_domain.derived.supported_resource_ops=%r disagrees with "
+                     "static_mem_bound.SUPPORTED_RESOURCE_OPS=%r"
+                     % (d.get("supported_resource_ops"), list(smb.SUPPORTED_RESOURCE_OPS)))
+    return drift
 
 
 def validate(contract, schema_path):
@@ -1155,6 +1488,10 @@ def parse_args(argv):
                          "the regex parser read from the same layout IR (default is to refuse writing "
                          "the contract; does not cover iree.compiler.ir being entirely uninstalled -- "
                          "see --allow-missing-structural-checker for that, F3 external review 2026-09)")
+    ap.add_argument("--allow-unclassified-resource-ops", action="store_true",
+                    help="E55/P0-2: emit a contract even though an op inside the analysis "
+                         "domain could not be classified. Recorded in provenance like every "
+                         "other override (D39) -- never silent.")
     ap.add_argument("--allow-missing-structural-checker", action="store_true",
                     help="do not hard-fail when iree.compiler.ir is not installed at all, so the structural "
                          "cross-check never ran (F3, external review 2026-09; default is to refuse writing "

@@ -1,0 +1,1 @@
+{"stage":"admission","verdict":"ADMIT","model":"mlp_9x65536x2","target":"x86_64-unknown-linux-gnu","bounded_bytes":786476,"budget_bytes":1048576,"budget_source":"argv","per_call":65580,"constants":720896,"kernel_stack_bytes":0,"bound_known":true,"conditional_map_requested":false,"conditional_map_applied":false}

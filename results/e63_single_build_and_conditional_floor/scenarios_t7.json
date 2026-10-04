@@ -1,0 +1,44 @@
+[
+ {
+  "id": "e63_wgan_map_e55b_build",
+  "part": "e63_single_build_and_conditional_floor",
+  "model": "wgan",
+  "desc": "E63 T7 cell: the E55b UNCONDITIONAL build (the same ai_learner.so as E55b's copy cell and E58's sweep), budget M = B_u = 135666432, AI_LEARNER_BLOB_ALIGN_OFFSET=0 set explicitly, same one-sample fixture replay. Expect ADMIT, map arm (mod64 0, append 0), >=1 inference, final peak exactly P = 131382784, outputs bit-identical to the E55b copy cell. Plan docs/plans/E63_single_build_peaks_and_conditional_floor.md SS3.",
+  "so": "variants/e55b_wgan_copy/ai_learner.so",
+  "startup": "variants/e55b_wgan_copy/cfe_es_startup.scr",
+  "vmfb": "models/wgan.vmfb",
+  "seconds": 5400,
+  "env": {
+   "AI_LEARNER_BUDGET_OVERRIDE": "135666432",
+   "AI_LEARNER_BLOB_ALIGN_OFFSET": "0"
+  },
+  "stage": {
+   "e25_inputs.bin": "results/e53_wgan_aarch64/e25_inputs_1sample.bin"
+  },
+  "fetch": [
+   "e25_outputs.bin"
+  ],
+  "expect": {
+   "admission": "ADMIT",
+   "binding": "MATCH",
+   "min_completed": 1,
+   "no_crash": true,
+   "cfs_operational": true,
+   "e25_mode_active": true,
+   "hal_peak_le_bounded": 135666432,
+   "mem_init_present": true
+  },
+  "expect_note": "admission is plain ADMIT, not ADMIT_CONDITIONAL_MAP: these trees are built with ALLOW_CONDITIONAL_MAP=0 on purpose (plan SS2.1 -- the conditional tier refuses before runtime creation when alignment is unmet, and this knob must not be used to walk around that refusal). e25_mode_active is TRUE here, unlike the P0-4 cells: this cell exists to compare outputs against an archived map-arm run, which requires replaying that run's fixture (E26 hygiene: the mode is recorded either way, never assumed).",
+  "window_note": "5400 s from the archived E53 cfs_B timeline, not from an average: that log shows boot+admission+1 e25 inference at 29 min 11 s and the first run-loop `mem` (completed=1) at 61 min 34 s. min_completed reads the run-loop counter, so the window must clear the SECOND of those, not the first (E54 SS9.1: an average over warm iterations under-sizes the window).",
+  "e63": {
+   "P": 131382784,
+   "C": 4283648,
+   "B_u": 135666432,
+   "align_offset": 0,
+   "role": "table7_map_arm_same_build",
+   "expect_final_peak": 131382784,
+   "expect_so_sha256_file": "results/e55b_copy_path/trees/e55b_wgan_copy/ai_learner.so.sha256",
+   "copy_arm_counterpart_log": "results/e55b_copy_path/cells/logs/e55b_wgan_copy.log"
+  }
+ }
+]

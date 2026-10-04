@@ -1,0 +1,1322 @@
+{
+ "tool": "harness/model_fixture.py",
+ "experiment": "E45 (b3_deepae, REAL ToyADMOS ad01 log-mel windows, G1 only)",
+ "input_shape": [
+  1,
+  640
+ ],
+ "layout_defect": "none",
+ "layout_defect_note": "none -- the entry tensor is produced by transpose, verified to round-trip",
+ "preprocessing": {
+  "resize": null,
+  "normalisation": null,
+  "normalisation_note": "no image was preprocessed in this fixture, so no normalisation is claimed; the samples are generated directly in the value range the entry expects",
+  "layout": {
+   "operation": "none",
+   "note": "the entry takes the original tensor unchanged (no layout to convert), so both manifest entries name the same file and the same sha256"
+  }
+ },
+ "source": {
+  "repo": "",
+  "commit": "",
+  "note": "REAL log-mel features in the model's actual value domain (dB). NO AUC or accuracy claimed."
+ },
+ "counts": {
+  "real_ad01": 34
+ },
+ "total_samples": 34,
+ "samples": [
+  {
+   "sample_id": "anomaly_id_01_00000003_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_01_00000003_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "270702a2b4929b23f3331884217fee277f072d02fea5b0c7430a3f60e94cf481"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_01_00000003_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "270702a2b4929b23f3331884217fee277f072d02fea5b0c7430a3f60e94cf481"
+   },
+   "value_range": [
+    -59.494293212890625,
+    2.9052536487579346
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 0,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_01_00000073_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_01_00000073_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "42e25107c07f00c73bdc7ee52794cc483c93183ff18f9e64a7963799eb4128ef"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_01_00000073_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "42e25107c07f00c73bdc7ee52794cc483c93183ff18f9e64a7963799eb4128ef"
+   },
+   "value_range": [
+    -65.0228500366211,
+    2.109179735183716
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 1,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_01_00000143_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_01_00000143_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "14302aba2ae7ab73e84828aa4000a5f4066a28090deaa4f04d91082201de8114"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_01_00000143_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "14302aba2ae7ab73e84828aa4000a5f4066a28090deaa4f04d91082201de8114"
+   },
+   "value_range": [
+    -63.68242645263672,
+    3.8142518997192383
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 2,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_01_00000213_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_01_00000213_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "164fc2fb516d680896faf0182c746e6ac314ffac7c83e544c4208e31f72db6cf"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_01_00000213_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "164fc2fb516d680896faf0182c746e6ac314ffac7c83e544c4208e31f72db6cf"
+   },
+   "value_range": [
+    -65.44617462158203,
+    -1.3900965452194214
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 3,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_02_00000013_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_02_00000013_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "177cad911c4b0964a37387685bbccd7cfc6203772d598cf46cc5efebf6f0fa91"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_02_00000013_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "177cad911c4b0964a37387685bbccd7cfc6203772d598cf46cc5efebf6f0fa91"
+   },
+   "value_range": [
+    -63.90020751953125,
+    3.1287758350372314
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 4,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_02_00000083_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_02_00000083_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "b9d23fb0c5853acd3e91461721293610a5a406cfcbc3bec14a90cdd1af9e15d6"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_02_00000083_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "b9d23fb0c5853acd3e91461721293610a5a406cfcbc3bec14a90cdd1af9e15d6"
+   },
+   "value_range": [
+    -65.81340789794922,
+    1.4560860395431519
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 5,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_02_00000153_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_02_00000153_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "7351a0407abf90783c41e82698c741f85b51f587004d856a4c624d82f43c11be"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_02_00000153_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "7351a0407abf90783c41e82698c741f85b51f587004d856a4c624d82f43c11be"
+   },
+   "value_range": [
+    -64.49300384521484,
+    -6.316224098205566
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 6,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_02_00000223_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_02_00000223_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "9f393d7891354318e6e4a03c8a46ba80c1da3a0e95125be98df03d69ad18e547"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_02_00000223_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "9f393d7891354318e6e4a03c8a46ba80c1da3a0e95125be98df03d69ad18e547"
+   },
+   "value_range": [
+    -61.98892593383789,
+    3.195404291152954
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 7,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_03_00000023_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_03_00000023_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "d5d892593d57165714cfbab74e6a77d19fe126b637f1740b916ba3bc6f9e1eb8"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_03_00000023_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "d5d892593d57165714cfbab74e6a77d19fe126b637f1740b916ba3bc6f9e1eb8"
+   },
+   "value_range": [
+    -69.21622467041016,
+    1.3707444667816162
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 8,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_03_00000093_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_03_00000093_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "13475f9f88edfafb97c6f14b0768d52fdb66a247af3534046c8a28025d0b3ec4"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_03_00000093_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "13475f9f88edfafb97c6f14b0768d52fdb66a247af3534046c8a28025d0b3ec4"
+   },
+   "value_range": [
+    -61.25414276123047,
+    2.951190948486328
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 9,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_03_00000163_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_03_00000163_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "cbc492bdbf342c1259842a57f1fd2fa121d6e2c463945ee2b580c46d89ce12fd"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_03_00000163_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "cbc492bdbf342c1259842a57f1fd2fa121d6e2c463945ee2b580c46d89ce12fd"
+   },
+   "value_range": [
+    -64.29000091552734,
+    3.1985671520233154
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 10,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_03_00000233_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_03_00000233_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "6ea5b9709fea3c5767742a60ed4e979c06b17dbfad8ef7ac8a3261b50fa64779"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_03_00000233_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "6ea5b9709fea3c5767742a60ed4e979c06b17dbfad8ef7ac8a3261b50fa64779"
+   },
+   "value_range": [
+    -67.07081604003906,
+    -0.29339292645454407
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 11,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_04_00000033_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_04_00000033_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "40de727109cddbfe9bf0267b7b79512efcef7933f8c32ddbd46bec9ceef64c45"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_04_00000033_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "40de727109cddbfe9bf0267b7b79512efcef7933f8c32ddbd46bec9ceef64c45"
+   },
+   "value_range": [
+    -62.36032485961914,
+    2.5347654819488525
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 12,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_04_00000103_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_04_00000103_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "d7961b24c6ce521aa0b5bee8d36e558d216a0708ff7cec36cf3c0572b8febce4"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_04_00000103_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "d7961b24c6ce521aa0b5bee8d36e558d216a0708ff7cec36cf3c0572b8febce4"
+   },
+   "value_range": [
+    -63.732120513916016,
+    0.3785395920276642
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 13,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_04_00000173_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_04_00000173_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "bdf6a66027d69aa3049a5697653eae2b96c7f6a15f39ad9badbb8aebe27defc9"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_04_00000173_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "bdf6a66027d69aa3049a5697653eae2b96c7f6a15f39ad9badbb8aebe27defc9"
+   },
+   "value_range": [
+    -59.716819763183594,
+    -1.8196676969528198
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 14,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "anomaly_id_04_00000243_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/anomaly_id_04_00000243_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "9d5baa19aa12c446f3e1ac3f79a2d56a804bb0beff79e6aecfaa9fd864143610"
+   },
+   "nchw": {
+    "file": "inputs/anomaly_id_04_00000243_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "9d5baa19aa12c446f3e1ac3f79a2d56a804bb0beff79e6aecfaa9fd864143610"
+   },
+   "value_range": [
+    -65.95995330810547,
+    -0.7621895670890808
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 15,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_01_00000043_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_01_00000043_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "63c69e08419c4e7637eef16ac1eb193d35543cb4d1c5533ab868a2cebc30cab8"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_01_00000043_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "63c69e08419c4e7637eef16ac1eb193d35543cb4d1c5533ab868a2cebc30cab8"
+   },
+   "value_range": [
+    -63.19749069213867,
+    2.012228012084961
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 16,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_01_00000113_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_01_00000113_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "effb32a6061cb9bb9b536c6ea9c09de0a40f175f17cc4296a4f61180b0a4c5bc"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_01_00000113_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "effb32a6061cb9bb9b536c6ea9c09de0a40f175f17cc4296a4f61180b0a4c5bc"
+   },
+   "value_range": [
+    -64.77750396728516,
+    -1.9829038381576538
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 17,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_01_00000183_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_01_00000183_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "0d21dd435c0076e794b74349ab28315bb55451550664d6cfda583fd2a9cc7a22"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_01_00000183_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "0d21dd435c0076e794b74349ab28315bb55451550664d6cfda583fd2a9cc7a22"
+   },
+   "value_range": [
+    -62.32437515258789,
+    -0.27449366450309753
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 18,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_01_00000253_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_01_00000253_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "b2ccee579ea0f09b679563262cbbc9ef28c50a16374a12e9285b8441c732e6bd"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_01_00000253_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "b2ccee579ea0f09b679563262cbbc9ef28c50a16374a12e9285b8441c732e6bd"
+   },
+   "value_range": [
+    -62.397682189941406,
+    0.5964967012405396
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 19,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_01_00000323_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_01_00000323_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "cd94de5df750266bdb67dc16e700e953592fa7046eb9e239384371776384b927"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_01_00000323_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "cd94de5df750266bdb67dc16e700e953592fa7046eb9e239384371776384b927"
+   },
+   "value_range": [
+    -66.13510131835938,
+    -4.6436567306518555
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 20,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_02_00000043_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_02_00000043_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "bf1f540e8da930ab20254afdd694e26be1492c9cd5f3c2dd5ed52d477643afd3"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_02_00000043_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "bf1f540e8da930ab20254afdd694e26be1492c9cd5f3c2dd5ed52d477643afd3"
+   },
+   "value_range": [
+    -67.74735260009766,
+    0.21946467459201813
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 21,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_02_00000113_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_02_00000113_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "1fde433d46552616e10cf770016879d55c25fcc65fa083876304b4c6dd812235"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_02_00000113_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "1fde433d46552616e10cf770016879d55c25fcc65fa083876304b4c6dd812235"
+   },
+   "value_range": [
+    -68.72822570800781,
+    4.160799026489258
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 22,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_02_00000183_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_02_00000183_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "b775ce77f6975dcd86796af274d5d50a7c2f5458d4a60f27ffeb6b6b2dd24219"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_02_00000183_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "b775ce77f6975dcd86796af274d5d50a7c2f5458d4a60f27ffeb6b6b2dd24219"
+   },
+   "value_range": [
+    -68.18284606933594,
+    1.9020295143127441
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 23,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_02_00000253_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_02_00000253_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "4cf4f6ec0ec6d53f50ce21f121d93a75d08f385b56413e46bde4646eb7aa1b84"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_02_00000253_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "4cf4f6ec0ec6d53f50ce21f121d93a75d08f385b56413e46bde4646eb7aa1b84"
+   },
+   "value_range": [
+    -63.71957778930664,
+    -1.2846922874450684
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 24,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_02_00000323_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_02_00000323_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "14073fb501a08e6f6cf3b93fa5bc4616f2f5edb52900164f428bae7476a4f987"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_02_00000323_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "14073fb501a08e6f6cf3b93fa5bc4616f2f5edb52900164f428bae7476a4f987"
+   },
+   "value_range": [
+    -67.24061584472656,
+    0.24394096434116364
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 25,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_03_00000043_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_03_00000043_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "be3c847ec92fb0aa555e1eb67e3e750cb0c443b084bf54a4b3e6448247989cec"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_03_00000043_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "be3c847ec92fb0aa555e1eb67e3e750cb0c443b084bf54a4b3e6448247989cec"
+   },
+   "value_range": [
+    -61.27145767211914,
+    -0.4303767681121826
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 26,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_03_00000113_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_03_00000113_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "6bf7d0ea393136297016f448e97b0fda97f58a62c82700118fa212645e737524"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_03_00000113_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "6bf7d0ea393136297016f448e97b0fda97f58a62c82700118fa212645e737524"
+   },
+   "value_range": [
+    -66.63167572021484,
+    0.20194484293460846
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 27,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_03_00000183_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_03_00000183_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "acf146fde0b3c10e9faf702335dc2f2d4503ae65323008904064c4e18409b146"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_03_00000183_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "acf146fde0b3c10e9faf702335dc2f2d4503ae65323008904064c4e18409b146"
+   },
+   "value_range": [
+    -65.17072296142578,
+    1.506225824356079
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 28,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_03_00000253_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_03_00000253_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "8fb19004122908bb7f9ce957b2d4bbc6a58efad38a7ff022cc873f8fcdb90542"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_03_00000253_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "8fb19004122908bb7f9ce957b2d4bbc6a58efad38a7ff022cc873f8fcdb90542"
+   },
+   "value_range": [
+    -66.38076782226562,
+    2.94571590423584
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 29,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_03_00000323_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_03_00000323_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "cf850e84e4823fd859c4b401172803d48d857bc1b2c59051bb2490ca1f64e25a"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_03_00000323_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "cf850e84e4823fd859c4b401172803d48d857bc1b2c59051bb2490ca1f64e25a"
+   },
+   "value_range": [
+    -66.12152099609375,
+    0.4193652272224426
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 30,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_04_00000043_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_04_00000043_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "024c8300cd90abe8721607b9cbf8c906aeebdb59ef9c0549b87789e06fd97951"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_04_00000043_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "024c8300cd90abe8721607b9cbf8c906aeebdb59ef9c0549b87789e06fd97951"
+   },
+   "value_range": [
+    -62.80080032348633,
+    3.5258030891418457
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 31,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_04_00000113_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_04_00000113_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "c01ad290c4c1ba63ea3eecb467893b51516087300393214e4ce62884a836baa1"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_04_00000113_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "c01ad290c4c1ba63ea3eecb467893b51516087300393214e4ce62884a836baa1"
+   },
+   "value_range": [
+    -63.58219909667969,
+    0.3801425099372864
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 32,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  },
+  {
+   "sample_id": "normal_id_04_00000183_hist_librosa_w98",
+   "kind": "real_ad01",
+   "nhwc": {
+    "file": "inputs/normal_id_04_00000183_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "00c22434bf3ab20f7d05fca105a2f7af783b34d18442e5ba174314a403dca2d0"
+   },
+   "nchw": {
+    "file": "inputs/normal_id_04_00000183_hist_librosa_w98.nchw.npy",
+    "shape": [
+     1,
+     640
+    ],
+    "dtype": "float32",
+    "sha256": "00c22434bf3ab20f7d05fca105a2f7af783b34d18442e5ba174314a403dca2d0"
+   },
+   "value_range": [
+    -63.61274337768555,
+    -1.0453242063522339
+   ],
+   "layout_defect": "none",
+   "detail": {
+    "tensors_file": "/tmp/verify_real/b3_live/inputs/ad01_windows_f32.npy",
+    "index": 33,
+    "raw_dtype": "float32",
+    "raw_value_range": [
+     -69.21622467041016,
+     4.160799026489258
+    ],
+    "source": "eembc/energyrunner pre-purge datasets/ad01, mid-clip window 98 (see results/e45_real_inputs/b3_deepae/manifest.json). Bytes NOT vendored.",
+    "note": "REAL data: this sample was not generated here"
+   }
+  }
+ ]
+}

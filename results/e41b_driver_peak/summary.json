@@ -1,0 +1,166 @@
+{
+ "experiment": "E41b",
+ "what_this_is": "The cross-driver HAL-peak measurement that E41's prose asserted but never archived. Run with harness/e41_domain_probe.py, which already accepted --driver; only the local-task leg had never been executed.",
+ "why": "D100 -- the claim 'N=1 HAL peak byte-identical under local-sync/local-task (b2_resnet 309,416)' lived in four places with zero archived cells behind it. A repo-wide scan of 556 result files found local-task only as deployment-configuration input and as one refusal string, never as a measurement.",
+ "runtime": "pip iree.runtime (Python bindings)",
+ "drivers": [
+  "local-sync",
+  "local-task"
+ ],
+ "threads": 1,
+ "repeats": 3,
+ "cells": [
+  {
+   "model": "b2_resnet",
+   "threads": 1,
+   "hold_outputs": false,
+   "peak_local_sync": 309416,
+   "peak_local_task": 309416,
+   "byte_identical": true,
+   "per_call_bytes": 309416,
+   "peak_equals_per_call": true,
+   "deterministic_local_sync": true,
+   "deterministic_local_task": true,
+   "peaks_observed_local_sync": [
+    309416,
+    309416,
+    309416
+   ],
+   "peaks_observed_local_task": [
+    309416,
+    309416,
+    309416
+   ]
+  },
+  {
+   "model": "b2_resnet",
+   "threads": 1,
+   "hold_outputs": true,
+   "peak_local_sync": 309416,
+   "peak_local_task": 309416,
+   "byte_identical": true,
+   "per_call_bytes": 309416,
+   "peak_equals_per_call": true,
+   "deterministic_local_sync": true,
+   "deterministic_local_task": true,
+   "peaks_observed_local_sync": [
+    309416,
+    309416,
+    309416
+   ],
+   "peaks_observed_local_task": [
+    309416,
+    309416,
+    309416
+   ]
+  },
+  {
+   "model": "b3_deepae",
+   "threads": 1,
+   "hold_outputs": false,
+   "peak_local_sync": 6208,
+   "peak_local_task": 6208,
+   "byte_identical": true,
+   "per_call_bytes": 6208,
+   "peak_equals_per_call": true,
+   "deterministic_local_sync": true,
+   "deterministic_local_task": true,
+   "peaks_observed_local_sync": [
+    6208,
+    6208,
+    6208
+   ],
+   "peaks_observed_local_task": [
+    6208,
+    6208,
+    6208
+   ]
+  },
+  {
+   "model": "b3_deepae",
+   "threads": 1,
+   "hold_outputs": true,
+   "peak_local_sync": 6208,
+   "peak_local_task": 6208,
+   "byte_identical": true,
+   "per_call_bytes": 6208,
+   "peak_equals_per_call": true,
+   "deterministic_local_sync": true,
+   "deterministic_local_task": true,
+   "peaks_observed_local_sync": [
+    6208,
+    6208,
+    6208
+   ],
+   "peaks_observed_local_task": [
+    6208,
+    6208,
+    6208
+   ]
+  },
+  {
+   "model": "smartcam",
+   "threads": 1,
+   "hold_outputs": false,
+   "peak_local_sync": 9382092,
+   "peak_local_task": 9382092,
+   "byte_identical": true,
+   "per_call_bytes": 9382092,
+   "peak_equals_per_call": true,
+   "deterministic_local_sync": true,
+   "deterministic_local_task": true,
+   "peaks_observed_local_sync": [
+    9382092,
+    9382092,
+    9382092
+   ],
+   "peaks_observed_local_task": [
+    9382092,
+    9382092,
+    9382092
+   ]
+  },
+  {
+   "model": "smartcam",
+   "threads": 1,
+   "hold_outputs": true,
+   "peak_local_sync": 9382092,
+   "peak_local_task": 9382092,
+   "byte_identical": true,
+   "per_call_bytes": 9382092,
+   "peak_equals_per_call": true,
+   "deterministic_local_sync": true,
+   "deterministic_local_task": true,
+   "peaks_observed_local_sync": [
+    9382092,
+    9382092,
+    9382092
+   ],
+   "peaks_observed_local_task": [
+    9382092,
+    9382092,
+    9382092
+   ]
+  }
+ ],
+ "byte_identical_cells": 6,
+ "cells_total": 6,
+ "all_byte_identical": true,
+ "all_peaks_equal_per_call": true,
+ "all_deterministic": true,
+ "scope_this_does_NOT_establish": [
+  "the map/copy loading-arm determinant across drivers -- the probe loads via VmModule.copy_buffer, so the runtime allocates the module image and the alignment is whatever that allocator returns; the arm is held fixed, not varied (E29 D2 is the experiment that varies it, and it is local-sync only)",
+  "anything about the two C deployments -- they link a runtime built with IREE_HAL_DRIVER_LOCAL_SYNC=ON and IREE_ENABLE_THREADING=OFF, so local-task is not compiled in",
+  "behaviour at more than one in-flight call -- N=1 only here; E41 covers N>1 under local-sync"
+ ],
+ "inputs": [
+  {
+   "probe": "results/e41b_driver_peak/probe_local-sync.json",
+   "sha256": "9476b63f9da006ae02ae499751009aeca0275d5316437a341d7dbbab61f3f5d1"
+  },
+  {
+   "probe": "results/e41b_driver_peak/probe_local-task.json",
+   "sha256": "edd577cd7d1b9bc20be6ab873fd66df5d506ca7dfb1d0226e8a1220065f31ca5"
+  }
+ ]
+}

@@ -1,0 +1,373 @@
+{
+ "experiment": "E60",
+ "plan": "docs/plans/E60_deepae_layers_aarch64.md (committed before the cells, 623df3b)",
+ "target": "aarch64 QEMU system guest (iree-base-runtime 3.11.0 wheel)",
+ "sample": "normal_id_04_00000043_hist_librosa_w98",
+ "input_sha256": "024c8300cd90abe8721607b9cbf8c906aeebdb59ef9c0549b87789e06fd97951",
+ "mlir": "results/e36b_aarch64_models/b3_deepae/b3_deepae.mlir",
+ "guest_outputs": {
+  "path": "results/e60_deepae_layers_aarch64/guest/guest_outputs.json",
+  "sha256": "1845b3287f7c7ffa75aef1f23abc292c37b6f3093013ae29c9741f2dc6051df7"
+ },
+ "tolerance": {
+  "abs": 0.0001,
+  "rel": 1e-05,
+  "rule": "E25, inherited unchanged"
+ },
+ "validity": {
+  "chain_final_equals_archived_aarch64_output": true,
+  "archived_output": "results/e48_real_inputs_aarch64/b3_deepae/native_real.json",
+  "archived_unavailable_reason": null
+ },
+ "reference_runtime_intermediates": {
+  "default_mode_unreadable": [
+   [
+    21,
+    "Tensor data is null. Run allocate_tensors() first"
+   ],
+   [
+    22,
+    "Tensor data is null. Run allocate_tensors() first"
+   ],
+   [
+    23,
+    "Tensor data is null. Run allocate_tensors() first"
+   ],
+   [
+    24,
+    "Tensor data is null. Run allocate_tensors() first"
+   ],
+   [
+    25,
+    "Tensor data is null. Run allocate_tensors() first"
+   ],
+   [
+    26,
+    "Tensor data is null. Run allocate_tensors() first"
+   ],
+   [
+    27,
+    "Tensor data is null. Run allocate_tensors() first"
+   ],
+   [
+    28,
+    "Tensor data is null. Run allocate_tensors() first"
+   ],
+   [
+    29,
+    "Tensor data is null. Run allocate_tensors() first"
+   ]
+  ],
+  "preserving_mode_unreadable": [],
+  "preserving_run_matches_default_output_bitwise": true,
+  "why_this_check": "\uc911\uac04 \ud150\uc11c\ub97c materialise \ud558\ub294 \uc2e4\ud589\uc740 \ud560\ub2f9 \uacc4\ud68d\uc774 \ub2e4\ub974\ubbc0\ub85c \uc6d0\uce59\uc801\uc73c\ub85c \ub2e4\ub978 \uacc4\uc0b0\uc77c \uc218 \uc788\ub2e4. \ucd5c\uc885 \ucd9c\ub825\uc774 \uae30\ubcf8 \uc2e4\ud589\uacfc \ube44\ud2b8 \ub3d9\uc77c\ud560 \ub54c\ub9cc \uc774 \uc911\uac04\uac12\uc744 oracle \uc758 \ub0b4\ubd80\ub85c \uc77d\ub294\ub2e4."
+ },
+ "layers": [
+  {
+   "index": 0,
+   "has_relu": true,
+   "width": 128,
+   "vs_reference_runtime": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 1.0013580322265625e-05,
+    "worst_rel": 0.0010138634795791898,
+    "median_abs_value": 0.039836317766457796
+   },
+   "vs_sequential_f32": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 2.86102294921875e-06,
+    "worst_rel": 5.983008256551394e-05,
+    "median_abs_value": 0.0398373007774353
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 8.414135796996902e-06,
+    "worst_rel": 0.0002774106397411615,
+    "median_abs_value": 0.03983602281528692
+   }
+  },
+  {
+   "index": 1,
+   "has_relu": true,
+   "width": 128,
+   "vs_reference_runtime": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 2.9802322387695312e-06,
+    "worst_rel": 0.0013696366295056273,
+    "median_abs_value": 0.0
+   },
+   "vs_sequential_f32": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 1.519918441772461e-06,
+    "worst_rel": 7.660738714090288e-05,
+    "median_abs_value": 0.0
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 2.014556916507537e-06,
+    "worst_rel": 0.0011556048150380782,
+    "median_abs_value": 0.0
+   }
+  },
+  {
+   "index": 2,
+   "has_relu": true,
+   "width": 128,
+   "vs_reference_runtime": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 7.417052984237671e-06,
+    "worst_rel": 0.00039955007971937176,
+    "median_abs_value": 0.0
+   },
+   "vs_sequential_f32": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 5.543231964111328e-06,
+    "worst_rel": 0.0002988176220463143,
+    "median_abs_value": 0.0
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 4.4026025220744724e-06,
+    "worst_rel": 0.00023731540342423097,
+    "median_abs_value": 0.0
+   }
+  },
+  {
+   "index": 3,
+   "has_relu": true,
+   "width": 128,
+   "vs_reference_runtime": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 2.5078654289245605e-05,
+    "worst_rel": 0.00024381010450918872,
+    "median_abs_value": 0.0
+   },
+   "vs_sequential_f32": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 1.8537044525146484e-05,
+    "worst_rel": 0.00017681566539912494,
+    "median_abs_value": 0.0
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 1.555221573742993e-05,
+    "worst_rel": 0.0001500927019031655,
+    "median_abs_value": 0.0
+   }
+  },
+  {
+   "index": 4,
+   "has_relu": true,
+   "width": 8,
+   "vs_reference_runtime": {
+    "elements": 8,
+    "violations": 0,
+    "worst_abs": 2.193450927734375e-05,
+    "worst_rel": 9.978528809097295e-06,
+    "median_abs_value": 2.072285294532776
+   },
+   "vs_sequential_f32": {
+    "elements": 8,
+    "violations": 0,
+    "worst_abs": 1.5974044799804688e-05,
+    "worst_rel": 7.2670973922292166e-06,
+    "median_abs_value": 2.0722655057907104
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 8,
+    "violations": 0,
+    "worst_abs": 1.3726422511961545e-05,
+    "worst_rel": 6.244576655096906e-06,
+    "median_abs_value": 2.0722670752597154
+   }
+  },
+  {
+   "index": 5,
+   "has_relu": true,
+   "width": 128,
+   "vs_reference_runtime": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 4.0411949157714844e-05,
+    "worst_rel": 0.031196308144932485,
+    "median_abs_value": 0.009955685614841059
+   },
+   "vs_sequential_f32": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 2.86102294921875e-05,
+    "worst_rel": 0.026880913050007508,
+    "median_abs_value": 0.009948328137397766
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 2.4013371433539987e-05,
+    "worst_rel": 0.02236511260857284,
+    "median_abs_value": 0.009949010907522149
+   }
+  },
+  {
+   "index": 6,
+   "has_relu": true,
+   "width": 128,
+   "vs_reference_runtime": {
+    "elements": 128,
+    "violations": 1,
+    "worst_abs": 0.0001093149185180664,
+    "worst_rel": 0.0029589487695904373,
+    "median_abs_value": 0.0
+   },
+   "vs_sequential_f32": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 7.933378219604492e-05,
+    "worst_rel": 0.002172734123546522,
+    "median_abs_value": 0.0
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 6.641639794580101e-05,
+    "worst_rel": 0.0018236128837927981,
+    "median_abs_value": 0.0
+   }
+  },
+  {
+   "index": 7,
+   "has_relu": true,
+   "width": 128,
+   "vs_reference_runtime": {
+    "elements": 128,
+    "violations": 1,
+    "worst_abs": 0.00011277198791503906,
+    "worst_rel": 0.0014704146088276335,
+    "median_abs_value": 0.0337061807513237
+   },
+   "vs_sequential_f32": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 8.368492126464844e-05,
+    "worst_rel": 0.00034577945663228244,
+    "median_abs_value": 0.0337043646723032
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 7.011413326940552e-05,
+    "worst_rel": 0.00041254562208468704,
+    "median_abs_value": 0.0337047498597805
+   }
+  },
+  {
+   "index": 8,
+   "has_relu": true,
+   "width": 128,
+   "vs_reference_runtime": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 6.949901580810547e-05,
+    "worst_rel": 0.011980772628088499,
+    "median_abs_value": 0.5602104961872101
+   },
+   "vs_sequential_f32": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 5.054473876953125e-05,
+    "worst_rel": 0.009408456796798963,
+    "median_abs_value": 0.5601783394813538
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 128,
+    "violations": 0,
+    "worst_abs": 4.429873633071679e-05,
+    "worst_rel": 0.007246860633519602,
+    "median_abs_value": 0.5601796730007981
+   }
+  },
+  {
+   "index": 9,
+   "has_relu": false,
+   "width": 640,
+   "vs_reference_runtime": {
+    "elements": 640,
+    "violations": 46,
+    "worst_abs": 0.00036144256591796875,
+    "worst_rel": 4.046349439207198e-05,
+    "median_abs_value": 24.64589500427246
+   },
+   "vs_sequential_f32": {
+    "elements": 640,
+    "violations": 30,
+    "worst_abs": 0.00026035308837890625,
+    "worst_rel": 2.8177018212877713e-05,
+    "median_abs_value": 24.645906448364258
+   },
+   "bit_identical_to_sequential_f32": false,
+   "vs_float64": {
+    "elements": 640,
+    "violations": 19,
+    "worst_abs": 0.00021291829422231956,
+    "worst_rel": 2.3823231502967463e-05,
+    "median_abs_value": 24.645909341813454
+   }
+  }
+ ],
+ "L1_first_layer_over_tolerance": 6,
+ "L2_layer_with_most_violations": 9,
+ "L3_bit_identical_to_sequential_f32_per_layer": [
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false
+ ],
+ "violations_per_layer_vs_reference_runtime": [
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
+  1,
+  0,
+  46
+ ],
+ "supplementary_growth": {
+  "not_part_of_the_verdict": true,
+  "accumulated_error_growth_L0_to_L9": 36.095238095238095,
+  "effective_threshold_growth_L0_to_L9": 2.464589500427246
+ },
+ "not_claimed": [
+  "mechanism (no disassembly; FMA is baseline AArch64, so E52's no-FMA control does not carry over)",
+  "a third reference value (float64 and sequential f32 are auxiliary axes)",
+  "more than the one failing window"
+ ]
+}

@@ -1,0 +1,104 @@
+== start 01:31:06 aarch64
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+/home/ubuntu/e61/litelib/ai_edge_litert/interpreter.py:480: UserWarning: Warning: Enabling `experimental_preserve_all_tensors` with the BUILTIN or AUTO op resolver is intended for debugging purposes only. Be aware that this can significantly increase memory usage by storing all intermediate tensors. If you encounter memory problems or are not actively debugging, consider disabling this option.
+  warnings.warn(
+layers written on aarch64; preserving run matches default: True
+== b3_deepae 01:31:31
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+{
+ "model_sha256": "c66636f4d7f8af8b",
+ "samples": 34,
+ "signature": {
+  "input_shape": [
+   1,
+   640
+  ],
+  "input_dtype": "float32",
+  "input_quantization": [
+   0.0,
+   0
+  ],
+  "output_shape": [
+   1,
+   640
+  ],
+  "output_dtype": "float32"
+ }
+}
+== b2_resnet 01:31:57
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+{
+ "model_sha256": "b5c0046d6e0328b4",
+ "samples": 200,
+ "signature": {
+  "input_shape": [
+   1,
+   32,
+   32,
+   3
+  ],
+  "input_dtype": "float32",
+  "input_quantization": [
+   0.0,
+   0
+  ],
+  "output_shape": [
+   1,
+   10
+  ],
+  "output_dtype": "float32"
+ }
+}
+== smartcam 01:36:06
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+{
+ "model_sha256": "fd1ecbd01ad2d46b",
+ "samples": 19,
+ "signature": {
+  "input_shape": [
+   1,
+   224,
+   224,
+   3
+  ],
+  "input_dtype": "float32",
+  "input_quantization": [
+   0.0,
+   0
+  ],
+  "output_shape": [
+   1,
+   3
+  ],
+  "output_dtype": "float32"
+ }
+}
+== done 01:43:50
+== start 01:45:25 aarch64
+== wgan 01:45:27
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+{
+ "model_sha256": "c865589f4b5e28f1",
+ "samples": 1,
+ "signature": {
+  "input_shape": [
+   1,
+   224,
+   224,
+   3
+  ],
+  "input_dtype": "float32",
+  "input_quantization": [
+   0.0,
+   0
+  ],
+  "output_shape": [
+   1,
+   224,
+   224,
+   3
+  ],
+  "output_dtype": "float32"
+ }
+}
+== done 02:38:25

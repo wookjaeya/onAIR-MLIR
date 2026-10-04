@@ -1,0 +1,14 @@
+{
+ "fixture": "b3_fx",
+ "layout": "nchw",
+ "samples": 34,
+ "elems_per_sample": 640,
+ "bytes": 87040,
+ "sha256_inputs_bin": "d7f741654ec1d54f72b9bb5280a16a6140295a8bb737ec5d727e962a580df969",
+ "manifest_hashes_verified": 34,
+ "contract": "results/e36b_aarch64_models/b3_deepae/b3_deepae.contract.json",
+ "contract_input_elems": 640,
+ "out_order": "results/e48_real_inputs_aarch64/b3_deepae/replay_order.json",
+ "fixture_manifest_source": "results/e45_real_inputs/cells/b3_deepae/fixture/manifest.json",
+ "regenerated_by": "harness/model_fixture.py (E45 manifest 해시로 대조 — mk_e25_inputs.py 가 샘플마다 확인)"
+}

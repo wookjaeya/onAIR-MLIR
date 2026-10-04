@@ -62,9 +62,19 @@ def load_or_regenerate(fixture_dir, manifest):
             m = re.search(r"default_rng\((\d+)\)", s.get("detail", {}).get("generator", ""))
             if m:
                 seeds.add(int(m.group(1)))
-    if len(seeds) != 1:
-        raise SystemExit("REFUSED: manifest does not record exactly one synthetic seed (%s)" % sorted(seeds))
-    rng = np.random.default_rng(seeds.pop())
+    # E46 (type B, found while auditing E45): this used to demand exactly one seed
+    # UNCONDITIONALLY, so a fixture with NO synthetic samples -- which is every fixture E45
+    # built from real data -- was refused with "does not record exactly one synthetic seed
+    # ([])". The seed exists to REGENERATE synthetic samples that are deliberately not
+    # stored; a fixture that stores every sample needs no seed, and refusing it is an
+    # over-rejection, not a safety property. Three harnesses were blocked by this one
+    # function (e32_native_aarch64, e32_cfs_outputs, e33_onair_outputs all import it).
+    # The per-sample sha256 check below is UNCHANGED and is what actually guards integrity.
+    n_synth = sum(1 for s in manifest["samples"] if s["kind"] == "synthetic")
+    if n_synth and len(seeds) != 1:
+        raise SystemExit("REFUSED: the manifest has %d synthetic sample(s) but does not record "
+                         "exactly one seed to regenerate them (%s)" % (n_synth, sorted(seeds)))
+    rng = np.random.default_rng(seeds.pop()) if seeds else None
     out = []
     for s in manifest["samples"]:
         sid, kind = s["sample_id"], s["kind"]
@@ -72,6 +82,8 @@ def load_or_regenerate(fixture_dir, manifest):
         if kind == "synthetic":
             # consume the stream in manifest order whether or not the file exists,
             # so a partially-stored fixture cannot shift every later sample
+            if rng is None:      # unreachable while n_synth>0 forces a seed; explicit anyway
+                raise SystemExit("REFUSED: synthetic sample %s with no seed recorded" % sid)
             nhwc = rng.random((1, 224, 224, 3), dtype=np.float32)
             nchw = np.ascontiguousarray(nhwc.transpose(0, 3, 1, 2))
             if os.path.exists(p):

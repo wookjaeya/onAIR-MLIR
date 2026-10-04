@@ -1,0 +1,30 @@
+{
+ "note": "headroom recomputed directly from the two raw run JSONs (which are not vendored -- see raw_runs.sha256.json). The stored comparison.json used --detail failures, so its per_kind.headroom is an honest null with a reason rather than a 0.",
+ "rule": "slack = max(1 - abs/abs_tol, 1 - rel/rel_tol); kind headroom = min over elements",
+ "abs_tol": 0.0001,
+ "rel_tol": 1e-05,
+ "per_kind": {
+  "real_example": {
+   "elements": 1354752,
+   "elements_failed": 0,
+   "worst_abs_err": 1.0132789611816406e-06,
+   "worst_rel_err": 0.0006936416184971098,
+   "headroom": 0.9898672103881836,
+   "headroom_at": {
+    "sample_id": "img_msec_1598399450660_2_thumbnail",
+    "index": 140475
+   }
+  },
+  "edge": {
+   "elements": 301056,
+   "elements_failed": 0,
+   "worst_abs_err": 1.3709068298339844e-06,
+   "worst_rel_err": 0.000636842918373224,
+   "headroom": 0.9862909317016602,
+   "headroom_at": {
+    "sample_id": "edge_ones",
+    "index": 6040
+   }
+  }
+ }
+}

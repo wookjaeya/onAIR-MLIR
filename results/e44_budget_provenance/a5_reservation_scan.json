@@ -1,0 +1,41 @@
+{
+ "tool": "harness/budget_provenance.py",
+ "axis": "A5 (E39a pre-registered): 실제 예약을 하는가 -- declared / enforced / 해당 없음",
+ "verdict": "declared",
+ "reason": "no reservation call appears in any source file, so the budget is a number compared against a contract, not a reservation of physical memory",
+ "files_scanned": 85,
+ "reservation_calls_looked_for": {
+  "mlock": "pins pages into RAM",
+  "mlockall": "pins the whole address space",
+  "MAP_POPULATE": "mmap flag that prefaults (and with MAP_LOCKED, reserves) pages",
+  "MAP_LOCKED": "mmap flag that locks the mapping",
+  "CFE_ES_PoolCreate": "creates a cFE memory pool, i.e. carves out a reserved region",
+  "CFE_ES_GetPoolBuf": "allocates from a cFE reserved pool",
+  "CFE_ES_RegisterCDS": "reserves Critical Data Store space",
+  "OS_MemPoolCreate": "OSAL memory pool creation"
+ },
+ "hits": [],
+ "scan_scope": {
+  "dirs": [
+   "native",
+   "plugins",
+   "harness"
+  ],
+  "extensions": [
+   ".c",
+   ".h",
+   ".cpp",
+   ".py",
+   ".cmake"
+  ],
+  "skipped": [
+   ".git",
+   "__pycache__",
+   "build",
+   "dump",
+   "results"
+  ],
+  "why_sources_only": "logs are not code. While planning E44 an audit reported 'CFE_TBL used 0 times' and a direct grep returned 15 hits -- all fifteen in cFS boot logs, none in source."
+ },
+ "never_promotes": "a hit downgrades to `unknown`; it never yields `enforced`, because a call existing is not that call reserving this budget (E28/D52)."
+}

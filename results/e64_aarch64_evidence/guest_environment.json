@@ -1,0 +1,24 @@
+{
+ "experiment": "E64",
+ "part": "D3",
+ "record_of": "this boot only (plan SS1.D3) -- not a retroactive record of earlier cells",
+ "uname": "Linux onair-aarch64 6.8.0-138-generic #138-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 22:20:42 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux",
+ "machine": "aarch64",
+ "nproc": 1,
+ "mem_total_kb": 974848,
+ "os_release": "Ubuntu 24.04.4 LTS",
+ "python": "3.12.3",
+ "numpy": "2.3.5",
+ "iree_base_runtime": "3.11.0",
+ "ai_edge_litert": "2.2.0",
+ "package_paths": {
+  "numpy_and_iree": "~/e57/pylib",
+  "ai_edge_litert": "~/e61/litelib"
+ },
+ "smp": 1,
+ "mem_mib": 1024,
+ "boot": "SMP=1 MEM=1024 bash scripts/71_boot_guest_aarch64.sh (qemu cmdline read from /proc: -smp 1 -m 1024)",
+ "host_qemu": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+ "guest_image": "~/onair-mlir-bench/ext/guest/aarch64-linux.qcow2 (not hashed: a mutable disk image; the guest OS release and packages above identify it)",
+ "plan": "docs/plans/E64_aarch64_evidence_for_manuscript.md (committed before measurement, 6578481)"
+}

@@ -1,0 +1,9 @@
+== e68_control 05:52:34
+{"deployment": "e68_control", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== e68_L1_other_model_file 05:52:58
+{"deployment": "e68_L1_other_model_file", "returncode": 0, "plugin_constructed": true, "active": false, "inferences": 0, "onair_core_unmodified": true}
+== e68_L2_same_size_other_bytes 05:53:10
+{"deployment": "e68_L2_same_size_other_bytes", "returncode": 0, "plugin_constructed": true, "active": false, "inferences": 0, "onair_core_unmodified": true}
+== e68_L3_driver 05:53:22
+{"deployment": "e68_L3_driver", "returncode": 0, "plugin_constructed": true, "active": false, "inferences": 0, "onair_core_unmodified": true}
+== done 05:53:31

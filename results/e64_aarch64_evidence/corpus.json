@@ -1,0 +1,505 @@
+{
+ "experiment": "E64",
+ "part": "B",
+ "plan": "docs/plans/E64_aarch64_evidence_for_manuscript.md (committed before measurement, 6578481)",
+ "B1_aarch64_corpus": {
+  "tracked_layout_irs": 30,
+  "by_target_of_producing_compile": {
+   "aarch64": 15,
+   "x86_64": 15
+  },
+  "aarch64_earlier_revision": [
+   "results/e59_info_levels_aarch64/drift_310/b2_resnet/b2_resnet.layout_ir.txt.gz",
+   "results/e59_info_levels_aarch64/drift_310/b3_deepae/b3_deepae.layout_ir.txt.gz",
+   "results/e59_info_levels_aarch64/drift_310/smartcam/smartcam.layout_ir.txt.gz",
+   "results/e59_info_levels_aarch64/drift_310/wgan/wgan.layout_ir.txt.gz"
+  ],
+  "aarch64_files_byte_identical_to_an_x86_64_compile_file": 8,
+  "aarch64_evaluated_revision_unedited": [
+   "results/e14_aarch64_qemu/aarch64/layout_ir/conv2d.layout_ir.txt",
+   "results/e14_aarch64_qemu/aarch64/layout_ir/conv2d_swap.layout_ir.txt",
+   "results/e14_aarch64_qemu/aarch64/layout_ir/dynamic.layout_ir.txt",
+   "results/e14_aarch64_qemu/aarch64/layout_ir/mlp16k.layout_ir.txt",
+   "results/e14_aarch64_qemu/aarch64/layout_ir/mlp16k_swap.layout_ir.txt",
+   "results/e14_aarch64_qemu/aarch64/layout_ir/multibranch.layout_ir.txt",
+   "results/e14_aarch64_qemu/aarch64/layout_ir/multibranch_swap.layout_ir.txt",
+   "results/e32_smartcam_aarch64/build/smartcam.layout_ir.txt",
+   "results/e36b_aarch64_models/b2_resnet/b2_resnet.layout_ir.txt",
+   "results/e36b_aarch64_models/b3_deepae/b3_deepae.layout_ir.txt",
+   "results/e53_wgan_aarch64/build/aarch64/wgan.layout_ir.txt"
+  ],
+  "aarch64_evaluated_revision_unedited_count": 11,
+  "aarch64_unclassified_total": 0,
+  "aarch64_walker_exceptions": [],
+  "files": [
+   {
+    "path": "results/e14_aarch64_qemu/aarch64/layout_ir/conv2d.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "2852ee1112cdff50dbe280e5f4ab9fa6d583e529d57769549b05fba1c5a54f4c",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/aarch64/layout_ir/conv2d_swap.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "582c4071bdfa8d571e3e1eed46cda48784f1729428f7c3afa1cb5e32bdc8935f",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/aarch64/layout_ir/dynamic.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "a61049fc595108ea2d156250abbdd260e673b7130004e404ca26683843d68c09",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/aarch64/layout_ir/mlp16k.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "1558820aeaf6c1574c6a1220430907bf6ac6bab4e859d392b0140b41b1dda6cc",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e14_aarch64_qemu/aarch64/layout_ir/mlp16k_swap.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "572e8d456df877845d6ed954bbc7f989a9c6fab6b714ac4304c1de581ccaa914",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/aarch64/layout_ir/multibranch.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "8e3a9460e6ec5a185c9304545d3cb005a91da024645a8e2837f683c7eb8ffa7b",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/aarch64/layout_ir/multibranch_swap.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "8099bf8fa521cf181c18630d92cc6675ba28afc977209e669a4b4ebedbf75c5a",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/x86_64/layout_ir/conv2d.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "2852ee1112cdff50dbe280e5f4ab9fa6d583e529d57769549b05fba1c5a54f4c",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/x86_64/layout_ir/conv2d_swap.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "582c4071bdfa8d571e3e1eed46cda48784f1729428f7c3afa1cb5e32bdc8935f",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/x86_64/layout_ir/dynamic.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "a61049fc595108ea2d156250abbdd260e673b7130004e404ca26683843d68c09",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/x86_64/layout_ir/mlp16k.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "fca2076259cd0e7a8b2a35cd9fe57e9bea2f1c3557124c0abc6dbf3fffa61183",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e14_aarch64_qemu/x86_64/layout_ir/mlp16k_swap.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "572e8d456df877845d6ed954bbc7f989a9c6fab6b714ac4304c1de581ccaa914",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/x86_64/layout_ir/multibranch.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "8e3a9460e6ec5a185c9304545d3cb005a91da024645a8e2837f683c7eb8ffa7b",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e14_aarch64_qemu/x86_64/layout_ir/multibranch_swap.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "8099bf8fa521cf181c18630d92cc6675ba28afc977209e669a4b4ebedbf75c5a",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e24c_manyconst31/manyconst31.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "6e3b680411e2793282cca388bb0e2c7e654b0800742ae2cf59bdea16c4d9419c",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e26_boundary_utility/x86_64/ext_b2_resnet/b2_resnet.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "874f87b0e71332e99d88841edbbcd2453561f72afdec3c37c1e3988044e0958c",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e26_boundary_utility/x86_64/ext_b3_deepae/b3_deepae.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "d249722193beb249f9bc7f7532e4d58fcc6e5f375bb65e5ce9c8ddeef360ca9e",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e26c_multiout/multiout.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "e5c47a57c20a845ec8164efbfcc6a2ab2616b6a825ca742e8fba2290722a35df",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e27_baselines/iree310_mlp16k/mlp16k.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "885d57b102e4ba6d01bfe9b36075b011ee74f0366a8dc3670c90c6c286d12151",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e29b_conditional_verify/bigact.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "7454feaf6407c45f9b8df102cc103297a82a69ece4d91c2841e4124dbade4647",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e32_smartcam_aarch64/build/smartcam.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "ff4879ab68f3a164d7ba2b39d722fc7ae993e4f25f47ff5a1f71f2a49228a267",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e36b_aarch64_models/b2_resnet/b2_resnet.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "874f87b0e71332e99d88841edbbcd2453561f72afdec3c37c1e3988044e0958c",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   },
+   {
+    "path": "results/e36b_aarch64_models/b3_deepae/b3_deepae.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "e566350af5d113e2d02af2712aea4a1cfa020c48348eb813cb1ecfa149326335",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e46_wgan/build/wgan.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "d0f39f6222c5b334e7bccddd66f4579431ced39d408830aa8ea54ed7bd91e369",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e53_wgan_aarch64/build/aarch64/wgan.layout_ir.txt",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "8167c437c195303d8a44807fdef0c55067730eda60778c8b2e2a4cfc873133e2",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e59_info_levels_aarch64/drift_310/b2_resnet/b2_resnet.layout_ir.txt.gz",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "b8810b3c201228796117e0e615329587f91195fe09b84cdb1837bc503e1cd7e8",
+    "earlier_compiler_revision": true,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e59_info_levels_aarch64/drift_310/b3_deepae/b3_deepae.layout_ir.txt.gz",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "94061c3661c40e4537349234e2e7b2fc0edc3176133ec943e6dde5fc5785f4a2",
+    "earlier_compiler_revision": true,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e59_info_levels_aarch64/drift_310/smartcam/smartcam.layout_ir.txt.gz",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "cdd56703e4f4b84ce562ca2c2f4845baff9429e05ba083e098a6c36737cb145d",
+    "earlier_compiler_revision": true,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/e59_info_levels_aarch64/drift_310/wgan/wgan.layout_ir.txt.gz",
+    "target_of_producing_compile": "aarch64",
+    "sha256": "32fec513d7356b39582c7e34e310caae626400be7475858e0ede61376bd22a45",
+    "earlier_compiler_revision": true,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": false
+   },
+   {
+    "path": "results/p1_smartcam_feasibility/build/smartcam.layout_ir.txt",
+    "target_of_producing_compile": "x86_64",
+    "sha256": "ff4879ab68f3a164d7ba2b39d722fc7ae993e4f25f47ff5a1f71f2a49228a267",
+    "earlier_compiler_revision": false,
+    "unclassified_resource_ops": [],
+    "unsupported_control_ops": [],
+    "pre_scheduling_ops": [],
+    "entry_chunk_rank_used": 0,
+    "walker_exception": null,
+    "byte_identical_file_exists_from_other_target": true
+   }
+  ]
+ },
+ "B2_evaluated_regeneration": {
+  "method": "make_contract.py and gen_contract_header.py of the current tree on each evaluated model's archived single-invocation outputs (vmfb, layout IR, dump, ELF analysis); leaf diff uses contract_negative_tests' IGNORE sets (no second diff implementation, E44)",
+  "models": {
+   "b2_resnet": {
+    "make_contract_rc": 0,
+    "stderr_tail": [],
+    "figures_archived": {
+     "bounded_bytes": 618856,
+     "static_per_call_bytes": 309416,
+     "module_resident_constant_bytes": 309440,
+     "bound_method": "static_from_stream_layout"
+    },
+    "figures_regenerated": {
+     "bounded_bytes": 618856,
+     "static_per_call_bytes": 309416,
+     "module_resident_constant_bytes": 309440,
+     "bound_method": "static_from_stream_layout"
+    },
+    "figures_unchanged": true,
+    "document_leaf_differences_outside_ignored_keys": [
+     "('provenance', 'dump_dir_files')"
+    ],
+    "dump_dir_files_listed_archived_vs_regenerated": [
+     57,
+     52
+    ],
+    "gen_contract_header_rc": 0,
+    "header_byte_identical": true
+   },
+   "b3_deepae": {
+    "make_contract_rc": 0,
+    "stderr_tail": [],
+    "figures_archived": {
+     "bounded_bytes": 1069632,
+     "static_per_call_bytes": 6208,
+     "module_resident_constant_bytes": 1063424,
+     "bound_method": "static_from_stream_layout"
+    },
+    "figures_regenerated": {
+     "bounded_bytes": 1069632,
+     "static_per_call_bytes": 6208,
+     "module_resident_constant_bytes": 1063424,
+     "bound_method": "static_from_stream_layout"
+    },
+    "figures_unchanged": true,
+    "document_leaf_differences_outside_ignored_keys": [
+     "('provenance', 'dump_dir_files')"
+    ],
+    "dump_dir_files_listed_archived_vs_regenerated": [
+     24,
+     19
+    ],
+    "gen_contract_header_rc": 0,
+    "header_byte_identical": true
+   },
+   "smartcam": {
+    "make_contract_rc": 0,
+    "stderr_tail": [],
+    "figures_archived": {
+     "bounded_bytes": 18222796,
+     "static_per_call_bytes": 9382092,
+     "module_resident_constant_bytes": 8840704,
+     "bound_method": "static_from_stream_layout"
+    },
+    "figures_regenerated": {
+     "bounded_bytes": 18222796,
+     "static_per_call_bytes": 9382092,
+     "module_resident_constant_bytes": 8840704,
+     "bound_method": "static_from_stream_layout"
+    },
+    "figures_unchanged": true,
+    "document_leaf_differences_outside_ignored_keys": [],
+    "dump_dir_files_listed_archived_vs_regenerated": [
+     121,
+     121
+    ],
+    "gen_contract_header_rc": 0,
+    "header_byte_identical": true
+   },
+   "wgan": {
+    "make_contract_rc": 0,
+    "stderr_tail": [],
+    "figures_archived": {
+     "bounded_bytes": 135666432,
+     "static_per_call_bytes": 131382784,
+     "module_resident_constant_bytes": 4283648,
+     "bound_method": "static_from_stream_layout"
+    },
+    "figures_regenerated": {
+     "bounded_bytes": 135666432,
+     "static_per_call_bytes": 131382784,
+     "module_resident_constant_bytes": 4283648,
+     "bound_method": "static_from_stream_layout"
+    },
+    "figures_unchanged": true,
+    "document_leaf_differences_outside_ignored_keys": [],
+    "dump_dir_files_listed_archived_vs_regenerated": [
+     45,
+     45
+    ],
+    "gen_contract_header_rc": 0,
+    "header_byte_identical": true
+   }
+  },
+  "figures_unchanged": true,
+  "headers_byte_identical": true
+ },
+ "verdict": "PASS"
+}

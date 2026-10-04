@@ -1,0 +1,399 @@
+{
+  "scenarios": [
+    {
+      "admission": [
+        "NOT_ADMITTED"
+      ],
+      "binding": [],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263376,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 1232,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": null,
+      "e25_mode": null,
+      "cleanup": [
+        {
+          "app": "AI_LEARNER",
+          "stage": "cleanup",
+          "released": true,
+          "cleanup_calls": 1
+        }
+      ],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [
+        "1980-012-14:03:20.98810 CFE_ES_ExitApp: Application AI_LEARNER called CFE_ES_ExitApp",
+        "EVS Port1 1980-012-14:03:21.45689 66/1/CFE_ES 14: ErrExit Application AI_LEARNER Success."
+      ],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:03:20.97067 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263376 base=262144 kernel=1232 accounted=1",
+        "EVS Port1 1980-012-14:03:20.97711 66/1/AI_LEARNER 1: AI_LEARNER NOT_ADMITTED: contract bounded=618856 > budget=309415; app will not start"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e63_b2_resnet_cond_Pm1",
+      "model": "b2_resnet",
+      "scenario": "E63 CF cell: E56 CONDITIONAL build (ALLOW_CONDITIONAL_MAP=1, same binary as E56's cells), budget M = P - 1 = 309415, no alignment offset. Neither tier fits (B_m = P > M), so expect NOT_ADMITTED before any runtime resource: no mem_init, 0 inferences, cFS operational. Plan SS3.",
+      "seconds": 120,
+      "commands_sent": [],
+      "log": "results/e63_single_build_and_conditional_floor/cells/logs/e63_b2_resnet_cond_Pm1.log",
+      "expect": {
+        "admission": "NOT_ADMITTED",
+        "runtime_created": false,
+        "mem_init_present": false,
+        "no_crash": true,
+        "cfs_operational": true
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "309415"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
+    },
+    {
+      "admission": [
+        "NOT_ADMITTED"
+      ],
+      "binding": [],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 262160,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 16,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": null,
+      "e25_mode": null,
+      "cleanup": [
+        {
+          "app": "AI_LEARNER",
+          "stage": "cleanup",
+          "released": true,
+          "cleanup_calls": 1
+        }
+      ],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [
+        "1980-012-14:05:16.99393 CFE_ES_ExitApp: Application AI_LEARNER called CFE_ES_ExitApp",
+        "EVS Port1 1980-012-14:05:17.31071 66/1/CFE_ES 14: ErrExit Application AI_LEARNER Success."
+      ],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:05:16.98892 66/1/AI_LEARNER 8: AI_LEARNER stack: es=262160 base=262144 kernel=16 accounted=1",
+        "EVS Port1 1980-012-14:05:16.98989 66/1/AI_LEARNER 1: AI_LEARNER NOT_ADMITTED: contract bounded=1069632 > budget=6207; app will not start"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e63_b3_deepae_cond_Pm1",
+      "model": "b3_deepae",
+      "scenario": "E63 CF cell: E56 CONDITIONAL build (ALLOW_CONDITIONAL_MAP=1, same binary as E56's cells), budget M = P - 1 = 6207, no alignment offset. Neither tier fits (B_m = P > M), so expect NOT_ADMITTED before any runtime resource: no mem_init, 0 inferences, cFS operational. Plan SS3.",
+      "seconds": 120,
+      "commands_sent": [],
+      "log": "results/e63_single_build_and_conditional_floor/cells/logs/e63_b3_deepae_cond_Pm1.log",
+      "expect": {
+        "admission": "NOT_ADMITTED",
+        "runtime_created": false,
+        "mem_init_present": false,
+        "no_crash": true,
+        "cfs_operational": true
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "6207"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
+    },
+    {
+      "admission": [
+        "NOT_ADMITTED"
+      ],
+      "binding": [],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 264063,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 1919,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": null,
+      "e25_mode": null,
+      "cleanup": [
+        {
+          "app": "AI_LEARNER",
+          "stage": "cleanup",
+          "released": true,
+          "cleanup_calls": 1
+        }
+      ],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [
+        "1980-012-14:07:13.00375 CFE_ES_ExitApp: Application AI_LEARNER called CFE_ES_ExitApp",
+        "EVS Port1 1980-012-14:07:13.30580 66/1/CFE_ES 14: ErrExit Application AI_LEARNER Success."
+      ],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:07:12.98977 66/1/AI_LEARNER 8: AI_LEARNER stack: es=264063 base=262144 kernel=1919 accounted=1",
+        "EVS Port1 1980-012-14:07:12.99707 66/1/AI_LEARNER 1: AI_LEARNER NOT_ADMITTED: contract bounded=18222796 > budget=9382091; app will not start"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e63_smartcam_cond_Pm1",
+      "model": "smartcam",
+      "scenario": "E63 CF cell: E56 CONDITIONAL build (ALLOW_CONDITIONAL_MAP=1, same binary as E56's cells), budget M = P - 1 = 9382091, no alignment offset. Neither tier fits (B_m = P > M), so expect NOT_ADMITTED before any runtime resource: no mem_init, 0 inferences, cFS operational. Plan SS3.",
+      "seconds": 120,
+      "commands_sent": [],
+      "log": "results/e63_single_build_and_conditional_floor/cells/logs/e63_smartcam_cond_Pm1.log",
+      "expect": {
+        "admission": "NOT_ADMITTED",
+        "runtime_created": false,
+        "mem_init_present": false,
+        "no_crash": true,
+        "cfs_operational": true
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "9382091"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
+    },
+    {
+      "admission": [
+        "NOT_ADMITTED"
+      ],
+      "binding": [],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": null,
+      "last_mem": null,
+      "mem_init": null,
+      "e25_mode": null,
+      "cleanup": [
+        {
+          "app": "AI_LEARNER",
+          "stage": "cleanup",
+          "released": true,
+          "cleanup_calls": 1
+        }
+      ],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [
+        "1980-012-14:03:21.03914 CFE_ES_ExitApp: Application AI_LEARNER called CFE_ES_ExitApp",
+        "EVS Port1 1980-012-14:03:21.28881 66/1/CFE_ES 14: ErrExit Application AI_LEARNER Success."
+      ],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:03:21.03237 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:03:21.03417 66/1/AI_LEARNER 1: AI_LEARNER NOT_ADMITTED: contract bounded=135666432 > budget=131382783; app will not start"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": 124,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e63_wgan_cond_Pm1",
+      "model": "wgan",
+      "scenario": "E63 CF cell: E56 CONDITIONAL build (ALLOW_CONDITIONAL_MAP=1, same binary as E56's cells), budget M = P - 1 = 131382783, no alignment offset. Neither tier fits (B_m = P > M), so expect NOT_ADMITTED before any runtime resource: no mem_init, 0 inferences, cFS operational. Plan SS3.",
+      "seconds": 120,
+      "commands_sent": [],
+      "log": "results/e63_single_build_and_conditional_floor/cells/logs/e63_wgan_cond_Pm1.log",
+      "expect": {
+        "admission": "NOT_ADMITTED",
+        "runtime_created": false,
+        "mem_init_present": false,
+        "no_crash": true,
+        "cfs_operational": true
+      },
+      "staged": {},
+      "env": {
+        "AI_LEARNER_BUDGET_OVERRIDE": "131382783"
+      },
+      "fetched": {},
+      "expect_failures": [],
+      "pass": true
+    },
+    {
+      "admission": [
+        "ADMIT"
+      ],
+      "binding": [
+        "MATCH"
+      ],
+      "stack": {
+        "app": "AI_LEARNER",
+        "stage": "stack",
+        "es_stack_size": 263024,
+        "stack_base_bytes": 262144,
+        "contract_kernel_stack_bytes": 880,
+        "kernel_stack_accounted": true
+      },
+      "runtime_load_failed": null,
+      "last_run": {
+        "app": "AI_LEARNER",
+        "stage": "run",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "attempted": 2,
+        "completed": 2,
+        "fail_input": 0,
+        "fail_invoke": 0,
+        "fail_output": 0,
+        "mean_us": 1662307586.46,
+        "max_us": 1691282865.18,
+        "last_us": 1691282865.18,
+        "out0": -0.04232,
+        "out_elems": 150528,
+        "out_sha256": "e402623629f3caf5345cc26085fb864841e92c512d779024c264b682ba6d2364",
+        "out_head": [
+          -0.042319,
+          0.048241,
+          0.281023,
+          0.151525,
+          0.015672,
+          -0.020277
+        ],
+        "out_tail": [
+          -0.023881,
+          -0.002304,
+          0.02455,
+          0.030611,
+          0.071835,
+          0.146622
+        ],
+        "out_full_file": "/cf/last_out.json",
+        "out_full_file_bytes": 1454909,
+        "out_full_file_reason": "ok",
+        "out_record_truncates": false
+      },
+      "last_mem": {
+        "app": "AI_LEARNER",
+        "stage": "mem",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "completed": 2,
+        "hal_peak": 131382784,
+        "peak_within_bounded": true,
+        "admitted_budget_bytes": 135666432,
+        "peak_within_admitted_budget": true,
+        "admission_mode": "unconditional",
+        "hal_bytes_per_call_amortized": 196472064.0,
+        "process_rss_kb": 15692,
+        "process_rss_delta_init_kb": 1644,
+        "max_active_calls": 1,
+        "active_calls_now": 0,
+        "call_counter_balanced": true
+      },
+      "mem_init": {
+        "app": "AI_LEARNER",
+        "stage": "mem_init",
+        "model": "wgan",
+        "target": "aarch64-unknown-linux-gnu",
+        "hal_peak": 602112,
+        "hal_allocated": 602112,
+        "bounded": 135666432,
+        "peak_within_bounded": true,
+        "inferences_so_far": 0,
+        "process_rss_kb": 11284,
+        "rss_kb_before_runtime": 9640,
+        "rss_kb_after_session": 9928,
+        "rss_kb_after_init": 11284
+      },
+      "e25_mode": {
+        "app": "AI_LEARNER",
+        "stage": "e25_mode",
+        "active": true,
+        "inputs_path": "/cf/e25_inputs.bin"
+      },
+      "cleanup": [],
+      "init_count": 1,
+      "cfs_operational": true,
+      "app_exit_lines": [],
+      "es_restart_events": [],
+      "evs_ai_learner": [
+        "EVS Port1 1980-012-14:05:17.04011 66/1/AI_LEARNER 8: AI_LEARNER stack: es=263024 base=262144 kernel=880 accounted=1",
+        "EVS Port1 1980-012-14:32:20.50608 66/1/AI_LEARNER 4: AI_LEARNER: E25 equivalence 1/1 inferences written",
+        "EVS Port1 1980-012-14:32:20.51809 66/1/AI_LEARNER 3: AI_LEARNER initialized: model wgan (4321533 B), rss_delta_init=1644 KB",
+        "..EVS Port1 1980-012-14:59:27.60957 66/1/AI_LEARNER 4: AI_LEARNER completed=1/1 mean=1633332307.7us max=1633332307.7us hal_peak=131382784 within_bounded=1",
+        "EVS Port1 1980-012-15:27:25.77250 66/1/AI_LEARNER 4: AI_LEARNER completed=2/2 mean=1662307586.5us max=1691282865.2us hal_peak=131382784 within_bounded=1"
+      ],
+      "crash_indicators": [],
+      "core_exit_code": null,
+      "unparsed_json": [],
+      "note": "mean_us/max_us/last_us are QEMU TCG wall-clock: NOT evidence (proposal SS19)",
+      "id": "e63_wgan_map_e55b_build",
+      "model": "wgan",
+      "scenario": "E63 T7 cell: the E55b UNCONDITIONAL build (the same ai_learner.so as E55b's copy cell and E58's sweep), budget M = B_u = 135666432, AI_LEARNER_BLOB_ALIGN_OFFSET=0 set explicitly, same one-sample fixture replay. Expect ADMIT, map arm (mod64 0, append 0), >=1 inference, final peak exactly P = 131382784, outputs bit-identical to the E55b copy cell. Plan docs/plans/E63_single_build_peaks_and_conditional_floor.md SS3.",
+      "seconds": 5400,
+      "commands_sent": [],
+      "log": "results/e63_single_build_and_conditional_floor/cells/logs/e63_wgan_map_e55b_build.log",
+      "expect": {
+        "admission": "ADMIT",
+        "binding": "MATCH",
+        "min_completed": 1,
+        "no_crash": true,
+        "cfs_operational": true,
+        "e25_mode_active": true,
+        "hal_peak_le_bounded": 135666432,
+        "mem_init_present": true
+      },
+      "staged": {
+        "e25_inputs.bin": {
+          "local": "results/e53_wgan_aarch64/e25_inputs_1sample.bin",
+          "bytes": 602112,
+          "sha256": "ff92b3170f152fd59dabe5ab20918e4817cd82dc3471db6270a82fce7a5336a0",
+          "verified_on_guest": true
+        }
+      },
+      "env": {
+        "AI_LEARNER_BLOB_ALIGN_OFFSET": "0",
+        "AI_LEARNER_BUDGET_OVERRIDE": "135666432"
+      },
+      "fetched": {
+        "e25_outputs.bin": {
+          "present": true,
+          "path": "results/e63_single_build_and_conditional_floor/cells/logs/e63_wgan_map_e55b_build.e25_outputs.bin",
+          "bytes": 602112,
+          "sha256": "1c32cf2e2a3b43e28b52b5b1418e129ad3f6f6f42c4bd78d98cf48ee75a9b63f"
+        }
+      },
+      "expect_failures": [],
+      "pass": true
+    }
+  ]
+}

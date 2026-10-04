@@ -1,0 +1,37 @@
+== probe refcount_asarray 10:47:49
+rc=0
+== probe refcount_bufproto 10:47:55
+rc=0
+== probe loop_asarray 10:48:02
+rc=0
+== probe loop_buffer_protocol 10:48:09
+rc=0
+== e69_b2_resnet_cond_true 10:48:16
+{"deployment": "e69_b2_resnet_cond_true", "returncode": 0, "plugin_constructed": true, "active": false, "inferences": 0, "onair_core_unmodified": true}
+== e69_b2_resnet_cond_false 10:48:32
+{"deployment": "e69_b2_resnet_cond_false", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== e69_b2_resnet_Bu_default 10:49:00
+{"deployment": "e69_b2_resnet_Bu_default", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== e69_b2_resnet_Bu_ctl 10:49:28
+{"deployment": "e69_b2_resnet_Bu_ctl", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== e69_b3_deepae_Bu_ctl 10:49:58
+{"deployment": "e69_b3_deepae_Bu_ctl", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 100, "onair_core_unmodified": true}
+== e69_smartcam_Bu_ctl 10:50:19
+{"deployment": "e69_smartcam_Bu_ctl", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== e69_b3_deepae_Bu_long_ctl 10:56:38
+{"deployment": "e69_b3_deepae_Bu_long_ctl", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 450, "onair_core_unmodified": true}
+== e69_b3_deepae_Bu_long_fix 10:57:14
+{"deployment": "e69_b3_deepae_Bu_long_fix", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 450, "onair_core_unmodified": true}
+== e69_b2_resnet_Bu_enf_ctl 10:57:51
+{"deployment": "e69_b2_resnet_Bu_enf_ctl", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 1, "onair_core_unmodified": true}
+== e69_b3_deepae_Bu_enf_ctl 10:58:07
+{"deployment": "e69_b3_deepae_Bu_enf_ctl", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 1, "onair_core_unmodified": true}
+== e69_smartcam_Bu_enf_ctl 10:58:24
+{"deployment": "e69_smartcam_Bu_enf_ctl", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 1, "onair_core_unmodified": true}
+== e69_b2_resnet_Bu_enf_fix 10:58:46
+{"deployment": "e69_b2_resnet_Bu_enf_fix", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== e69_b3_deepae_Bu_enf_fix 10:59:17
+{"deployment": "e69_b3_deepae_Bu_enf_fix", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 100, "onair_core_unmodified": true}
+== e69_smartcam_Bu_enf_fix 10:59:37
+{"deployment": "e69_smartcam_Bu_enf_fix", "returncode": 0, "plugin_constructed": true, "active": true, "inferences": 50, "onair_core_unmodified": true}
+== done 11:05:30

@@ -1,0 +1,59 @@
+{
+ "tool": "harness/onair_integration_check.py",
+ "deployment": "e57_wgan_Bum1",
+ "onair": {
+  "path": "/home/ubuntu/e57/OnAIR",
+  "head": "e8af1187203dbda3af00fbf3b1eec05103996e01",
+  "core_unmodified": true,
+  "untracked_unchanged": true,
+  "tracked_dirty_before": "",
+  "tracked_dirty_after": "",
+  "status_before": "?? csv_out_252_06_15.csv",
+  "status_after": "?? csv_out_252_06_15.csv",
+  "check_note": "OnAIR core must be untouched: no TRACKED file may be modified before or after the run. Untracked files left by OnAIR's own example runs are reported separately and are not a modification"
+ },
+ "invocation": {
+  "cmd": [
+   "/usr/bin/python3",
+   "driver.py",
+   "onair.ini"
+  ],
+  "cwd": "/home/ubuntu/e57/OnAIR",
+  "env_var": "ONAIR_MLIR_DEPLOYMENT_CONFIG",
+  "ini": "/home/ubuntu/e57/out/e57_wgan_Bum1/onair.ini",
+  "deployment_config": "/home/ubuntu/e57/out/e57_wgan_Bum1/deployment.json"
+ },
+ "returncode": 0,
+ "plugin_constructed": true,
+ "plugin_init": {
+  "event": "init",
+  "active": false,
+  "inactive_reason": "ContractViolation: admission NOT_ADMITTED -- bounded 135666432 > budget 135666431 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)",
+  "input_mode": "file_replay",
+  "admission": {
+   "bounded_bytes": 135666432,
+   "per_call_bytes": 131382784,
+   "constants_bytes": 4283648,
+   "budget_bytes": 135666431,
+   "bound_method": "static_from_stream_layout",
+   "scope": "per_app_local_budget",
+   "verdict": "NOT_ADMITTED",
+   "admitted_budget_bytes": null,
+   "conditional_available": true,
+   "reason": "bounded 135666432 > budget 135666431 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)",
+   "budget_source": "deployment_config",
+   "budget_source_detail": "/home/ubuntu/e57/out/e57_wgan_Bum1/deployment.json[e57_wgan_Bum1]"
+  },
+  "binding": null,
+  "entry": "infer",
+  "deployment_source": "/home/ubuntu/e57/out/e57_wgan_Bum1/deployment.json[e57_wgan_Bum1]",
+  "runtime_created": false,
+  "hal_after_append": null,
+  "module_ptr_mod64": null,
+  "module_ptr_mod64_unavailable_reason": "not observable from the Python binding: VmModule.copy_buffer places its own copy of the image and does not expose the address"
+ },
+ "inferences": 0,
+ "stdout_tail": "[e57_wgan_Bum1] INACTIVE -- ContractViolation: admission NOT_ADMITTED -- bounded 135666432 > budget 135666431 (the map arm's bound would fit, but the conditional tier is opt-in and was not enabled)\n\u001b[95m\u001b[1m\n***************************************************\n************    SIMULATION STARTED     ************\n***************************************************\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 1 ---------------------\n\u001b[0m\nCURRENT DATA: [0.0, 0.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 2 ---------------------\n\u001b[0m\nCURRENT DATA: [1.0, 1.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n\u001b[95m\u001b[1m\n--------------------- STEP 3 ---------------------\n\u001b[0m\nCURRENT DATA: [2.0, 2.0]\nINTERPRETED SYSTEM STATUS: \u001b[94m---\u001b[0m\n",
+ "stderr_tail": "",
+ "records_file": "/home/ubuntu/e57/out/e57_wgan_Bum1/plugin_records.jsonl"
+}

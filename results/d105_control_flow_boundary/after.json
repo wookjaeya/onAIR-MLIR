@@ -1,0 +1,114 @@
+{
+ "what": "D105 AFTER the fix: production make_contract.py on the same edited IRs",
+ "source_layout_ir": "results/e36b_aarch64_models/b2_resnet/b2_resnet.layout_ir.txt",
+ "cells": {
+  "control_unedited": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "walker_unsupported_control_ops": [],
+   "refused_for_control_flow": false
+  },
+  "scf_for_alloca_dealloca": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "scf.for",
+    "scf.yield"
+   ],
+   "refused_for_control_flow": true
+  },
+  "scf_for_alloca_no_dealloca": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "scf.for",
+    "scf.yield"
+   ],
+   "refused_for_control_flow": true
+  },
+  "scf_for_alloca_sized_by_iv": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "scf.for",
+    "scf.yield"
+   ],
+   "refused_for_control_flow": true
+  },
+  "scf_if_two_branches_no_results": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "scf.if",
+    "scf.yield"
+   ],
+   "refused_for_control_flow": true
+  },
+  "scf_if_yields_resource": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "scf.if",
+    "scf.yield"
+   ],
+   "refused_for_control_flow": true
+  },
+  "scf_while_alloca_in_body": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "scf.condition",
+    "scf.while",
+    "scf.yield"
+   ],
+   "refused_for_control_flow": true
+  },
+  "cf_cond_br_alloca_in_blocks": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "cf.br",
+    "cf.cond_br"
+   ],
+   "refused_for_control_flow": true
+  },
+  "util_call_callee_in_own_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [],
+   "refused_for_control_flow": false
+  },
+  "util_call_callee_in_same_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "util.call"
+   ],
+   "refused_for_control_flow": true
+  },
+  "util_call_resource_operand_same_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "util.call"
+   ],
+   "refused_for_control_flow": true
+  },
+  "func_call_callee_in_own_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [],
+   "refused_for_control_flow": false
+  },
+  "func_call_callee_in_same_chunk": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "walker_unsupported_control_ops": [
+    "func.call"
+   ],
+   "refused_for_control_flow": true
+  }
+ }
+}

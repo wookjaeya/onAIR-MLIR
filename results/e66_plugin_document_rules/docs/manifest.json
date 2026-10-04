@@ -1,0 +1,104 @@
+{
+ "entries": {
+  "b2_resnet": {
+   "artifact_link": "b2_resnet.vmfb",
+   "artifact_link_target": "../../../e36b_aarch64_models/b2_resnet/b2_resnet.vmfb",
+   "artifact_sha256": "2e0bc7dc67af80b795ff4847292e51326bf7349a34c434755c365faf4457fabb",
+   "artifact_sha256_matches_document": true,
+   "bound_method": "static_from_stream_layout",
+   "dir": "results/e66_plugin_document_rules/docs/b2_resnet",
+   "document": "b2_resnet.contract.json",
+   "document_byte_identical_to_source": true,
+   "document_sha256": "93cbe369f9ca01cfc177fb72db673b28f80d8627806b218627f090e78f7b358d",
+   "document_source": "results/e65_producer_check/reissued/b2_resnet/b2_resnet.contract.json",
+   "overrides_applied": [],
+   "producer_check_state": "match",
+   "verification_grade": "verified"
+  },
+  "b2_resnet_earlier_revision": {
+   "artifact_link": "b2_resnet.vmfb",
+   "artifact_link_target": "../../../e59_info_levels_aarch64/drift_310/b2_resnet/b2_resnet.vmfb",
+   "artifact_sha256": "55586e31feebf697155e3b6cb87ec18d656d5a58bd7ef8209836cbc1842561a8",
+   "artifact_sha256_matches_document": true,
+   "bound_method": "NONE",
+   "dir": "results/e66_plugin_document_rules/docs/b2_resnet_earlier_revision",
+   "document": "b2_resnet.contract.json",
+   "document_byte_identical_to_source": true,
+   "document_sha256": "a2e0e6117ad128eff729a5f2b74ddd1faa1e7164d5db076c113739e508c86945",
+   "document_source": "results/e65_producer_check/drift_310_reanalyzed/b2_resnet/b2_resnet.contract.json",
+   "overrides_applied": [],
+   "producer_check_state": "mismatch",
+   "verification_grade": "verified"
+  },
+  "b2_resnet_override": {
+   "artifact_link": "b2_resnet.vmfb",
+   "artifact_link_target": "../../../e36b_aarch64_models/b2_resnet/b2_resnet.vmfb",
+   "artifact_sha256_matches_document": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "dir": "results/e66_plugin_document_rules/docs/b2_resnet_override",
+   "document": "b2_resnet.contract.json",
+   "edit": "%e64_c = arith.constant 64 : index\n  %e64_st, %e64_st_tp = stream.resource.alloca uninitialized on(#hal.device.affinity<@__device_0>) await(%1) => !stream.resource<staging>{%e64_c} => !stream.timepoint",
+   "edit_source": "E64 probe A6",
+   "edited_layout_ir": "results/e66_plugin_document_rules/docs/b2_resnet_override/b2_resnet.a6.layout_ir.txt",
+   "edited_layout_ir_sha256": "ba568a54926c2138c8bc9be82fc551ae15b86b23e41b7cc51dc43136d6bfeb5d",
+   "overrides_applied": [
+    "--allow-structural-mismatch"
+   ],
+   "producer_check_state": "match",
+   "verification_grade": "overridden",
+   "with_flag_rc": 0,
+   "without_flag_rc": 1,
+   "without_flag_stderr_tail": [
+    "  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['transient_slabs'] (pass --allow-structural-mismatch to override)"
+   ]
+  },
+  "b3_deepae": {
+   "artifact_link": "b3_deepae.vmfb",
+   "artifact_link_target": "../../../e36b_aarch64_models/b3_deepae/b3_deepae.vmfb",
+   "artifact_sha256": "9ff64bd168e07135c196423d44408e7780984c977912b67c8240c0db522c4d7c",
+   "artifact_sha256_matches_document": true,
+   "bound_method": "static_from_stream_layout",
+   "dir": "results/e66_plugin_document_rules/docs/b3_deepae",
+   "document": "b3_deepae.contract.json",
+   "document_byte_identical_to_source": true,
+   "document_sha256": "e9d62cc12bd5e371a1821519d487c88d3ec69cd6ad93d417b385b4df093a0f1a",
+   "document_source": "results/e65_producer_check/reissued/b3_deepae/b3_deepae.contract.json",
+   "overrides_applied": [],
+   "producer_check_state": "match",
+   "verification_grade": "verified"
+  },
+  "smartcam": {
+   "artifact_link": "smartcam.vmfb",
+   "artifact_link_target": "../../../e32_smartcam_aarch64/build/smartcam.vmfb",
+   "artifact_sha256": "ecffe6e0bcbadf51c8482c73ab147e91fa857927d1183955e03a3257041c78f1",
+   "artifact_sha256_matches_document": true,
+   "bound_method": "static_from_stream_layout",
+   "dir": "results/e66_plugin_document_rules/docs/smartcam",
+   "document": "smartcam.contract.json",
+   "document_byte_identical_to_source": true,
+   "document_sha256": "8ab28b14c13589cf2a2ac2746c415a935a9e8f35f79fcd06a56b0843fbe669ec",
+   "document_source": "results/e65_producer_check/reissued/smartcam/smartcam.contract.json",
+   "overrides_applied": [],
+   "producer_check_state": "match",
+   "verification_grade": "verified"
+  },
+  "wgan": {
+   "artifact_link": "wgan.vmfb",
+   "artifact_link_target": "../../../e53_wgan_aarch64/build/aarch64/wgan.vmfb",
+   "artifact_sha256": "e382429cbfbf580356379365fa67a8a2b01b47d58ec4e04b4a4c14165be2e102",
+   "artifact_sha256_matches_document": true,
+   "bound_method": "static_from_stream_layout",
+   "dir": "results/e66_plugin_document_rules/docs/wgan",
+   "document": "wgan.contract.json",
+   "document_byte_identical_to_source": true,
+   "document_sha256": "5ba8e1d574ec74f249cd3aa497a8db3b8cbfb928288c85b449f33a4e7630fd46",
+   "document_source": "results/e65_producer_check/reissued/wgan/wgan.contract.json",
+   "overrides_applied": [],
+   "producer_check_state": "match",
+   "verification_grade": "verified"
+  }
+ },
+ "experiment": "E66",
+ "plan": "docs/plans/E66_plugin_document_rules.md (committed before any implementation or cell, ae115f3)"
+}

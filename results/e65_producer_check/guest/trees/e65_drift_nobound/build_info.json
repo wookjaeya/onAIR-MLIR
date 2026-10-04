@@ -1,0 +1,110 @@
+{
+  "tag": "e65_drift_nobound",
+  "built_utc": "2026-09-28T01:24:27Z",
+  "cfs": {
+    "root": "/root/onair-mlir-bench/ext/cFS",
+    "commit": "78c23b0",
+    "config": "aarch64_std",
+    "simulation": "aarch64-linux-gnu",
+    "prep_opts": "-DENABLE_UNIT_TESTS=FALSE -DSIMULATION=aarch64-linux-gnu -DCFE_EDS_ENABLED=OFF -DMISSIONCONFIG=aarch64 -DCMAKE_BUILD_TYPE=debug -DCFS_APP_PATH=/root/onair-mlir-bench/ext/cFS/apps_aarch64 -DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE -DCMAKE_BUILD_TYPE=debug -S \"/root/onair-mlir-bench/ext/cFS/cfe\" -DCMAKE_INSTALL_PREFIX=/exe",
+    "dropped_apps": [],
+    "cpu2_built": false,
+    "unit_tests": false
+  },
+  "iree_runtime": {
+    "build_dir": "/root/onair-mlir-bench/ext/iree-src/build-rt-aarch64",
+    "elf_machine": "AArch64"
+  },
+  "contract_header": {
+    "path": "/home/user/onAIR-MLIR/results/e65_producer_check/drift_310_reanalyzed/b2_resnet/contract_gen.b2_resnet.h",
+    "sha256": "ae744701742825e5b5145decb7d9921c31026db617512f2a8c020bf5fc5bf09d",
+    "model_name": "b2_resnet",
+    "target_triple": "aarch64-unknown-linux-gnu",
+    "bound_known": 0,
+    "bounded_bytes": -1,
+    "artifact_sha256": "55586e31feebf697155e3b6cb87ec18d656d5a58bd7ef8209836cbc1842561a8",
+    "kernel_stack_bytes_in_header": 1232
+  },
+  "app_knobs": {
+    "route": "cache",
+    "AI_LEARNER_BUDGET_BYTES": 618856,
+    "AI_LEARNER_STACK_BASE_BYTES": 262144,
+    "AI_LEARNER_REPORT_EVERY": null,
+    "AI_LEARNER_ALLOW_CONDITIONAL_MAP": 0,
+    "ai_learner_compile_defines": [
+      "-DAI_LEARNER_ALLOW_CONDITIONAL_MAP=0",
+      "-DAI_LEARNER_BUDGET_BYTES=618856",
+      "-DAI_LEARNER_REPORT_EVERY=1",
+      "-DAI_LEARNER_STACK_BASE_BYTES=262144",
+      "-DIREE_ALLOCATOR_SYSTEM_CTL=iree_allocator_libc_ctl",
+      "-DSIMULATION=aarch64-linux-gnu",
+      "-D_XOPEN_SOURCE=600"
+    ]
+  },
+  "optin_witness": {
+    "allow_conditional_map": null,
+    "allow_conditional_map_state": "undetermined",
+    "reason": "contract has no positive CONTRACT_PER_CALL_BYTES (UNKNOWN_BOUND); the conditional tier cannot apply, so there is no compare to witness",
+    "requested": "0",
+    "binary": "/root/onair-mlir-bench/ext/cfs-aarch64-exe/e65_drift_nobound/cpu1/cf/ai_learner.so",
+    "binary_sha256": "30f3cd70b41a227c07706d44e07bb27d5fe94f62f4bb5088a9c5df0d7b5ac0c9",
+    "binary_bytes": 860440
+  },
+  "task_stack": {
+    "stack_base_bytes": 262144,
+    "kernel_stack_bytes": 1232,
+    "startup_script_stack_bytes": 263376,
+    "startup_line": "CFE_APP, ai_learner,  AI_LEARNER_AppMain, AI_LEARNER,   55,   263376, 0x0, 0;",
+    "note": "task-stack budget bucket (AAPCS64 frame of the dispatch functions), not part of the HAL contract"
+  },
+  "exe": {
+    "dir": "/root/onair-mlir-bench/ext/cfs-aarch64-exe/e65_drift_nobound/cpu1",
+    "core_cpu1_bytes": 1620984,
+    "core_cpu1_sha256": "7ab7c5b7b797238c751001dd94c5085488bb8b1f9bd2947cc126b843ed1d5b42",
+    "core_cpu1_needed": [
+      "libc.so.6",
+      "ld-linux-aarch64.so.1"
+    ],
+    "ai_learner_so_bytes": 860440,
+    "ai_learner_so_sha256": "30f3cd70b41a227c07706d44e07bb27d5fe94f62f4bb5088a9c5df0d7b5ac0c9",
+    "ai_learner_so_needed": [
+      "libm.so.6",
+      "libc.so.6",
+      "ld-linux-aarch64.so.1"
+    ],
+    "shared_objects": [
+      "ai_learner.so",
+      "cf.so",
+      "cfe_assert.so",
+      "cfe_testcase.so",
+      "ci_lab.so",
+      "cs.so",
+      "ds.so",
+      "fm.so",
+      "hk.so",
+      "hs.so",
+      "lc.so",
+      "md.so",
+      "mm.so",
+      "sample_app.so",
+      "sample_lib.so",
+      "sc.so",
+      "sch_lab.so",
+      "to_lab.so"
+    ],
+    "n_shared_objects": 18,
+    "iree_text_symbols_in_app": 1375,
+    "model_vmfb": "/home/user/onAIR-MLIR/results/e59_info_levels_aarch64/drift_310/b2_resnet/b2_resnet.vmfb",
+    "model_vmfb_matches_header": true
+  },
+  "compile_commands": {
+    "total": 480,
+    "with_mcpu_cortex_a53": 480
+  },
+  "build_seconds": {
+    "prep": 7,
+    "install": 7,
+    "total": 15,
+    "jobs": 4
+  }
+}

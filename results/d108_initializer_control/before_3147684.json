@@ -1,0 +1,45 @@
+{
+ "what": "D108 BEFORE the fix (HEAD 3147684): production make_contract.py on edited initializer prints",
+ "source_layout_ir": "results/e36b_aarch64_models/b2_resnet/b2_resnet.layout_ir.txt",
+ "cells": {
+  "control_unedited": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "module_resident_constant_bytes": 309440,
+   "refused_for_initializer_control_flow": false,
+   "refused_for_extractor_disagreement": false,
+   "stderr_tail": []
+  },
+  "loop_zero_alloc": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "module_resident_constant_bytes": 309440,
+   "refused_for_initializer_control_flow": false,
+   "refused_for_extractor_disagreement": false,
+   "stderr_tail": []
+  },
+  "branch_zero_alloc": {
+   "make_contract_rc": 0,
+   "contract_written": true,
+   "bound_method": "static_from_stream_layout",
+   "bounded_bytes": 618856,
+   "module_resident_constant_bytes": 309440,
+   "refused_for_initializer_control_flow": false,
+   "refused_for_extractor_disagreement": false,
+   "stderr_tail": []
+  },
+  "loop_4096_alloc": {
+   "make_contract_rc": 1,
+   "contract_written": false,
+   "refused_for_initializer_control_flow": false,
+   "refused_for_extractor_disagreement": true,
+   "stderr_tail": [
+    "  - structural (iree.compiler.ir) extractor DISAGREES with the regex parser on ['constants(sum)'] (pass --allow-structural-mismatch to override)"
+   ]
+  }
+ }
+}

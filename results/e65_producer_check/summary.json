@@ -1,0 +1,125 @@
+{
+ "Q1_earlier_revision_reanalysis": {
+  "pass": true,
+  "record": "results/e65_producer_check/analyzer.json"
+ },
+ "Q2_guest_cells": {
+  "cells": {
+   "e65_drift_legacy": {
+    "admission": [
+     "ADMIT"
+    ],
+    "apps_initialized_after_ai_learner_exit": 1,
+    "binding": [
+     "MATCH"
+    ],
+    "build_config_bound_known": [
+     true
+    ],
+    "built_so_sha256": "e9c9ed73037106e6288632c1270e987e91d3c46e151ac4b9a9cb22d86c86c3eb",
+    "cleanup_records": 1,
+    "guest_so_sha256": "e9c9ed73037106e6288632c1270e987e91d3c46e151ac4b9a9cb22d86c86c3eb",
+    "log": "results/e65_producer_check/guest/cells/logs/e65_drift_legacy.log",
+    "mem_init_records": 0,
+    "pass": true,
+    "run_records": 0,
+    "runtime_load_failed_status": [
+     "iree-src/runtime/src/iree/vm/bytecode/verifier.c:176: INVALID_ARGUMENT; bytecode version mismatch; runtime supports 17.0, module has 16.0"
+    ],
+    "so_sha256_matches_build": true
+   },
+   "e65_drift_nobound": {
+    "admission": [
+     "UNKNOWN_BOUND"
+    ],
+    "apps_initialized_after_ai_learner_exit": 1,
+    "binding": [],
+    "build_config_bound_known": [
+     false
+    ],
+    "built_so_sha256": "30f3cd70b41a227c07706d44e07bb27d5fe94f62f4bb5088a9c5df0d7b5ac0c9",
+    "cleanup_records": 1,
+    "guest_so_sha256": "30f3cd70b41a227c07706d44e07bb27d5fe94f62f4bb5088a9c5df0d7b5ac0c9",
+    "log": "results/e65_producer_check/guest/cells/logs/e65_drift_nobound.log",
+    "mem_init_records": 0,
+    "pass": true,
+    "run_records": 0,
+    "runtime_load_failed_status": [],
+    "so_sha256_matches_build": true
+   }
+  },
+  "pass": true
+ },
+ "Q3_onair_conditional_option": {
+  "_deployments_in_cell_config": [
+   "e65_b2_resnet_conditional_false_control",
+   "e65_b2_resnet_conditional_requested"
+  ],
+  "cells": {
+   "e65_b2_resnet_conditional_false_control": {
+    "active": true,
+    "admission_verdict": "ADMIT",
+    "allow_conditional_map_configured": false,
+    "budget_bytes": 618856,
+    "inactive_reason": null,
+    "inference_records": 50,
+    "init_records": 1,
+    "onair_core_unmodified": true,
+    "onair_returncode": 0,
+    "pass": true,
+    "runtime_created": true
+   },
+   "e65_b2_resnet_conditional_requested": {
+    "active": false,
+    "admission_verdict": null,
+    "allow_conditional_map_configured": true,
+    "budget_bytes": 618856,
+    "inactive_reason": "ConfigurationError: allow_conditional_map=true: the conditional policy is not available on this path, which does not verify the map-arm premise before creating the runtime",
+    "inference_records": 0,
+    "init_records": 1,
+    "onair_core_unmodified": true,
+    "onair_returncode": 0,
+    "pass": true,
+    "runtime_created": false
+   }
+  },
+  "pass": true
+ },
+ "Q4_reissue": {
+  "pass": true,
+  "record": "results/e65_producer_check/analyzer.json"
+ },
+ "Q5a_layout_edits": {
+  "pass": true,
+  "record": "results/e65_producer_check/analyzer.json"
+ },
+ "Q5b_multiout": {
+  "pass": true,
+  "record": "results/e65_producer_check/multiout.json"
+ },
+ "Q6_runtime_revision": {
+  "c_runtime_revision": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25 (scripts/40/61 build from the iree-src checkout at that commit; CLAUDE.md environment section)",
+  "compiler_revision_checked": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+  "python_runtime_iree_revision": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25",
+  "python_runtime_version": "3.11.0rc20260316",
+  "same_revision_as_compiler": true,
+  "source": "results/e65_producer_check/guest/onair/guest_env.txt (iree/_runtime_libs/version.py read in the guest)"
+ },
+ "checked_producer": {
+  "bytecode_version": [
+   17,
+   0
+  ],
+  "compiler": "IREE 3.11.0rc20260316",
+  "compiler_commit": "e4a3b0405d7d23554da26403658d0e8c3c5ecf25"
+ },
+ "experiment": "E65",
+ "not_claimed": [
+  "the bytecode-version check does not distinguish compiler revisions that emit the same bytecode version",
+  "K was not checked over the earlier revision; Q2(b) shows only that the runtime does not load that module",
+  "multi-slab / multi-output execution peaks (Q5 is analyzer-level)",
+  "latency, accuracy"
+ ],
+ "plan": "docs/plans/E65_producer_revision_and_plugin_option.md (committed before any cell, 7b67d89)",
+ "verdict": "PASS"
+}

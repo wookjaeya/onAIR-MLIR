@@ -1,0 +1,18 @@
+{
+ "note": "E46 raw run JSONs are ~40 MB each (11 samples x 150,528 float outputs) and are deterministic regenerations from the committed .tflite / .vmfb / fixture, so they are not vendored -- the E31 (seeded synthetic inputs) and E45 (ad01 windows) pattern. The verdict, per-sample maxima and these hashes are committed.",
+ "regenerate": [
+  "python3 harness/tflite_oracle.py results/e46_wgan/original/wgan_fpn50_f.tflite --fixture results/e46_wgan/cell/fixture --out <oracle.json>",
+  "python3 harness/iree_runner.py results/e46_wgan/build/wgan.vmfb --fixture results/e46_wgan/cell/fixture --out <iree.json> --output-layout nchw_to_nhwc"
+ ],
+ "observed": {
+  "oracle_tflite.json": {
+   "bytes": 40864067,
+   "sha256": "e8d79183ec1c190bd5fea80e76c25659947a71f5ea6e2ee9b0d1ba3c02e17c0f"
+  },
+  "iree_x86_64.json": {
+   "bytes": 40861850,
+   "sha256": "e25f830d32d0c24752c2c4f721296a9fd76d8e683a4f0fdc07731ce9105aee3a"
+  }
+ },
+ "derived_without_vendoring": "results/e46_wgan/cell/headroom.json was computed from these two files before they were removed; comparison.json is the verdict and is committed."
+}

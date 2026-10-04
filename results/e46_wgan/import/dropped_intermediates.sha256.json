@@ -1,0 +1,17 @@
+{
+ "note": "regenerable intermediates, dropped from the stored fixture (E30 precedent). The ONNX is kept because it is the converter extension's own output and the thing a reader would want to inspect.",
+ "regenerate": [
+  "iree-import-onnx results/e46_wgan/import/wgan_fpn50_f.onnx --opset-version 17 -o <torch.mlir>",
+  "iree-opt <torch.mlir> --pass-pipeline='builtin.module(torch-onnx-to-torch-backend-pipeline,torch-backend-to-linalg-on-tensors-backend-pipeline)' -o <wgan.mlir>"
+ ],
+ "dropped": {
+  "wgan.torch.mlir": {
+   "bytes": 8589286,
+   "sha256": "87d8a7447f414bfb1091febf90ddb73ff6f1259263aa9ca9e68a22ec3d174a15"
+  },
+  "wgan.mlir": {
+   "bytes": 8605512,
+   "sha256": "0671e0817a03683aae6e45099d67edf3c4c7b89a990a794484006e4cd6857f70"
+  }
+ }
+}
