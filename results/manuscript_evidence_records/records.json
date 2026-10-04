@@ -14,6 +14,7 @@
         "the values are levels at which a shortfall is taken up with the rule's owner, not hard limits",
         "the cited revision H is superseded by revision I (v31: revision I retains both values, the margin definition and the not-hard-limits statement; see review_confirmations.gsfc_std_1000i)"
       ],
+      "manuscript_status": "not cited from manuscript v44: every use above is cited to revision I (review_confirmations.gsfc_std_1000i), except the shortfall wording, which is dropped",
       "confirmed_by": "author, from the original document, during manuscript revision (v27)",
       "bytes_in_repository": false,
       "sha256": null,
@@ -83,14 +84,37 @@
       "document": "GSFC-STD-1000I, Goddard Space Flight Center Rules for the Design, Development, Verification, and Operation of Flight Systems (approved 19 August 2025; supersedes H)",
       "url": null,
       "url_note": "no address is recorded: the one the review supplied was a temporary upload path, not a stable location of the document; the standard is identified by its number, issuer and approval date (v0.73.3)",
-      "locator": "Rule 3.07; Table 3.07-1, printed pages 54-55",
+      "locator": "Rule 3.07; Table 3.07-1 and its RAM description, printed pages 54-56",
       "manuscript_uses": [
         "revision I retains the RAM margins used: 50% at preliminary design review, 30% at ship/flight",
         "revision I retains the margin definition, (allocated - used) / allocated",
-        "revision I retains the qualification cited from revision H that the values are not hard limits (manuscript v40: 'the not-hard-limits qualification'; the review's words: the table values are not uniform hard limits)"
+        "revision I retains the qualification cited from revision H that the values are not hard limits (manuscript v40: 'the not-hard-limits qualification'; the review's words: the table values are not uniform hard limits)",
+        "Rule 3.07 as the introduction cites it: margins maintained against the table and presented at key decision point reviews, the used resource estimated / analyzed / analyzed or measured / measured by phase (v43 review: revision I's Rule 3.07 and Table 3.07-1 carry this margin description, and the revision I PDF shows Rule 3.07's revision status as H)",
+        "the RAM row's bulk-memory note as II.A cites it: bulk memory is tracked apart from RAM unless it shares processor-card memory not distinguished from RAM or non-volatile memory, in which case the margins are tracked together (v43 review)"
       ],
-      "not_confirmed_here": "the phase methods of Rule 3.07 and the RAM row's bulk-storage exclusion are still cited from revision H only",
-      "confirmed_by": "the v30 manuscript review supplied by the author (2026-09-28), from the official PDF",
+      "confirmations": [
+        {
+          "review": "v30 manuscript review",
+          "on": "2026-09-28",
+          "covers": [
+            "RAM margins 50% / 30%",
+            "margin definition",
+            "not hard limits"
+          ]
+        },
+        {
+          "review": "v43 manuscript review",
+          "on": "2026-10-04",
+          "covers": [
+            "Rule 3.07 margin description cited in the introduction (Rule 3.07 revision status H in the revision I PDF)",
+            "RAM description: bulk memory tracked apart unless it shares undistinguished processor-card memory"
+          ],
+          "locator": "Rule 3.07; Table 3.07-1 and its RAM description, printed pages 54-56"
+        }
+      ],
+      "not_confirmed_here": "the wording that a shortfall is taken up with the rule's owner was confirmed for revision H only (author, v27); from manuscript v44 it is not cited",
+      "manuscript_status": "from manuscript v44 every GSFC citation is to revision I",
+      "confirmed_by": "the v30 (2026-09-28) and v43 (2026-10-04) manuscript reviews supplied by the author, both from the official PDF",
       "bytes_in_repository": false,
       "sha256": null,
       "sha256_unavailable_reason": "the document was read by the reviewer outside this environment; no copy was supplied, so no digest can be computed here",

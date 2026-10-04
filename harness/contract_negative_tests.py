@@ -9974,6 +9974,29 @@ def d113_manuscript_evidence_records_cases(tmp):
         out.append(Result("d113/13b OSAL task-stack source and PTHREAD_STACK_MIN header read as recorded",
                           okl and okh and oks, "lines=%s header=%s sha256=%s" % (okl, okh, oks)))
 
+    # d113/14 (v0.76.2) -- from manuscript v44 every GSFC citation is to revision I. The v43 review confirmed the
+    # two uses that were H-only (Rule 3.07's phase description; the RAM row's bulk-memory note, with its
+    # exception); the H-only shortfall wording is dropped. The record says so, and the guardrail no longer
+    # says the two uses are still cited from H.
+    ri = [a for a in rc if a["id"] == "gsfc_std_1000i"]
+    hh = [a for a in ac if a["id"] == "gsfc_std_1000h"]
+    conf = (ri[0].get("confirmations") or []) if ri else []
+    v43 = [c for c in conf if c.get("review") == "v43 manuscript review"]
+    v43txt = " ".join(v43[0].get("covers", [])) if v43 else ""
+    nc = ri[0].get("not_confirmed_here", "") if ri else ""
+    cl = open(os.path.join(repo, "CLAUDE.md"), encoding="utf-8").read()
+    ok14 = (len(ri) == 1 and [c.get("review") for c in conf] == ["v30 manuscript review", "v43 manuscript review"]
+            and "Rule 3.07" in v43txt and "bulk memory" in v43txt and "unless" in v43txt
+            and "revision I" in (ri[0].get("manuscript_status") or "")
+            and "rule's owner" in nc and "still cited from revision H" not in nc
+            and len(hh) == 1 and "not cited from manuscript v44" in (hh[0].get("manuscript_status") or "")
+            and "**여전히 H에서만** 인용한다" not in cl)
+    out.append(Result("d113/14 GSFC citations all to revision I: v43 review covers Rule 3.07 and the bulk-memory "
+                      "note; H-only wording named and dropped; guardrail updated",
+                      ok14, "reviews=%s v43=%r not_confirmed=%r h_status=%r old_guardrail=%s" % (
+                          [c.get("review") for c in conf], v43txt[:60], nc[:50],
+                          (hh[0].get("manuscript_status") if hh else None), "**여전히 H에서만** 인용한다" in cl)))
+
     # d114/1 -- every tracked vmfb link resolves to a tracked artifact (e65/1 counts by artifact)
     r = subprocess.run(["git", "ls-files", "-s", "*.vmfb"], cwd=repo, capture_output=True, text=True)
     tracked = {l.split("\t", 1)[1]: l.split()[0] for l in r.stdout.splitlines() if "\t" in l}
